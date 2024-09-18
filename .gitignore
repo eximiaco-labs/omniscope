@@ -169,3 +169,6 @@ cython_debug/
 /cache
 
 .DS_Store
+
+**/*.ipynb
+**/*.csv
