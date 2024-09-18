@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demonstração do Reveal.js</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/night.min.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section>
+                <h1>Bem-vindo ao Reveal.js</h1>
+                <p>Uma poderosa biblioteca para criar apresentações incríveis!</p>
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript Logo" style="height: 100px; margin: 20px;">
+
+            </section>
+
+            <section data-transition="zoom">
+                <h2>Transições Impressionantes</h2>
+                <p>Este slide usa a transição "zoom"</p>
+                <img src="https://picsum.photos/seed/picsum/800/400" alt="Imagem aleatória" style="width: 100%; max-width: 800px;">
+            </section>
+
+            <section data-transition="fade-in slide-out">
+                <h2>Transições Mistas</h2>
+                <p>Fade-in na entrada, slide-out na saída</p>
+            </section>
+
+            <section>
+                <section data-background-gradient="linear-gradient(to bottom, #283b95, #17b2c3)">
+                    <h2>Slides Verticais</h2>
+                    <p>Com gradiente de fundo</p>
+                </section>
+                <section data-background-color="#e7ad52">
+                    <h2>Slide Aninhado</h2>
+                    <p>Com cor de fundo sólida</p>
+                </section>
+            </section>
+
+            <section data-background-image="https://picsum.photos/id/1015/1920/1080" data-background-opacity="0.5">
+                <h2>Imagem de Fundo</h2>
+                <p>Com opacidade ajustada</p>
+            </section>
+
+            <section>
+                <h2>Fragmentos</h2>
+                <p class="fragment">Aparecem um por um</p>
+                <p class="fragment fade-up">Com diferentes animações</p>
+                <p class="fragment highlight-red">E estilos</p>
+            </section>
+
+            <section data-markdown>
+                <textarea data-template>
+                    ## Suporte a Markdown
+
+                    - Lista de itens
+                    - Com **negrito** e *itálico*
+                </textarea>
+            </section>
+
+            <section>
+                <h2>Gráficos com Chart.js</h2>
+                <canvas class="stretch" id="myChart"></canvas>
+            </section>
+
+            <section data-background-iframe="https://example.com" data-background-interactive>
+                <h2 style="background-color: rgba(0,0,0,0.7); padding: 20px;">iFrames Interativos</h2>
+            </section>
+
+            <section>
+                <h2>Obrigado!</h2>
+                <p>Explore mais em <a href="https://revealjs.com">revealjs.com</a></p>
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript Logo" style="height: 100px; margin: 20px;">
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/plugin/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/plugin/highlight/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            plugins: [ RevealMarkdown, RevealHighlight ]
+        });
+
+        // Chart.js
+        let ctx = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Vermelho', 'Azul', 'Amarelo', 'Verde', 'Roxo', 'Laranja'],
+                datasets: [{
+                    label: '# de Votos',
+                    data: [12, 19, 3, 5, 2, 3],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

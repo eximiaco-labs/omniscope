@@ -1,0 +1,37 @@
+
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Container diagram for "Omniscope"
+
+SHOW_PERSON_OUTLINE()
+
+Person(consultant, "Consultant", "Uses Omniscope to track activity progress, compare past performance, and monitor material developed for promotion.")
+Person(en, "Engineer", "Uses Omniscope to monitor project progress and access detailed company information.")
+Person(am, "Account Manager", "Uses Omniscope to track the progress of various engagements and obtain precise information to better serve clients.")
+Person(manager, "Manager", "Uses Omniscope to access detailed information about organizational projects.")
+
+System_Boundary(c1, "Omniscope") {
+    Container(webApp, "UI", "Dash,Plotly", "Presents integrated data visually for effective management")
+    Container(models, "Models", "Python,Requests,Pydantic", "Fetches and consolidates data from external systems using REST APIs, with Pydantic validation")
+}
+
+Rel(consultant, webApp, "Uses", "https")
+Rel(en, webApp, "Uses", "https")
+Rel(am, webApp, "Uses", "https")
+Rel(manager, webApp, "Uses", "https")
+
+Rel_Neighbor(webApp, models, "Fetches consolidated data")
+System_Ext(TasksManager, "Task Management (TodoIst)", "Organizes non-routine tasks such as project-related tasks")
+Rel(models, TasksManager, "fetches data from", "REST")
+System_Ext(Ontology, "Ontology (Wordpress)", "Serves as the company's knowledge base, covering concepts, frameworks, clients, and more")
+Rel(models, Ontology, "fetches data from", "REST")
+System_Ext(TimeTracker, "Time Tracker (Everhour)", "Logs EximiaCo engagements, detailing all projects and hours worked")
+Rel(models, TimeTracker, "fetches data from", "REST")
+System_Ext(CRM, "CRM (Pipedrive)", "Serves as the company's CRM system, golden source for Clients and Contact Infos")
+Rel(models, CRM, "fetches data from", "REST")
+System_Ext(Insights, "Insights (Wordpress)", "Where EximiaCo shares lessons learned with clients")
+Rel(models, Insights, "fetches data from", "REST")
+System_Ext(SalesFunnelB2B, "SalesFunnelB2B (Pipedrive)", "Information about deals and opportunities B2B")
+Rel(models, SalesFunnelB2B, "fetches data from", "REST")
+@enduml

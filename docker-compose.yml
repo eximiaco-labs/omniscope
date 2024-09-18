@@ -1,0 +1,19 @@
+version: "3.10"
+
+services:
+  omniscope:
+    build: 
+      context: .
+    ports:
+      - "8085:80"
+    environment:
+      - OAUTHLIB_INSECURE_TRANSPORT="1"
+      - AUTH_METADATA_URL
+      - AUTH_CLIENT_ID
+      - AUTH_CLIENT_SECRET
+      - FLASK_SECRET_KEY
+      - TODOIST_API_KEY
+      - EVERHOUR_API_KEY
+      - PIPEDRIVE_API_KEY
+      - WORDPRESS_USER
+      - WORDPRESS_PASS
