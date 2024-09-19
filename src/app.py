@@ -24,6 +24,7 @@ globals.app = Dash(
     external_stylesheets=[
         dbc.themes.CYBORG,
         "https://use.fontawesome.com/releases/v5.15.4/css/all.css",
+        "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css",
         dbc_css,
     ],
     # suppress_callback_exceptions=True,

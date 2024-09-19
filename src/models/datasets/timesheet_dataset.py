@@ -191,19 +191,12 @@ class TimesheetDateAnalysis:
         ds = df[df['DayOfWeek'] == day_of_week]
         self.daily_summary = ds.groupby(['Date', 'Kind'])['TimeInHs'].sum().unstack().fillna(0)
 
-        # Criar DataFrame de referência apenas com os tipos presentes e incluir a data atual
-        reference_df = pd.DataFrame(
-            [(date, kind) for date in dates_of_interest for kind in kinds_present],
-            columns=['Date', 'Kind']
-        ).set_index(['Date', 'Kind'])
+        all_dates_df = pd.DataFrame(0, index=dates_of_interest, columns=kinds_present)
+        all_dates_df.index.name = 'Date'
 
-        self.daily_summary = (
-            reference_df.join(self.daily_summary, how='left')
-            .fillna(0)
-            .unstack(level='Kind')
-            .fillna(0)
-        )
-        self.daily_summary.columns = self.daily_summary.columns.droplevel(0)
+        self.daily_summary = pd.concat([self.daily_summary, all_dates_df]).groupby('Date').sum().fillna(0)
+        self.daily_summary = self.daily_summary.sort_index()
+
 
         current_day_data = df[df['Date'] == date_of_interest.date()]
         self.total_hours = current_day_data['TimeInHs'].sum()
@@ -225,6 +218,43 @@ class TimesheetDateAnalysis:
         self.worst_day_hours = ds_grouped.min()
 
         self.average_hours = ds_grouped.mean()
+
+
+class TimelinessSummary:
+    def __init__(self, df):
+        self.df = df
+
+        self.total_rows = len(df)
+        self.total_time_in_hours = df['TimeInHs'].sum()
+
+        self.early_filter = df['Correctness'].str.startswith('WTF -')
+        self.ok_filter = df['Correctness'] == 'OK'
+        self.acceptable_filter = df['Correctness'] == 'Acceptable (1)'
+        self.other_filter = ~(self.early_filter | self.ok_filter | self.acceptable_filter)
+
+        self.early_rows = df[self.early_filter].shape[0]
+        self.early_time_in_hours = df.loc[self.early_filter, 'TimeInHs'].sum()
+
+        self.ok_rows = df[self.ok_filter].shape[0]
+        self.ok_time_in_hours = df.loc[self.ok_filter, 'TimeInHs'].sum()
+
+        self.acceptable_rows = df[self.acceptable_filter].shape[0]
+        self.acceptable_time_in_hours = df.loc[self.acceptable_filter, 'TimeInHs'].sum()
+
+        self.late_rows = df[self.other_filter].shape[0]
+        self.late_time_in_hours = df.loc[self.other_filter, 'TimeInHs'].sum()
+
+        total_hours = self.total_time_in_hours
+        if total_hours == 0:
+            self.early_percentage = 0
+            self.ok_percentage = 100
+            self.acceptable_percentage = 0
+            self.late_percentage = 0
+        else:
+            self.early_percentage = (self.early_time_in_hours / total_hours) * 100
+            self.ok_percentage = (self.ok_time_in_hours / total_hours) * 100
+            self.acceptable_percentage = (self.acceptable_time_in_hours / total_hours) * 100
+            self.late_percentage = (self.late_time_in_hours / total_hours) * 100
 
 
 class TimeSheetFieldSummary:

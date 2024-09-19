@@ -59,3 +59,13 @@
   border-bottom-left-radius: 0;
   margin-left: -1px;
 }
+
+.DateInput_input {
+    font-size: 1rem;
+    padding: 0px;
+    border-radius: var(--bs-border-radius);
+}
+
+.SingleDatePickerInput {
+    border-radius: var(--bs-border-radius);
+}

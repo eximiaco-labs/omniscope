@@ -1,56 +1,18 @@
-import dash
 import ast
-from dash import html, dcc, callback, Input, Output, State
+from datetime import datetime
+
+import dash
 import dash_bootstrap_components as dbc
-from datetime import datetime, timedelta
 import pandas as pd
-from dash_bootstrap_components import Card
+from dash import html, dcc, callback, Input, Output, State
 
 import globals
-
-from models.helpers.weeks import Weeks
 import models.datasets.timesheet_dataset as tsds
-
-import ui.components.base.cards as c
-import ui.components.base.title as title
 import ui.components.allocation.allocation_sidebyside_table as asbst
-from ui.helpers.beaulty import format_date_with_suffix
+import ui.components.base.cards as c
+import ui.components.date_picker_calendar as dpc
 
 dash.register_page(__name__, path='/', redirect_from=['/week-review'], name='Omniscope')
-
-
-def create_week_row(date_of_interest: datetime, kind: str) -> html.Div:
-    start_of_week, end_of_week = Weeks.get_week_dates(date_of_interest)
-    week = Weeks.get_week_string(date_of_interest)
-
-    dataset = globals.datasets.timesheets.get_last_six_weeks(date_of_interest)
-    df = dataset.data
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
-    df = df[df['Kind'] == kind]
-
-    max_value = df.groupby('Date')['TimeInHs'].sum().max() * 1.05
-
-    dates = [
-        start_of_week + timedelta(days=i)
-        for i in range(7)
-    ]
-
-    cards = [
-        c.create_day_card(d, date_of_interest, df, max_value)
-        for d in dates
-    ]
-
-    return html.Div(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(card, width=True)
-                    for card in cards
-                ], style={'marginBottom': '10px'}
-            ),
-            asbst.render(tsds.get_six_weeks_allocation_analysis(df, date_of_interest))
-        ]
-    )
 
 
 def layout():
@@ -70,20 +32,35 @@ def layout():
                 value=1,
             ),
         ],
-        className="radio-group text-center mb-3",
+        className="radio-group text-center",
     )
 
     return html.Div(
         [
-            dcc.DatePickerSingle(
-                id='week-datepicker',
-                display_format='MMM Do, YY',
-                month_format='MMM Do, YY',
-                placeholder='MMM Do, YY',
-                date=datetime.today().date()
+            dbc.Row(
+                [
+                    dbc.Col(
+                       dpc.render(datetime.today())
+                    ),
+                    # dbc.Col(
+                    #     dcc.DatePickerSingle(
+                    #         id='week-datepicker',
+                    #         display_format='MMM Do, YY',
+                    #         month_format='MMM Do, YY',
+                    #         placeholder='MMM Do, YY',
+                    #         date=datetime.today().date(),
+                    #     ),
+                    #     width="auto"  # Deixa a coluna com tamanho ajustado ao conteúdo
+                    # ),
+                    dbc.Col(
+                        button_group,
+                        width="auto"  # Mantém o botão ajustado ao seu tamanho
+                    ),
+                ],
+                align="center",
+                justify="center",
+                className='mb-3'
             ),
-            button_group,
-            dcc.Store(id='selected-date-store'),
             html.Div(id='week-content-area')
         ],
     )
@@ -91,34 +68,44 @@ def layout():
 
 @callback(
     Output('week-content-area', 'children'),
-    Input('week-datepicker', 'date'),
     Input('radios-kind', 'value'),
+    Input('selected-date-store', 'data'),
 )
-def update_week_content_area(selected_date: str, radios_kind: int):
+def update_week_content_area(radios_kind: int, selected_date: str):
     date_of_interest = datetime.strptime(selected_date, '%Y-%m-%d')
 
     kind = ['Squad', 'Consulting', 'Internal']
 
+    dataset = globals.datasets.timesheets.get_last_six_weeks(date_of_interest)
+    df = dataset.data
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
+    df = df[df['Kind'] == kind[radios_kind]]
+
     return html.Div(
-        create_week_row(date_of_interest, kind[radios_kind])
-        # [
-        #     title.section('Consulting'),
-        #     create_week_row(date_of_interest, 'Consulting'),
-        #     title.section('Squads'),
-        #     create_week_row(date_of_interest, 'Squad'),
-        #     title.section('Internal'),
-        #     create_week_row(date_of_interest, 'Internal'),
-        # ]
+        [
+            c.create_week_row(date_of_interest, kind[radios_kind]),
+            dbc.Row(
+                [
+                    dbc.Col(c.create_month_card(date_of_interest, kind=kind[radios_kind]), width=3),
+                    dbc.Col(c.create_week_card(date_of_interest, kind=kind[radios_kind]), width=3),
+                    dbc.Col(c.create_lte_card(date_of_interest, kind=kind[radios_kind]), width=6),
+                ], class_name='mb-3'
+            ),
+            asbst.render(tsds.get_six_weeks_allocation_analysis(df, date_of_interest))
+        ]
     )
 
 
 @callback(
-    Output('week-datepicker', 'date'),
+    Output('selected-date-store', 'data', allow_duplicate=True),
     Input({'type': 'day-card', 'index': dash.dependencies.ALL}, 'n_clicks'),
     State({'type': 'day-card', 'index': dash.dependencies.ALL}, 'id'),
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def update_date_picker(n_clicks, ids):
+    if all(click is None for click in n_clicks):
+        return dash.no_update
+
     ctx = dash.callback_context
     if not ctx.triggered:
         return dash.no_update

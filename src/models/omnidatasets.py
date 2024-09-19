@@ -131,6 +131,20 @@ class OmniDatasets:
         elif slug.endswith('previous-week'):
             start, end = Weeks.get_previous_dates(1)
             return source.get(start, end)
+        elif slug.endswith('previous-month'):
+            now = datetime.now()
+            if now.month == 1:
+                previous_month = 12
+                year = now.year - 1
+            else:
+                previous_month = now.month - 1
+                year = now.year
+            start = datetime(year, previous_month, 1, hour=0, minute=0, second=0, microsecond=0)
+            end = datetime(
+                year, previous_month, calendar.monthrange(year, previous_month)[1], hour=23, minute=59, second=59,
+                microsecond=9999
+            )
+            return source.get(start, end)
 
         month, year = slug.split('-')[-2:]
         month = list(calendar.month_name).index(month.capitalize())
@@ -143,6 +157,7 @@ class OmniDatasets:
             {'kind': 'Timesheet', 'name': 'This Semester'},
             {'kind': 'Timesheet', 'name': 'This Quarter'},
             {'kind': 'Timesheet', 'name': 'This Month'},
+            {'kind': 'Timesheet', 'name': 'Previous Month'},
             {'kind': 'Timesheet', 'name': 'This Week'},
             {'kind': 'Timesheet', 'name': 'Previous Week'}
         ]
