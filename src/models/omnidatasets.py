@@ -85,7 +85,17 @@ class OmniDatasets:
 
         source = self.get_dataset_source_by_slug(slug)
 
-        if slug.endswith('last-six-weeks'):
+        if slug.startswith('timesheet-last-six-weeks') and slug != 'timesheet-last-six-weeks':
+            parts = slug.split('-')
+
+            year = parts[-3]
+            month = parts[-2]
+            day = parts[-1]
+
+            doi = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d")
+
+            return source.get_last_six_weeks(doi)
+        elif slug.endswith('last-six-weeks'):
             return source.get_last_six_weeks()
         elif slug.endswith('all-tasks'):
             return source.get()

@@ -11,6 +11,7 @@ import models.datasets.timesheet_dataset as tsds
 import ui.components.allocation.allocation_sidebyside_table as asbst
 import ui.components.base.cards as c
 import ui.components.date_picker_calendar as dpc
+import ui.components.dataset_selector as selector
 
 dash.register_page(__name__, path='/', redirect_from=['/week-review'], name='Omniscope')
 
@@ -40,8 +41,9 @@ def layout():
             dbc.Row(
                 [
                     dbc.Col(
-                       dpc.render(datetime.today())
+                       dpc.render(datetime.today()), width="auto"
                     ),
+
                     # dbc.Col(
                     #     dcc.DatePickerSingle(
                     #         id='week-datepicker',
@@ -52,9 +54,11 @@ def layout():
                     #     ),
                     #     width="auto"  # Deixa a coluna com tamanho ajustado ao conteúdo
                     # ),
-                    dbc.Col(
-                        button_group,
-                        width="auto"  # Mantém o botão ajustado ao seu tamanho
+                    dbc.Col([
+                            selector.render('week-review', default_option='timesheet-previous-week', label='Dataset'),
+                            button_group,
+                        ],
+                         # Mantém o botão ajustado ao seu tamanho
                     ),
                 ],
                 align="center",
@@ -68,6 +72,7 @@ def layout():
 
 @callback(
     Output('week-content-area', 'children'),
+    Output({'type': 'dataset-dropdown', 'id': 'week-review'}, 'value'),
     Input('radios-kind', 'value'),
     Input('selected-date-store', 'data'),
 )
@@ -81,6 +86,8 @@ def update_week_content_area(radios_kind: int, selected_date: str):
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
     df = df[df['Kind'] == kind[radios_kind]]
 
+    dataset = f'timesheet-last-six-weeks-{selected_date}'
+
     return html.Div(
         [
             c.create_week_row(date_of_interest, kind[radios_kind]),
@@ -93,7 +100,7 @@ def update_week_content_area(radios_kind: int, selected_date: str):
             ),
             asbst.render(tsds.get_six_weeks_allocation_analysis(df, date_of_interest))
         ]
-    )
+    ), dataset
 
 
 @callback(

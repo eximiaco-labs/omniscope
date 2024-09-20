@@ -63,6 +63,7 @@ def render(
     [
         Output({'type': 'dataset-selector-filter-area', 'id': ALL}, 'children'),
         Output({'type': 'dataset-selector-store', 'id': ALL}, 'value'),
+        Output({'type': 'dataset-dropdown', 'id': ALL}, 'options'),
     ],
     [
         Input({'type': 'dataset-dropdown', 'id': ALL}, 'value'),
@@ -71,10 +72,13 @@ def render(
         Input({'type': 'dataset-selector-filter-area', 'id': ALL}, 'id'),
         Input({'type': 'filter-dropdown', 'id': ALL, 'index': ALL}, 'id'),
         State({'type': 'dataset-filters-params-store', 'id': ALL}, 'data'),
+        State({'type': 'dataset-dropdown', 'id': ALL}, 'options'),
     ],
 )
 def update_dataset_selector_filter_area(selection, filter_values, dropdown_ids, filter_area_ids, filter_ids,
-                                        filters_params):
+                                        filters_params, current_dropdown_options):
+
+    ctx = dash.callback_context
 
     result_a = []
     result_b = []
@@ -83,10 +87,16 @@ def update_dataset_selector_filter_area(selection, filter_values, dropdown_ids, 
         dataset_slug = selection[selection_idx]
         context_name = dropdown_ids[selection_idx].get('id')
 
+        if isinstance(ctx.triggered_id, dict):
+            if ctx.triggered_id.get('type') == 'dataset-dropdown':
+                if ctx.triggered_id.get('id') == context_name:
+                    options = current_dropdown_options[selection_idx]
+                    if not any(item['value'] == dataset_slug for item in options):
+                        options.append({'label': dataset_slug, 'value': dataset_slug})
+
         params = filters_params[selection_idx]
         enforce_filters = params.get('enforce_filters', True)
         filters_defaults: dict = params['filters']
-
 
         source = globals.datasets.get_dataset_source_by_slug(dataset_slug)
         df = globals.datasets.get_by_slug(dataset_slug)
@@ -177,7 +187,7 @@ def update_dataset_selector_filter_area(selection, filter_values, dropdown_ids, 
         result_b.append({'dataset_slug': dataset_slug, 'filter_values': contextual_filter_values,
                         'context_name': context_name})
 
-    result = result_a, result_b
+    result = result_a, result_b, current_dropdown_options
     return result
 
 
