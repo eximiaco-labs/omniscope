@@ -596,11 +596,60 @@ def create_lte_card(d: datetime, dataset=None, worker=None, kind=None):
 
     summary = tsds.TimelinessSummary(timesheet.data)
 
-    # Defining icon tooltips with color matching
-    early_tooltip = f"Early: {summary.early_rows} entries, {summary.early_time_in_hours:.1f} hours"
-    ok_tooltip = f"OK: {summary.ok_rows} entries, {summary.ok_time_in_hours:.1f} hours"
-    acceptable_tooltip = f"Acceptable: {summary.acceptable_rows} entries, {summary.acceptable_time_in_hours:.1f} hours"
-    late_tooltip = f"Late: {summary.late_rows} entries, {summary.late_time_in_hours:.1f} hours"
+    import dash_bootstrap_components as dbc
+    import dash_html_components as html
+
+    summary = tsds.TimelinessSummary(timesheet.data)
+
+    import dash_html_components as html
+
+    summary = tsds.TimelinessSummary(timesheet.data)
+
+    # Função auxiliar para montar a lista dos trabalhadores
+    def build_worker_list(worker_list):
+        if not worker_list:
+            return "No workers"
+
+        # Ordenar a lista em ordem decrescente pelo total de horas
+        sorted_workers = sorted(worker_list, key=lambda w: w['time_in_hours'], reverse=True)
+
+        # Criar a lista com o formato "Nome (Entradas: X, Horas: Y)"
+        worker_descriptions = [
+            f"{w['worker']} ({w['entries']}, {w['time_in_hours']:.1f}hs)"
+            for w in sorted_workers
+        ]
+
+        # Juntar os trabalhadores com vírgula
+        return ", ".join(worker_descriptions)
+
+    # Defining icon tooltips with worker lists
+    early_tooltip = html.Div(
+        [
+            html.P(f"Early: {summary.early_rows} entries, {summary.early_time_in_hours:.1f} hours"),
+            html.P(f"{build_worker_list(summary.early_workers)}")
+        ]
+    )
+
+    ok_tooltip = html.Div(
+        [
+            html.P(f"OK: {summary.ok_rows} entries, {summary.ok_time_in_hours:.1f} hours"),
+            html.P(f"{build_worker_list(summary.ok_workers)}")
+        ]
+    )
+
+    acceptable_tooltip = html.Div(
+        [
+            html.P(f"Acceptable: {summary.acceptable_rows} entries, {summary.acceptable_time_in_hours:.1f} hours"),
+            html.P(f"{build_worker_list(summary.acceptable_workers)}")
+        ]
+    )
+
+    late_tooltip = html.Div(
+        [
+            html.P(f"Late: {summary.late_rows} entries, {summary.late_time_in_hours:.1f} hours"),
+            html.P(f"{build_worker_list(summary.late_workers)}")
+        ]
+    )
 
     # Adaptive narrative summary insight
     max_category = max(
