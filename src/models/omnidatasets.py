@@ -1,5 +1,6 @@
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
+from calendar import monthrange
 import pandas as pd
 
 from models.base.powerdataframe import SummarizablePowerDataFrame
@@ -84,6 +85,17 @@ class OmniDatasets:
             return None
 
         source = self.get_dataset_source_by_slug(slug)
+
+        if slug.startswith('timesheet-month-'):
+            parts = slug.split('-')
+            year = int(parts[-2])
+            month = int(parts[-1])
+
+            first, last = monthrange(year, month)
+            first_day = datetime(year, month, 1, 0,0,0,0)
+            last_day = datetime(year, month, last, 23, 59, 59, 9999)
+
+            return source.get(first_day, last_day)
 
         if slug.startswith('timesheet-last-six-weeks') and slug != 'timesheet-last-six-weeks':
             parts = slug.split('-')

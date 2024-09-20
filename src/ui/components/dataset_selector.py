@@ -16,7 +16,8 @@ def render(
         label: Optional[str] = 'Dataset',
         render_filters: Optional[bool] = True,
         filters: Optional[dict] = {},
-        enforce_filters: Optional[bool] = True
+        enforce_filters: Optional[bool] = True,
+        show_dropdown: Optional[bool] = True,
 ):
     dropdown_options = [
         {
@@ -39,7 +40,8 @@ def render(
                 ),
 
             ],
-            className='mb-3'
+            className='mb-3',
+            style={'display': 'none' if not show_dropdown else 'block'},
         ),
         dcc.Store(id={'type': 'dataset-selector-store', 'id': dropdown_id}),
         dcc.Store(

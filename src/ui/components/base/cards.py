@@ -282,11 +282,12 @@ def disable_day_card_figure(figure):
     figure.update_shapes(dict(opacity=0.05))
 
 
-def create_week_row(date_of_interest: datetime, kind: str = None, worker_name: str = None) -> html.Div:
+def create_week_row(date_of_interest: datetime, dataset=None, kind: str = None, worker_name: str = None) -> html.Div:
     start_of_week, end_of_week = Weeks.get_week_dates(date_of_interest)
     week = Weeks.get_week_string(date_of_interest)
 
-    dataset = globals.datasets.timesheets.get_last_six_weeks(date_of_interest)
+    if not dataset:
+        dataset = globals.datasets.timesheets.get_last_six_weeks(date_of_interest)
 
     if worker_name:
         dataset = dataset.filter_by('WorkerName', worker_name)
@@ -317,14 +318,31 @@ def create_week_row(date_of_interest: datetime, kind: str = None, worker_name: s
     )
 
 
-def create_month_card(d: datetime, worker=None, kind: str = None) -> html.Div:
-    timesheet_this_month = (
-        globals.datasets.get_by_slug('timesheet-this-month')
-    )
+def create_month_card(d: datetime, params=None, worker=None, kind: str = None) -> html.Div:
+    if params:
+        p = params.copy()
+        p['dataset_slug'] = f'timesheet-month-{d.year}-{d.month}'
+        timesheet_this_month = globals.datasets.get_by_params(p)
+    else:
+        timesheet_this_month = (
+            globals.datasets.get_by_slug('timesheet-this-month')
+        )
 
-    timesheet_previous_month = (
-        globals.datasets.get_by_slug('timesheet-previous-month')
-    )
+    if params:
+        p = params.copy()
+        month = d.month
+        year = d.year
+
+        month = month - 1
+        if month == 0:
+            month = 12
+            year = year - 1
+        p['dataset_slug'] = f'timesheet-month-{year}-{month}'
+        timesheet_previous_month = globals.datasets.get_by_params(p)
+    else:
+        timesheet_previous_month = (
+            globals.datasets.get_by_slug('timesheet-previous-month')
+        )
 
     if worker:
         timesheet_this_month = timesheet_this_month.filter_by('WorkerName', worker.name)
@@ -339,7 +357,7 @@ def create_month_card(d: datetime, worker=None, kind: str = None) -> html.Div:
     previous_month = timesheet_previous_month.data
 
     # Group and compute the necessary aggregates
-    limit = datetime.now() - relativedelta(months=1)
+    limit = d - relativedelta(months=1)
     limit = datetime(limit.year, limit.month, limit.day, 23, 59, 59, 9999)
 
     hours_this_month = this_month['TimeInHs'].sum()
@@ -438,10 +456,11 @@ def create_month_card(d: datetime, worker=None, kind: str = None) -> html.Div:
     )
 
 
-def create_week_card(d: datetime, worker=None, kind=None):
-    timesheet = (
-        globals.datasets.timesheets.get_last_six_weeks()
-    )
+def create_week_card(d: datetime, dataset=None, worker=None, kind=None):
+    if dataset:
+        timesheet = dataset
+    else:
+        dataset=globals.datasets.timesheets.get_last_six_weeks()
 
     if worker:
         timesheet = timesheet.filter_by('WorkerName', worker.name)
@@ -563,10 +582,11 @@ def create_week_card(d: datetime, worker=None, kind=None):
     )
 
 
-def create_lte_card(d: datetime, worker=None, kind=None):
-    timesheet = (
-        globals.datasets.timesheets.get_last_six_weeks(d)
-    )
+def create_lte_card(d: datetime, dataset=None, worker=None, kind=None):
+    if dataset:
+        timesheet = dataset
+    else:
+        timesheet = globals.datasets.timesheets.get_last_six_weeks(d)
 
     if worker:
         timesheet = timesheet.filter_by('WorkerName', worker.name)
