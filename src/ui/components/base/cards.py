@@ -596,15 +596,6 @@ def create_lte_card(d: datetime, dataset=None, worker=None, kind=None):
 
     summary = tsds.TimelinessSummary(timesheet.data)
 
-    import dash_bootstrap_components as dbc
-    import dash_html_components as html
-
-    summary = tsds.TimelinessSummary(timesheet.data)
-
-    import dash_html_components as html
-
-    summary = tsds.TimelinessSummary(timesheet.data)
-
     # Função auxiliar para montar a lista dos trabalhadores
     def build_worker_list(worker_list):
         if not worker_list:

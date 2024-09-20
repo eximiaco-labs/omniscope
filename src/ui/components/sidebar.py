@@ -15,7 +15,7 @@ def render():
         ("Datasets", "fas fa-database", "/datasets"),
         ("Side-by-side", "fas fa-columns", "/side-by-side"),
         # ("Sales Funnel B2B", "fas fa-chart-line", "/sales-funnel-b2b"),
-        ("Late Timesheet Entries", "fas fa-clock", "/lte"),
+        #("Late Timesheet Entries", "fas fa-clock", "/lte"),
         # ("Ontology Publications", "fas fa-book", "/ontology-publications"),
         # ("Insights Publications", "fas fa-lightbulb", "/insights-publications"),
     ]
