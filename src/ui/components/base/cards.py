@@ -8,9 +8,9 @@ from dash_bootstrap_components import Card
 
 from models.helpers.weeks import Weeks
 import models.datasets.timesheet_dataset as tsds
-from ui.helpers.beaulty import format_date_with_suffix
+from ui.helpers.beauty import format_date_with_suffix
 import ui.components.base.colors as colors
-import ui.helpers.beaulty as beauty
+import ui.helpers.beauty as beauty
 
 import plotly.graph_objects as go
 import globals
@@ -93,7 +93,7 @@ def create_day_card(date: datetime, date_of_interest: datetime, dataset: pd.Data
     if is_future:
         disable_day_card_figure(figure)
 
-    if in_a_row:
+    if in_a_row and is_the_day:
         header = [
             html.P(day_of_week, style={'color': text_color}, className=f"fw-bold mb-1"),
             html.Small(format_date_with_suffix(date), style={'color': text_color}, className=f"fw-bold")

@@ -11,6 +11,7 @@ from models.datasets.omni_dataset import OmniDataset
 from models.helpers.weeks import Weeks
 from models.omnimodels import OmniModels
 from models.domain import ProductOrService
+from ui.helpers import beauty
 
 
 class TimesheetDataset(OmniDataset):
@@ -142,23 +143,25 @@ class TimesheetDataset(OmniDataset):
 
 def get_six_weeks_allocation_analysis(
         df: pd.DataFrame,
-        date_of_interest: datetime
+        date_of_interest: datetime,
+        column_of_interest: str = 'WorkerName'
 ):
     week_day = (date_of_interest.weekday() + 1) % 7
     week = Weeks.get_week_string(date_of_interest)
+    output_column_name = beauty.convert_to_label(column_of_interest)
 
     df = df[df['NDayOfWeek'] <= week_day]
     df_left = df[df['Week'] != week]
     df_right = df[df['Week'] == week]
 
-    summary_left = df_left.groupby(['WorkerName', 'Week'])['TimeInHs'].sum().reset_index()
-    summary_left = summary_left.groupby('WorkerName')['TimeInHs'].mean().reset_index()
+    summary_left = df_left.groupby([column_of_interest, 'Week'])['TimeInHs'].sum().reset_index()
+    summary_left = summary_left.groupby(column_of_interest)['TimeInHs'].mean().reset_index()
     summary_left.rename(columns={'TimeInHs': 'Mean'}, inplace=True)
 
-    summary_right = df_right.groupby('WorkerName')['TimeInHs'].sum().reset_index()
+    summary_right = df_right.groupby(column_of_interest)['TimeInHs'].sum().reset_index()
     summary_right.rename(columns={'TimeInHs': 'Current'}, inplace=True)
-    merged_summary = pd.merge(summary_left, summary_right, on='WorkerName', how='outer').fillna(0)
-    merged_summary.rename(columns={'WorkerName': 'Worker'}, inplace=True)
+    merged_summary = pd.merge(summary_left, summary_right, on=column_of_interest, how='outer').fillna(0)
+    merged_summary.rename(columns={column_of_interest: output_column_name}, inplace=True)
 
     merged_summary['Total'] = merged_summary['Current'] + merged_summary['Mean']
     merged_summary = merged_summary.sort_values(by='Total', ascending=False).reset_index(drop=True)
@@ -173,7 +176,7 @@ def get_six_weeks_allocation_analysis(
 
     merged_summary['Status'] = np.select(conditions, choices, default=0)
 
-    cols = ['Status', 'Worker', 'Mean', 'Current']
+    cols = ['Status', output_column_name, 'Mean', 'Current']
     return merged_summary[cols]
 
 
@@ -196,7 +199,6 @@ class TimesheetDateAnalysis:
 
         self.daily_summary = pd.concat([self.daily_summary, all_dates_df]).groupby('Date').sum().fillna(0)
         self.daily_summary = self.daily_summary.sort_index()
-
 
         current_day_data = df[df['Date'] == date_of_interest.date()]
         self.total_hours = current_day_data['TimeInHs'].sum()

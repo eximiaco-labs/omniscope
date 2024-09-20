@@ -6,7 +6,7 @@ from typing import Optional
 import pandas as pd
 import globals
 import models.helpers.slug as sl
-import re
+from ui.helpers import beauty
 
 
 def render(
@@ -132,14 +132,6 @@ def update_dataset_selector_filter_area(selection, filter_values, dropdown_ids, 
         contextual_filter_values = list(active_filters.values())
 
         filters = []
-
-        def convert_to_label(text):
-            if text.endswith("Name"):
-                text = text[:-4]
-
-            result = re.sub(r'(?<!^)(?=[A-Z])', ' ', text)
-            return result
-
         for filter in filterable_fields:
             filter_value = active_filters.get(filter, None)
 
@@ -148,12 +140,14 @@ def update_dataset_selector_filter_area(selection, filter_values, dropdown_ids, 
                     {'label': val, 'value': val}
                     for val in data[filter].drop_duplicates().sort_values()
                 ]
+
+                visible = (enforce_filters and filter in filters_defaults) or len(options) <= 1
                 filters.append(
                     html.Tr(
                         [
                             html.Td(
                                 dbc.Label(
-                                    convert_to_label(filter),
+                                    beauty.convert_to_label(filter),
                                     className='text-end',
                                     style={'background-color': 'black'}
                                 ),
@@ -166,13 +160,12 @@ def update_dataset_selector_filter_area(selection, filter_values, dropdown_ids, 
                                     multi=True,
                                     value=filter_value,
                                 ),
-                                style={'width': '100%', 'background-color': 'black'}
+                                style={'width': '100%', 'background-color': 'black', 'padding': '2px'}
                             )
                         ],
-                        style={'display': 'none'} if (enforce_filters and filter in filters_defaults) or len(
-                            options
-                            ) <= 1
-                        else {'display': 'table-row'}
+                        style={
+                            'display': 'none' if visible else 'table-row',
+                        }
                     )
                 )
 

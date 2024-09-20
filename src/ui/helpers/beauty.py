@@ -1,4 +1,6 @@
 from datetime import datetime
+import re
+
 
 def beautify(input):
     if isinstance(input, float):
@@ -17,3 +19,11 @@ def format_date_with_suffix(date: datetime) -> str:
         suffix = ["st", "nd", "rd"][day % 10 - 1]
 
     return date.strftime(f'%b {day}{suffix}')
+
+
+def convert_to_label(text):
+    if text.endswith("Name"):
+        text = text[:-4]
+
+    result = re.sub(r'(?<!^)(?=[A-Z])', ' ', text)
+    return result

@@ -70,8 +70,15 @@ def update_week_content_area(params):
                 dbc.Col(c.create_month_card(date_of_interest, params=params), width=3),
                 dbc.Col(c.create_week_card(date_of_interest, dataset=ds), width=3),
                 dbc.Col(c.create_lte_card(date_of_interest, dataset=ds), width=6),
-            ]),
-            asbst.render(tsds.get_six_weeks_allocation_analysis(df, date_of_interest))
+            ], class_name='mb-3'),
+            dbc.Row(
+                asbst.render(tsds.get_six_weeks_allocation_analysis(df, date_of_interest)),
+                class_name='mb-3'
+            ),
+            dbc.Row(
+                asbst.render(tsds.get_six_weeks_allocation_analysis(df, date_of_interest, 'ClientName')),
+                class_name='mb-3'
+            ),
         ]
     )
 

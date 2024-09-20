@@ -2,7 +2,7 @@ from dash import html
 import pandas as pd
 import dash_bootstrap_components as dbc
 
-from ui.helpers.beaulty import beautify
+from ui.helpers.beauty import beautify
 import ui.components.base.cards as c
 
 
