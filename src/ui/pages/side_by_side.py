@@ -70,29 +70,33 @@ def render_kind_summary(kind: str, left_ds, right_ds, left: str, right: str):
     kpis = dbc.Row(
         [
             title.section(f'{kind}'),
-            dbc.Col(dbc.Row(
-                [
-                    c.create_kpi_card(f'{kind} Working Days', unique_dates_left, width=4, method=html.H3),
-                    c.create_kpi_card(f'Avg. {kind} per day', f'{avg_timeinhs_left:.1f}', width=4, method=html.H3),
-                    c.create_kpi_card(f'{kind} Clients', number_of_clients_left, width=4, method=html.H3),
-                ]), style={'border-right': '1px solid #ccc'}
+            dbc.Col(
+                dbc.Row(
+                    [
+                        c.create_kpi_card(f'{kind} Working Days', unique_dates_left, width=4, method=html.H3),
+                        c.create_kpi_card(f'Avg. {kind} per day', f'{avg_timeinhs_left:.1f}', width=4, method=html.H3),
+                        c.create_kpi_card(f'{kind} Clients', number_of_clients_left, width=4, method=html.H3),
+                    ]
+                ), style={'border-right': '1px solid #ccc'}
             ),
-            dbc.Col(dbc.Row(
-                [
-                    c.create_kpi_card(
-                        f'{kind} Working Days', unique_dates_right, width=4,
-                        bottom=c.bottom(unique_dates_left, unique_dates_right), method=html.H3
-                    ),
-                    c.create_kpi_card(
-                        f'Avg. {kind} per Day', f'{avg_timeinhs_right:.1f}', width=4,
-                        bottom=c.bottom(avg_timeinhs_left, avg_timeinhs_right), method=html.H3
-                    ),
-                    c.create_kpi_card(
-                        f'{kind} Clients', number_of_clients_right, width=4,
-                        bottom=c.bottom(number_of_clients_left, number_of_clients_right), method=html.H3
-                    ),
-                ]
-            ))
+            dbc.Col(
+                dbc.Row(
+                    [
+                        c.create_kpi_card(
+                            f'{kind} Working Days', unique_dates_right, width=4,
+                            bottom=c.bottom(unique_dates_left, unique_dates_right), method=html.H3
+                        ),
+                        c.create_kpi_card(
+                            f'Avg. {kind} per Day', f'{avg_timeinhs_right:.1f}', width=4,
+                            bottom=c.bottom(avg_timeinhs_left, avg_timeinhs_right), method=html.H3
+                        ),
+                        c.create_kpi_card(
+                            f'{kind} Clients', number_of_clients_right, width=4,
+                            bottom=c.bottom(number_of_clients_left, number_of_clients_right), method=html.H3
+                        ),
+                    ]
+                )
+            )
         ]
     )
 
@@ -163,6 +167,7 @@ def layout():
             html.Div(id='side-by-side-content')
         ]
     )
+
 
 @callback(
     Output({'type': 'dataset-dropdown', 'id': 'right'}, 'value'),
@@ -280,36 +285,44 @@ def update_side_by_side_content(left, right):
                     ]
                 )], style={'border-right': '1px solid #ccc'}
             ),
-            dbc.Col([
-                dbc.Row(
-                    html.P(title_right, className='text-center')
-                ),
-                dbc.Row(
-                    [
-                        c.create_kpi_card('Working Days', total_dates_right, 4, bottom=total_dates_bottom, method=html.H3),
-                        c.create_kpi_card('Working Hours', f'{total_hours_right:.1f}', 4, bottom=total_hours_bottom, method=html.H3),
-                        c.create_kpi_card('Billable Hours', f'{billable_right:.1f}', 4, bottom=billable_bottom, method=html.H3),
-                    ], className='mb-3'
-                ),
-                dbc.Col(
+            dbc.Col(
+                [
+                    dbc.Row(
+                        html.P(title_right, className='text-center')
+                    ),
                     dbc.Row(
                         [
                             c.create_kpi_card(
-                                f"{kind} Hours",
-                                f"{right_hours[kind]:.1f}",
-                                color=colors.KIND_COLORS[kind], width=4,
-                                bottom=right_bottoms[kind],
+                                'Working Days', total_dates_right, 4, bottom=total_dates_bottom, method=html.H3
+                                ),
+                            c.create_kpi_card(
+                                'Working Hours', f'{total_hours_right:.1f}', 4, bottom=total_hours_bottom,
                                 method=html.H3
-                            )
-                            for kind in kinds
-                        ]
-                    )
-                )]
+                                ),
+                            c.create_kpi_card(
+                                'Billable Hours', f'{billable_right:.1f}', 4, bottom=billable_bottom, method=html.H3
+                                ),
+                        ], className='mb-3'
+                    ),
+                    dbc.Col(
+                        dbc.Row(
+                            [
+                                c.create_kpi_card(
+                                    f"{kind} Hours",
+                                    f"{right_hours[kind]:.1f}",
+                                    color=colors.KIND_COLORS[kind], width=4,
+                                    bottom=right_bottoms[kind],
+                                    method=html.H3
+                                )
+                                for kind in kinds
+                            ]
+                        )
+                    )]
             )
         ], style={'marginTop': '10px'}
     ), dbc.Row(
         [
-            ], style={'marginTop': '10px'}
+        ], style={'marginTop': '10px'}
     ), html.Hr(style={'marginBottom': '10px', 'marginTop': '10px'}),
               render_kind_summary('Squad', left_ds, right_ds, left['dataset_slug'], right['dataset_slug']),
               render_kind_summary('Consulting', left_ds, right_ds, left['dataset_slug'], right['dataset_slug'])]
