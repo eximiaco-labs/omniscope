@@ -19,9 +19,9 @@ function Sidebar() {
                         <ScanEye className="h-4 w-4 transition-all group-hover:scale-110"/>
                         <span className="sr-only">Omniscope</span>
                     </Link>
-                    <SidebarItem href='#' tooltip='Week Review' iconName='CalendarCheck2'/>
-                    <SidebarItem href='#' tooltip='Side-by-Side' iconName='Columns2'/>
-                    <SidebarItem href='#' tooltip='Datasets' iconName='Database'/>
+                    <SidebarItem href='/week-review' tooltip='Week Review' iconName='CalendarCheck2'/>
+                    <SidebarItem href='/side-by-side' tooltip='Side-by-Side' iconName='Columns2'/>
+                    <SidebarItem href='/datasets' tooltip='Datasets' iconName='Database'/>
 
                     <SidebarItem href='/consultants' tooltip='Consultants & Engineers' iconName='UserCheck'/>
                     <SidebarItem href='/account-managers' tooltip='Account Managers' iconName='Briefcase'/>
@@ -34,29 +34,34 @@ function Sidebar() {
                     <SidebarItem href='/inconsistency-finder' tooltip='Inconsistency Finder' iconName='Search'/>
                     <SidebarItem href='/hit-refresh' tooltip='Refresh data' iconName='RefreshCw'/>
                 </nav>
+
+                <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
+                    <SidebarItem href='/settings' tooltip='Settings' iconName='Settings'/>
+                </nav>
             </aside>
         </div>
     )
 }
 
 type IconName = keyof typeof LucideIcons;
+
 interface SidebarItemProps {
     href: string;
     tooltip: string;
     iconName: IconName;
 }
 
-function SidebarItem({ href, tooltip, iconName }: SidebarItemProps) {
+function SidebarItem({href, tooltip, iconName}: SidebarItemProps) {
 
     return (
-        <TooltipProvider>
+        <TooltipProvider delayDuration={100}>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Link
                         href={href}
                         className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
                     >
-                        <Icon name={iconName} className="h-5 w-5"/>
+                    <Icon name={iconName} className="h-5 w-5"/>
                         <span className="sr-only">{tooltip}</span>
                     </Link>
                 </TooltipTrigger>
