@@ -1,0 +1,11 @@
+{
+    "name": "omniscope",
+    "version": "2.0.0",
+    "scripts": {
+        "dev:frontend": "cd frontend && npm run dev",
+        "dev": "npm run dev:frontend"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
