@@ -8,10 +8,10 @@ from typing import List, Optional, Dict
 import validators
 from pydantic import BaseModel, HttpUrl
 
-from backend.models.base.semanticmodel import SemanticModel
-from backend.models.syntactic import Wordpress, Post, User, EventDetail
+from models.base.semanticmodel import SemanticModel
+from models.syntactic import Wordpress, Post, User, EventDetail
 
-from backend.decorators import c4_external_system
+from decorators import c4_external_system
 
 
 class Class(BaseModel):

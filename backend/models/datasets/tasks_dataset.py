@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from backend.decorators import cache
+from decorators import cache
 from models.base.powerdataframe import SummarizablePowerDataFrame
 from models.datasets.omni_dataset import OmniDataset
 from models.omnimodels import OmniModels

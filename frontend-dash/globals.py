@@ -1,5 +1,5 @@
-from backend.models.omnimodels import OmniModels
-from backend.models.omnidatasets import OmniDatasets
+from models.omnimodels import OmniModels
+from models.omnidatasets import OmniDatasets
 from datetime import datetime
 from dash import Dash
 

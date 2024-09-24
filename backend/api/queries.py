@@ -1,11 +1,8 @@
 from ariadne import QueryType
+import globals
 
 query = QueryType()
 
-@query.field("hello")
-def resolve_hello(_, info):
-    return "Olá, mundo!"
-
-@query.field("exemplo")
-def resolve_exemplo(_, info):
-    return {"dados": "Estes são dados de exemplo da API GraphQL"}
+@query.field("workers")
+def resolve_workers(_, info):
+    return globals.omni_models.workers.get_all().values()

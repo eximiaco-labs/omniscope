@@ -1,5 +1,5 @@
 import os
-from backend.decorators import list_c4_external_systems_from_dir
+from decorators import list_c4_external_systems_from_dir
 
 prefix = """
 @startuml

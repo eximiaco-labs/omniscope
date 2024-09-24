@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, snake_case_fallback_resolvers
 from ariadne.explorer import ExplorerGraphiQL
-
 from api.queries import query
+
+import globals
 
 app = Flask(__name__)
 CORS(app)
@@ -32,4 +33,5 @@ def graphql_server():
     return jsonify(result), status_code
 
 if __name__ == '__main__':
+    globals.update()
     app.run()

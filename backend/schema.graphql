@@ -1,8 +1,20 @@
-type Query {
-  hello: String!
-  exemplo: ExemploDados!
+enum WorkerKind {
+  ALL
+  ACCOUNT_MANAGER
+  CONSULTANT
 }
 
-type ExemploDados {
-  dados: String!
+type Worker {
+  id: Int!
+  slug: String!
+  name: String!
+  kind: WorkerKind!
+  ontologyUserId: Int
+  insightsUserId: Int
+  todoistUserId: Int
+  pipedriveUserId: Int
+}
+
+type Query {
+  workers: [Worker!]!
 }

@@ -1,10 +1,10 @@
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict
 
-from backend.models.base.semanticmodel import SemanticModel
-from backend.models.syntactic import Pipedrive, Person as PipedrivePerson
+from models.base.semanticmodel import SemanticModel
+from models.syntactic import Pipedrive, Person as PipedrivePerson
 
-from backend.decorators import c4_external_system
+from decorators import c4_external_system
 
 
 class Person(BaseModel):

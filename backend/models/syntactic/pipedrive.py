@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional, List, Dict
-from backend.decorators import cache
+from decorators import cache
 
 import requests
 from pydantic import BaseModel, validator, HttpUrl

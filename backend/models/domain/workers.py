@@ -4,7 +4,7 @@ from typing import Optional, Dict
 from pydantic import BaseModel
 
 import models.semantic.ontology as o
-import backend.models.syntactic.everhour as t
+import models.syntactic.everhour as t
 
 from models.semantic import Insights, Ontology, TasksManager, TimeTracker, SalesFunnelB2B
 

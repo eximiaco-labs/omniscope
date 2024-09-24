@@ -2,7 +2,7 @@ from models.domain.workers import WorkersRepository, Worker
 from models.semantic import Ontology, TimeTracker
 
 import models.semantic.ontology as o
-import backend.models.syntactic.everhour as t
+import models.syntactic.everhour as t
 
 from pydantic import BaseModel
 from typing import Optional, List, Dict

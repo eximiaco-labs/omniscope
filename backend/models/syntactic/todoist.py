@@ -2,7 +2,7 @@ import requests
 from pydantic import BaseModel
 from typing import List, Optional
 
-from backend.decorators import cache
+from decorators import cache
 import models.helpers.slug as slug
 
 

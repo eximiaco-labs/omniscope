@@ -1,4 +1,4 @@
-from backend.models.syntactic import EventDetail
+from models.syntactic import EventDetail
 from models.semantic import Ontology, Case, TimeTracker, Project
 import models.semantic.ontology as o
 from typing import Optional, Dict, List

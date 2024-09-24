@@ -5,7 +5,7 @@ from typing import List
 import pandas as pd
 import numpy as np
 
-from backend.decorators import cache
+from decorators import cache
 from models.base.powerdataframe import SummarizablePowerDataFrame
 from models.datasets.omni_dataset import OmniDataset
 from models.helpers.weeks import Weeks

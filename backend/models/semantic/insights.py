@@ -3,10 +3,10 @@ from typing import List, Dict
 
 from pydantic import BaseModel, HttpUrl
 
-from backend.models.base.semanticmodel import SemanticModel
-from backend.models.syntactic import Wordpress, User, Post
+from models.base.semanticmodel import SemanticModel
+from models.syntactic import Wordpress, User, Post
 
-from backend.decorators import c4_external_system
+from decorators import c4_external_system
 
 
 class Insight(BaseModel):

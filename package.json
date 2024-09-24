@@ -3,7 +3,8 @@
     "version": "2.0.0",
     "scripts": {
         "dev:frontend": "cd frontend && npm run dev",
-        "dev": "npm run dev:frontend"
+        "dev:backend": "cd backend && python app.py",
+        "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
     },
     "devDependencies": {
         "concurrently": "^8.2.2"
