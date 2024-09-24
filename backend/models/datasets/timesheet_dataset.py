@@ -11,7 +11,7 @@ from models.datasets.omni_dataset import OmniDataset
 from models.helpers.weeks import Weeks
 from models.omnimodels import OmniModels
 from models.domain import ProductOrService
-from ui.helpers import beauty
+import models.helpers.beauty as beauty
 
 
 class TimesheetDataset(OmniDataset):
