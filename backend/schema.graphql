@@ -1,0 +1,8 @@
+type Query {
+  hello: String!
+  exemplo: ExemploDados!
+}
+
+type ExemploDados {
+  dados: String!
+}
