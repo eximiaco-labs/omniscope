@@ -13,8 +13,13 @@ type Worker {
   insightsUserId: Int
   todoistUserId: Int
   pipedriveUserId: Int
+  isRecognized: Boolean!
+  omniUrl: String!
+  photoUrl: String!
+  isOntologyAuthor: Boolean
 }
 
 type Query {
-  workers: [Worker!]!
+  accountManagers: [Worker!]!
+  consultantsAndEngineers: [Worker!]!
 }
