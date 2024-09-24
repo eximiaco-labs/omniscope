@@ -1,36 +1,30 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
+import type {Metadata} from "next";
 import "./globals.css";
-import Sidebar from "@/app/components/Sidebar";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import {SidebarLayout} from "@/components/catalyst/sidebar-layout";
+import {Sidebar} from "@/components/catalyst/sidebar";
+import {Navbar} from "@/components/catalyst/navbar";
 
 export const metadata: Metadata = {
-  title: "Omniscope",
-  description: "Integrating information from various sources into a single system, ensuring that data is consistent and accessible.",
+    title: "Omniscope",
+    description: "Integrating information from various sources into a single system, ensuring that data is consistent and accessible.",
 };
 
 export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
+                                       children,
+                                   }: Readonly<{
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Sidebar></Sidebar>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+        <body>
+        <SidebarLayout
+            sidebar={<Sidebar>{/* Your sidebar content */}</Sidebar>}
+            navbar={<Navbar>{/* Your navbar content */}</Navbar>}
+        >
+            {children}
+        </SidebarLayout>
+        </body>
+        </html>
+    );
 }
+
