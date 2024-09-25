@@ -19,7 +19,32 @@ type Worker {
   isOntologyAuthor: Boolean
 }
 
+type Client {
+  id: Int!
+  slug: String!
+  name: String!
+  isStrategic: Boolean!
+  accountManager: Worker
+  isRecognized: Boolean!
+  omniUrl: String!
+  logoUrl: String!
+}
+
+type Sponsor {
+  slug: String!
+  name: String!
+  photoUrl: String
+  clientId: Int
+  crmId: String
+  jobTitle: String
+  linkedinUrl: String
+  omniUrl: String!
+}
+
+
 type Query {
   accountManagers: [Worker!]!
   consultantsAndEngineers: [Worker!]!
+  clients: [Client!]!
+  sponsors: [Sponsor!]!
 }
