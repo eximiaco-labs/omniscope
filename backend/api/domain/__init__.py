@@ -5,6 +5,7 @@ from .consultants_engineers import resolve_consultants_and_engineers, resolve_co
 from .clients import resolve_clients, resolve_client
 from .sponsors import resolve_sponsors, resolve_sponsor
 from .cases import resolve_cases, resolve_case
+from .offers import resolve_offers, resolve_offer
 
 query = QueryType()
 
@@ -18,3 +19,5 @@ query.set_field("sponsors", resolve_sponsors)
 query.set_field("sponsor", resolve_sponsor)
 query.set_field("cases", resolve_cases)
 query.set_field("case", resolve_case)
+query.set_field("offers", resolve_offers)
+query.set_field("offer", resolve_offer)

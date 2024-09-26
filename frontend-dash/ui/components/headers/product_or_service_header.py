@@ -1,9 +1,9 @@
-from models.domain import ProductOrService
+from models.domain import Offer
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
 
-def render(pos: ProductOrService):
+def render(pos: Offer):
     return html.Div(
         [
             dbc.Row(

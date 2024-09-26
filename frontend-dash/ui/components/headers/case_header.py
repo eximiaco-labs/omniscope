@@ -2,7 +2,7 @@ from dash import dcc, html
 import dash_bootstrap_components as dbc
 from typing import List
 
-from models.domain import Case, ProductOrService
+from models.domain import Case, Offer
 import globals
 
 
@@ -34,7 +34,7 @@ def render(case: Case):
 
     p_repo = globals.omni.products_or_services
 
-    products_or_services: List[ProductOrService] = [
+    products_or_services: List[Offer] = [
         p_repo.get_by_id(offer)
         for offer in case.offers_ids
     ]

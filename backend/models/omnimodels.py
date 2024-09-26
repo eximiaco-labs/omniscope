@@ -5,7 +5,7 @@ from models.domain import (
     CasesRepository,
     ProjectsRepository,
     SponsorsRepository,
-    ProductsOrServicesRepository
+    OffersRepository
 )
 
 from models.helpers.weeks import Weeks
@@ -31,7 +31,7 @@ class OmniModels:
         self.cases = CasesRepository(self.ontology, self.tracker, self.clients)
         self.projects = ProjectsRepository(self.tasksmanager)
         self.sponsors = SponsorsRepository(self.cases, self.crm)
-        self.products_or_services = ProductsOrServicesRepository(self.ontology)
+        self.products_or_services = OffersRepository(self.ontology)
 
     def get_tasks_for_worker_df(self, worker_id) -> list:
         worker = self.workers.get_by_id(worker_id)

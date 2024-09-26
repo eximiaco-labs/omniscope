@@ -1,10 +1,10 @@
 from dash import dcc
 import dash_bootstrap_components as dbc
 
-from models.domain import ProductOrService
+from models.domain import Offer
 
 
-def render(ps: ProductOrService):
+def render(ps: Offer):
     return dbc.Col(
         dcc.Link(
             dbc.Card(

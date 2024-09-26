@@ -10,7 +10,7 @@ from models.base.powerdataframe import SummarizablePowerDataFrame
 from models.datasets.omni_dataset import OmniDataset
 from models.helpers.weeks import Weeks
 from models.omnimodels import OmniModels
-from models.domain import ProductOrService
+from models.domain import Offer
 import models.helpers.beauty as beauty
 
 
@@ -57,7 +57,7 @@ class TimesheetDataset(OmniDataset):
                 row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
                 # row['case_omni_url'] = case.omni_url if case else None
 
-                products_or_services: List[ProductOrService] = [
+                products_or_services: List[Offer] = [
                     ps_repo.get_by_id(offer).name
                     for offer in case.offers_ids
                 ]
