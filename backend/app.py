@@ -33,5 +33,6 @@ def graphql_server():
     return jsonify(result), status_code
 
 if __name__ == '__main__':
+
     globals.update()
     app.run()
