@@ -41,10 +41,50 @@ type Sponsor {
   omniUrl: String!
 }
 
+type Case {
+  id: String!
+  slug: String!
+  title: String!
+  isActive: Boolean!
+  clientId: String
+  everhourProjectsIds: [String!]
+  status: String
+  lastUpdated: String
+  sponsor: String
+  offersIds: [Int!]
+  errors: [String!]!
+  hasDescription: Boolean!
+  hasClient: Boolean!
+  hasEverhourProjectsIds: Boolean!
+  numberOfDaysWithNoUpdates: Int!
+  hasUpdatedDescription: Boolean!
+  omniUrl: String!
+}
+
+
+type ProductOrService {
+  id: Int!
+  name: String!
+  slug: String!
+  coverImageUrl: String
+  omniUrl: String!
+}
+
 
 type Query {
+
   accountManagers: [Worker!]!
   consultantsAndEngineers: [Worker!]!
   clients: [Client!]!
   sponsors: [Sponsor!]!
+  cases: [Case!]!
+
+  accountManager(id: Int, slug: String): Worker @atLeastOne
+  consultantOrEngineer(id: Int, slug: String): Worker @atLeastOne
+  client(id: Int, slug: String): Client @atLeastOne
+  sponsor(slug: String!): Sponsor
+  case(id: String, slug: String): Case @atLeastOne
 }
+
+directive @atLeastOne on FIELD_DEFINITION
+
