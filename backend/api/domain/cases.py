@@ -1,12 +1,44 @@
+from graphql import GraphQLResolveInfo
+
 import globals
 
-def resolve_cases(_, info):
-    all_cases = sorted(globals.omni_models.cases.get_all().values(), key=lambda case: case.title)
-    return all_cases
+def resolve_cases(_, info, only_actives: bool = False):
+    for f in info.field_nodes:
+        print(f.name)
+    all_cases = globals.omni_models.cases.get_all().values()
 
-def resolve_case(_, info, id=None, slug=None):
+    if only_actives:
+        all_cases = filter(lambda case: case.is_active, all_cases)
+
+    all_cases = sorted(all_cases, key=lambda case: case.title)
+
+    return map(
+        lambda x: _make_result_object(info, x),
+        all_cases
+    )
+
+def resolve_case(_, info: GraphQLResolveInfo, id=None, slug=None):
     if id is not None:
-        return globals.omni_models.cases.get_by_id(id)
+        return _make_result_object(
+            info,
+            globals.omni_models.cases.get_by_id(id)
+        )
     elif slug is not None:
-        return globals.omni_models.cases.get_by_slug(slug)
+        return _make_result_object(
+            info,
+            globals.omni_models.cases.get_by_slug(slug)
+        )
+    
     return None
+
+def _make_result_object(info: GraphQLResolveInfo, case):
+    result = case.__dict__
+    field_node = info.field_nodes[0]
+    selection_set = field_node.selection_set
+    selections = selection_set.selections
+
+    if any(x.name.value == 'client' for x in selections):
+        if case.client_id:
+            result['client'] = globals.omni_models.clients.get_by_id(case.client_id)
+
+    return result

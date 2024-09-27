@@ -59,6 +59,8 @@ type Case {
   numberOfDaysWithNoUpdates: Int!
   hasUpdatedDescription: Boolean!
   omniUrl: String!
+
+  client: Client
 }
 
 
@@ -77,7 +79,7 @@ type Query {
   consultantsAndEngineers: [Worker!]!
   clients: [Client!]!
   sponsors: [Sponsor!]!
-  cases: [Case!]!
+  cases(onlyActives: Boolean): [Case!]!
   offers: [Offer!]!
 
   accountManager(id: Int, slug: String): Worker @atLeastOne

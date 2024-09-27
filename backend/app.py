@@ -13,7 +13,10 @@ CORS(app)
 
 type_defs = load_schema_from_path("./api/schema.graphql")
 schema = make_executable_schema(
-    type_defs, query, snake_case_fallback_resolvers
+    type_defs, 
+    query, 
+    snake_case_fallback_resolvers,
+    convert_names_case=True
 )
 
 explorer_html = ExplorerGraphiQL().html(None)
