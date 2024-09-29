@@ -72,57 +72,57 @@ function OmniscopeSidebar() {
           </div>
         </div>
         <SidebarSection>
-          <SidebarItem href="/week-review" current={pathname === '/week-review'}>
+          <SidebarItem href="/pages/analytics/week-review" current={pathname === '/pages/analytics/week-review'}>
             <CalendarCheckIcon />
             <SidebarLabel>Week Review</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/side-by-side" current={pathname === '/side-by-side'}>
+          <SidebarItem href="/pages/analytics/side-by-side" current={pathname === '/pages/analytics/side-by-side'}>
             <ColumnsIcon />
             <SidebarLabel>Side-by-side</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/datasets" current={pathname === '/datasets'}>
+          <SidebarItem href="/pages/analytics/datasets" current={pathname === '/pages/analytics/datasets'}>
             <DatabaseIcon />
             <SidebarLabel>Datasets</SidebarLabel>
           </SidebarItem>
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>About Us</SidebarHeading>
-          <SidebarItem href="/consultants" current={pathname === '/consultants'}>
+          <SidebarItem href="/pages/about-us/consultants" current={pathname === '/pages/about-us/consultants'}>
             <UserIcon />
             <SidebarLabel>Consultants & Engineers</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/account-managers" current={pathname === '/account-managers'}>
+          <SidebarItem href="/pages/about-us/account-managers" current={pathname === '/pages/about-us/account-managers'}>
             <BriefcaseIcon />
             <SidebarLabel>Account Managers</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/clients" current={pathname === '/clients'}>
+          <SidebarItem href="/pages/about-us/clients" current={pathname === '/pages/about-us/clients'}>
             <UsersIcon />
             <SidebarLabel>Clients</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/sponsors" current={pathname === '/sponsors'}>
+          <SidebarItem href="/pages/about-us/sponsors" current={pathname === '/pages/about-us/sponsors'}>
             <HandshakeIcon />
             <SidebarLabel>Sponsors</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/products-or-services" current={pathname === '/products-or-services'}>
+          <SidebarItem href="/pages/about-us/products-or-services" current={pathname === '/pages/about-us/products-or-services'}>
             <BoxIcon />
             <SidebarLabel>Products and Services</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/cases" current={pathname === '/cases'}>
+          <SidebarItem href="/pages/about-us/cases" current={pathname === '/pages/about-us/cases'}>
             <FolderOpenIcon />
             <SidebarLabel>Cases</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/projects" current={pathname === '/projects'}>
+          <SidebarItem href="/pages/about-us/projects" current={pathname === '/pages/about-us/projects'}>
             <ProjectorIcon />
             <SidebarLabel>Projects</SidebarLabel>
           </SidebarItem>
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>Administrative</SidebarHeading>
-          <SidebarItem href="/inconsistency-finder" current={pathname === '/inconsistency-finder'}>
+          <SidebarItem href="/pages/management/inconsistency-finder" current={pathname === '/pages/management/inconsistency-finder'}>
             <SearchIcon />
             <SidebarLabel>Inconsistency Finder</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/hit-refresh" current={pathname === '/hit-refresh'}>
+          <SidebarItem href="/pages/management/hit-refresh" current={pathname === '/pages/management/hit-refresh'}>
             <ScaleIcon />
             <SidebarLabel>Refresh data</SidebarLabel>
           </SidebarItem>
