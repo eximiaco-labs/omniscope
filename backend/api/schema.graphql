@@ -9,6 +9,7 @@ type Worker {
   slug: String!
   name: String!
   kind: WorkerKind!
+  position: String!
   ontologyUserId: Int
   insightsUserId: Int
   todoistUserId: Int

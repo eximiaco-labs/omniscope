@@ -20,6 +20,7 @@ class Worker(BaseModel):
     slug: str
     name: str
     kind: WorkerKind
+    position: str
     ontology_user_id: Optional[int] = None
     insights_user_id: Optional[int] = None
     todoist_user_id: Optional[int] = None
@@ -172,6 +173,7 @@ class WorkersRepository:
                 id=onto_worker.id,
                 name=onto_worker.name,
                 slug=onto_worker.slug,
+                position=onto_worker.position,
                 kind=WorkerKind.ACCOUNT_MANAGER if onto_worker.is_account_manager else WorkerKind.CONSULTANT,
                 ontology_info=onto_worker
             )
@@ -187,7 +189,8 @@ class WorkersRepository:
                     name=tracker_worker.name,
                     slug=tracker_worker.slug,
                     kind=WorkerKind.CONSULTANT,
-                    tracker_info=tracker_worker
+                    tracker_info=tracker_worker,
+                    position=''
                 )
                 neg_id = neg_id - 1
 
@@ -202,6 +205,7 @@ class WorkersRepository:
                     slug=user.slug,
                     kind=WorkerKind.CONSULTANT,
                     ontology_user_id=user.id,
+                    position=''
                 )
                 neg_id = neg_id - 1
 
@@ -216,6 +220,7 @@ class WorkersRepository:
                     slug=user.slug,
                     kind=WorkerKind.CONSULTANT,
                     insights_user_id=user.id,
+                    position=''
                 )
                 neg_id = neg_id - 1
 
@@ -241,6 +246,7 @@ class WorkersRepository:
                     slug=user.slug,
                     kind=WorkerKind.CONSULTANT,
                     todoist_user_id=user.id,
+                    position=''
                 )
                 neg_id -= 1
 
@@ -258,6 +264,7 @@ class WorkersRepository:
                     slug=user.slug,
                     kind=WorkerKind.ACCOUNT_MANAGER,
                     todoist_user_id=user.id,
+                    position=''
                 )
                 neg_id -= 1
 
