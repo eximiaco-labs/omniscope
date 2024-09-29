@@ -63,7 +63,7 @@ export default function RootLayout({
 function OmniscopeSidebar() {
   const pathname = usePathname();
 
-  const sidebarItems: OmmiSidebarItemProps[] = [
+  const analyticsSidebarItems: OmmiSidebarItemProps[] = [
     {
       href: "/pages/analytics/week-review",
       caption: "Week Review",
@@ -79,6 +79,9 @@ function OmniscopeSidebar() {
       caption: "Datasets",
       icon: <DatabaseIcon />
     },
+  ];
+
+  const aboutUsSidebarItems: OmmiSidebarItemProps[] = [
     {
       href: "/pages/about-us/consultants-and-engineers",
       caption: "Consultants & Engineers",
@@ -114,6 +117,9 @@ function OmniscopeSidebar() {
       caption: "Projects",
       icon: <ProjectorIcon />
     },
+  ];
+
+  const administrativeSidebarItems: OmmiSidebarItemProps[] = [
     {
       href: "/pages/management/inconsistency-finder",
       caption: "Inconsistency Finder",
@@ -135,19 +141,19 @@ function OmniscopeSidebar() {
           </div>
         </div>
         <SidebarSection>
-          {sidebarItems.slice(0, 3).map((item) => (
+          {analyticsSidebarItems.map((item) => (
             <OmniSidebarItem key={item.href} {...item} />
           ))}
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>About Us</SidebarHeading>
-          {sidebarItems.slice(3, 10).map((item) => (
+          {aboutUsSidebarItems.map((item) => (
             <OmniSidebarItem key={item.href} {...item} />
           ))}
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>Administrative</SidebarHeading>
-          {sidebarItems.slice(10).map((item) => (
+          {administrativeSidebarItems.map((item) => (
             <OmniSidebarItem key={item.href} {...item} />
           ))}
         </SidebarSection>
