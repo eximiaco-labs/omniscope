@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type { Metadata } from "next";
 import "./globals.css";
@@ -25,10 +25,12 @@ import {
   FolderOpenIcon,
   ProjectorIcon,
   ScaleIcon,
+  LucideProps,
 } from "lucide-react";
 import Logo from "./components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ForwardRefExoticComponent, ReactNode, RefAttributes } from "react";
 
 // export const metadata: Metadata = {
 //   title: "Omniscope",
@@ -51,9 +53,7 @@ export default function RootLayout({
           sidebar={OmniscopeSidebar()}
           navbar={<Navbar>{/* Your navbar content */}</Navbar>}
         >
-          <main>
-            {children}
-          </main>
+          <main>{children}</main>
         </SidebarLayout>
       </body>
     </html>
@@ -62,6 +62,69 @@ export default function RootLayout({
 
 function OmniscopeSidebar() {
   const pathname = usePathname();
+
+  const sidebarItems: OmmiSidebarItemProps[] = [
+    {
+      href: "/pages/analytics/week-review",
+      caption: "Week Review",
+      icon: <CalendarCheckIcon />
+    },
+    {
+      href: "/pages/analytics/side-by-side",
+      caption: "Side-by-side",
+      icon: <ColumnsIcon />
+    },
+    {
+      href: "/pages/analytics/datasets",
+      caption: "Datasets",
+      icon: <DatabaseIcon />
+    },
+    {
+      href: "/pages/about-us/consultants-and-engineers",
+      caption: "Consultants & Engineers",
+      icon: <UserIcon />
+    },
+    {
+      href: "/pages/about-us/account-managers",
+      caption: "Account Managers",
+      icon: <BriefcaseIcon />
+    },
+    {
+      href: "/pages/about-us/clients",
+      caption: "Clients",
+      icon: <UsersIcon />
+    },
+    {
+      href: "/pages/about-us/sponsors",
+      caption: "Sponsors",
+      icon: <HandshakeIcon />
+    },
+    {
+      href: "/pages/about-us/products-or-services",
+      caption: "Products and Services",
+      icon: <BoxIcon />
+    },
+    {
+      href: "/pages/about-us/cases",
+      caption: "Cases",
+      icon: <FolderOpenIcon />
+    },
+    {
+      href: "/pages/about-us/projects",
+      caption: "Projects",
+      icon: <ProjectorIcon />
+    },
+    {
+      href: "/pages/management/inconsistency-finder",
+      caption: "Inconsistency Finder",
+      icon: <SearchIcon />
+    },
+    {
+      href: "/pages/management/hit-refresh",
+      caption: "Refresh data",
+      icon: <ScaleIcon />
+    }
+  ];
 
   return (
     <Sidebar>
@@ -72,62 +135,44 @@ function OmniscopeSidebar() {
           </div>
         </div>
         <SidebarSection>
-          <SidebarItem href="/pages/analytics/week-review" current={pathname === '/pages/analytics/week-review'}>
-            <CalendarCheckIcon />
-            <SidebarLabel>Week Review</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/analytics/side-by-side" current={pathname === '/pages/analytics/side-by-side'}>
-            <ColumnsIcon />
-            <SidebarLabel>Side-by-side</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/analytics/datasets" current={pathname === '/pages/analytics/datasets'}>
-            <DatabaseIcon />
-            <SidebarLabel>Datasets</SidebarLabel>
-          </SidebarItem>
+          {sidebarItems.slice(0, 3).map((item) => (
+            <OmniSidebarItem key={item.href} {...item} />
+          ))}
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>About Us</SidebarHeading>
-          <SidebarItem href="/pages/about-us/consultants" current={pathname === '/pages/about-us/consultants'}>
-            <UserIcon />
-            <SidebarLabel>Consultants & Engineers</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/about-us/account-managers" current={pathname === '/pages/about-us/account-managers'}>
-            <BriefcaseIcon />
-            <SidebarLabel>Account Managers</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/about-us/clients" current={pathname === '/pages/about-us/clients'}>
-            <UsersIcon />
-            <SidebarLabel>Clients</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/about-us/sponsors" current={pathname === '/pages/about-us/sponsors'}>
-            <HandshakeIcon />
-            <SidebarLabel>Sponsors</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/about-us/products-or-services" current={pathname === '/pages/about-us/products-or-services'}>
-            <BoxIcon />
-            <SidebarLabel>Products and Services</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/about-us/cases" current={pathname === '/pages/about-us/cases'}>
-            <FolderOpenIcon />
-            <SidebarLabel>Cases</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/about-us/projects" current={pathname === '/pages/about-us/projects'}>
-            <ProjectorIcon />
-            <SidebarLabel>Projects</SidebarLabel>
-          </SidebarItem>
+          {sidebarItems.slice(3, 10).map((item) => (
+            <OmniSidebarItem key={item.href} {...item} />
+          ))}
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>Administrative</SidebarHeading>
-          <SidebarItem href="/pages/management/inconsistency-finder" current={pathname === '/pages/management/inconsistency-finder'}>
-            <SearchIcon />
-            <SidebarLabel>Inconsistency Finder</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/pages/management/hit-refresh" current={pathname === '/pages/management/hit-refresh'}>
-            <ScaleIcon />
-            <SidebarLabel>Refresh data</SidebarLabel>
-          </SidebarItem>
+          {sidebarItems.slice(10).map((item) => (
+            <OmniSidebarItem key={item.href} {...item} />
+          ))}
         </SidebarSection>
       </SidebarBody>
     </Sidebar>
+  );
+}
+
+interface OmmiSidebarItemProps {
+  href: string,
+  caption: string,
+  icon: ReactNode
+}
+
+function OmniSidebarItem(
+  { href, caption, icon }: OmmiSidebarItemProps
+) {
+  const pathname = usePathname();
+  return (
+    <SidebarItem
+      href={href}
+      current={pathname === href}
+    >
+      {icon}
+      <SidebarLabel>{caption}</SidebarLabel>
+    </SidebarItem>
   );
 }
