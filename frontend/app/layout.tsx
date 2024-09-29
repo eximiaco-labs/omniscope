@@ -1,3 +1,5 @@
+"use client"
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
@@ -25,12 +27,14 @@ import {
   ScaleIcon,
 } from "lucide-react";
 import Logo from "./components/logo";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Omniscope",
-  description:
-    "Integrating information from various sources into a single system, ensuring that data is consistent and accessible.",
-};
+// export const metadata: Metadata = {
+//   title: "Omniscope",
+//   description:
+//     "Integrating information from various sources into a single system, ensuring that data is consistent and accessible.",
+// };
 
 export default function RootLayout({
   children,
@@ -47,7 +51,9 @@ export default function RootLayout({
           sidebar={OmniscopeSidebar()}
           navbar={<Navbar>{/* Your navbar content */}</Navbar>}
         >
-          {children}
+          <main>
+            {children}
+          </main>
         </SidebarLayout>
       </body>
     </html>
@@ -55,6 +61,8 @@ export default function RootLayout({
 }
 
 function OmniscopeSidebar() {
+  const pathname = usePathname();
+
   return (
     <Sidebar>
       <SidebarBody>
@@ -64,57 +72,57 @@ function OmniscopeSidebar() {
           </div>
         </div>
         <SidebarSection>
-          <SidebarItem href="/week-review">
+          <SidebarItem href="/week-review" current={pathname === '/week-review'}>
             <CalendarCheckIcon />
             <SidebarLabel>Week Review</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/side-by-side">
+          <SidebarItem href="/side-by-side" current={pathname === '/side-by-side'}>
             <ColumnsIcon />
             <SidebarLabel>Side-by-side</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/datasets">
+          <SidebarItem href="/datasets" current={pathname === '/datasets'}>
             <DatabaseIcon />
             <SidebarLabel>Datasets</SidebarLabel>
           </SidebarItem>
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>About Us</SidebarHeading>
-          <SidebarItem href="/consultants">
+          <SidebarItem href="/consultants" current={pathname === '/consultants'}>
             <UserIcon />
             <SidebarLabel>Consultants & Engineers</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/account-managers">
+          <SidebarItem href="/account-managers" current={pathname === '/account-managers'}>
             <BriefcaseIcon />
             <SidebarLabel>Account Managers</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/clients">
+          <SidebarItem href="/clients" current={pathname === '/clients'}>
             <UsersIcon />
             <SidebarLabel>Clients</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/sponsors">
+          <SidebarItem href="/sponsors" current={pathname === '/sponsors'}>
             <HandshakeIcon />
             <SidebarLabel>Sponsors</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/products-or-services">
+          <SidebarItem href="/products-or-services" current={pathname === '/products-or-services'}>
             <BoxIcon />
             <SidebarLabel>Products and Services</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/cases">
+          <SidebarItem href="/cases" current={pathname === '/cases'}>
             <FolderOpenIcon />
             <SidebarLabel>Cases</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/projects">
+          <SidebarItem href="/projects" current={pathname === '/projects'}>
             <ProjectorIcon />
             <SidebarLabel>Projects</SidebarLabel>
           </SidebarItem>
         </SidebarSection>
         <SidebarSection>
           <SidebarHeading>Administrative</SidebarHeading>
-          <SidebarItem href="/inconsistency-finder">
+          <SidebarItem href="/inconsistency-finder" current={pathname === '/inconsistency-finder'}>
             <SearchIcon />
             <SidebarLabel>Inconsistency Finder</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/hit-refresh">
+          <SidebarItem href="/hit-refresh" current={pathname === '/hit-refresh'}>
             <ScaleIcon />
             <SidebarLabel>Refresh data</SidebarLabel>
           </SidebarItem>
