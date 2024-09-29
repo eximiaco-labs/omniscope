@@ -136,9 +136,7 @@ function OmniscopeSidebar() {
     <Sidebar>
       <SidebarBody>
         <div className="flex mb-3">
-          <div>
             <Logo />
-          </div>
         </div>
         <SidebarSection>
           {analyticsSidebarItems.map((item) => (
