@@ -57,9 +57,9 @@ class Worker(BaseModel):
     @property
     def omni_url(self) -> str:
         if self.kind == WorkerKind.ACCOUNT_MANAGER:
-            return f'/account-managers/{self.slug}'
+            return f'account-managers/{self.slug}'
         else:
-            return f'/consultants/{self.slug}'
+            return f'consultants-and-engineers/{self.slug}'
 
     @property
     def photo_url(self):

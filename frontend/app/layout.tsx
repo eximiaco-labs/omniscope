@@ -31,6 +31,13 @@ import Logo from "./components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ForwardRefExoticComponent, ReactNode, RefAttributes } from "react";
+import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
+
+// Create the Apollo Client instance
+const client = new ApolloClient({
+  uri: 'http://127.0.0.1:5000/graphql', 
+  cache: new InMemoryCache(),
+});
 
 // export const metadata: Metadata = {
 //   title: "Omniscope",
@@ -48,14 +55,16 @@ export default function RootLayout({
       lang="en"
       className="bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950"
     >
-      <body>
-        <SidebarLayout
-          sidebar={OmniscopeSidebar()}
-          navbar={<Navbar>{/* Your navbar content */}</Navbar>}
-        >
-          <main>{children}</main>
-        </SidebarLayout>
-      </body>
+      <ApolloProvider client={client}>
+        <body>
+          <SidebarLayout
+            sidebar={OmniscopeSidebar()}
+            navbar={<Navbar>{/* Your navbar content */}</Navbar>}
+          >
+            <main>{children}</main>
+          </SidebarLayout>
+        </body>
+      </ApolloProvider>
     </html>
   );
 }
