@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar } from "@/components/catalyst/avatar";
+import { Badge } from "@/components/catalyst/badge";
 import { Heading } from "@/components/catalyst/heading";
 import {
   Table,
@@ -21,6 +22,7 @@ export default function ConsultantsAndEngineers() {
         position
         photoUrl
         omniUrl
+        errors
       }
     }
   `;
@@ -52,6 +54,13 @@ export default function ConsultantsAndEngineers() {
                     <div className="text-zinc-500">
                       {w.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
                     </div>
+                  </div>
+                  <div className="mt-2">
+                    {w.errors.map((error: string) => (
+                      <Badge key={error} color='rose' className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 mb-1">
+                        {error}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </TableCell>

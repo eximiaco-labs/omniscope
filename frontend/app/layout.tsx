@@ -2,6 +2,8 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
+import "./tailwindui.css"
+
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
 import {
   Sidebar,

@@ -66,7 +66,7 @@ class Worker(BaseModel):
         if self.is_recognized:
             return self.ontology_info.photo_url
         else:
-            return '/assets/who_is_it.jpeg'
+            return '/images/who_is_it.jpeg'
 
     @property
     def is_ontology_author(self):
