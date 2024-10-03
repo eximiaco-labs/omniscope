@@ -284,7 +284,14 @@ type Query {
   case(id: String, slug: String): Case @atLeastOne
   offer(id: Int, slug: String): Offer @atLeastOne
 
-  timesheet(slug: String!): TimesheetSummary
+  timesheet(slug: String!, kind: TimesheetKind = ALL): TimesheetSummary
+}
+
+enum TimesheetKind {
+  ALL
+  CONSULTING
+  SQUAD
+  INTERNAL
 }
 
 directive @atLeastOne on FIELD_DEFINITION

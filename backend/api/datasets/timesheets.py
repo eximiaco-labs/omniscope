@@ -136,12 +136,16 @@ def compute_summaries(df: pd.DataFrame) -> Dict[str, Dict[str, Union[Dict[str, A
     return summaries
 
 
-def resolve_timesheet(_, info, slug: str=None):
+def resolve_timesheet(_, info, slug: str=None, kind: str="ALL"):
     if not slug.startswith('timesheet-'):
         slug = f'timesheet-{slug}'
 
     timesheet = globals.omni_datasets.get_by_slug(slug)
     df = timesheet.data
+
+    # Filter the dataframe based on the 'kind' parameter
+    if kind != "ALL":
+        df = df[df['Kind'] == kind.capitalize()]
 
     result = {}
 
