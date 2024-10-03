@@ -165,6 +165,10 @@ type NamedSummary implements ISummary {
   stdDevHoursPerAccountManager: Float!
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  
   name: String!
   byKind: KindSummary!
 }
@@ -196,6 +200,10 @@ type DateSummary implements ISummary {
   stdDevHoursPerAccountManager: Float!
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+
   date: String!
   byKind: KindSummary!
 }
@@ -227,6 +235,9 @@ type WeekSummary implements ISummary {
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
   week: String!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
   byKind: KindSummary!
 }
 

@@ -63,6 +63,12 @@ def summarize_by_worker(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any]
         worker_summary = summarize(worker_df)
         worker_summary["by_kind"] = summarize_by_kind(worker_df)
         worker_summary["name"] = worker_name
+
+        # Add support for squad, consulting, and internal total hours
+        worker_summary["total_squad_hours"] = worker_df[worker_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        worker_summary["total_consulting_hours"] = worker_df[worker_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        worker_summary["total_internal_hours"] = worker_df[worker_df['Kind'] == 'Internal']['TimeInHs'].sum()
+        
         worker_summaries.append(worker_summary)
     return worker_summaries
 
@@ -72,6 +78,12 @@ def summarize_by_client(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any]
         client_summary = summarize(client_df)
         client_summary["by_kind"] = summarize_by_kind(client_df)
         client_summary["name"] = client_name
+
+        # Add support for squad, consulting, and internal total hours
+        client_summary["total_squad_hours"] = client_df[client_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        client_summary["total_consulting_hours"] = client_df[client_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        client_summary["total_internal_hours"] = client_df[client_df['Kind'] == 'Internal']['TimeInHs'].sum()
+        
         client_summaries.append(client_summary)
     return client_summaries
 
@@ -81,6 +93,12 @@ def summarize_by_case(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
         case_summary = summarize(case_df)
         case_summary["by_kind"] = summarize_by_kind(case_df)
         case_summary["title"] = case_title
+
+        # Add support for squad, consulting, and internal total hours
+        case_summary["total_squad_hours"] = case_df[case_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        case_summary["total_consulting_hours"] = case_df[case_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        case_summary["total_internal_hours"] = case_df[case_df['Kind'] == 'Internal']['TimeInHs'].sum()
+        
         case_summaries.append(case_summary)
     return case_summaries
 
@@ -90,6 +108,12 @@ def summarize_by_sponsor(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any
         sponsor_summary = summarize(sponsor_df)
         sponsor_summary["by_kind"] = summarize_by_kind(sponsor_df)
         sponsor_summary["name"] = sponsor
+
+        # Add support for squad, consulting, and internal total hours
+        sponsor_summary["total_squad_hours"] = sponsor_df[sponsor_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        sponsor_summary["total_consulting_hours"] = sponsor_df[sponsor_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        sponsor_summary["total_internal_hours"] = sponsor_df[sponsor_df['Kind'] == 'Internal']['TimeInHs'].sum()
+        
         sponsor_summaries.append(sponsor_summary)
     return sponsor_summaries
 
@@ -99,6 +123,12 @@ def summarize_by_account_manager(df: pd.DataFrame) -> List[Dict[str, Union[Dict[
         account_manager_summary = summarize(account_manager_df)
         account_manager_summary["by_kind"] = summarize_by_kind(account_manager_df)
         account_manager_summary["name"] = account_manager_name
+
+        # Add support for squad, consulting, and internal total hours
+        account_manager_summary["total_squad_hours"] = account_manager_df[account_manager_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        account_manager_summary["total_consulting_hours"] = account_manager_df[account_manager_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        account_manager_summary["total_internal_hours"] = account_manager_df[account_manager_df['Kind'] == 'Internal']['TimeInHs'].sum()
+        
         account_manager_summaries.append(account_manager_summary)
     return account_manager_summaries
 
@@ -108,6 +138,12 @@ def summarize_by_date(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
         date_summary = summarize(date_df)
         date_summary["by_kind"] = summarize_by_kind(date_df)
         date_summary["date"] = date
+
+        # Add support for squad, consulting, and internal total hours
+        date_summary["total_squad_hours"] = date_df[date_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        date_summary["total_consulting_hours"] = date_df[date_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        date_summary["total_internal_hours"] = date_df[date_df['Kind'] == 'Internal']['TimeInHs'].sum()
+
         date_summaries.append(date_summary)
     return date_summaries
 
@@ -117,6 +153,12 @@ def summarize_by_week(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
         week_summary = summarize(week_df)
         week_summary["by_kind"] = summarize_by_kind(week_df)
         week_summary["week"] = week
+
+        # Add support for squad, consulting, and internal total hours
+        week_summary["total_squad_hours"] = week_df[week_df['Kind'] == 'Squad']['TimeInHs'].sum()
+        week_summary["total_consulting_hours"] = week_df[week_df['Kind'] == 'Consulting']['TimeInHs'].sum()
+        week_summary["total_internal_hours"] = week_df[week_df['Kind'] == 'Internal']['TimeInHs'].sum()
+
         week_summaries.append(week_summary)
     return week_summaries
 
