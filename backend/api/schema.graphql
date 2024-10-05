@@ -168,7 +168,7 @@ type NamedSummary implements ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
-  
+
   name: String!
   byKind: KindSummary!
 }
@@ -278,6 +278,11 @@ type TimesheetSummary implements ISummary{
   byWeek: [WeekSummary!]!
 }
 
+# Datasets
+type DatasetsSet {
+  timesheet: TimesheetSummary
+}
+
 # Query
 
 type Query {
@@ -296,6 +301,8 @@ type Query {
   offer(id: Int, slug: String): Offer @atLeastOne
 
   timesheet(slug: String!, kind: TimesheetKind = ALL): TimesheetSummary
+
+  thisWeek(kind: TimesheetKind = ALL): DatasetsSet
 }
 
 enum TimesheetKind {
