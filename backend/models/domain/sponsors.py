@@ -18,7 +18,7 @@ class Sponsor(BaseModel):
 
     @property
     def omni_url(self):
-        return f'/sponsors/{self.slug}'
+        return f'sponsors/{self.slug}'
 
 
 class SponsorsRepository:

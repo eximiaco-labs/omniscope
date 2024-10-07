@@ -48,20 +48,20 @@ export default function AccountManagers() {
             <TableRow key={manager.slug} href={manager.omniUrl}>
               <TableCell>
                 <div className="flex items-center gap-4">
-                  <Avatar src={manager.photoUrl} className="size-12" />
+                  <Avatar src={manager.photoUrl} className="size-16" />
                   <div>
                     <div className="font-medium">{manager.name}</div>
                     <div className="text-zinc-500">
                       {manager.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
                     </div>
-                  </div>
-                  <div className="mt-2">
+                    <div>
                     {manager.errors.map((error: string) => (
                       <Badge key={error} color='rose' className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 mb-1">
                         {error}
                       </Badge>
                     ))}
                   </div>
+                  </div>  
                 </div>
               </TableCell>
             </TableRow>

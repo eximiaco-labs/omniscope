@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import Dict, Any, List, Union
+from api.utils.fields import get_requested_fields_from
 
 import globals
 
@@ -92,11 +93,10 @@ def summarize_by_date(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
 def summarize_by_week(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
     return summarize_by_group(df, 'Week', name_key="week")
 
-
-def resolve_timesheet(_, info, slug: str=None, kind: str="ALL"):
+def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL"):
     if not slug.startswith('timesheet-'):
         slug = f'timesheet-{slug}'
-
+    
     timesheet = globals.omni_datasets.get_by_slug(slug)
     df = timesheet.data
 
@@ -106,15 +106,6 @@ def resolve_timesheet(_, info, slug: str=None, kind: str="ALL"):
 
     result = {}
 
-    selections = info.field_nodes[0].selection_set.selections
-    requested_fields = list(map(lambda s: s.name.value, selections))
-
-    for selection in selections:
-        if selection.kind == 'fragment_spread':
-           fragment = info.fragments[selection.name.value]
-           fragment_selections = fragment.selection_set.selections
-           fragment_requested_fields = list(map(lambda s: s.name.value, fragment_selections))
-           requested_fields += fragment_requested_fields
 
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
@@ -159,3 +150,7 @@ def resolve_timesheet(_, info, slug: str=None, kind: str="ALL"):
         result['by_week'] = summarize_by_week(df)
 
     return result
+
+def resolve_timesheet(_, info, slug: str=None, kind: str="ALL"):
+    requested_fields = get_requested_fields_from(info)
+    return compute_timesheet(requested_fields, slug, kind)

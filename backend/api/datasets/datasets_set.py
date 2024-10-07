@@ -1,24 +1,14 @@
 from .timesheets import resolve_timesheet
 
+from api.utils.fields import get_selections_from_info
+
 from typing import Any, Dict, List
 from graphql import GraphQLResolveInfo
 
 def resolve_this_week(_, info: GraphQLResolveInfo, kind: str = "ALL") -> Dict[str, Any]:
     slug = "this-week"
     
-    def get_selections(selection_set) -> List[Any]:
-        selections = []
-        for selection in selection_set.selections:
-            if selection.kind == 'field':
-                selections.append(selection)
-            elif selection.kind == 'fragment_spread':
-                fragment = info.fragments[selection.name.value]
-                selections.extend(get_selections(fragment.selection_set))
-            elif selection.kind == 'inline_fragment':
-                selections.extend(get_selections(selection.selection_set))
-        return selections
-
-    all_selections = get_selections(info.field_nodes[0].selection_set)
+    all_selections = get_selections_from_info(info)
     requested_fields = list(map(lambda s: s.name.value, all_selections))
 
     result: Dict[str, Any] = {}

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import { gql, useQuery } from "@apollo/client";
+import clsx from "clsx";
 
 export default function Sponsors() {
   const GET_SPONSORS = gql`
@@ -22,6 +23,9 @@ export default function Sponsors() {
         jobTitle
         linkedinUrl
         omniUrl
+        client {
+          name
+        }
       }
     }
   `;
@@ -47,14 +51,22 @@ export default function Sponsors() {
             <TableRow key={sponsor.slug} href={sponsor.omniUrl}>
               <TableCell>
                 <div className="flex items-center gap-4">
-                  <Avatar src={sponsor.photoUrl} className="size-12" />
+                  <span className="rounded-full *:rounded-full">
+                    <img
+                      alt=""
+                      src={sponsor.photoUrl}
+                      className={ clsx(
+                        'inline-grid shrink-0 align-middle [--avatar-radius:20%] [--ring-opacity:20%] *:col-start-1 *:row-start-1',
+                        'outline outline-1 -outline-offset-1 outline-black/[--ring-opacity] dark:outline-white/[--ring-opacity]',
+                        'inline-block h-16 w-16 rounded-full object-cover'
+                      )} 
+                    />
+                  </span>
                   <div>
                     <div className="font-medium">{sponsor.name}</div>
                     <div className="text-zinc-500">{sponsor.jobTitle}</div>
-                    {sponsor.linkedinUrl && (
-                      <a href={sponsor.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                        LinkedIn
-                      </a>
+                    {sponsor.client && (
+                        <div className="text-zinc-500">{sponsor.client.name}</div>
                     )}
                   </div>
                 </div>

@@ -42,7 +42,9 @@ type Sponsor {
   crmId: String
   jobTitle: String
   linkedinUrl: String
-  omniUrl: String!
+  omniUrl: String
+
+  client: Client
 }
 
 type Case {
@@ -173,6 +175,40 @@ type NamedSummary implements ISummary {
   byKind: KindSummary!
 }
 
+type TitledSummary implements ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+
+  title: String!
+  byKind: KindSummary!
+}
+
 
 type DateSummary implements ISummary {
   totalEntries: Int!
@@ -271,7 +307,7 @@ type TimesheetSummary implements ISummary{
   byKind: KindSummary
   byWorker: [NamedSummary!]!
   byClient: [NamedSummary!]!
-  byCase: [NamedSummary!]!
+  byCase: [TitledSummary!]!
   bySponsor: [NamedSummary!]!
   byAccountManager: [NamedSummary!]!
   byDate: [DateSummary!]!

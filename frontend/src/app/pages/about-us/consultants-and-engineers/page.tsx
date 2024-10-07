@@ -48,7 +48,7 @@ export default function ConsultantsAndEngineers() {
             <TableRow href={w.omniUrl}>
               <TableCell>
                 <div className="flex items-center gap-4">
-                  <Avatar src={w.photoUrl} className="size-12" />
+                  <Avatar src={w.photoUrl} className="size-16" />
                   <div>
                     <div className="font-medium">{w.name}</div>
                     <div className="text-zinc-500">
