@@ -232,6 +232,9 @@ class OmniDatasets:
 
         result.append({'kind': 'Tasks', 'name': 'All tasks'})
 
+        for dataset in result:
+            dataset['slug'] = sl.generate(f"{dataset['kind']} - {dataset['name']}")
+
         return result
 
     def get_dataset_name_by_slug(self, slug):

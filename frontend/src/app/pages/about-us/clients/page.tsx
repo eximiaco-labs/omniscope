@@ -32,7 +32,7 @@ export default function Clients() {
 
     return (
       <Link 
-        href={`${client.slug}`} 
+        href={`clients/${client.slug}`} 
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

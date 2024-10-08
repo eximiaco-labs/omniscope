@@ -315,6 +315,12 @@ type TimesheetSummary implements ISummary{
 }
 
 # Datasets
+type Dataset {
+  slug: String
+  kind: String
+  name: String
+}
+
 type DatasetsSet {
   timesheet: TimesheetSummary
 }
@@ -336,8 +342,9 @@ type Query {
   case(id: String, slug: String): Case @atLeastOne
   offer(id: Int, slug: String): Offer @atLeastOne
 
-  timesheet(slug: String!, kind: TimesheetKind = ALL): TimesheetSummary
+  datasets(kind: String): [Dataset!]!
 
+  timesheet(slug: String!, kind: TimesheetKind = ALL): TimesheetSummary
   thisWeek(kind: TimesheetKind = ALL): DatasetsSet
 }
 
