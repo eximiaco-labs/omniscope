@@ -48,7 +48,7 @@ export default function Sponsors() {
         </TableHead>
         <TableBody>
           {data.sponsors.map((sponsor: any) => (
-            <TableRow key={sponsor.slug} href={sponsor.omniUrl}>
+            <TableRow key={sponsor.slug} href={`clients/${sponsor.slug}`} >
               <TableCell>
                 <div className="flex items-center gap-4">
                   <span className="rounded-full *:rounded-full">
@@ -66,7 +66,9 @@ export default function Sponsors() {
                     <div className="font-medium">{sponsor.name}</div>
                     <div className="text-zinc-500">{sponsor.jobTitle}</div>
                     {sponsor.client && (
-                        <div className="text-zinc-500">{sponsor.client.name}</div>
+                        <div>
+                          {sponsor.client.name}
+                        </div>
                     )}
                   </div>
                 </div>
