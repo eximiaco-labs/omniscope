@@ -45,6 +45,10 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
         "std_dev_hours_per_account_manager": account_manager_group.std(),
         "average_hours_per_week": week_group.mean(),
         "std_dev_hours_per_week": week_group.std(),
+        "total_squad_hours": df[df['Kind'] == 'Squad']['TimeInHs'].sum(),
+        "total_consulting_hours": df[df['Kind'] == 'Consulting']['TimeInHs'].sum(),
+        "total_internal_hours": df[df['Kind'] == 'Internal']['TimeInHs'].sum(),
+
     }
 
 
@@ -70,6 +74,8 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
             summary[f"total_{kind.lower()}_hours"] = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()
         
         summaries.append(summary)
+
+    summaries = sorted(summaries, key=lambda x: x["total_hours"], reverse=True)
     return summaries
 
 def summarize_by_worker(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:

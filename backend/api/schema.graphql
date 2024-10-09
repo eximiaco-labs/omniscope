@@ -105,6 +105,9 @@ interface ISummary {
   stdDevHoursPerAccountManager: Float!
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
 }
 
 type Summary implements ISummary {
@@ -133,6 +136,9 @@ type Summary implements ISummary {
   stdDevHoursPerAccountManager: Float!
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
 }
 
 type KindSummary {
@@ -303,6 +309,9 @@ type TimesheetSummary implements ISummary{
   stdDevHoursPerAccountManager: Float!
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
 
   byKind: KindSummary
   byWorker: [NamedSummary!]!
