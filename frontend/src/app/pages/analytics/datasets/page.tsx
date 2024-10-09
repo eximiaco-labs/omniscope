@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { TotalWorkingHours } from "@/app/components/analytics/TotalWorkingHours";
 import { ByClient } from "@/app/components/analytics/ByClient";
+import { ByWorker } from "@/app/components/analytics/ByWorker";
 
 const GET_TIMESHEET = gql`
   query GetTimesheet($slug: String!) {
@@ -12,9 +13,11 @@ const GET_TIMESHEET = gql`
       totalConsultingHours
       totalSquadHours
       totalInternalHours
+
       uniqueClients
       averageHoursPerClient
       stdDevHoursPerClient
+
       byClient {
         name
         totalHours
@@ -22,7 +25,19 @@ const GET_TIMESHEET = gql`
         totalSquadHours
         totalInternalHours
       }
+
       uniqueWorkers
+      averageHoursPerWorker
+      stdDevHoursPerWorker
+
+      byWorker {
+        name
+        totalHours
+        totalConsultingHours
+        totalSquadHours
+        totalInternalHours
+      }
+
       uniqueCases
     }
   }
@@ -44,7 +59,8 @@ export default function Datasets() {
   return (
     <>
       <TotalWorkingHours timesheet={timesheet} className="mb-6"/>
-      <ByClient timesheet={timesheet} />
+      <ByClient timesheet={timesheet} className="mb-6"/>
+      <ByWorker timesheet={timesheet} />
     </>
   );
 }
