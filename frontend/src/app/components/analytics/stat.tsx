@@ -26,7 +26,7 @@ export function Stat({ title, value, color, total }: { title: string; value: str
       <div className={`p-4 ${color ? 'text-white' : 'text-gray-900'} border border-gray-200 rounded-sm relative`} style={{ backgroundColor: color }}>
         <h3 className={`text-sm font-medium ${color ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
         <animated.p className="mt-2 text-3xl font-semibold">
-          {props.number.to(n => n.toFixed(1))}
+          {props.number.to(n => Number.isInteger(n) ? Math.floor(n).toString() : n.toFixed(1))}
         </animated.p>
         {percentage && (
           <>

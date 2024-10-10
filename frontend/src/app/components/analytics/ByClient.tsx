@@ -16,6 +16,17 @@ interface ByClientProps {
     uniqueClients: number;
     averageHoursPerClient: number;
     stdDevHoursPerClient: number;
+    byKind: {
+      consulting: {
+        uniqueClients: number;
+      };
+      squad: {
+        uniqueClients: number;
+      };
+      internal: {
+        uniqueClients: number;
+      };
+    };
     byClient: Array<{
       name: string;
       totalConsultingHours: number;
@@ -31,18 +42,28 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
       <Heading>By Client</Heading>
       <Divider className="my-3" />
       <div className="pl-3 pr-3">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-3">
           <Stat
-            title="Unique Clients"
+            title="Number of Clients"
             value={timesheet.uniqueClients.toString()}
           />
           <Stat
-            title="Average Hours per Client"
-            value={timesheet.averageHoursPerClient.toFixed(1)}
+            title="Number of Consulting Clients"
+            value={timesheet.byKind.consulting.uniqueClients.toString()}
+            color="#F59E0B"
+            total={timesheet.uniqueClients}
           />
           <Stat
-            title="Std Dev Hours per Client"
-            value={timesheet.stdDevHoursPerClient.toFixed(1)}
+            title="Number of Squad Clients"
+            value={timesheet.byKind.squad.uniqueClients.toString()}
+            color="#3B82F6"
+            total={timesheet.uniqueClients}
+          />
+          <Stat
+            title="Number of Internal Clients"
+            value={timesheet.byKind.internal.uniqueClients.toString()}
+            color="#10B981"
+            total={timesheet.uniqueClients}
           />
         </div>
 

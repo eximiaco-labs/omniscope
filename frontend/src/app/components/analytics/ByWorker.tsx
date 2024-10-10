@@ -14,8 +14,17 @@ import {
 interface ByWorkerProps {
   timesheet: {
     uniqueWorkers: number;
-    averageHoursPerWorker: number;
-    stdDevHoursPerWorker: number;
+    byKind: {
+      consulting: {
+        uniqueWorkers: number;
+      };
+      squad: {
+        uniqueWorkers: number;
+      };
+      internal: {
+        uniqueWorkers: number;
+      };
+    };
     byWorker: Array<{
       name: string;
       totalConsultingHours: number;
@@ -31,18 +40,28 @@ export function ByWorker({ timesheet, className }: ByWorkerProps & { className?:
       <Heading>By Worker</Heading>
       <Divider className="my-3" />
       <div className="pl-3 pr-3">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-3">
           <Stat
-            title="Unique Workers"
-            value={timesheet.uniqueWorkers.toFixed(0)}
+            title="Number of Workers"
+            value={timesheet.uniqueWorkers.toString()}
           />
           <Stat
-            title="Average Hours per Worker"
-            value={timesheet.averageHoursPerWorker.toFixed(1)}
+            title="Consultants"
+            value={timesheet.byKind.consulting.uniqueWorkers.toString()}
+            color="#F59E0B"
+            total={timesheet.uniqueWorkers}
           />
           <Stat
-            title="Std Dev Hours per Worker"
-            value={timesheet.stdDevHoursPerWorker.toFixed(1)}
+            title="Engineers"
+            value={timesheet.byKind.squad.uniqueWorkers.toString()}
+            color="#3B82F6"
+            total={timesheet.uniqueWorkers}
+          />
+          <Stat
+            title="Internal"
+            value={timesheet.byKind.internal.uniqueWorkers.toString()}
+            color="#10B981"
+            total={timesheet.uniqueWorkers}
           />
         </div>
 
