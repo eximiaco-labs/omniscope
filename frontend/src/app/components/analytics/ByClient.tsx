@@ -46,7 +46,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
 
   const getStatClassName = (statName: string) => {
     return `cursor-pointer transition-all duration-300 ${
-      selectedStat === statName ? 'ring-2 ring-black shadow-lg' : ''
+      selectedStat === statName ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
     }`;
   };
 
@@ -79,7 +79,6 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
           internalHours: client.totalInternalHours
         }));
     }
-    // Sort data in descending order when not 'totalClients'
     return data.sort((a, b) => b.hours - a.hours);
   };
 
@@ -101,9 +100,9 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
       <Heading>By Client</Heading>
       <Divider className="my-3" />
       <div className="pl-3 pr-3">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div
-            className={getStatClassName('totalClients')}
+            className={`${getStatClassName('totalClients')} transform`}
             onClick={() => handleStatClick('totalClients')}
           >
             <Stat
@@ -112,7 +111,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
             />
           </div>
           <div
-            className={getStatClassName('consultingClients')}
+            className={`${getStatClassName('consultingClients')} transform`}
             onClick={() => handleStatClick('consultingClients')}
           >
             <Stat
@@ -123,7 +122,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
             />
           </div>
           <div
-            className={getStatClassName('squadClients')}
+            className={`${getStatClassName('squadClients')} transform`}
             onClick={() => handleStatClick('squadClients')}
           >
             <Stat
@@ -134,7 +133,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
             />
           </div>
           <div
-            className={getStatClassName('internalClients')}
+            className={`${getStatClassName('internalClients')} transform`}
             onClick={() => handleStatClick('internalClients')}
           >
             <Stat
@@ -146,7 +145,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
           </div>
         </div>
 
-        <div className="h-[400px] border border-gray-200 rounded-sm mt-4">
+        <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={getFilteredData()}
