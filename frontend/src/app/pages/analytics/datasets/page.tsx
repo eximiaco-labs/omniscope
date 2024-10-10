@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Heading } from "@/components/catalyst/heading";
 import { Divider } from "@/components/catalyst/divider";
 import { Select } from "@/components/catalyst/select";
+import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -32,16 +33,19 @@ const GET_TIMESHEET = gql`
         consulting {
           uniqueClients
           uniqueWorkers
+          uniqueWorkingDays
         }
         
         squad {
           uniqueClients
           uniqueWorkers
+          uniqueWorkingDays
         }
         
         internal {
           uniqueClients
           uniqueWorkers
+          uniqueWorkingDays
         }
       }
       
@@ -64,6 +68,15 @@ const GET_TIMESHEET = gql`
         totalSquadHours
         totalInternalHours
       }
+      
+      byDate {
+        date
+        totalHours
+        totalConsultingHours
+        totalSquadHours
+        totalInternalHours
+      }
+      uniqueWorkingDays
 
       uniqueCases
     }
@@ -96,7 +109,8 @@ export default function Datasets() {
             <>
               <TotalWorkingHours timesheet={data.timesheet} className="mb-6" />
               <ByClient timesheet={data.timesheet} className="mb-6" />
-              <ByWorker timesheet={data.timesheet} />
+              <ByWorker timesheet={data.timesheet} className="mb-6" />
+              <ByWorkingDay timesheet={data.timesheet} />
             </>
           )}
         </>
