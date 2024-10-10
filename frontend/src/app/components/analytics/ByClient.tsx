@@ -43,5 +43,5 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
     internal: "Number of Internal Clients",
   };
 
-  return <By title="Client" data={data} labels={labels} className={className} />;
+  return <By title="By Client" data={data} labels={labels} className={className} />;
 }

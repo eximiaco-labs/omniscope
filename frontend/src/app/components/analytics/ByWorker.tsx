@@ -41,5 +41,5 @@ export function ByWorker({ timesheet, className }: ByWorkerProps & { className?:
     internal: "Internal",
   };
 
-  return <By title="Worker" data={data} labels={labels} className={className} />;
+  return <By title="By Worker" data={data} labels={labels} className={className} />;
 }
