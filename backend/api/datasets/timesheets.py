@@ -104,6 +104,7 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL"):
         slug = f'timesheet-{slug}'
     
     timesheet = globals.omni_datasets.get_by_slug(slug)
+    source = globals.omni_datasets.get_dataset_source_by_slug(slug)
     df = timesheet.data
 
     # Filter the dataframe based on the 'kind' parameter
@@ -154,6 +155,16 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL"):
     # By week
     if 'byWeek' in requested_fields:
         result['by_week'] = summarize_by_week(df)
+
+    filterable_fields = source.get_filterable_fields()
+    result['filterable_fields'] = [
+        {
+            'field': field,
+            'selected_values': [],
+            'options': df[field].unique().tolist()
+        }
+        for field in filterable_fields
+    ]
 
     return result
 

@@ -283,6 +283,12 @@ type WeekSummary implements ISummary {
   byKind: KindSummary!
 }
 
+type FilterableField {
+  field: String!
+  options: [String]!
+  selectedValues: [String]!
+}
+
 type TimesheetSummary implements ISummary{
   totalEntries: Int!
   totalHours: Float!
@@ -321,6 +327,8 @@ type TimesheetSummary implements ISummary{
   byAccountManager: [NamedSummary!]!
   byDate: [DateSummary!]!
   byWeek: [WeekSummary!]!
+
+  filterableFields: [FilterableField]!
 }
 
 # Datasets
