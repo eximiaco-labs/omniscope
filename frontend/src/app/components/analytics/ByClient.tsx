@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useState } from "react";
 
 interface ByClientProps {
   timesheet: {
@@ -37,40 +38,118 @@ interface ByClientProps {
 }
 
 export function ByClient({ timesheet, className }: ByClientProps & { className?: string }) {
+  const [selectedStat, setSelectedStat] = useState<string>('totalClients');
+
+  const handleStatClick = (statName: string) => {
+    setSelectedStat(statName === selectedStat ? 'totalClients' : statName);
+  };
+
+  const getStatClassName = (statName: string) => {
+    return `cursor-pointer transition-all duration-300 ${
+      selectedStat === statName ? 'ring-2 ring-black shadow-lg' : ''
+    }`;
+  };
+
+  const getFilteredData = () => {
+    let data;
+    switch (selectedStat) {
+      case 'consultingClients':
+        data = timesheet.byClient.filter(client => client.totalConsultingHours > 0).map(client => ({
+          name: client.name,
+          hours: client.totalConsultingHours
+        }));
+        break;
+      case 'squadClients':
+        data = timesheet.byClient.filter(client => client.totalSquadHours > 0).map(client => ({
+          name: client.name,
+          hours: client.totalSquadHours
+        }));
+        break;
+      case 'internalClients':
+        data = timesheet.byClient.filter(client => client.totalInternalHours > 0).map(client => ({
+          name: client.name,
+          hours: client.totalInternalHours
+        }));
+        break;
+      default:
+        return timesheet.byClient.map(client => ({
+          name: client.name,
+          consultingHours: client.totalConsultingHours,
+          squadHours: client.totalSquadHours,
+          internalHours: client.totalInternalHours
+        }));
+    }
+    // Sort data in descending order when not 'totalClients'
+    return data.sort((a, b) => b.hours - a.hours);
+  };
+
+  const getChartColor = () => {
+    switch (selectedStat) {
+      case 'consultingClients':
+        return "#F59E0B";
+      case 'squadClients':
+        return "#3B82F6";
+      case 'internalClients':
+        return "#10B981";
+      default:
+        return "#6B7280";
+    }
+  };
+
   return (
     <div className={className}>
       <Heading>By Client</Heading>
       <Divider className="my-3" />
       <div className="pl-3 pr-3">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-3">
-          <Stat
-            title="Number of Clients"
-            value={timesheet.uniqueClients.toString()}
-          />
-          <Stat
-            title="Number of Consulting Clients"
-            value={timesheet.byKind.consulting.uniqueClients.toString()}
-            color="#F59E0B"
-            total={timesheet.uniqueClients}
-          />
-          <Stat
-            title="Number of Squad Clients"
-            value={timesheet.byKind.squad.uniqueClients.toString()}
-            color="#3B82F6"
-            total={timesheet.uniqueClients}
-          />
-          <Stat
-            title="Number of Internal Clients"
-            value={timesheet.byKind.internal.uniqueClients.toString()}
-            color="#10B981"
-            total={timesheet.uniqueClients}
-          />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            className={getStatClassName('totalClients')}
+            onClick={() => handleStatClick('totalClients')}
+          >
+            <Stat
+              title="Number of Clients"
+              value={timesheet.uniqueClients.toString()}
+            />
+          </div>
+          <div
+            className={getStatClassName('consultingClients')}
+            onClick={() => handleStatClick('consultingClients')}
+          >
+            <Stat
+              title="Number of Consulting Clients"
+              value={timesheet.byKind.consulting.uniqueClients.toString()}
+              color="#F59E0B"
+              total={timesheet.uniqueClients}
+            />
+          </div>
+          <div
+            className={getStatClassName('squadClients')}
+            onClick={() => handleStatClick('squadClients')}
+          >
+            <Stat
+              title="Number of Squad Clients"
+              value={timesheet.byKind.squad.uniqueClients.toString()}
+              color="#3B82F6"
+              total={timesheet.uniqueClients}
+            />
+          </div>
+          <div
+            className={getStatClassName('internalClients')}
+            onClick={() => handleStatClick('internalClients')}
+          >
+            <Stat
+              title="Number of Internal Clients"
+              value={timesheet.byKind.internal.uniqueClients.toString()}
+              color="#10B981"
+              total={timesheet.uniqueClients}
+            />
+          </div>
         </div>
 
-        <div className="h-[400px] border border-gray-200 rounded-sm">
+        <div className="h-[400px] border border-gray-200 rounded-sm mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={timesheet.byClient}
+              data={getFilteredData()}
               layout="horizontal"
               margin={{ top: 80, right: 20, left: 20, bottom: 10 }}
             >
@@ -115,20 +194,6 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
                     "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                 }}
                 formatter={(value, name, props) => {
-                  let label;
-                  switch (name) {
-                    case "totalConsultingHours":
-                      label = "Consulting";
-                      break;
-                    case "totalSquadHours":
-                      label = "Squad";
-                      break;
-                    case "totalInternalHours":
-                      label = "Internal";
-                      break;
-                    default:
-                      label = name;
-                  }
                   const formattedValue =
                     typeof value === "number"
                       ? value % 1 === 0
@@ -139,7 +204,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
                     <span
                       style={{ color: "#4B5563", fontWeight: "bold" }}
                     >{`${formattedValue} hours`}</span>,
-                    label,
+                    name,
                   ];
                 }}
                 labelFormatter={(label) => (
@@ -155,30 +220,26 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
                 )}
                 separator=": "
               />
-              <Bar
-                dataKey="totalConsultingHours"
-                name="Consulting"
-                stackId="a"
-                fill="#F59E0B"
-              >
-                <animate attributeName="height" from="0" to="100%" dur="1s" />
-              </Bar>
-              <Bar
-                dataKey="totalSquadHours"
-                name="Squad"
-                stackId="a"
-                fill="#3B82F6"
-              >
-                <animate attributeName="height" from="0" to="100%" dur="1s" />
-              </Bar>
-              <Bar
-                dataKey="totalInternalHours"
-                name="Internal"
-                stackId="a"
-                fill="#10B981"
-              >
-                <animate attributeName="height" from="0" to="100%" dur="1s" />
-              </Bar>
+              {selectedStat === 'totalClients' ? (
+                <>
+                  <Bar dataKey="consultingHours" stackId="a" fill="#F59E0B" name="Consulting">
+                    <animate attributeName="height" from="0" to="100%" dur="1s" />
+                  </Bar>
+                  <Bar dataKey="squadHours" stackId="a" fill="#3B82F6" name="Squad">
+                    <animate attributeName="height" from="0" to="100%" dur="1s" />
+                  </Bar>
+                  <Bar dataKey="internalHours" stackId="a" fill="#10B981" name="Internal">
+                    <animate attributeName="height" from="0" to="100%" dur="1s" />
+                  </Bar>
+                </>
+              ) : (
+                <Bar
+                  dataKey="hours"
+                  fill={getChartColor()}
+                >
+                  <animate attributeName="height" from="0" to="100%" dur="1s" />
+                </Bar>
+              )}
               <text
                 x="50%"
                 y="30"
@@ -187,7 +248,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
                 fontSize="18"
                 fontWeight="bold"
               >
-                Hours by Client
+                Hours by Client ({selectedStat === 'totalClients' ? 'Total' : selectedStat.replace('Clients', '')})
               </text>
             </BarChart>
           </ResponsiveContainer>
