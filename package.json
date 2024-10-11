@@ -2,12 +2,13 @@
     "name": "omniscope",
     "version": "2.0.0",
     "scripts": {
-        "dev:frontend": "cd frontend && npm run dev",
+        "dev:frontend": "npm run dev --prefix frontend",
         "dev:backend": "cd backend && nodemon --watch . --ext py --exec python app.py --verbose",
         "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
     },
     "devDependencies": {
         "concurrently": "^8.2.2",
+        "cross-env": "^7.0.3",
         "nodemon": "^3.1.7"
     },
     "dependencies": {
