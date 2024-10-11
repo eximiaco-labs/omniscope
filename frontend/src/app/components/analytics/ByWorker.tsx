@@ -13,12 +13,16 @@ interface ByWorkerProps {
       internal: {
         uniqueWorkers: number;
       };
+      handsOn: {
+        uniqueWorkers: number;
+      };
     };
     byWorker: Array<{
       name: string;
       totalConsultingHours: number;
       totalSquadHours: number;
       totalInternalHours: number;
+      totalHandsOnHours: number;
     }>;
   };
 }
@@ -30,6 +34,7 @@ export function ByWorker({ timesheet, className }: ByWorkerProps & { className?:
       consulting: { uniqueItems: timesheet.byKind.consulting.uniqueWorkers },
       squad: { uniqueItems: timesheet.byKind.squad.uniqueWorkers },
       internal: { uniqueItems: timesheet.byKind.internal.uniqueWorkers },
+      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueWorkers },
     },
     byItem: timesheet.byWorker,
   };
@@ -39,6 +44,7 @@ export function ByWorker({ timesheet, className }: ByWorkerProps & { className?:
     consulting: "Consultants",
     squad: "Engineers",
     internal: "Internal",
+    handsOn: "Hands-On",
   };
 
   return <By title="By Worker" data={data} labels={labels} className={className} />;

@@ -20,18 +20,29 @@ import pytz
 class Project(e.Project):
     is_squad: Optional[bool] = False
     is_eximiaco: Optional[bool] = False
+    is_handson: Optional[bool] = False
 
     @classmethod
     def from_base_instance(cls, base_instance: e.Project, client: Client):
         base_dict = base_instance.dict()
         base_dict['is_squad'] = client.is_squad if client else False
         base_dict['is_eximiaco'] = client.is_eximiaco if client else True
+        base_dict['is_handson'] = client.is_handson if client else False
+
+        if base_instance.name.lower().endswith('- se'):
+            base_dict['is_handson'] = True
+
+        if base_dict['is_handson']:
+            base_dict['is_squad'] = False
+            base_dict['is_eximiaco'] = False
+
         return cls(**base_dict)
 
 
 class Appointment(e.Appointment):
     is_squad: Optional[bool] = False
     is_eximiaco: Optional[bool] = False
+    is_handson: Optional[bool] = False
 
     @property
     def time_in_hs(self):
@@ -52,6 +63,9 @@ class Appointment(e.Appointment):
 
         if self.is_squad:
             return 'Squad'
+
+        if self.is_handson:
+            return 'HandsOn'
 
         return 'Consulting'
 
@@ -92,6 +106,11 @@ class Appointment(e.Appointment):
         base_dict = base_instance.dict()
         base_dict['is_squad'] = project.is_squad if project else False
         base_dict['is_eximiaco'] = project.is_eximiaco if project else True
+        base_dict['is_handson'] = project.is_handson if project else False
+
+        if base_dict['is_handson']:
+            base_dict['is_squad'] = False
+
         return cls(**base_dict)
 
 
@@ -148,23 +167,6 @@ class TimeTracker(SemanticModel):
 
         return result
 
-    # def __get_everhour_case_associations(self):
-    #     cases = self.ontology.cases.data[['ProjectEverhourCode', 'Title', 'Url']]
-    #
-    #     # Split the 'project_everhour_code' column and explode it into separate rows
-    #     cases['ProjectEverhourCode'] = cases['ProjectEverhourCode'].str.split(';')
-    #     cases = cases.explode('ProjectEverhourCode')
-    #
-    #     # Drop rows where 'project_everhour_code' is NaN or empty
-    #     cases = cases.dropna(subset=['ProjectEverhourCode'])
-    #     cases = cases[cases['ProjectEverhourCode'] != '']
-    #
-    #     # Drop duplicates and sort
-    #     cases = cases.drop_duplicates(subset='ProjectEverhourCode').sort_values('ProjectEverhourCode')
-    #
-    #     cases.columns = ['Id', 'Name', 'Url']
-    #
-    #     return PowerDataFrame(cases)
 
     @property
     def common_queries(self):

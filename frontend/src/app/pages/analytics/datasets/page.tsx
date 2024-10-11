@@ -8,8 +8,11 @@ import { ByWorker } from "@/app/components/analytics/ByWorker";
 import { useState } from "react";
 import { Heading } from "@/components/catalyst/heading";
 import { Divider } from "@/components/catalyst/divider";
-import { Select } from "@/components/catalyst/select";
+import { Select as CatalystSelect } from "@/components/catalyst/select";
+import Select from "react-tailwindcss-select";
 import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
+import { BySponsor } from "@/app/components/analytics/BySponsor";
+import { ByAccountManager } from "@/app/components/analytics/ByAccountManager";
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -28,24 +31,35 @@ const GET_TIMESHEET = gql`
       totalConsultingHours
       totalSquadHours
       totalInternalHours
+      totalHandsOnHours
       
       byKind {
         consulting {
           uniqueClients
           uniqueWorkers
           uniqueWorkingDays
+          uniqueSponsors
         }
         
         squad {
           uniqueClients
           uniqueWorkers
           uniqueWorkingDays
+          uniqueSponsors
+        }
+        
+        handsOn {
+          uniqueClients
+          uniqueWorkers
+          uniqueWorkingDays
+          uniqueSponsors
         }
         
         internal {
           uniqueClients
           uniqueWorkers
           uniqueWorkingDays
+          uniqueSponsors
         }
       }
       
@@ -68,6 +82,24 @@ const GET_TIMESHEET = gql`
         totalSquadHours
         totalInternalHours
       }
+
+      bySponsor {
+        name
+        totalHours
+        totalConsultingHours
+        totalSquadHours
+        totalInternalHours
+      }
+      uniqueSponsors
+
+      byAccountManager {
+        name
+        totalHours
+        totalConsultingHours
+        totalSquadHours
+        totalInternalHours
+      }
+      uniqueAccountManagers
       
       byDate {
         date
@@ -78,7 +110,11 @@ const GET_TIMESHEET = gql`
       }
       uniqueWorkingDays
 
-      uniqueCases
+      filterableFields {
+        field,
+        selectedValues,
+        options
+      }
     }
   }
 `;
@@ -107,9 +143,31 @@ export default function Datasets() {
           )}
           {data && (
             <>
+              {data && data.timesheet && data.timesheet.filterableFields && (
+                <div className="mb-6">
+                  <Heading>Filter Data</Heading>
+                  <Divider className="my-3" />
+                  <form className="pl-2 pr-2">
+                    {data.timesheet.filterableFields.map((field: FilterableField) => (
+                      <div key={field.field} className="mb-4">
+                        <Select
+                          value={field.selectedValues.map((value: string) => ({ value, label: value }))}
+                          options={field.options.map((option: string) => ({ value: option, label: option }))}
+                          placeholder={field.field}
+                          onChange={(selectedOptions) => {
+                            // const selectedValues = selectedOptions ? selectedOptions.map((option: { value: string; }) => option.value) : [];
+                            // console.log(`${field.field} changed:`, selectedValues);
+                          } } primaryColor={""}                        
+                        />
+                      </div>
+                    ))}
+                  </form>
+                </div>
+              )}
               <TotalWorkingHours timesheet={data.timesheet} className="mb-6" />
               <ByClient timesheet={data.timesheet} className="mb-6" />
               <ByWorker timesheet={data.timesheet} className="mb-6" />
+              <BySponsor timesheet={data.timesheet} className="mb-6" />
               <ByWorkingDay timesheet={data.timesheet} />
             </>
           )}
@@ -135,7 +193,7 @@ function DatasetsList({ onDatasetSelect, selectedDataset }: DatasetsListProps) {
       <Heading>Available Datasets</Heading>
       <Divider className="my-3" />
       <div className="pl-3 pr-3">
-        <Select
+        <CatalystSelect
           onChange={(e) => onDatasetSelect(e.target.value)}
           value={selectedDataset}
         >
@@ -145,7 +203,7 @@ function DatasetsList({ onDatasetSelect, selectedDataset }: DatasetsListProps) {
               {dataset.name}
             </option>
           ))}
-        </Select>
+        </CatalystSelect>
       </div>
     </div>
   );

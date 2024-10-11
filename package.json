@@ -9,5 +9,8 @@
     "devDependencies": {
         "concurrently": "^8.2.2",
         "nodemon": "^3.1.7"
+    },
+    "dependencies": {
+        "react-tailwindcss-select": "^1.8.5"
     }
 }

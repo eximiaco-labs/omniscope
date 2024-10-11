@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface ByProps {
   title: string;
@@ -20,12 +20,14 @@ interface ByProps {
       consulting: { uniqueItems: number };
       squad: { uniqueItems: number };
       internal: { uniqueItems: number };
+      handsOn: { uniqueItems: number };
     };
     byItem: Array<{
       name: string;
       totalConsultingHours: number;
       totalSquadHours: number;
       totalInternalHours: number;
+      totalHandsOnHours: number;
     }>;
   };
   labels: {
@@ -33,6 +35,7 @@ interface ByProps {
     consulting: string;
     squad: string;
     internal: string;
+    handsOn: string;
   };
   className?: string;
 }
@@ -59,6 +62,12 @@ export function By({ title, data, labels, className }: ByProps) {
           hours: item.totalConsultingHours
         }));
         break;
+      case 'handsOn':
+        filteredData = data.byItem.filter(item => item.totalHandsOnHours > 0).map(item => ({
+          name: item.name,
+          hours: item.totalHandsOnHours
+        }));
+        break;
       case 'squad':
         filteredData = data.byItem.filter(item => item.totalSquadHours > 0).map(item => ({
           name: item.name,
@@ -75,8 +84,10 @@ export function By({ title, data, labels, className }: ByProps) {
         return data.byItem.map(item => ({
           name: item.name,
           consultingHours: item.totalConsultingHours,
+          handsOnHours: item.totalHandsOnHours,
           squadHours: item.totalSquadHours,
-          internalHours: item.totalInternalHours
+          internalHours: item.totalInternalHours,
+          totalHours: item.totalConsultingHours + item.totalHandsOnHours + item.totalSquadHours + item.totalInternalHours
         }));
     }
     return filteredData.sort((a, b) => b.hours - a.hours);
@@ -86,6 +97,8 @@ export function By({ title, data, labels, className }: ByProps) {
     switch (selectedStat) {
       case 'consulting':
         return "#F59E0B";
+      case 'handsOn':
+        return "#8B5CF6";
       case 'squad':
         return "#3B82F6";
       case 'internal':
@@ -95,12 +108,14 @@ export function By({ title, data, labels, className }: ByProps) {
     }
   };
 
+  const filteredData = getFilteredData();
+
   return (
     <div className={className}>
       <Heading>{title}</Heading>
       <Divider className="my-3" />
       <div className="pl-3 pr-3">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
           <div
             className={`${getStatClassName('total')} transform`}
             onClick={() => handleStatClick('total')}
@@ -118,6 +133,17 @@ export function By({ title, data, labels, className }: ByProps) {
               title={labels.consulting}
               value={data.byKind.consulting.uniqueItems.toString()}
               color="#F59E0B"
+              total={data.uniqueItems}
+            />
+          </div>
+          <div
+            className={`${getStatClassName('handsOn')} transform`}
+            onClick={() => handleStatClick('handsOn')}
+          >
+            <Stat
+              title={labels.handsOn}
+              value={data.byKind.handsOn.uniqueItems.toString()}
+              color="#8B5CF6"
               total={data.uniqueItems}
             />
           </div>
@@ -148,7 +174,7 @@ export function By({ title, data, labels, className }: ByProps) {
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={getFilteredData()}
+              data={filteredData}
               layout="horizontal"
               margin={{ top: 80, right: 20, left: 20, bottom: 10 }}
             >
@@ -222,6 +248,9 @@ export function By({ title, data, labels, className }: ByProps) {
               {selectedStat === 'total' ? (
                 <>
                   <Bar dataKey="consultingHours" stackId="a" fill="#F59E0B" name="Consulting">
+                    <animate attributeName="height" from="0" to="100%" dur="1s" />
+                  </Bar>
+                  <Bar dataKey="handsOnHours" stackId="a" fill="#8B5CF6" name="Hands-On">
                     <animate attributeName="height" from="0" to="100%" dur="1s" />
                   </Bar>
                   <Bar dataKey="squadHours" stackId="a" fill="#3B82F6" name="Squad">

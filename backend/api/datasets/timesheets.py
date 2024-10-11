@@ -4,7 +4,6 @@ from api.utils.fields import get_requested_fields_from
 
 import globals
 
-
 def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     # Precompute groupby operations
     date_group = df.groupby("Date")["TimeInHs"].sum()
@@ -48,17 +47,22 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
         "total_squad_hours": df[df['Kind'] == 'Squad']['TimeInHs'].sum(),
         "total_consulting_hours": df[df['Kind'] == 'Consulting']['TimeInHs'].sum(),
         "total_internal_hours": df[df['Kind'] == 'Internal']['TimeInHs'].sum(),
-
+        "total_hands_on_hours": df[df['Kind'] == 'HandsOn']['TimeInHs'].sum(),
     }
 
 
 def summarize_by_kind(df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
-    kinds = ['Internal', 'Consulting', 'Squad']
+    kinds = ['Internal', 'Consulting', 'Squad', 'HandsOn']
     summary_by_kind = {}
 
     for kind in kinds:
         df_kind = df[df['Kind'] == kind]
-        summary_by_kind[kind.lower()] = summarize(df_kind)
+
+        if kind == 'HandsOn':
+            label = 'hands_on'
+        else:
+            label = kind.lower()
+        summary_by_kind[label] = summarize(df_kind)
     
     return summary_by_kind
 
@@ -69,8 +73,8 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
         summary["by_kind"] = summarize_by_kind(group_df)
         summary[name_key] = group_value
 
-        # Add support for squad, consulting, and internal total hours
-        for kind in ['Squad', 'Consulting', 'Internal']:
+        # Add support for squad, consulting, internal, and hands-on total hours
+        for kind in ['Squad', 'Consulting', 'Internal', 'HandsOn']:
             summary[f"total_{kind.lower()}_hours"] = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()
         
         summaries.append(summary)

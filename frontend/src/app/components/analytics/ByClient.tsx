@@ -15,12 +15,16 @@ interface ByClientProps {
       internal: {
         uniqueClients: number;
       };
+      handsOn: {
+        uniqueClients: number;
+      };
     };
     byClient: Array<{
       name: string;
       totalConsultingHours: number;
       totalSquadHours: number;
       totalInternalHours: number;
+      totalHandsOnHours: number;
     }>;
   };
 }
@@ -32,15 +36,17 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
       consulting: { uniqueItems: timesheet.byKind.consulting.uniqueClients },
       squad: { uniqueItems: timesheet.byKind.squad.uniqueClients },
       internal: { uniqueItems: timesheet.byKind.internal.uniqueClients },
+      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueClients },
     },
     byItem: timesheet.byClient,
   };
 
   const labels = {
     total: "Number of Clients",
-    consulting: "Number of Consulting Clients",
-    squad: "Number of Squad Clients",
-    internal: "Number of Internal Clients",
+    consulting: "Consulting Clients",
+    squad: "Squad Clients",
+    internal: "Internal Clients",
+    handsOn: "Hands-On Clients",
   };
 
   return <By title="By Client" data={data} labels={labels} className={className} />;

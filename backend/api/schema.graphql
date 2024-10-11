@@ -108,6 +108,7 @@ interface ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
 }
 
 type Summary implements ISummary {
@@ -139,12 +140,14 @@ type Summary implements ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
 }
 
 type KindSummary {
   internal: Summary
   consulting: Summary
   squad: Summary
+  handsOn: Summary
 }
 
 type NamedSummary implements ISummary {
@@ -176,6 +179,7 @@ type NamedSummary implements ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
 
   name: String!
   byKind: KindSummary!
@@ -210,6 +214,7 @@ type TitledSummary implements ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
 
   title: String!
   byKind: KindSummary!
@@ -245,6 +250,7 @@ type DateSummary implements ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
 
   date: String!
   byKind: KindSummary!
@@ -280,6 +286,7 @@ type WeekSummary implements ISummary {
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
   byKind: KindSummary!
 }
 
@@ -318,6 +325,7 @@ type TimesheetSummary implements ISummary{
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
+  totalHandsOnHours: Float!
 
   byKind: KindSummary
   byWorker: [NamedSummary!]!
@@ -370,6 +378,7 @@ enum TimesheetKind {
   CONSULTING
   SQUAD
   INTERNAL
+  HANDS_ON
 }
 
 directive @atLeastOne on FIELD_DEFINITION

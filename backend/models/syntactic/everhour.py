@@ -67,11 +67,17 @@ class Client(BaseModel):
 
         result = self.name.lower()
         result = result.replace(' - squad', '')
+        result = result.replace(' - SE', '')
+
         return result
 
     @property
     def is_squad(self) -> bool:
-        return 'squad' in self.name.lower()
+        return not self.is_handson and ('squad' in self.name.lower())
+
+    @property
+    def is_handson(self):
+        return self.name.lower().endswith(' - se')
 
     @property
     def is_eximiaco(self) -> bool:

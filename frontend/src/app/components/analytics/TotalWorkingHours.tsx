@@ -6,6 +6,7 @@ interface TotalWorkingHoursProps {
   timesheet: {
     totalHours: number;
     totalConsultingHours: number;
+    totalHandsOnHours: number;
     totalSquadHours: number;
     totalInternalHours: number;
   };
@@ -16,7 +17,7 @@ export function TotalWorkingHours({ timesheet, className }: TotalWorkingHoursPro
     <div className={className}>
       <Heading>Total Working Hours</Heading>
       <Divider className="my-3" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 pl-3 pr-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 pl-3 pr-3">
         <Stat
           title="Total"
           value={timesheet.totalHours.toFixed(1)}
@@ -25,6 +26,12 @@ export function TotalWorkingHours({ timesheet, className }: TotalWorkingHoursPro
           title="Consulting"
           value={timesheet.totalConsultingHours.toFixed(1)}
           color="#F59E0B"
+          total={timesheet.totalHours}
+        />
+        <Stat
+          title="Hands-On"
+          value={timesheet.totalHandsOnHours.toFixed(1)}
+          color="#8B5CF6"
           total={timesheet.totalHours}
         />
         <Stat

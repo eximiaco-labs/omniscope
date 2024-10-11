@@ -13,6 +13,7 @@ class Case(BaseModel):
     slug: str
     title: str
     is_active: bool
+
     client_id: Optional[str] = None
     everhour_projects_ids: Optional[List[str]] = []
     ontology_info: Optional[o.Case] = None
