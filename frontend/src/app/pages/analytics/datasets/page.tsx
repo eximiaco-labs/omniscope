@@ -71,6 +71,7 @@ const GET_TIMESHEET = gql`
         totalConsultingHours
         totalSquadHours
         totalInternalHours
+        totalHandsOnHours
       }
 
       uniqueWorkers
@@ -81,6 +82,7 @@ const GET_TIMESHEET = gql`
         totalConsultingHours
         totalSquadHours
         totalInternalHours
+        totalHandsOnHours
       }
 
       bySponsor {
@@ -89,6 +91,7 @@ const GET_TIMESHEET = gql`
         totalConsultingHours
         totalSquadHours
         totalInternalHours
+        totalHandsOnHours
       }
       uniqueSponsors
 
@@ -98,6 +101,7 @@ const GET_TIMESHEET = gql`
         totalConsultingHours
         totalSquadHours
         totalInternalHours
+        totalHandsOnHours
       }
       uniqueAccountManagers
       
@@ -107,6 +111,7 @@ const GET_TIMESHEET = gql`
         totalConsultingHours
         totalSquadHours
         totalInternalHours
+        totalHandsOnHours
       }
       uniqueWorkingDays
 
