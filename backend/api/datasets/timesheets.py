@@ -165,7 +165,7 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL"):
         {
             'field': field,
             'selected_values': [],
-            'options': df[field].unique().tolist()
+            'options': sorted([value for value in df[field].unique().tolist() if value is not None])
         }
         for field in filterable_fields
     ]

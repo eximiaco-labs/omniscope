@@ -152,8 +152,6 @@ export default function Datasets() {
             <>
               {data && data.timesheet && data.timesheet.filterableFields && (
                 <div className="mb-6">
-                  <Heading>Filter Data</Heading>
-                  <Divider className="my-3" />
                   <form className="pl-2 pr-2">
                     <Select
                       value={selectedValues}
@@ -177,6 +175,15 @@ export default function Datasets() {
                       primaryColor={""}
                       isMultiple={true}
                       isSearchable={true}
+                      isClearable={true}
+                      formatGroupLabel={data => (
+                        <div className={`py-2 text-xs flex items-center justify-between`}>
+                            <span className="font-bold uppercase">{data.label.replace(/([A-Z])/g, ' $1').trim().replace(/(Name|Title)$/, '')}</span>
+                            <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
+                                {data.options.length}
+                            </span>
+                        </div>
+                      )}
                     />
                   </form>
                 </div>
