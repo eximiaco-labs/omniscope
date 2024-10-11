@@ -13,6 +13,7 @@ import Select from "react-tailwindcss-select";
 import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
 import { BySponsor } from "@/app/components/analytics/BySponsor";
 import { ByAccountManager } from "@/app/components/analytics/ByAccountManager";
+import { SelectValue } from "react-tailwindcss-select/dist/components/type";
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -32,7 +33,7 @@ const GET_TIMESHEET = gql`
       totalSquadHours
       totalInternalHours
       totalHandsOnHours
-      
+
       byKind {
         consulting {
           uniqueClients
@@ -40,21 +41,21 @@ const GET_TIMESHEET = gql`
           uniqueWorkingDays
           uniqueSponsors
         }
-        
+
         squad {
           uniqueClients
           uniqueWorkers
           uniqueWorkingDays
           uniqueSponsors
         }
-        
+
         handsOn {
           uniqueClients
           uniqueWorkers
           uniqueWorkingDays
           uniqueSponsors
         }
-        
+
         internal {
           uniqueClients
           uniqueWorkers
@@ -62,7 +63,7 @@ const GET_TIMESHEET = gql`
           uniqueSponsors
         }
       }
-      
+
       uniqueClients
 
       byClient {
@@ -104,7 +105,7 @@ const GET_TIMESHEET = gql`
         totalHandsOnHours
       }
       uniqueAccountManagers
-      
+
       byDate {
         date
         totalHours
@@ -116,8 +117,8 @@ const GET_TIMESHEET = gql`
       uniqueWorkingDays
 
       filterableFields {
-        field,
-        selectedValues,
+        field
+        selectedValues
         options
       }
     }
@@ -126,6 +127,7 @@ const GET_TIMESHEET = gql`
 
 export default function Datasets() {
   const [selectedDataset, setSelectedDataset] = useState("");
+  const [selectedValues, setSelectedValues] = useState<SelectValue[]>([]);
 
   const { loading, error, data } = useQuery(GET_TIMESHEET, {
     variables: { slug: selectedDataset },
@@ -153,19 +155,29 @@ export default function Datasets() {
                   <Heading>Filter Data</Heading>
                   <Divider className="my-3" />
                   <form className="pl-2 pr-2">
-                    {data.timesheet.filterableFields.map((field: FilterableField) => (
-                      <div key={field.field} className="mb-4">
-                        <Select
-                          value={field.selectedValues.map((value: string) => ({ value, label: value }))}
-                          options={field.options.map((option: string) => ({ value: option, label: option }))}
-                          placeholder={field.field}
-                          onChange={(selectedOptions) => {
-                            // const selectedValues = selectedOptions ? selectedOptions.map((option: { value: string; }) => option.value) : [];
-                            // console.log(`${field.field} changed:`, selectedValues);
-                          } } primaryColor={""}                        
-                        />
-                      </div>
-                    ))}
+                    <Select
+                      value={selectedValues}
+                      options={data.timesheet.filterableFields.map((f) => {
+                        const options = (f.options || [])
+                          .filter((o) => o != null)
+                          .map((o) => ({
+                            value: String(o),
+                            label: String(o),
+                          }));
+                        return {
+                          label: String(f.field ?? 'Unknown Field'),
+                          options: options,
+                        };
+                      })}
+                      placeholder="Filters..."
+                      onChange={(value: SelectValue): void => {
+                        console.log("Selected values:", value);
+                        setSelectedValues(value ?? []);
+                      }}
+                      primaryColor={""}
+                      isMultiple={true}
+                      isSearchable={true}
+                    />
                   </form>
                 </div>
               )}
