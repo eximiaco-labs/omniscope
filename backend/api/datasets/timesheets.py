@@ -115,8 +115,29 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters
     if kind != "ALL":
         df = df[df['Kind'] == kind.capitalize()]
 
-    result = {}
-
+    # Compose filterable_fields and apply filters
+    filterable_fields = source.get_filterable_fields()
+    result = {'filterable_fields': []}
+    
+    for field in filterable_fields:
+        options = sorted([value for value in df[field].unique().tolist() if value is not None])
+        selected_values = []
+        
+        if filters:
+            for filter_item in filters:
+                if filter_item['field'] == field:
+                    selected_values = filter_item['selected_values']
+                    break
+        
+        result['filterable_fields'].append({
+            'field': field,
+            'selected_values': selected_values,
+            'options': options
+        })
+        
+        # Apply filter to dataframe
+        if selected_values:
+            df = df[df[field].isin(selected_values)]
 
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
@@ -159,16 +180,6 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters
     # By week
     if 'byWeek' in requested_fields:
         result['by_week'] = summarize_by_week(df)
-
-    filterable_fields = source.get_filterable_fields()
-    result['filterable_fields'] = [
-        {
-            'field': field,
-            'selected_values': [],
-            'options': sorted([value for value in df[field].unique().tolist() if value is not None])
-        }
-        for field in filterable_fields
-    ]
 
     return result
 
