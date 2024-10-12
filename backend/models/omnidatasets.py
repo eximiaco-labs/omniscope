@@ -188,6 +188,7 @@ class OmniDatasets:
         current_year = now.year
         current_month = now.month
 
+        # Loop to generate month-based entries for Timesheet
         while True:
             current_month -= 1
             if current_month == 0:
@@ -205,21 +206,22 @@ class OmniDatasets:
 
             result.append({'kind': 'Timesheet', 'name': f'{month_name} {current_year}'})
 
-        datasets_copy = result.copy()
         kinds = ['Ontology Entries', 'Insights']
         year_limits = {'Ontology Entries': (2024, 3), 'Insights': (2024, 3)}
 
+        # Loop to generate datasets for other kinds
         for kind in kinds:
-            result.extend(datasets_copy)
+            # Adding unique entries for each kind
             result.append({'kind': kind, 'name': 'Last Six Weeks'})
             result.append({'kind': kind, 'name': 'This Month'})
             result.append({'kind': kind, 'name': 'This Week'})
             result.append({'kind': kind, 'name': 'Previous Week'})
 
-            now = datetime.now()
+            # Reset current year and month
             current_year = now.year
             current_month = now.month
 
+            # Generate historical month entries for each kind
             while True:
                 current_month -= 1
                 if current_month == 0:
@@ -230,8 +232,10 @@ class OmniDatasets:
                 month_name = calendar.month_name[current_month]
                 result.append({'kind': kind, 'name': f'{month_name} {current_year}'})
 
+        # Final unique entry
         result.append({'kind': 'Tasks', 'name': 'All tasks'})
 
+        # Add slugs to each dataset
         for dataset in result:
             dataset['slug'] = sl.generate(f"{dataset['kind']} - {dataset['name']}")
 

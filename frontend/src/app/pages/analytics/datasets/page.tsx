@@ -216,18 +216,36 @@ function DatasetsList({ onDatasetSelect, selectedDataset }: DatasetsListProps) {
     <div className="mb-6">
       <Heading>Available Datasets</Heading>
       <Divider className="my-3" />
-      <div className="pl-3 pr-3">
-        <CatalystSelect
-          onChange={(e) => onDatasetSelect(e.target.value)}
-          value={selectedDataset}
-        >
-          <option value="">Select a dataset</option>
-          {data.datasets.map((dataset: { slug: string; name: string }) => (
-            <option key={dataset.slug} value={dataset.slug}>
-              {dataset.name}
-            </option>
-          ))}
-        </CatalystSelect>
+      <div className="pl-2 pr-2">
+        <Select
+          value={selectedDataset ? { value: selectedDataset, label: data.datasets.find(d => d.slug === selectedDataset)?.name || '' } : null}
+          options={data.datasets.reduce((acc, dataset) => {
+            const group = acc.find(g => g.label === dataset.kind);
+            if (group) {
+              group.options.push({ value: dataset.slug, label: dataset.name });
+            } else {
+              acc.push({
+                label: dataset.kind,
+                options: [{ value: dataset.slug, label: dataset.name }]
+              });
+            }
+            return acc;
+          }, [])}
+          placeholder="Select a dataset"
+          onChange={(value) => onDatasetSelect(value ? value.value : '')}
+          primaryColor={""}
+          isMultiple={false}
+          isSearchable={true}
+          isClearable={false}
+          formatGroupLabel={data => (
+            <div className={`py-2 text-xs flex items-center justify-between`}>
+              <span className="font-bold uppercase">{data.label}</span>
+              <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
+                {data.options.length}
+              </span>
+            </div>
+          )}
+        />
       </div>
     </div>
   );
