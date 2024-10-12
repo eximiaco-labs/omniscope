@@ -5,15 +5,14 @@ import { gql } from "@apollo/client";
 import { TotalWorkingHours } from "@/app/components/analytics/TotalWorkingHours";
 import { ByClient } from "@/app/components/analytics/ByClient";
 import { ByWorker } from "@/app/components/analytics/ByWorker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heading } from "@/components/catalyst/heading";
 import { Divider } from "@/components/catalyst/divider";
-import { Select as CatalystSelect } from "@/components/catalyst/select";
 import Select from "react-tailwindcss-select";
 import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
 import { BySponsor } from "@/app/components/analytics/BySponsor";
-import { ByAccountManager } from "@/app/components/analytics/ByAccountManager";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
+import { useRouter, useParams } from 'next/navigation';
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -126,8 +125,21 @@ const GET_TIMESHEET = gql`
 `;
 
 export default function Datasets() {
-  const [selectedDataset, setSelectedDataset] = useState("");
+  const router = useRouter();
+  const params = useParams();
+  const defaultDataset = 'timesheet-this-month';
+  const [selectedDataset, setSelectedDataset] = useState(
+    params.slug && params.slug.length > 0 ? params.slug[0] : defaultDataset
+  );
   const [selectedValues, setSelectedValues] = useState<SelectValue[]>([]);
+
+  useEffect(() => {
+    if (selectedDataset) {
+      router.push(`/analytics/datasets/${selectedDataset}`);
+    } else {
+      router.push(`/analytics/datasets`);
+    }
+  }, [selectedDataset, router]);
 
   const { loading, error, data } = useQuery(GET_TIMESHEET, {
     variables: { slug: selectedDataset },
@@ -150,15 +162,15 @@ export default function Datasets() {
           )}
           {data && (
             <>
-              {data && data.timesheet && data.timesheet.filterableFields && (
+              {data.timesheet.filterableFields && (
                 <div className="mb-6">
                   <form className="pl-2 pr-2">
                     <Select
                       value={selectedValues}
-                      options={data.timesheet.filterableFields.map((f) => {
+                      options={data.timesheet.filterableFields.map((f: any) => {
                         const options = (f.options || [])
-                          .filter((o) => o != null)
-                          .map((o) => ({
+                          .filter((o: any) => o != null)
+                          .map((o: any) => ({
                             value: String(o),
                             label: String(o),
                           }));
@@ -170,25 +182,37 @@ export default function Datasets() {
                       placeholder="Filters..."
                       onChange={(value: SelectValue): void => {
                         console.log("Selected values:", value);
-                        setSelectedValues(value ?? []);
+                        setSelectedValues(
+                          Array.isArray(value) ? value : []
+                        );
                       }}
                       primaryColor={""}
                       isMultiple={true}
                       isSearchable={true}
                       isClearable={true}
-                      formatGroupLabel={data => (
-                        <div className={`py-2 text-xs flex items-center justify-between`}>
-                            <span className="font-bold uppercase">{data.label.replace(/([A-Z])/g, ' $1').trim().replace(/(Name|Title)$/, '')}</span>
-                            <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
-                                {data.options.length}
-                            </span>
+                      formatGroupLabel={(data) => (
+                        <div
+                          className={`py-2 text-xs flex items-center justify-between`}
+                        >
+                          <span className="font-bold uppercase">
+                            {data.label
+                              .replace(/([A-Z])/g, ' $1')
+                              .trim()
+                              .replace(/(Name|Title)$/, '')}
+                          </span>
+                          <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
+                            {data.options.length}
+                          </span>
                         </div>
                       )}
                     />
                   </form>
                 </div>
               )}
-              <TotalWorkingHours timesheet={data.timesheet} className="mb-6" />
+              <TotalWorkingHours
+                timesheet={data.timesheet}
+                className="mb-6"
+              />
               <ByClient timesheet={data.timesheet} className="mb-6" />
               <ByWorker timesheet={data.timesheet} className="mb-6" />
               <BySponsor timesheet={data.timesheet} className="mb-6" />
@@ -206,40 +230,73 @@ interface DatasetsListProps {
   selectedDataset: string;
 }
 
-function DatasetsList({ onDatasetSelect, selectedDataset }: DatasetsListProps) {
+function DatasetsList({
+  onDatasetSelect,
+  selectedDataset,
+}: DatasetsListProps) {
   const { loading, error, data } = useQuery(GET_DATASETS);
 
   if (loading) return <p>Loading datasets...</p>;
-  if (error) return <p>Error loading datasets: {error.message}</p>;
+  if (error)
+    return <p>Error loading datasets: {error.message}</p>;
 
   return (
-    <div className="mb-6">
+    <div className="mb-3">
       <Heading>Available Datasets</Heading>
       <Divider className="my-3" />
       <div className="pl-2 pr-2">
         <Select
-          value={selectedDataset ? { value: selectedDataset, label: data.datasets.find(d => d.slug === selectedDataset)?.name || '' } : null}
-          options={data.datasets.reduce((acc, dataset) => {
-            const group = acc.find(g => g.label === dataset.kind);
-            if (group) {
-              group.options.push({ value: dataset.slug, label: dataset.name });
-            } else {
-              acc.push({
-                label: dataset.kind,
-                options: [{ value: dataset.slug, label: dataset.name }]
-              });
-            }
-            return acc;
-          }, [])}
+          value={
+            selectedDataset
+              ? {
+                  value: selectedDataset,
+                  label:
+                    data.datasets.find(
+                      (d: any) => d.slug === selectedDataset
+                    )?.name || '',
+                }
+              : null
+          }
+          options={data.datasets.reduce(
+            (acc: any[], dataset: any) => {
+              const group = acc.find(
+                (g) => g.label === dataset.kind
+              );
+              if (group) {
+                group.options.push({
+                  value: dataset.slug,
+                  label: dataset.name,
+                });
+              } else {
+                acc.push({
+                  label: dataset.kind,
+                  options: [
+                    {
+                      value: dataset.slug,
+                      label: dataset.name,
+                    },
+                  ],
+                });
+              }
+              return acc;
+            },
+            []
+          )}
           placeholder="Select a dataset"
-          onChange={(value) => onDatasetSelect(value ? value.value : '')}
+          onChange={(value: any) =>
+            onDatasetSelect(value ? value.value : '')
+          }
           primaryColor={""}
           isMultiple={false}
           isSearchable={true}
           isClearable={false}
-          formatGroupLabel={data => (
-            <div className={`py-2 text-xs flex items-center justify-between`}>
-              <span className="font-bold uppercase">{data.label}</span>
+          formatGroupLabel={(data) => (
+            <div
+              className={`py-2 text-xs flex items-center justify-between`}
+            >
+              <span className="font-bold uppercase">
+                {data.label}
+              </span>
               <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
                 {data.options.length}
               </span>

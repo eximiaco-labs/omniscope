@@ -78,17 +78,17 @@ function OmniscopeSidebar() {
 
   const analyticsSidebarItems: OmmiSidebarItemProps[] = [
     {
-      href: "/pages/analytics/week-review",
+      href: "/analytics/week-review",
       caption: "Week Review",
       icon: <CalendarCheckIcon />
     },
     {
-      href: "/pages/analytics/side-by-side",
+      href: "/analytics/side-by-side",
       caption: "Side-by-side",
       icon: <ColumnsIcon />
     },
     {
-      href: "/pages/analytics/datasets",
+      href: "/analytics/datasets",
       caption: "Datasets",
       icon: <DatabaseIcon />
     },
@@ -96,37 +96,37 @@ function OmniscopeSidebar() {
 
   const aboutUsSidebarItems: OmmiSidebarItemProps[] = [
     {
-      href: "/pages/about-us/consultants-and-engineers",
+      href: "/about-us/consultants-and-engineers",
       caption: "Consultants & Engineers",
       icon: <UserIcon />
     },
     {
-      href: "/pages/about-us/account-managers",
+      href: "/about-us/account-managers",
       caption: "Account Managers",
       icon: <BriefcaseIcon />
     },
     {
-      href: "/pages/about-us/clients",
+      href: "/about-us/clients",
       caption: "Clients",
       icon: <UsersIcon />
     },
     {
-      href: "/pages/about-us/sponsors",
+      href: "/about-us/sponsors",
       caption: "Sponsors",
       icon: <HandshakeIcon />
     },
     {
-      href: "/pages/about-us/products-or-services",
+      href: "/about-us/products-or-services",
       caption: "Products and Services",
       icon: <BoxIcon />
     },
     {
-      href: "/pages/about-us/cases",
+      href: "/about-us/cases",
       caption: "Cases",
       icon: <FolderOpenIcon />
     },
     {
-      href: "/pages/about-us/projects",
+      href: "/about-us/projects",
       caption: "Projects",
       icon: <ProjectorIcon />
     },
@@ -134,12 +134,12 @@ function OmniscopeSidebar() {
 
   const administrativeSidebarItems: OmmiSidebarItemProps[] = [
     {
-      href: "/pages/management/inconsistency-finder",
+      href: "/management/inconsistency-finder",
       caption: "Inconsistency Finder",
       icon: <SearchIcon />
     },
     {
-      href: "/pages/management/hit-refresh",
+      href: "/management/hit-refresh",
       caption: "Refresh data",
       icon: <ScaleIcon />
     }
