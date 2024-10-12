@@ -369,7 +369,7 @@ type Query {
 
   datasets(kind: String): [Dataset!]!
 
-  timesheet(slug: String!, kind: TimesheetKind = ALL): TimesheetSummary
+  timesheet(slug: String!, kind: TimesheetKind = ALL, filters: [FilterInput]): TimesheetSummary
   thisWeek(kind: TimesheetKind = ALL): DatasetsSet
 }
 
@@ -382,3 +382,8 @@ enum TimesheetKind {
 }
 
 directive @atLeastOne on FIELD_DEFINITION
+
+input FilterInput {
+  field: String!
+  selectedValues: [String!]!
+}

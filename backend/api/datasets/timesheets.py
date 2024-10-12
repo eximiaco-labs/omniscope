@@ -103,7 +103,7 @@ def summarize_by_date(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
 def summarize_by_week(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
     return summarize_by_group(df, 'Week', name_key="week")
 
-def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL"):
+def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters = None):
     if not slug.startswith('timesheet-'):
         slug = f'timesheet-{slug}'
     
@@ -172,6 +172,6 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL"):
 
     return result
 
-def resolve_timesheet(_, info, slug: str=None, kind: str="ALL"):
+def resolve_timesheet(_, info, slug: str, kind: str = "ALL", filters = None):
     requested_fields = get_requested_fields_from(info)
-    return compute_timesheet(requested_fields, slug, kind)
+    return compute_timesheet(requested_fields, slug, kind, filters)

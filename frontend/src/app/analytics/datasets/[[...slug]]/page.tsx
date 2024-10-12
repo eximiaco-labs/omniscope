@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
+import { useQuery, useLazyQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { TotalWorkingHours } from "@/app/components/analytics/TotalWorkingHours";
 import { ByClient } from "@/app/components/analytics/ByClient";
@@ -25,8 +25,8 @@ const GET_DATASETS = gql`
 `;
 
 const GET_TIMESHEET = gql`
-  query GetTimesheet($slug: String!) {
-    timesheet(slug: $slug) {
+  query GetTimesheet($slug: String!, $filters: [FilterInput]) {
+    timesheet(slug: $slug, filters: $filters) {
       totalHours
       totalConsultingHours
       totalSquadHours
@@ -132,6 +132,7 @@ export default function Datasets() {
     params.slug && params.slug.length > 0 ? params.slug[0] : defaultDataset
   );
   const [selectedValues, setSelectedValues] = useState<SelectValue[]>([]);
+  const [formattedSelectedValues, setFormattedSelectedValues] = useState<Array<{field: string, selectedValues: string[]}>>([]);
 
   useEffect(() => {
     if (selectedDataset) {
@@ -141,10 +142,26 @@ export default function Datasets() {
     }
   }, [selectedDataset, router]);
 
+  const [getFilteredTimesheet, { loading: filterLoading, error: filterError, data: filteredData }] = useLazyQuery(GET_TIMESHEET);
+
   const { loading, error, data } = useQuery(GET_TIMESHEET, {
     variables: { slug: selectedDataset },
     skip: !selectedDataset,
   });
+
+  useEffect(() => {
+    if (selectedDataset) {
+      const filters = formattedSelectedValues.length > 0 ? formattedSelectedValues : null;
+      getFilteredTimesheet({
+        variables: {
+          slug: selectedDataset,
+          filters: filters
+        }
+      });
+    }
+  }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet]);
+
+  const timesheetData = filteredData || data;
 
   return (
     <>
@@ -154,24 +171,24 @@ export default function Datasets() {
       />
       {selectedDataset && (
         <>
-          {loading && <p className="text-center py-5">Loading...</p>}
-          {error && (
+          {(loading || filterLoading) && <p className="text-center py-5">Loading...</p>}
+          {(error || filterError) && (
             <p className="text-center py-5 text-red-500">
-              Error: {error.message}
+              Error: {(error || filterError)?.message}
             </p>
           )}
-          {data && (
+          {timesheetData && (
             <>
-              {data.timesheet.filterableFields && (
+              {timesheetData.timesheet.filterableFields && (
                 <div className="mb-6">
                   <form className="pl-2 pr-2">
                     <Select
                       value={selectedValues}
-                      options={data.timesheet.filterableFields.map((f: any) => {
+                      options={timesheetData.timesheet.filterableFields.map((f: any) => {
                         const options = (f.options || [])
                           .filter((o: any) => o != null)
                           .map((o: any) => ({
-                            value: String(o),
+                            value: `${f.field}:${String(o)}`,
                             label: String(o),
                           }));
                         return {
@@ -185,6 +202,24 @@ export default function Datasets() {
                         setSelectedValues(
                           Array.isArray(value) ? value : []
                         );
+                        
+                        // Create the formatted structure
+                        const formattedValues = timesheetData.timesheet.filterableFields.reduce((acc: any[], field: any) => {
+                          const fieldValues = (Array.isArray(value) ? value : [])
+                            .filter(v => v.value.startsWith(`${field.field}:`))
+                            .map(v => v.value.split(':')[1]);
+                          
+                          if (fieldValues.length > 0) {
+                            acc.push({
+                              field: field.field,
+                              selectedValues: fieldValues
+                            });
+                          }
+                          return acc;
+                        }, []);
+                        
+                        setFormattedSelectedValues(formattedValues);
+                        console.log("Formatted selected values:", formattedValues);
                       }}
                       primaryColor={""}
                       isMultiple={true}
@@ -210,13 +245,13 @@ export default function Datasets() {
                 </div>
               )}
               <TotalWorkingHours
-                timesheet={data.timesheet}
+                timesheet={timesheetData.timesheet}
                 className="mb-6"
               />
-              <ByClient timesheet={data.timesheet} className="mb-6" />
-              <ByWorker timesheet={data.timesheet} className="mb-6" />
-              <BySponsor timesheet={data.timesheet} className="mb-6" />
-              <ByWorkingDay timesheet={data.timesheet} />
+              <ByClient timesheet={timesheetData.timesheet} className="mb-6" />
+              <ByWorker timesheet={timesheetData.timesheet} className="mb-6" />
+              <BySponsor timesheet={timesheetData.timesheet} className="mb-6" />
+              <ByWorkingDay timesheet={timesheetData.timesheet} />
             </>
           )}
         </>
