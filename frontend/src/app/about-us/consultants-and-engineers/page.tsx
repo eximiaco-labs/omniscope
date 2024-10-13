@@ -12,6 +12,8 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import { gql, useQuery } from "@apollo/client";
+import { Button } from "@/components/catalyst/button";
+import { useRouter } from "next/navigation";
 
 export default function ConsultantsAndEngineers() {
   const GET_CONSULTANTS = gql`
@@ -21,15 +23,20 @@ export default function ConsultantsAndEngineers() {
         name
         position
         photoUrl
-        omniUrl
         errors
       }
     }
   `;
   const { loading, error, data } = useQuery(GET_CONSULTANTS, { ssr: true });
+  const router = useRouter();
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+  const handleTimesheetClick = (workerName: string) => {
+    const encodedWorkerName = encodeURIComponent(workerName);
+    router.push(`/analytics/datasets/timesheet-this-month?WorkerName=${encodedWorkerName}`, { shallow: true });
+  };
 
   return (
     <>
@@ -37,105 +44,45 @@ export default function ConsultantsAndEngineers() {
         <Heading>Consultants & Engineers</Heading>
       </div>
 
-      <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Consultant</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.consultantsAndEngineers.map((w: any) => (
-            <TableRow href={w.omniUrl}>
-              <TableCell>
-                <div className="flex items-center gap-4">
-                  <Avatar src={w.photoUrl} className="size-16" />
-                  <div>
-                    <div className="font-medium">{w.name}</div>
-                    <div className="text-zinc-500">
-                      {w.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    {w.errors.map((error: string) => (
-                      <Badge key={error} color='rose' className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 mb-1">
-                        {error}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-
-          {data.consultantsAndEngineers.map((w: any) => {
+      <div className="overflow-x-auto">
+        <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)] w-full">
+          <TableHead>
             <TableRow>
-              <TableCell>
-                {w.name}
-                {/* <div className="flex items-center gap-4">
-                  <Avatar src={w.photoUrl} className="size-12" />
-                  <div>
-                    <div className="font-medium">{w.name}</div>
-                    <div className="text-zinc-500">
-                      <a href="#" className="hover:text-zinc-700">
-                        {w.position}
-                      </a>
+              <TableHeader>Consultant</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.consultantsAndEngineers.map((w: any) => (
+              <TableRow key={w.slug}>
+                <TableCell>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <Avatar src={w.photoUrl} className="size-16" />
+                    <div className="flex-grow">
+                      <div className="font-medium">{w.name}</div>
+                      <div className="text-zinc-500">
+                        {w.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
+                      </div>
+                      <div className="mt-2">
+                        {w.errors.map((error: string) => (
+                          <Badge key={error} color='rose' className="inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 mb-1">
+                            {error}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button 
+                        onClick={() => handleTimesheetClick(w.name)} 
+                        className="mt-2 px-1.5 py-0.5 text-xs cursor-pointer"
+                      >
+                        Timesheet
+                      </Button>
                     </div>
                   </div>
-                </div> */}
-              </TableCell>
-            </TableRow>;
-          })}
-        </TableBody>
-      </Table>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </>
   );
 }
-
-// import { Grid } from "@/components/catalyst/grid";
-// import { Card } from "@/components/catalyst/card";
-// import { Avatar } from "@/components/catalyst/avatar";
-// import { Text } from "@/components/catalyst/text";
-// import { gql } from "@apollo/client";
-// import { getClient } from "@/lib/client";
-
-// const GET_CONSULTANTS = gql`
-//   query GetConsultants {
-//     consultantsAndEngineers {
-//       slug
-//       name
-//       position
-//       photoUrl
-//     }
-//   }
-// `;
-
-// async function getConsultants() {
-//   const client = getClient();
-//   const { data } = await client.query({ query: GET_CONSULTANTS });
-//   return data.consultantsAndEngineers;
-// }
-
-// export default async function Consultants() {
-//   const consultants = await getConsultants();
-
-//   return (
-//     <>
-//       <Heading>Consultants & Engineers</Heading>
-//       <Grid columns={{ initial: "1", sm: "2", md: "3", lg: "4" }} gap="5">
-//         {consultants.map((consultant) => (
-//           <Card key={consultant.slug}>
-//             <Avatar
-//               src={consultant.photoUrl}
-//               fallback={consultant.name.charAt(0)}
-//               size="9"
-//             />
-//             <Text as="h3" weight="semibold">
-//               {consultant.name}
-//             </Text>
-//             <Text>{consultant.position}</Text>
-//           </Card>
-//         ))}
-//       </Grid>
-//     </>
-//   );
-// }

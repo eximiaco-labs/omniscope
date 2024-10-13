@@ -12,6 +12,8 @@ import {
 } from "@/components/catalyst/table";
 import { gql, useQuery } from "@apollo/client";
 import clsx from "clsx";
+import { Button } from "@/components/catalyst/button";
+import { useRouter } from "next/navigation";
 
 export default function Sponsors() {
   const GET_SPONSORS = gql`
@@ -30,9 +32,15 @@ export default function Sponsors() {
     }
   `;
   const { loading, error, data } = useQuery(GET_SPONSORS, { ssr: true });
+  const router = useRouter();
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+  const handleTimesheetClick = (sponsorName: string) => {
+    const encodedSponsorName = encodeURIComponent(sponsorName);
+    router.push(`/analytics/datasets/timesheet-this-month?Sponsor=${encodedSponsorName}`, { shallow: true });
+  };
 
   return (
     <>
@@ -70,6 +78,12 @@ export default function Sponsors() {
                           {sponsor.client.name}
                         </div>
                     )}
+                    <Button 
+                      onClick={() => handleTimesheetClick(sponsor.name)} 
+                      className="mt-2 px-1.5 py-0.5 text-xs cursor-pointer"
+                    >
+                      Timesheet
+                    </Button>
                   </div>
                 </div>
               </TableCell>

@@ -32,7 +32,7 @@ export default function Clients() {
 
     return (
       <Link 
-        href={`clients/${client.slug}`} 
+        href={`/analytics/datasets/timesheet-this-month?ClientName=${encodeURIComponent(client.name)}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

@@ -12,6 +12,8 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import { gql, useQuery } from "@apollo/client";
+import { Button } from "@/components/catalyst/button";
+import { useRouter } from "next/navigation";
 
 export default function AccountManagers() {
   const GET_ACCOUNT_MANAGERS = gql`
@@ -27,9 +29,15 @@ export default function AccountManagers() {
     }
   `;
   const { loading, error, data } = useQuery(GET_ACCOUNT_MANAGERS, { ssr: true });
+  const router = useRouter();
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+  const handleTimesheetClick = (managerName: string) => {
+    const encodedManagerName = encodeURIComponent(managerName);
+    router.push(`/analytics/datasets/timesheet-this-month?AccountManagerName=${encodedManagerName}`, { shallow: true });
+  };
 
   return (
     <>
@@ -45,7 +53,7 @@ export default function AccountManagers() {
         </TableHead>
         <TableBody>
           {data.accountManagers.map((manager: any) => (
-            <TableRow key={manager.slug} href={manager.omniUrl}>
+            <TableRow key={manager.slug}>
               <TableCell>
                 <div className="flex items-center gap-4">
                   <Avatar src={manager.photoUrl} className="size-16" />
@@ -55,12 +63,18 @@ export default function AccountManagers() {
                       {manager.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
                     </div>
                     <div>
-                    {manager.errors.map((error: string) => (
-                      <Badge key={error} color='rose' className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 mb-1">
-                        {error}
-                      </Badge>
-                    ))}
-                  </div>
+                      {manager.errors.map((error: string) => (
+                        <Badge key={error} color='rose' className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 mb-1">
+                          {error}
+                        </Badge>
+                      ))}
+                    </div>
+                    <Button 
+                      onClick={() => handleTimesheetClick(manager.name)} 
+                      className="mt-2 px-1.5 py-0.5 text-xs cursor-pointer"
+                    >
+                      Timesheet
+                    </Button>
                   </div>  
                 </div>
               </TableCell>
