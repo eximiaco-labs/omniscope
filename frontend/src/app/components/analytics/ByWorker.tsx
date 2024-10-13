@@ -40,7 +40,7 @@ export function ByWorker({ timesheet, className }: ByWorkerProps & { className?:
   };
 
   const labels = {
-    total: "Number of Workers",
+    total: "Workers",
     consulting: "Consultants",
     squad: "Engineers",
     internal: "Internal",

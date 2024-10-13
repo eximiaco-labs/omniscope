@@ -42,7 +42,7 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
   };
 
   const labels = {
-    total: "Number of Clients",
+    total: "Clients",
     consulting: "Consulting Clients",
     squad: "Squad Clients",
     internal: "Internal Clients",

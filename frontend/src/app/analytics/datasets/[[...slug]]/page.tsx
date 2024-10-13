@@ -13,6 +13,7 @@ import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
 import { BySponsor } from "@/app/components/analytics/BySponsor";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { ByAccountManager } from "@/app/components/analytics/ByAccountManager";
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -39,6 +40,7 @@ const GET_TIMESHEET = gql`
           uniqueWorkers
           uniqueWorkingDays
           uniqueSponsors
+          uniqueAccountManagers
         }
 
         squad {
@@ -46,6 +48,7 @@ const GET_TIMESHEET = gql`
           uniqueWorkers
           uniqueWorkingDays
           uniqueSponsors
+          uniqueAccountManagers
         }
 
         handsOn {
@@ -53,6 +56,7 @@ const GET_TIMESHEET = gql`
           uniqueWorkers
           uniqueWorkingDays
           uniqueSponsors
+          uniqueAccountManagers
         }
 
         internal {
@@ -60,6 +64,7 @@ const GET_TIMESHEET = gql`
           uniqueWorkers
           uniqueWorkingDays
           uniqueSponsors
+          uniqueAccountManagers
         }
       }
 
@@ -308,6 +313,7 @@ export default function Datasets() {
                 className="mb-6"
               />
               <ByClient timesheet={timesheetData.timesheet} className="mb-6" />
+              <ByAccountManager timesheet={timesheetData.timesheet} className="mb-6" />
               <ByWorker timesheet={timesheetData.timesheet} className="mb-6" />
               <BySponsor timesheet={timesheetData.timesheet} className="mb-6" />
               <ByWorkingDay timesheet={timesheetData.timesheet} />

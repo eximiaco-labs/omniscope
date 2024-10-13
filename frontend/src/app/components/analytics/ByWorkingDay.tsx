@@ -47,7 +47,7 @@ export function ByWorkingDay({ timesheet, className }: ByWorkingDayProps & { cla
   };
 
   const labels = {
-    total: "Number of Working Days",
+    total: "Working Days",
     consulting: "Consulting Days",
     squad: "Squad Days",
     internal: "Internal Days",

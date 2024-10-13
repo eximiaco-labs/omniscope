@@ -13,7 +13,6 @@ import {
 } from "@/components/catalyst/table";
 import { gql, useQuery } from "@apollo/client";
 import { Button } from "@/components/catalyst/button";
-import { useRouter } from "next/navigation";
 
 export default function ConsultantsAndEngineers() {
   const GET_CONSULTANTS = gql`
@@ -28,15 +27,9 @@ export default function ConsultantsAndEngineers() {
     }
   `;
   const { loading, error, data } = useQuery(GET_CONSULTANTS, { ssr: true });
-  const router = useRouter();
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
-  const handleTimesheetClick = (workerName: string) => {
-    const encodedWorkerName = encodeURIComponent(workerName);
-    router.push(`/analytics/datasets/timesheet-this-month?WorkerName=${encodedWorkerName}`, { shallow: true });
-  };
 
   return (
     <>
@@ -70,7 +63,7 @@ export default function ConsultantsAndEngineers() {
                         ))}
                       </div>
                       <Button 
-                        onClick={() => handleTimesheetClick(w.name)} 
+                        href={`/analytics/datasets/timesheet-this-month?WorkerName=${encodeURIComponent(w.name)}`}
                         className="mt-2 px-1.5 py-0.5 text-xs cursor-pointer"
                       >
                         Timesheet

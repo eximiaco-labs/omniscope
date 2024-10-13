@@ -40,7 +40,7 @@ export function BySponsor({ timesheet, className }: BySponsorProps & { className
   };
 
   const labels = {
-    total: "Number of Sponsors",
+    total: "Sponsors",
     consulting: "Consulting Sponsors",
     squad: "Squad Sponsors",
     internal: "Internal Sponsors",
