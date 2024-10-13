@@ -199,7 +199,12 @@ export default function Clients() {
           <div className="col-span-6">
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
               <div className="lg:col-span-1">
-                <Heading level={4} className="mb-3 text-lg font-semibold text-gray-700">All Time</Heading>
+                <div className="flex items-center mb-3">
+                  <p className="text-sm font-semibold text-gray-900 uppercase">
+                    ALL TIME
+                  </p>
+                  <div className="flex-grow h-px bg-gray-200 ml-2"></div>
+                </div>
                 <div
                   className={`${getStatClassName('allClients')} transform`}
                   onClick={() => handleStatClick('allClients')}
@@ -211,7 +216,12 @@ export default function Clients() {
                 </div>
               </div>
               <div className="lg:col-span-5">
-                <Heading level={4} className="mb-3 text-lg font-semibold text-gray-700">Active (Last 6 Weeks)</Heading>
+                <div className="flex items-center mb-3">
+                  <p className="text-sm font-semibold text-gray-900 uppercase">
+                    ACTIVE <span className="text-xs text-gray-600 uppercase">LAST SIX WEEKS</span>
+                  </p>
+                  <div className="flex-grow h-px bg-gray-200 ml-2"></div>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                   <div
                     className={`${getStatClassName('total')} transform`}
