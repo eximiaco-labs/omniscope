@@ -10,6 +10,9 @@ import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
+import { Button } from "@/components/catalyst/button";
+import { print } from 'graphql'; // Import the print function
+import { client } from '@/app/layout'; // Import the client
 
 const GET_CLIENTS = gql`
   query GetClients {
@@ -53,6 +56,11 @@ export default function Clients() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+  const queryString = print(GET_CLIENTS); // Convert the query to a string
+
+  // Get the GraphQL endpoint from the client
+  const GRAPHQL_ENDPOINT = (client.link.options as any).uri;
 
   const strategicClients = data.clients.filter((client: any) => client.isStrategic);
   const nonStrategicClients = data.clients.filter((client: any) => !client.isStrategic);
