@@ -12,7 +12,7 @@ import Select from "react-tailwindcss-select";
 import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
 import { BySponsor } from "@/app/components/analytics/BySponsor";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -127,6 +127,7 @@ const GET_TIMESHEET = gql`
 export default function Datasets() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const defaultDataset = 'timesheet-this-month';
   const [selectedDataset, setSelectedDataset] = useState(
     params.slug && params.slug.length > 0 ? params.slug[0] : defaultDataset
@@ -136,16 +137,37 @@ export default function Datasets() {
 
   useEffect(() => {
     if (selectedDataset) {
-      router.push(`/analytics/datasets/${selectedDataset}`);
+      const queryString = new URLSearchParams(searchParams).toString();
+      router.push(`/analytics/datasets/${selectedDataset}${queryString ? `?${queryString}` : ''}`);
     } else {
       router.push(`/analytics/datasets`);
     }
-  }, [selectedDataset, router]);
+  }, [selectedDataset, router, searchParams]);
+
+  useEffect(() => {
+    const filters = parseFiltersFromSearchParams(searchParams);
+    setFormattedSelectedValues((prev) => {
+      const prevFiltersString = JSON.stringify(prev);
+      const newFiltersString = JSON.stringify(filters);
+      return prevFiltersString !== newFiltersString ? filters : prev;
+    });
+
+    const newSelectedValues = filters.flatMap(filter => 
+      filter.selectedValues.map(value => ({
+        value: `${filter.field}:${value}`,
+        label: value
+      }))
+    );
+    setSelectedValues(newSelectedValues);
+  }, [searchParams]);
 
   const [getFilteredTimesheet, { loading: filterLoading, error: filterError, data: filteredData }] = useLazyQuery(GET_TIMESHEET);
 
   const { loading, error, data } = useQuery(GET_TIMESHEET, {
-    variables: { slug: selectedDataset },
+    variables: { 
+      slug: selectedDataset,
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
+    },
     skip: !selectedDataset,
   });
 
@@ -161,7 +183,44 @@ export default function Datasets() {
     }
   }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet]);
 
+  // Adicione este useEffect para carregar os dados iniciais com os filtros da URL
+  useEffect(() => {
+    if (selectedDataset) {
+      const initialFilters = Array.from(searchParams.entries()).map(([field, value]) => ({
+        field,
+        selectedValues: [value]
+      }));
+      getFilteredTimesheet({
+        variables: {
+          slug: selectedDataset,
+          filters: initialFilters.length > 0 ? initialFilters : null
+        }
+      });
+    }
+  }, []);
+
   const timesheetData = filteredData || data;
+
+  const updateQueryString = (newSelectedValues: SelectValue[]) => {
+    const params = new URLSearchParams(searchParams);
+    params.delete('field'); // Remova os antigos
+    newSelectedValues.forEach(value => {
+      if (typeof value.value === 'string') {
+        const [field, fieldValue] = value.value.split(':');
+        params.append(field, fieldValue);
+      }
+    });
+    router.push(`/analytics/datasets/${selectedDataset}?${params.toString()}`);
+  };
+
+  function parseFiltersFromSearchParams(searchParams: URLSearchParams): Array<{ field: string; selectedValues: string[] }> {
+    const filters: Record<string, string[]> = {};
+    searchParams.forEach((value, key) => {
+      if (!filters[key]) filters[key] = [];
+      filters[key].push(value);
+    });
+    return Object.entries(filters).map(([field, selectedValues]) => ({ field, selectedValues }));
+  }
 
   return (
     <>
@@ -197,17 +256,16 @@ export default function Datasets() {
                         };
                       })}
                       placeholder="Filters..."
-                      onChange={(value: SelectValue): void => {
-                        console.log("Selected values:", value);
-                        setSelectedValues(
-                          Array.isArray(value) ? value : []
-                        );
+                      onChange={(value: SelectValue | SelectValue[]): void => {
+                        const newSelectedValues = Array.isArray(value) ? value : [];
+                        setSelectedValues(newSelectedValues);
+                        updateQueryString(newSelectedValues);
                         
                         // Create the formatted structure
                         const formattedValues = timesheetData.timesheet.filterableFields.reduce((acc: any[], field: any) => {
-                          const fieldValues = (Array.isArray(value) ? value : [])
-                            .filter(v => v.value.startsWith(`${field.field}:`))
-                            .map(v => v.value.split(':')[1]);
+                          const fieldValues = newSelectedValues
+                            .filter(v => typeof v.value === 'string' && v.value.startsWith(`${field.field}:`))
+                            .map(v => (v.value as string).split(':')[1]);
                           
                           if (fieldValues.length > 0) {
                             acc.push({
@@ -219,7 +277,8 @@ export default function Datasets() {
                         }, []);
                         
                         setFormattedSelectedValues(formattedValues);
-                        console.log("Formatted selected values:", formattedValues);
+                        // Remova ou comente a linha abaixo
+                        // console.log("Formatted selected values:", formattedValues);
                       }}
                       primaryColor={""}
                       isMultiple={true}
