@@ -219,6 +219,9 @@ export default function WeekReview() {
           const currentDate = addDays(weekStart, index);
           const isDisabled = isAfter(currentDate, date);
           const dayData = data?.weekReview?.[day];
+          const deltaPercentage = dayData?.totalHours && dayData?.averageHours
+            ? ((dayData.totalHours - dayData.averageHours) / dayData.averageHours) * 100
+            : null;
           return (
             <div
               key={day}
@@ -236,24 +239,36 @@ export default function WeekReview() {
                   <span className="text-xs text-gray-600 ml-2">{format(currentDate, 'MMM d')}</span>
                 </div>
               </div>
-              <div className="px-2 py-1">
+              <div className="px-2 py-1 cursor-pointer relative">
                 {loading ? (
                   <p>Loading...</p>
                 ) : error ? (
                   <p>Error: {error.message}</p>
                 ) : dayData ? (
-                  <div style={{ width: '100%', height: 100 }}>
-                    <ResponsiveContainer>
-                      <BarChart data={dayData.dailySummary} margin={{ left: 0, right: 0 }}>
-                        <Bar dataKey="consulting" stackId="a" fill="#F59E0B" isAnimationActive={false} barSize={30} />
-                        <Bar dataKey="handsOn" stackId="a" fill="#8B5CF6" isAnimationActive={false} barSize={30} />
-                        <Bar dataKey="squad" stackId="a" fill="#3B82F6" isAnimationActive={false} barSize={30} />
-                        <Bar dataKey="internal" stackId="a" fill="#10B981" isAnimationActive={false} barSize={30} />
-                        <YAxis domain={[0, maxValue]} hide />
-                        <ReferenceLine y={dayData.averageHours} stroke="red" strokeDasharray="3 3" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <>
+                    <div style={{ width: '100%', height: 100 }} className="cursor-pointer opacity-30">
+                      <ResponsiveContainer>
+                        <BarChart data={dayData.dailySummary} margin={{ left: 0, right: 0 }}>
+                          <Bar dataKey="consulting" stackId="a" fill="#F59E0B" isAnimationActive={false} barSize={30} />
+                          <Bar dataKey="handsOn" stackId="a" fill="#8B5CF6" isAnimationActive={false} barSize={30} />
+                          <Bar dataKey="squad" stackId="a" fill="#3B82F6" isAnimationActive={false} barSize={30} />
+                          <Bar dataKey="internal" stackId="a" fill="#10B981" isAnimationActive={false} barSize={30} />
+                          <YAxis domain={[0, maxValue]} hide />
+                          <ReferenceLine y={dayData.averageHours} stroke="red" strokeDasharray="3 3" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-black">
+                        {dayData.totalHours ? (dayData.totalHours % 1 === 0 ? Math.floor(dayData.totalHours) : dayData.totalHours.toFixed(1)) : '-'}
+                      </span>
+                      {deltaPercentage !== null && (
+                        <span className={`text-xs ${deltaPercentage > 0 ? 'text-green-800' : 'text-red-800'}`}>
+                          {deltaPercentage > 0 ? '▲' : '▼'} {Math.abs(deltaPercentage).toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <p>No data available</p>
                 )}
@@ -262,15 +277,15 @@ export default function WeekReview() {
                 <span className="text-red-700">
                   <span className="text-red-700">{dayData?.worstDay ? format(new Date(dayData.worstDay), 'MMM d') : '-'}</span>
                   <br />
-                  {dayData?.worstDayHours ? dayData.worstDayHours.toFixed(1) : '-'}
+                  {dayData?.worstDayHours ? (dayData.worstDayHours % 1 === 0 ? Math.floor(dayData.worstDayHours) : dayData.worstDayHours.toFixed(1)) : '-'}
                 </span>
                 <span className="text-blue-700">
-                  {dayData?.averageHours ? dayData.averageHours.toFixed(1) : '-'}
+                  {dayData?.averageHours ? (dayData.averageHours % 1 === 0 ? Math.floor(dayData.averageHours) : dayData.averageHours.toFixed(1)) : '-'}
                 </span>
                 <span className="text-green-700 text-right">
                   <span className="text-green-700">{dayData?.bestDay ? format(new Date(dayData.bestDay), 'MMM d') : '-'}</span>
                   <br />
-                  {dayData?.bestDayHours ? dayData.bestDayHours.toFixed(1) : '-'}
+                  {dayData?.bestDayHours ? (dayData.bestDayHours % 1 === 0 ? Math.floor(dayData.bestDayHours) : dayData.bestDayHours.toFixed(1)) : '-'}
                 </span>
               </div>
             </div>
