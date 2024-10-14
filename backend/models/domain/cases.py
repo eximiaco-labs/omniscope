@@ -24,17 +24,6 @@ class Case(BaseModel):
     sponsor: Optional[str] = None
     offers_ids: Optional[List[int]] = []
 
-    @property
-    def errors(self):
-        result = []
-        if not self.has_description:
-            result.append("NO DESCRIPTION")
-
-        if not self.client_id:
-            result.append("NO CLIENT")
-
-        return result
-
     def find_client_name(self, clients_repository: ClientsRepository):
         if self.client_id:
             client = clients_repository.get_by_id(self.client_id)

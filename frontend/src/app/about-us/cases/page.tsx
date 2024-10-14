@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
 import { print } from 'graphql';
 import { client } from '@/app/layout';
+import { AlertTriangle } from 'lucide-react';
 
 const GET_CASES_AND_TIMESHEET = gql`
   query GetCasesAndTimesheet {
@@ -20,6 +21,7 @@ const GET_CASES_AND_TIMESHEET = gql`
       title
       isActive
       sponsor
+      hasDescription
       client {
         name
       }
@@ -93,7 +95,14 @@ export default function Cases() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300`}>
+        <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300 relative`}>
+          {!caseItem.hasDescription && (
+            <div className="absolute -top-2 -left-2 z-10">
+              <div className="bg-red-500 rounded-full p-1">
+                <AlertTriangle className="text-white" size={20} />
+              </div>
+            </div>
+          )}
           <CardContent className="flex flex-col items-center p-4">
             <div className="w-full mb-2 text-center">
               <h3 className="font-bold uppercase">{caseItem.client?.name || 'Unknown Client'}</h3>

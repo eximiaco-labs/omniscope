@@ -3,8 +3,6 @@ from graphql import GraphQLResolveInfo
 import globals
 
 def resolve_cases(_, info, only_actives: bool = False):
-    for f in info.field_nodes:
-        print(f.name)
     all_cases = globals.omni_models.cases.get_all().values()
 
     if only_actives:
@@ -32,7 +30,13 @@ def resolve_case(_, info: GraphQLResolveInfo, id=None, slug=None):
     return None
 
 def _make_result_object(info: GraphQLResolveInfo, case):
-    result = case.__dict__
+    result = {**case.__dict__}
+    
+    # Add all properties
+    for prop in dir(case):
+        if not prop.startswith('_') and prop not in result:
+            result[prop] = getattr(case, prop)
+
     field_node = info.field_nodes[0]
     selection_set = field_node.selection_set
     selections = selection_set.selections
