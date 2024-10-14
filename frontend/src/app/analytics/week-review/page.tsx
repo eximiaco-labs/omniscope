@@ -209,7 +209,7 @@ export default function WeekReview() {
     <>
       <Heading>Week Review</Heading>
       
-      <div className="mt-6 mb-4 flex items-center">
+      <div className="mt-3 mb-3 flex items-center">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -248,7 +248,7 @@ export default function WeekReview() {
       </div>
 
       {data && data.weekReview && data.weekReview.filterableFields && (
-        <div className="mb-6">
+        <div className="mb-3">
           <SelectComponent
             value={selectedFilters}
             options={data.weekReview.filterableFields.map((f: any) => {
