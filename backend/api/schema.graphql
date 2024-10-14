@@ -335,6 +335,7 @@ type TimesheetSummary implements ISummary{
   byAccountManager: [NamedSummary!]!
   byDate: [DateSummary!]!
   byWeek: [WeekSummary!]!
+  byOffer: [NamedSummary!]!
 
   filterableFields: [FilterableField]!
 }

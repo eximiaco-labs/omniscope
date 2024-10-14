@@ -103,6 +103,9 @@ def summarize_by_date(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
 def summarize_by_week(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
     return summarize_by_group(df, 'Week', name_key="week")
 
+def summarize_by_offer(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'ProductsOrServices', name_key="name")
+
 def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters = None):
     if not slug.startswith('timesheet-'):
         slug = f'timesheet-{slug}'
@@ -142,7 +145,7 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
         'byKind', 'byWorker', 'byClient', 'byCase', 'bySponsor', 
-        'byAccountManager', 'byDate', 'byWeek'
+        'byAccountManager', 'byDate', 'byWeek', 'byOffer'
     }
     
     # Base summary
@@ -180,6 +183,9 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters
     # By week
     if 'byWeek' in requested_fields:
         result['by_week'] = summarize_by_week(df)
+    
+    if 'byOffer' in requested_fields:
+        result['by_offer'] = summarize_by_offer(df)
 
     return result
 
