@@ -86,7 +86,6 @@ type CaseUpdate {
   author: String
   status: String
   observations: String
-
 }
 
 type Offer {
@@ -371,6 +370,36 @@ type DatasetsSet {
   timesheet: TimesheetSummary
 }
 
+# Week Review
+
+type WeekReview {
+  sunday: TimesheetDateAnalysis
+  monday: TimesheetDateAnalysis
+  tuesday: TimesheetDateAnalysis
+  wednesday: TimesheetDateAnalysis
+  thursday: TimesheetDateAnalysis
+  friday: TimesheetDateAnalysis
+  saturday: TimesheetDateAnalysis
+}
+
+type TimesheetDateAnalysis {
+  dailySummary: [DailySummaryEntry!]!
+  totalHours: Float!
+  bestDay: Date
+  bestDayHours: Float!
+  worstDay: Date
+  worstDayHours: Float!
+  averageHours: Float!
+}
+
+type DailySummaryEntry {
+  date: Date!
+  consulting: Float!
+  handsOn: Float!
+  squad: Float!
+  internal: Float!
+}
+
 # Query
 
 type Query {
@@ -394,6 +423,7 @@ type Query {
 
   timesheet(slug: String!, kind: TimesheetKind = ALL, filters: [FilterInput]): TimesheetSummary
   thisWeek(kind: TimesheetKind = ALL): DatasetsSet
+  weekReview(date_of_interest: Date!): WeekReview!
 }
 
 enum TimesheetKind {
@@ -410,3 +440,5 @@ input FilterInput {
   field: String!
   selectedValues: [String!]!
 }
+
+scalar Date

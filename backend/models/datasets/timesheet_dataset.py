@@ -184,7 +184,7 @@ class TimesheetDateAnalysis:
     def __init__(self, df, date_of_interest: datetime, number_of_weeks: int = 6):
         day_of_week = date_of_interest.strftime('%A')
 
-        kind_order = ['Squad', 'Consulting', 'Internal']
+        kind_order = ['Squad', 'Consulting', 'Internal',]
 
         kinds_present = [kind for kind in kind_order if kind in df['Kind'].unique()]
 

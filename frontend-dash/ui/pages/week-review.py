@@ -49,7 +49,7 @@ def layout():
     Input({'type': 'dataset-selector-store', 'id': 'week-review'}, 'value')
 )
 def update_week_content_area(params):
-    ds = globals.datasets.get_by_params(params)
+    ds = globals
     df = ds.data
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
 

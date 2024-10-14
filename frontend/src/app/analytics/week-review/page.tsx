@@ -20,16 +20,131 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery, gql } from "@apollo/client";
+
+const WEEK_REVIEW_QUERY = gql`
+  query WeekReview($dateOfInterest: Date!) {
+    weekReview(date_of_interest: $dateOfInterest) {
+      sunday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        totalHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+      monday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+      tuesday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        totalHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+      wednesday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        totalHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+      thursday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        totalHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+      friday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+      saturday {
+        worstDay
+        worstDayHours
+        bestDay
+        bestDayHours
+        averageHours
+        totalHours
+        dailySummary {
+          date
+          consulting
+          squad
+          handsOn
+          internal
+        }
+      }
+    }
+  }
+`;
 
 export default function WeekReview() {
   const [date, setDate] = useState<Date>(new Date());
 
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
   useEffect(() => {
     const today = new Date();
     setDate(today);
   }, []);
+
+  const { loading, error, data } = useQuery(WEEK_REVIEW_QUERY, {
+    variables: { dateOfInterest: format(date, 'yyyy-MM-dd') },
+  });
 
   const handleDayClick = (clickedDate: Date) => {
     setDate(clickedDate);
@@ -82,23 +197,40 @@ export default function WeekReview() {
       <div className="grid grid-cols-7 gap-4">
         {days.map((day, index) => {
           const currentDate = addDays(weekStart, index);
-          const isFutureDate = isAfter(currentDate, date);
+          const isDisabled = isAfter(currentDate, date);
+          const dayData = data?.weekReview?.[day];
           return (
             <Card
               key={day}
-              className={`cursor-pointer transition-all duration-300 ${
-                isSameDay(currentDate, date) ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
-              } ${isFutureDate ? 'opacity-50' : ''}`}
+              className={cn(
+                "cursor-pointer transition-all duration-300",
+                isSameDay(currentDate, date) ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102',
+                isDisabled ? 'opacity-50' : ''
+              )}
               onClick={() => handleDayClick(currentDate)}
             >
               <CardHeader>
                 <CardTitle className="text-sm">
-                  <span className="font-bold">{day}</span>
+                  <span className="font-bold">{day.charAt(0).toUpperCase() + day.slice(1, 3)}</span>
                   <span className="text-xs text-gray-600 ml-2">{format(currentDate, 'MMM d')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Content can be added here if needed */}
+                {loading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p>Error: {error.message}</p>
+                ) : dayData ? (
+                  <div>
+                    <p>Best Day: {format(new Date(dayData.bestDay), 'MMM d')}</p>
+                    <p>Best Day Hours: {dayData.bestDayHours.toFixed(2)}</p>
+                    <p>Worst Day: {format(new Date(dayData.worstDay), 'MMM d')}</p>
+                    <p>Worst Day Hours: {dayData.worstDayHours.toFixed(2)}</p>
+                    <p>Average Hours: {dayData.averageHours.toFixed(2)}</p>
+                  </div>
+                ) : (
+                  <p>No data available</p>
+                )}
               </CardContent>
             </Card>
           );
