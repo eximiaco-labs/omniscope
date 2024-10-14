@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { BookOpen, Briefcase, Lightbulb, ListTodo } from "lucide-react";
+import { BookOpen, Briefcase, Lightbulb, ListTodo, AlertTriangle } from "lucide-react";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
@@ -21,6 +21,7 @@ const GET_CONSULTANTS_AND_TIMESHEET = gql`
       position
       photoUrl
       errors
+      isRecognized
       isOntologyAuthor
       isInsightsAuthor
       isTimeTrackerWorker
@@ -111,7 +112,14 @@ export default function ConsultantsAndEngineers() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300`}>
+        <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300 relative`}>
+          {!worker.isRecognized && (
+            <div className="absolute -top-2 -left-2 z-10">
+              <div className="bg-red-500 rounded-full p-1">
+                <AlertTriangle className="text-white" size={20} />
+              </div>
+            </div>
+          )}
           <CardContent className="flex flex-col items-center p-4">
             <Avatar src={worker.photoUrl} className="size-16 mb-2" />
             <CardHeader className="p-0 mt-2">
