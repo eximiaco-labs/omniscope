@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Heading } from "@/components/catalyst/heading";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { addDays, format, startOfWeek, isSameDay, isAfter } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery, gql } from "@apollo/client";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 const WEEK_REVIEW_QUERY = gql`
   query WeekReview($dateOfInterest: Date!) {
@@ -46,6 +47,7 @@ const WEEK_REVIEW_QUERY = gql`
         bestDay
         bestDayHours
         averageHours
+        totalHours
         dailySummary {
           date
           consulting
@@ -105,6 +107,7 @@ const WEEK_REVIEW_QUERY = gql`
         bestDay
         bestDayHours
         averageHours
+        totalHours
         dailySummary {
           date
           consulting
@@ -152,6 +155,23 @@ export default function WeekReview() {
 
   const weekStart = startOfWeek(date);
 
+  const getMaxValue = () => {
+    if (!data || !data.weekReview) return 0;
+    let max = 0;
+    Object.values(data.weekReview).forEach((day: any) => {
+      console.log(day);
+      if (day.dailySummary) {
+        day.dailySummary.forEach((summary: any) => {
+          const total = summary.consulting + summary.squad + summary.handsOn + summary.internal;
+          if (total > max) max = total;
+        });
+      }
+    });
+    return max;
+  };
+
+  const maxValue = getMaxValue();
+
   return (
     <>
       <Heading>Week Review</Heading>
@@ -194,45 +214,66 @@ export default function WeekReview() {
         <div className="flex-grow h-px bg-gray-200 ml-4"></div>
       </div>
 
-      <div className="grid grid-cols-7 gap-4">
+      <div className="grid grid-cols-7 gap-2">
         {days.map((day, index) => {
           const currentDate = addDays(weekStart, index);
           const isDisabled = isAfter(currentDate, date);
           const dayData = data?.weekReview?.[day];
           return (
-            <Card
+            <div
               key={day}
               className={cn(
-                "cursor-pointer transition-all duration-300",
+                "cursor-pointer transition-all duration-300 border border-gray-200 bg-white",
+                "rounded-sm shadow-sm overflow-hidden",
                 isSameDay(currentDate, date) ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102',
-                isDisabled ? 'opacity-50' : ''
+                isDisabled ? 'opacity-30 grayscale contrast-75' : ''
               )}
               onClick={() => handleDayClick(currentDate)}
             >
-              <CardHeader>
-                <CardTitle className="text-sm">
+              <div className="p-2">
+                <div className="text-sm">
                   <span className="font-bold">{day.charAt(0).toUpperCase() + day.slice(1, 3)}</span>
                   <span className="text-xs text-gray-600 ml-2">{format(currentDate, 'MMM d')}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </div>
+              </div>
+              <div className="px-2 py-1">
                 {loading ? (
                   <p>Loading...</p>
                 ) : error ? (
                   <p>Error: {error.message}</p>
                 ) : dayData ? (
-                  <div>
-                    <p>Best Day: {format(new Date(dayData.bestDay), 'MMM d')}</p>
-                    <p>Best Day Hours: {dayData.bestDayHours.toFixed(2)}</p>
-                    <p>Worst Day: {format(new Date(dayData.worstDay), 'MMM d')}</p>
-                    <p>Worst Day Hours: {dayData.worstDayHours.toFixed(2)}</p>
-                    <p>Average Hours: {dayData.averageHours.toFixed(2)}</p>
+                  <div style={{ width: '100%', height: 100 }}>
+                    <ResponsiveContainer>
+                      <BarChart data={dayData.dailySummary} margin={{ left: 0, right: 0 }}>
+                        <Bar dataKey="consulting" stackId="a" fill="#F59E0B" isAnimationActive={false} barSize={30} />
+                        <Bar dataKey="handsOn" stackId="a" fill="#8B5CF6" isAnimationActive={false} barSize={30} />
+                        <Bar dataKey="squad" stackId="a" fill="#3B82F6" isAnimationActive={false} barSize={30} />
+                        <Bar dataKey="internal" stackId="a" fill="#10B981" isAnimationActive={false} barSize={30} />
+                        <YAxis domain={[0, maxValue]} hide />
+                        <ReferenceLine y={dayData.averageHours} stroke="red" strokeDasharray="3 3" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
                   <p>No data available</p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex justify-between text-[9px] px-2 py-1">
+                <span className="text-red-700">
+                  <span className="text-red-700">{dayData?.worstDay ? format(new Date(dayData.worstDay), 'MMM d') : '-'}</span>
+                  <br />
+                  {dayData?.worstDayHours ? dayData.worstDayHours.toFixed(1) : '-'}
+                </span>
+                <span className="text-blue-700">
+                  {dayData?.averageHours ? dayData.averageHours.toFixed(1) : '-'}
+                </span>
+                <span className="text-green-700 text-right">
+                  <span className="text-green-700">{dayData?.bestDay ? format(new Date(dayData.bestDay), 'MMM d') : '-'}</span>
+                  <br />
+                  {dayData?.bestDayHours ? dayData.bestDayHours.toFixed(1) : '-'}
+                </span>
+              </div>
+            </div>
           );
         })}
       </div>
