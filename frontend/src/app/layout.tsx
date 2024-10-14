@@ -27,12 +27,15 @@ import {
   ProjectorIcon,
   ScaleIcon,
   LucideProps,
+  AlertCircle,
 } from "lucide-react";
 import Logo from "./components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ForwardRefExoticComponent, ReactNode, RefAttributes } from "react";
-import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloProvider, ApolloClient, InMemoryCache, useQuery, gql } from '@apollo/client';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Create and export the Apollo Client instance
 export const client = new ApolloClient({
@@ -40,11 +43,47 @@ export const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-// export const metadata: Metadata = {
-//   title: "Omniscope",
-//   description:
-//     "Integrating information from various sources into a single system, ensuring that data is consistent and accessible.",
-// };
+const GET_INCONSISTENCIES = gql`
+  query GetInconsistencies {
+    inconsistencies {
+      title
+      description
+    }
+  }
+`;
+
+function InconsistencyAlerts() {
+  const { loading, error, data } = useQuery(GET_INCONSISTENCIES);
+
+  if (loading) return null;
+  if (error) return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>Error fetching inconsistencies</AlertDescription>
+    </Alert>
+  );
+
+  return (
+    <AnimatePresence>
+      {data.inconsistencies.map((inconsistency: { title: string; description: string }, index: number) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+          transition={{ duration: 0.5, delay: index * 0.1 }}
+        >
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{inconsistency.title}</AlertTitle>
+            <AlertDescription>{inconsistency.description}</AlertDescription>
+          </Alert>
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -65,6 +104,7 @@ export default function RootLayout({
             sidebar={OmniscopeSidebar()}
             navbar={<Navbar>{/* Your navbar content */}</Navbar>}
           >
+            <InconsistencyAlerts />
             <main>{children}</main>
           </SidebarLayout>
         </body>

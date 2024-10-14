@@ -53,7 +53,18 @@ class Worker(BaseModel):
     @property
     def is_recognized(self):
         return self.ontology_info is not None
-
+    
+    @property
+    def is_todoist_only(self):
+        return (
+            self.todoist_user_id is not None and 
+            self.insights_user_id is None and 
+            self.ontology_info is None and 
+            self.tracker_info is None and
+            self.pipedrive_user_id is None and
+            self.tracker_info is None
+        )
+    
     @property
     def omni_url(self) -> str:
         if self.kind == WorkerKind.ACCOUNT_MANAGER:
@@ -70,7 +81,19 @@ class Worker(BaseModel):
 
     @property
     def is_ontology_author(self):
-        return
+        return self.ontology_user_id is not None
+    
+    @property
+    def is_insights_author(self):
+        return self.insights_user_id is not None
+    
+    @property
+    def is_time_tracker_worker(self):
+        return self.tracker_info is not None
+
+    @property
+    def is_special_projects_worker(self):
+        return self.todoist_user_id is not None
 
 
 class WorkersRepository:
@@ -271,4 +294,5 @@ class WorkersRepository:
         self.__data = {
             worker.id: worker
             for worker in workers_dict.values()
+            if not worker.is_todoist_only and worker.name != 'admin'
         }

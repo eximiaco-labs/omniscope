@@ -5,12 +5,13 @@ import { Avatar } from "@/components/catalyst/avatar";
 import { Badge } from "@/components/catalyst/badge";
 import { Heading } from "@/components/catalyst/heading";
 import { gql, useQuery } from "@apollo/client";
-import { Button } from "@/components/catalyst/button";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { BookOpen, Briefcase, Lightbulb, ListTodo } from "lucide-react";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
@@ -20,6 +21,10 @@ const GET_CONSULTANTS_AND_TIMESHEET = gql`
       position
       photoUrl
       errors
+      isOntologyAuthor
+      isInsightsAuthor
+      isTimeTrackerWorker
+      isSpecialProjectsWorker
     }
     timesheet(slug: "last-six-weeks", kind: ALL) {
       uniqueWorkers
@@ -117,15 +122,48 @@ export default function ConsultantsAndEngineers() {
             <div className="text-xs text-center text-zinc-500 mt-1">
               {worker.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
             </div>
-            {worker.errors.length > 0 && (
-              <div className="mt-2 flex flex-wrap justify-center">
-                {worker.errors.map((error: string) => (
-                  <Badge key={error} color='rose' className="text-xs m-1">
-                    {error}
-                  </Badge>
-                ))}
-              </div>
-            )}
+            <div className="flex justify-center mt-2 space-x-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <BookOpen className={worker.isOntologyAuthor ? "text-green-500" : "text-gray-300"} size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Ontology Author</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Lightbulb className={worker.isInsightsAuthor ? "text-green-500" : "text-gray-300"} size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Insights Author</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Briefcase className={worker.isTimeTrackerWorker ? "text-green-500" : "text-gray-300"} size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Time Tracker Worker</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <ListTodo className={worker.isSpecialProjectsWorker ? "text-green-500" : "text-gray-300"} size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Special Projects Worker</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             {workerData && (
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {workerData.totalConsultingHours > 0 && (

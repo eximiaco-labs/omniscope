@@ -4,6 +4,13 @@ enum WorkerKind {
   CONSULTANT
 }
 
+# Admin
+
+type Inconsistency {
+  title: String!
+  description: String!
+}
+
 # Domain 
 
 type Worker {
@@ -20,7 +27,11 @@ type Worker {
   isRecognized: Boolean!
   omniUrl: String!
   photoUrl: String!
-  isOntologyAuthor: Boolean
+
+  isOntologyAuthor: Boolean!
+  isInsightsAuthor: Boolean!
+  isTimeTrackerWorker: Boolean!
+  isSpecialProjectsWorker: Boolean!
 }
 
 type Client {
@@ -354,6 +365,8 @@ type DatasetsSet {
 # Query
 
 type Query {
+  inconsistencies: [Inconsistency]!
+
   accountManagers: [Worker!]!
   consultantsAndEngineers: [Worker!]!
   clients: [Client!]!
