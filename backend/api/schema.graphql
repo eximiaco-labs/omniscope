@@ -76,8 +76,17 @@ type Case {
   numberOfDaysWithNoUpdates: Int!
   hasUpdatedDescription: Boolean!
   omniUrl: String!
-
+  updates: [CaseUpdate]
+  lastUpdate: CaseUpdate
   client: Client
+}
+
+type CaseUpdate {
+  date: String!
+  author: String
+  status: String
+  observations: String
+
 }
 
 type Offer {

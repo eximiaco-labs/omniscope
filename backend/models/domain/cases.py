@@ -36,6 +36,12 @@ class Case(BaseModel):
         return self.ontology_info is not None
 
     @property
+    def last_update(self):
+        if self.updates is None or self.updates == []:
+            return None
+        return self.updates[0]
+
+    @property
     def has_client(self) -> bool:
         return self.client_id is not None
 

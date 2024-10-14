@@ -26,6 +26,12 @@ const GET_CASES_AND_TIMESHEET = gql`
       client {
         name
       }
+      lastUpdate {
+        date
+        author
+        status
+        observations
+      }
     }
     timesheet(slug: "last-six-weeks", kind: ALL) {
       uniqueClients
@@ -89,6 +95,20 @@ export default function Cases() {
       }
     };
 
+    const getStatusColor = (status: string) => {
+      const statusColor = {
+        "Critical": "rose",
+        "Requires attention": "amber",
+        "All right": "lime"
+      };
+      return statusColor[status] || "zinc";
+    };
+
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    };
+
     return (
       <Link 
         href={`/analytics/datasets/timesheet-last-six-weeks?CaseTitle=${encodeURIComponent(caseItem.title)}`}
@@ -147,6 +167,16 @@ export default function Cases() {
                     {caseData.totalInternalHours.toFixed(1).replace(/\.0$/, '')}h
                   </Badge>
                 )}
+              </div>
+            )}
+            {caseItem.lastUpdate && (
+              <div className="mt-2 text-xs text-gray-600 text-center">
+                <p>Updated on {formatDate(caseItem.lastUpdate.date)} by {caseItem.lastUpdate.author}</p>
+                <div className="flex justify-center mt-1">
+                  <Badge color={getStatusColor(caseItem.lastUpdate.status)}>
+                    {caseItem.lastUpdate.status}
+                  </Badge>
+                </div>
               </div>
             )}
           </CardContent>
