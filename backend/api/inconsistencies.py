@@ -24,4 +24,19 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
         ))
 
 
+    cases = globals.omni_models.cases.get_all().values()
+    projects_with_hours_recorded_without_case = sorted(
+        [
+            case
+            for case in cases
+            if not case.has_description and case.is_active and case.has_client
+        ], key=lambda case: case.title
+    )
+
+    if len(projects_with_hours_recorded_without_case) > 0:
+        result.append(Inconsistency(
+            'Projects with hours recorded without "case"',
+            f'{len(projects_with_hours_recorded_without_case)} projects had hours listed but did not have a formal description in a "case"'
+        ))
+
     return result
