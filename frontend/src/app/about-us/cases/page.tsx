@@ -2,7 +2,6 @@
 
 import { Heading } from "@/components/catalyst/heading";
 import { gql, useQuery } from "@apollo/client";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +19,9 @@ const GET_CASES_AND_TIMESHEET = gql`
       slug
       title
       isActive
+      sponsor
       client {
         name
-        logoUrl
       }
     }
     timesheet(slug: "last-six-weeks", kind: ALL) {
@@ -96,17 +95,16 @@ export default function Cases() {
       >
         <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300`}>
           <CardContent className="flex flex-col items-center p-4">
-            <div className="w-full h-32 relative mb-2">
-              <Image
-                src={caseItem.client?.logoUrl || '/placeholder.png'}
-                alt={`${caseItem.client?.name || 'Client'} logo`}
-                layout="fill"
-                objectFit="contain"
-                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
-              />
+            <div className="w-full mb-2 text-center">
+              <h3 className="font-bold uppercase">{caseItem.client?.name || 'Unknown Client'}</h3>
+              {caseItem.sponsor && (
+                <div className="text-xs text-gray-600 mt-1">
+                  {caseItem.sponsor}
+                </div>
+              )}
             </div>
             <CardHeader className="p-0 mt-2">
-              <CardTitle className={`text-center text-sm ${isHovered ? 'font-semibold' : ''} transition-all duration-300`}>
+              <CardTitle className={`text-center text-sm transition-all duration-300`}>
                 {caseItem.title}
               </CardTitle>
             </CardHeader>
