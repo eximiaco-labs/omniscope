@@ -22,6 +22,7 @@ const GET_CASES_AND_TIMESHEET = gql`
       isActive
       sponsor
       hasDescription
+      everhourProjectsIds
       client {
         name
       }
@@ -117,6 +118,13 @@ export default function Cases() {
                 {caseItem.title}
               </CardTitle>
             </CardHeader>
+            {!caseItem.hasDescription && caseItem.everhourProjectsIds && (
+              <div className="mt-2">
+                <Badge color="red" className="text-xs">
+                  {caseItem.everhourProjectsIds.join(', ')}
+                </Badge>
+              </div>
+            )}
             {caseData && (
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {caseData.totalConsultingHours > 0 && (
