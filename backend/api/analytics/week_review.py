@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 from models.helpers.weeks import Weeks
 import globals
 
@@ -40,8 +41,49 @@ def resolve_week_review(_, info, date_of_interest, filters=None):
     for i, day in enumerate(week_days):
         result[day] = TimesheetDateAnalysis(df, start + timedelta(days=i))
 
+    # Add month summary
+    result['month_summary'] = calculate_month_summary(df, date_of_interest, filters)
 
     return result
+
+def calculate_month_summary(six_weeks_df, date_of_interest, filters=None):
+    current_month = date_of_interest.replace(day=1)
+    previous_month = (current_month - relativedelta(months=1))
+
+    # Get previous month data
+    previous_month_slug = f'timesheet-month-{previous_month.year}-{previous_month.month}'
+    timesheet_previous_month = globals.omni_datasets.get_by_slug(previous_month_slug)
+    df = timesheet_previous_month.data
+    
+    # Apply filters if any
+    if filters:
+        for filter_item in filters:
+            df = df[df[filter_item['field']].isin(filter_item['selected_values'])]
+
+    previous_month = df
+    
+    # Convert 'Date' column to datetime if not already
+    six_weeks_df['Date_'] = pd.to_datetime(six_weeks_df['Date'])
+
+    this_month = six_weeks_df[
+        (six_weeks_df['Date_'] <= date_of_interest) &
+        (six_weeks_df['Date_'] >= date_of_interest.replace(day=1))
+    ]
+    
+    # Calculate required values
+    hours_this_month = this_month['TimeInHs'].sum()
+    hours_previous_month = previous_month['TimeInHs'].sum()
+    
+    limit_date = date_of_interest - relativedelta(months=1)
+    previous_month['Date_'] = pd.to_datetime(previous_month['Date'])
+    hours_until_this_date = previous_month[previous_month['Date_'] <= limit_date]['TimeInHs'].sum()
+    
+    return {
+        'hours_this_month': hours_this_month,
+        'hours_previous_month': hours_previous_month,
+        'hours_previous_month_until_this_date': hours_until_this_date,
+        'limit_date': limit_date
+    }
 
 class TimesheetDateAnalysis:
     def __init__(self, df, date_of_interest: datetime, number_of_weeks: int = 6):

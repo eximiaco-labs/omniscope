@@ -25,6 +25,10 @@ import SelectComponent from "react-tailwindcss-select";
 import { SelectValue as TailwindSelectValue } from "react-tailwindcss-select/dist/components/type";
 import { motion } from "framer-motion";
 
+import dynamic from "next/dynamic";
+const GaugeComponent = dynamic(() => import('react-gauge-component'), { ssr: false });
+
+
 const WEEK_REVIEW_QUERY = gql`
   query WeekReview($dateOfInterest: Date!, $filters: [FilterInput]) {
     weekReview(date_of_interest: $dateOfInterest, filters: $filters) {
@@ -132,6 +136,13 @@ const WEEK_REVIEW_QUERY = gql`
           handsOn
           internal
         }
+      }
+
+      monthSummary {
+        hoursThisMonth
+        hoursPreviousMonth
+        hoursPreviousMonthUntilThisDate
+        limitDate
       }
         
       filterableFields {
@@ -402,6 +413,66 @@ export default function WeekReview() {
             </motion.div>
           );
         })}
+
+        <div className="col-span-7 mt-4">
+          <h3 className="text-lg font-semibold mb-2">Monthly Hours Comparison</h3>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <GaugeComponent 
+              id="month-hours-gauge"
+              value={data?.weekReview?.monthSummary?.hoursThisMonth}
+              maxValue={data?.weekReview?.monthSummary?.hoursPreviousMonth}
+              type="semicircle"
+              arc={{
+                width: 0.2,
+                padding: 0.005,
+                cornerRadius: 1,
+                colorArray: ['#FF5F6D', '#FFC371', '#38ef7d']
+              }}
+              pointer={{
+                type: "needle",
+                color: "#345243",
+                length: 0.80,
+                width: 15,
+              }}
+              labels={{
+                valueLabel: { formatTextValue: (value) => `${value.toFixed(1)}h` },
+                tickLabels: {
+                  type: "outer",
+                  ticks: [
+                    { value: 0 },
+                    { value: data?.weekReview?.monthSummary?.hoursPreviousMonthUntilThisDate },
+                    { value: data?.weekReview?.monthSummary?.hoursPreviousMonth }
+                  ],
+                }
+              }}
+              ranges={[
+                {
+                  start: 0,
+                  end: data?.weekReview?.monthSummary?.hoursPreviousMonthUntilThisDate,
+                  color: "#FFC371",
+                },
+                {
+                  start: data?.weekReview?.monthSummary?.hoursPreviousMonthUntilThisDate,
+                  end: data?.weekReview?.monthSummary?.hoursPreviousMonth,
+                  color: "#38ef7d",
+                },
+              ]}
+            />
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-600">
+                This Month: <span className="font-bold">{data?.weekReview?.monthSummary?.hoursThisMonth.toFixed(1)}h</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                Previous Month: <span className="font-bold">{data?.weekReview?.monthSummary?.hoursPreviousMonth.toFixed(1)}h</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                Previous Month (Same Date): <span className="font-bold">{data?.weekReview?.monthSummary?.hoursPreviousMonthUntilThisDate.toFixed(1)}h</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        
       </div>
     </>
   );

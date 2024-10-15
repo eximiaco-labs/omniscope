@@ -381,7 +381,17 @@ type WeekReview {
   friday: TimesheetDateAnalysis
   saturday: TimesheetDateAnalysis
 
+  monthSummary: MonthSummary
+
   filterableFields: [FilterableField]!
+
+}
+
+type MonthSummary {
+  hoursThisMonth: Float!
+  hoursPreviousMonth: Float!
+  hoursPreviousMonthUntilThisDate: Float!
+  limitDate: Date!
 }
 
 type TimesheetDateAnalysis {
