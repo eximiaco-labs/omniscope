@@ -247,6 +247,47 @@ export default function WeekReview() {
     setFormattedSelectedValues(formattedValues);
   };
 
+  const renderFilterFieldsSelect = () => {
+    return (
+      <SelectComponent
+        value={selectedFilters}
+        options={
+          data?.weekReview?.filterableFields?.map((f: any) => {
+            const options = (f.options || [])
+              .filter((o: any) => o != null)
+              .map((o: any) => ({
+                value: `${f.field}:${String(o)}`,
+                label: String(o),
+              }));
+            return {
+              label: String(f.field ?? "Unknown Field"),
+              options: options,
+            };
+          }) || []
+        }
+        placeholder="Filters..."
+        onChange={handleFilterChange}
+        primaryColor={""}
+        isMultiple={true}
+        isSearchable={true}
+        isClearable={true}
+        formatGroupLabel={(data) => (
+          <div className={`py-2 text-xs flex items-center justify-between`}>
+            <span className="font-bold uppercase">
+              {data.label
+                .replace(/([A-Z])/g, " $1")
+                .trim()
+                .replace(/(Name|Title)$/, "")}
+            </span>
+            <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
+              {data.options.length}
+            </span>
+          </div>
+        )}
+      />
+    );
+  };
+
   const renderWeekDayCard = (day: any, index: number) => {
     const currentDate = addDays(weekStart, index);
     const isDisabled = isAfter(currentDate, date);
@@ -595,44 +636,7 @@ export default function WeekReview() {
         <div className="flex-grow h-px bg-gray-200 ml-4"></div>
       </div>
 
-      {data && data.weekReview && data.weekReview.filterableFields && (
-        <div className="mb-3">
-          <SelectComponent
-            value={selectedFilters}
-            options={data.weekReview.filterableFields.map((f: any) => {
-              const options = (f.options || [])
-                .filter((o: any) => o != null)
-                .map((o: any) => ({
-                  value: `${f.field}:${String(o)}`,
-                  label: String(o),
-                }));
-              return {
-                label: String(f.field ?? "Unknown Field"),
-                options: options,
-              };
-            })}
-            placeholder="Filters..."
-            onChange={handleFilterChange}
-            primaryColor={""}
-            isMultiple={true}
-            isSearchable={true}
-            isClearable={true}
-            formatGroupLabel={(data) => (
-              <div className={`py-2 text-xs flex items-center justify-between`}>
-                <span className="font-bold uppercase">
-                  {data.label
-                    .replace(/([A-Z])/g, " $1")
-                    .trim()
-                    .replace(/(Name|Title)$/, "")}
-                </span>
-                <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
-                  {data.options.length}
-                </span>
-              </div>
-            )}
-          />
-        </div>
-      )}
+      <div className="mb-3">{renderFilterFieldsSelect()}</div>
 
       <div className="grid grid-cols-7 gap-2">
         {days.map(renderWeekDayCard)}
