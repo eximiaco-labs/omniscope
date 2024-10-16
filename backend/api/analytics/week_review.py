@@ -5,6 +5,7 @@ from models.helpers.weeks import Weeks
 import globals
 
 import pandas as pd
+import numpy as np
 
 def resolve_week_review(_, info, date_of_interest, filters=None):
     if isinstance(date_of_interest, str):
