@@ -468,6 +468,126 @@ export default function WeekReview() {
     );
   };
 
+  const renderWeekHoursComparison = (data: any) => {
+    const hoursPreviousWeeks =
+      data?.weekReview?.hoursPreviousWeeks || 10;
+    const hoursThisWeek = data?.weekReview?.hoursThisWeek || 5;
+    const targetHours = Math.max(hoursPreviousWeeks * 1.1, hoursThisWeek);
+    const hoursPreviousWeeksUntilThisDate =
+      data?.weekReview?.hoursPreviousWeeksUntilThisDate || 0;
+
+    return (
+      <motion.div
+        className="col-span-2 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-hidden mb-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.8 }}
+      >
+        {/* Header */}
+        <motion.div
+          className="p-2 border-b border-gray-200"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="text-sm font-bold">Weekly Hours Comparison</div>
+        </motion.div>
+
+        {/* Content */}
+        <motion.div
+          className="p-4 flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="relative w-full h-[150px]">
+            <GaugeComponent
+              id="week-hours-gauge"
+              value={hoursThisWeek}
+              maxValue={targetHours}
+              type="radial"
+              marginInPercent={{
+                top: 0,
+                left: 0.3,
+                bottom: 0,
+                right: 0.3,
+              }}
+              arc={{
+                padding: 0.02,
+                width: 0.3,
+                subArcs: [
+                  {
+                    limit: hoursPreviousWeeksUntilThisDate,
+                    color: "#B22222",
+                  },
+                  {
+                    limit: hoursPreviousWeeks,
+                    color: "#B77A00",
+                  },
+                  {
+                    limit: targetHours,
+                    color: "#228B22",
+                  },
+                ],
+              }}
+              pointer={{
+                type: "arrow",
+                color: "#345243",
+                length: 0.8,
+                width: 15,
+              }}
+              labels={{
+                valueLabel: { hide: true },
+                tickLabels: { hideMinMax: true },
+              }}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-bold text-black">
+                {hoursThisWeek.toFixed(1)}h
+              </span>
+              <span
+                className={`text-xs ${
+                  hoursThisWeek > hoursPreviousWeeksUntilThisDate
+                    ? "text-green-800"
+                    : "text-red-800"
+                }`}
+              >
+                {hoursThisWeek > hoursPreviousWeeksUntilThisDate ? "▲" : "▼"}
+                {Math.abs(
+                  ((hoursThisWeek - hoursPreviousWeeksUntilThisDate) /
+                    (hoursPreviousWeeksUntilThisDate || 1)) *
+                    100
+                ).toFixed(1)}
+                %
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          className="flex justify-between text-xs px-4 py-2 bg-gray-50 border-t border-gray-200"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <div style={{ color: "#B22222" }}>
+            <span>Previous Weeks (Same Date)</span>
+            <br />
+            <span className="font-bold">
+              {hoursPreviousWeeksUntilThisDate.toFixed(1)}h
+            </span>
+          </div>
+          <div style={{ color: "#B77A00" }} className="text-right">
+            <span>Previous Weeks (Total)</span>
+            <br />
+            <span className="font-bold">{hoursPreviousWeeks.toFixed(1)}h</span>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
   return (
     <>
       <Heading>Week Review</Heading>
@@ -521,6 +641,7 @@ export default function WeekReview() {
       </div>
       <div className="grid grid-cols-7 gap-2">
         <div className="col-span-2">{renderMonthHoursComparison(data)}</div>
+        <div className="col-span-2">{renderWeekHoursComparison(data)}</div>
       </div>
     </>
   );

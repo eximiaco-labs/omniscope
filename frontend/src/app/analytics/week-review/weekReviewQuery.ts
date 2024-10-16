@@ -3,6 +3,10 @@ import { gql } from "@apollo/client";
 export const WEEK_REVIEW_QUERY = gql`
   query WeekReview($dateOfInterest: Date!, $filters: [FilterInput]) {
     weekReview(date_of_interest: $dateOfInterest, filters: $filters) {
+      hoursPreviousWeeks
+      hoursPreviousWeeksUntilThisDate
+      hoursThisWeek
+      
       sunday {
         worstDay
         worstDayHours
