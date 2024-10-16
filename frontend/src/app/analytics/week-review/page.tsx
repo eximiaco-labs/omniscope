@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { MonthComparisonPanel, WeekComparisonPanel } from './ComparisonPanels';
 import { WeekDayCards } from './WeekDayCards';
 import { FilterFieldsSelect } from './FilterFieldsSelect';
+import TimelinessPanel from './TimelinessPanel';
 
 export default function WeekReview() {
   const [date, setDate] = useState<Date>(new Date());
@@ -108,6 +109,9 @@ export default function WeekReview() {
             </div>
             <div className="col-span-2">
               <WeekComparisonPanel data={data} />
+            </div>
+            <div className="col-span-3">
+              <TimelinessPanel data={data.timelinessReview} />
             </div>
           </div>
         </>

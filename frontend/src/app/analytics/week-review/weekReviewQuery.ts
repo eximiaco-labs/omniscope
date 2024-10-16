@@ -6,7 +6,7 @@ export const WEEK_REVIEW_QUERY = gql`
       hoursPreviousWeeks
       hoursPreviousWeeksUntilThisDate
       hoursThisWeek
-      
+
       sunday {
         worstDay
         worstDayHours
@@ -125,6 +125,27 @@ export const WEEK_REVIEW_QUERY = gql`
         options
         selectedValues
       }
+    }
+    timelinessReview(date_of_interest: $dateOfInterest, filters: $filters) {
+        totalRows
+        
+        earlyRows
+        earlyTimeInHours
+        
+        okRows
+        okTimeInHours
+        
+        acceptableRows
+        acceptableTimeInHours
+        
+        lateRows
+        lateTimeInHours
+        
+        lateWorkers {
+        worker
+        entries
+        timeInHours
+        }
     }
   }
 `;
