@@ -454,14 +454,14 @@ type WorkerSummary {
 }
 
 type WorkerAllocationAnalysisEntry {
-  status: int
+  status: Int!
   worker: String!
   mean: Float!
   current: Float!
 }
 
 type ClientAllocationAnalysisEntry {
-  status: int
+  status: Int!
   client: String!
   mean: Float!
   current: Float!
