@@ -27,6 +27,13 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
 
   const getPercentage = (value: number) => ((value / totalTime) * 100).toFixed(1);
 
+  const categories = [
+    { label: 'Early', hours: data.earlyTimeInHours, color: 'bg-yellow-200' },
+    { label: 'On Time', hours: data.okTimeInHours, color: 'bg-green-700' },
+    { label: 'Acceptable', hours: data.acceptableTimeInHours, color: 'bg-yellow-500' },
+    { label: 'Late', hours: data.lateTimeInHours, color: 'bg-red-700' },
+  ];
+
   return (
     <motion.div
       className="col-span-3 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-hidden mb-4"
@@ -51,30 +58,28 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex justify-between mb-2">
-          <div className="text-xs font-semibold">Category</div>
-          <div className="text-xs font-semibold">Entries</div>
-          <div className="text-xs font-semibold">Hours</div>
-          <div className="text-xs font-semibold">Percentage</div>
-        </div>
-        {[
-          { label: 'Early', rows: data.earlyRows, hours: data.earlyTimeInHours, color: 'bg-green-500' },
-          { label: 'On Time', rows: data.okRows, hours: data.okTimeInHours, color: 'bg-blue-500' },
-          { label: 'Acceptable', rows: data.acceptableRows, hours: data.acceptableTimeInHours, color: 'bg-yellow-500' },
-          { label: 'Late', rows: data.lateRows, hours: data.lateTimeInHours, color: 'bg-red-500' },
-        ].map((item, index) => (
-          <div key={index} className="mb-2">
-            <div className="flex justify-between items-center mb-1">
-              <div className="text-sm">{item.label}</div>
-              <div className="text-sm">{item.rows}</div>
-              <div className="text-sm">{item.hours.toFixed(1)}h</div>
-              <div className="text-sm">{getPercentage(item.hours)}%</div>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div className={`h-2.5 rounded-full ${item.color}`} style={{ width: `${getPercentage(item.hours)}%` }}></div>
-            </div>
+        <div className="mb-4">
+          <div className="w-full h-6 flex rounded-full overflow-hidden">
+            {categories.map((category, index) => (
+              <div
+                key={index}
+                className={`h-full ${category.color}`}
+                style={{ width: `${getPercentage(category.hours)}%` }}
+              ></div>
+            ))}
           </div>
-        ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {categories.map((category, index) => (
+            <div key={index} className="flex items-center">
+              <div className={`w-3 h-3 rounded-full ${category.color} mr-2`}></div>
+              <div className="text-sm flex-grow">{category.label}</div>
+              <div className="text-sm font-semibold">
+                {category.hours.toFixed(1)}h ({getPercentage(category.hours)}%)
+              </div>
+            </div>
+          ))}
+        </div>
       </motion.div>
 
       {/* Footer */}
