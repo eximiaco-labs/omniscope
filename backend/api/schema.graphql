@@ -414,6 +414,40 @@ type DailySummaryEntry {
   internal: Float!
 }
 
+# Timeliness Review
+
+type TimelinessReview {
+  totalRows: Int!
+  totalTimeInHours: Float!
+  
+  earlyRows: Int!
+  earlyTimeInHours: Float!
+  earlyPercentage: Float!
+  earlyWorkers: [WorkerSummary!]!
+  
+  okRows: Int!
+  okTimeInHours: Float!
+  okPercentage: Float!
+  okWorkers: [WorkerSummary!]!
+  
+  acceptableRows: Int!
+  acceptableTimeInHours: Float!
+  acceptablePercentage: Float!
+  acceptableWorkers: [WorkerSummary!]!
+  
+  lateRows: Int!
+  lateTimeInHours: Float!
+  latePercentage: Float!
+  lateWorkers: [WorkerSummary!]!
+}
+
+type WorkerSummary {
+  worker: String!
+  entries: Int!
+  timeInHours: Float!
+}
+
+
 # Query
 
 type Query {
@@ -438,6 +472,7 @@ type Query {
   timesheet(slug: String!, kind: TimesheetKind = ALL, filters: [FilterInput]): TimesheetSummary
   thisWeek(kind: TimesheetKind = ALL): DatasetsSet
   weekReview(date_of_interest: Date!, filters: [FilterInput]): WeekReview!
+  timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
 }
 
 enum TimesheetKind {
