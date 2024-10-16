@@ -439,6 +439,9 @@ type TimelinessReview {
   lateTimeInHours: Float!
   latePercentage: Float!
   lateWorkers: [WorkerSummary!]!
+
+  minDate: Date!
+  maxDate: Date!
 }
 
 type WorkerSummary {

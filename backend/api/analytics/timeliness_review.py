@@ -86,6 +86,10 @@ class TimelinessReview:
         self.acceptable_workers = self._create_worker_summary(self.acceptable_filter)
         self.late_workers = self._create_worker_summary(self.other_filter)
 
+        # Adicionando a menor e a maior data observadas
+        self.min_date = df['Date'].min()
+        self.max_date = df['Date'].max()
+
     def _create_worker_summary(self, filter_condition):
         # Agrupa por WorkerName e calcula o número de entradas e o total de horas
         worker_group = self.df[filter_condition].groupby('WorkerName').agg(
@@ -100,7 +104,7 @@ class TimelinessReview:
                 'entries': row['entries'],
                 'time_in_hours': row['time_in_hours']
             }
-            for _, row in worker_group.iterrows()
+            for _, row in worker_group.sort_values('time_in_hours', ascending=False).iterrows()
         ]
 
         return worker_list
