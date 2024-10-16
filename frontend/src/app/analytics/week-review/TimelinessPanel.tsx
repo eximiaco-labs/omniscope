@@ -5,6 +5,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
 
 type TimelinessData = {
   totalRows: number;
@@ -88,14 +89,20 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
                     style={{ width: `${getPercentage(category.hours)}%` }}
                   ></div>
                 </HoverCardTrigger>
-                <HoverCardContent className="w-64 z-50">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">{category.label} Workers</h4>
-                    <div className="max-h-40 overflow-y-auto">
+                <HoverCardContent className="w-64 z-50 p-2">
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-semibold">{category.label} Workers</h4>
+                    <div className="min-w-full text-[9px] leading-tight text-zinc-950 dark:text-white">
+                      <div className="flex text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700">
+                        <div className="w-3/5 px-2 py-0.5 font-medium">Worker</div>
+                        <div className="w-1/5 px-2 py-0.5 font-medium">Entries</div>
+                        <div className="w-1/5 px-2 py-0.5 font-medium">Time</div>
+                      </div>
                       {category.workers.map((worker, workerIndex) => (
-                        <div key={workerIndex} className="text-xs flex justify-between">
-                          <span>{worker.worker}</span>
-                          <span>{worker.entries} entries, {worker.timeInHours.toFixed(1)}h</span>
+                        <div key={workerIndex} className="flex hover:bg-zinc-950/[2.5%] dark:hover:bg-white/[2.5%]">
+                          <div className="w-3/5 px-2 py-0.5 leading-none">{worker.worker}</div>
+                          <div className="w-1/5 px-2 py-0.5 leading-none">{worker.entries}</div>
+                          <div className="w-1/5 px-2 py-0.5 leading-none">{worker.timeInHours.toFixed(1)}h</div>
                         </div>
                       ))}
                     </div>
