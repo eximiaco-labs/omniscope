@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import {
   BarChart,
   Bar,
@@ -36,130 +36,7 @@ const GaugeComponent = dynamic(() => import("react-gauge-component"), {
   ssr: false,
 });
 
-const WEEK_REVIEW_QUERY = gql`
-  query WeekReview($dateOfInterest: Date!, $filters: [FilterInput]) {
-    weekReview(date_of_interest: $dateOfInterest, filters: $filters) {
-      sunday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-      monday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-      tuesday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-      wednesday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-      thursday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-      friday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-      saturday {
-        worstDay
-        worstDayHours
-        bestDay
-        bestDayHours
-        averageHours
-        totalHours
-        dailySummary {
-          date
-          consulting
-          squad
-          handsOn
-          internal
-        }
-      }
-
-      monthSummary {
-        hoursThisMonth
-        hoursPreviousMonth
-        hoursPreviousMonthUntilThisDate
-        limitDate
-      }
-
-      filterableFields {
-        field
-        options
-        selectedValues
-      }
-    }
-  }
-`;
+import { WEEK_REVIEW_QUERY } from "./weekReviewQuery";
 
 export default function WeekReview() {
   const [date, setDate] = useState<Date>(new Date());
@@ -247,7 +124,7 @@ export default function WeekReview() {
     setFormattedSelectedValues(formattedValues);
   };
 
-  const renderFilterFieldsSelect = () => {
+  const renderFilterFieldsSelect = (data: any ) => {
     return (
       <SelectComponent
         value={selectedFilters}
@@ -328,7 +205,8 @@ export default function WeekReview() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.5 }
+            }
             >
               Loading...
             </motion.p>
@@ -636,7 +514,7 @@ export default function WeekReview() {
         <div className="flex-grow h-px bg-gray-200 ml-4"></div>
       </div>
 
-      <div className="mb-3">{renderFilterFieldsSelect()}</div>
+      <div className="mb-3">{renderFilterFieldsSelect(data)}</div>
 
       <div className="grid grid-cols-7 gap-2">
         {days.map(renderWeekDayCard)}
