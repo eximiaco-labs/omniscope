@@ -1,5 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 
 type TimelinessData = {
   totalRows: number;
@@ -11,6 +16,21 @@ type TimelinessData = {
   acceptableTimeInHours: number;
   lateRows: number;
   lateTimeInHours: number;
+  earlyWorkers: Array<{
+    worker: string;
+    entries: number;
+    timeInHours: number;
+  }>;
+  okWorkers: Array<{
+    worker: string;
+    entries: number;
+    timeInHours: number;
+  }>;
+  acceptableWorkers: Array<{
+    worker: string;
+    entries: number;
+    timeInHours: number;
+  }>;
   lateWorkers: Array<{
     worker: string;
     entries: number;
@@ -28,15 +48,15 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
   const getPercentage = (value: number) => ((value / totalTime) * 100).toFixed(1);
 
   const categories = [
-    { label: 'Early', hours: data.earlyTimeInHours, color: 'bg-yellow-200' },
-    { label: 'On Time', hours: data.okTimeInHours, color: 'bg-green-700' },
-    { label: 'Acceptable', hours: data.acceptableTimeInHours, color: 'bg-yellow-500' },
-    { label: 'Late', hours: data.lateTimeInHours, color: 'bg-red-700' },
+    { label: 'Early', hours: data.earlyTimeInHours, color: 'bg-yellow-200', workers: data.earlyWorkers },
+    { label: 'On Time', hours: data.okTimeInHours, color: 'bg-green-700', workers: data.okWorkers },
+    { label: 'Acceptable', hours: data.acceptableTimeInHours, color: 'bg-yellow-500', workers: data.acceptableWorkers },
+    { label: 'Late', hours: data.lateTimeInHours, color: 'bg-red-700', workers: data.lateWorkers },
   ];
 
   return (
     <motion.div
-      className="col-span-3 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-hidden mb-4"
+      className="col-span-3 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-visible mb-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.9 }}
@@ -61,11 +81,27 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
         <div className="mb-4">
           <div className="w-full h-6 flex rounded-full overflow-hidden">
             {categories.map((category, index) => (
-              <div
-                key={index}
-                className={`h-full ${category.color}`}
-                style={{ width: `${getPercentage(category.hours)}%` }}
-              ></div>
+              <HoverCard key={index}>
+                <HoverCardTrigger asChild>
+                  <div
+                    className={`h-full ${category.color} cursor-pointer`}
+                    style={{ width: `${getPercentage(category.hours)}%` }}
+                  ></div>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64 z-50">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">{category.label} Workers</h4>
+                    <div className="max-h-40 overflow-y-auto">
+                      {category.workers.map((worker, workerIndex) => (
+                        <div key={workerIndex} className="text-xs flex justify-between">
+                          <span>{worker.worker}</span>
+                          <span>{worker.entries} entries, {worker.timeInHours.toFixed(1)}h</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             ))}
           </div>
         </div>
@@ -77,24 +113,6 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
               <div className="text-sm font-semibold">
                 {category.hours.toFixed(1)}h ({getPercentage(category.hours)}%)
               </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Footer */}
-      <motion.div
-        className="px-4 py-2 bg-gray-50 border-t border-gray-200"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <div className="text-xs font-semibold mb-1">Late Workers</div>
-        <div className="max-h-20 overflow-y-auto">
-          {data.lateWorkers.map((worker, index) => (
-            <div key={index} className="text-xs flex justify-between">
-              <span>{worker.worker}</span>
-              <span>{worker.entries} entries, {worker.timeInHours.toFixed(1)}h</span>
             </div>
           ))}
         </div>

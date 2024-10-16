@@ -140,11 +140,29 @@ export const WEEK_REVIEW_QUERY = gql`
         
         lateRows
         lateTimeInHours
-        
+
+        earlyWorkers {
+            worker
+            entries
+            timeInHours
+        }
+
+        okWorkers {
+            worker
+            entries
+            timeInHours
+        }
+
+        acceptableWorkers {
+            worker
+            entries
+            timeInHours
+        }
+
         lateWorkers {
-        worker
-        entries
-        timeInHours
+            worker
+            entries
+            timeInHours
         }
     }
   }
