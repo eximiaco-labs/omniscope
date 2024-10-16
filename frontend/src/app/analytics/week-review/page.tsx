@@ -4,14 +4,13 @@ import { useState, useEffect } from "react";
 import { Heading } from "@/components/catalyst/heading";
 import { format } from "date-fns";
 import { useQuery } from "@apollo/client";
-import SelectComponent from "react-tailwindcss-select";
-import { SelectValue as TailwindSelectValue } from "react-tailwindcss-select/dist/components/type";
 import { motion } from "framer-motion";
 
 import { WEEK_REVIEW_QUERY } from "./weekReviewQuery";
 import { DatePicker } from "@/components/DatePicker";
 import { MonthComparisonPanel, WeekComparisonPanel } from './ComparisonPanels';
 import { WeekDayCards } from './WeekDayCards';
+import { FilterFieldsSelect } from './FilterFieldsSelect';
 
 export default function WeekReview() {
   const [date, setDate] = useState<Date>(new Date());
@@ -67,47 +66,6 @@ export default function WeekReview() {
     setFormattedSelectedValues(formattedValues);
   };
 
-  const renderFilterFieldsSelect = (data: any ) => {
-    return (
-      <SelectComponent
-        value={selectedFilters}
-        options={
-          data?.weekReview?.filterableFields?.map((f: any) => {
-            const options = (f.options || [])
-              .filter((o: any) => o != null)
-              .map((o: any) => ({
-                value: `${f.field}:${String(o)}`,
-                label: String(o),
-              }));
-            return {
-              label: String(f.field ?? "Unknown Field"),
-              options: options,
-            };
-          }) || []
-        }
-        placeholder="Filters..."
-        onChange={handleFilterChange}
-        primaryColor={""}
-        isMultiple={true}
-        isSearchable={true}
-        isClearable={true}
-        formatGroupLabel={(data) => (
-          <div className={`py-2 text-xs flex items-center justify-between`}>
-            <span className="font-bold uppercase">
-              {data.label
-                .replace(/([A-Z])/g, " $1")
-                .trim()
-                .replace(/(Name|Title)$/, "")}
-            </span>
-            <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
-              {data.options.length}
-            </span>
-          </div>
-        )}
-      />
-    );
-  };
-
   return (
     <>
       <Heading>Week Review</Heading>
@@ -117,7 +75,13 @@ export default function WeekReview() {
         <div className="flex-grow h-px bg-gray-200 ml-4"></div>
       </div>
 
-      <div className="mb-3">{renderFilterFieldsSelect(data)}</div>
+      <div className="mb-3">
+        <FilterFieldsSelect
+          data={data}
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
+        />
+      </div>
 
       {loading ? (
         <motion.p
