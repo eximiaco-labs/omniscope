@@ -21,7 +21,7 @@ import {
   ProjectorIcon,
   ScaleIcon,
 } from "lucide-react";
-import Logo from "../app/components/logo";
+import Logo from "./logo";
 
 interface OmniSidebarItemProps {
   href: string;

@@ -6,8 +6,8 @@ import "./globals.css";
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
 import { Navbar } from "@/components/catalyst/navbar";
 import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
-import { OmniscopeSidebar } from "@/components/OmniscopeSidebar";
-import { InconsistencyAlerts } from "@/components/InconsistencyAlerts";
+import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
+import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
 
 // Create and export the Apollo Client instance
 export const client = new ApolloClient({
