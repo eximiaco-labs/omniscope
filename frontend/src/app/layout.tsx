@@ -174,11 +174,6 @@ function OmniscopeSidebar() {
 
   const administrativeSidebarItems: OmmiSidebarItemProps[] = [
     {
-      href: "/management/inconsistency-finder",
-      caption: "Inconsistency Finder",
-      icon: <SearchIcon />
-    },
-    {
       href: "/management/hit-refresh",
       caption: "Refresh data",
       icon: <ScaleIcon />
