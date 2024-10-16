@@ -6,6 +6,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list';
 
 type TimelinessData = {
   totalRows: number;
@@ -37,6 +38,8 @@ type TimelinessData = {
     entries: number;
     timeInHours: number;
   }>;
+  minDate: string;
+  maxDate: string;
 };
 
 type TimelinessPanelProps = {
@@ -69,7 +72,12 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="text-sm font-bold">Timeliness Overview</div>
+        <div className="text-sm font-bold">
+          Timeliness Overview
+          <span className="text-xs font-normal text-gray-400 ml-2">
+            ({new Date(data.minDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })} - {new Date(data.maxDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })})
+          </span>
+        </div>
       </motion.div>
 
       {/* Content */}
@@ -112,15 +120,19 @@ const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-[min(50%,theme(spacing.80))_auto] text-xs leading-tight">
           {categories.map((category, index) => (
-            <div key={index} className="flex items-center">
-              <div className={`w-3 h-3 rounded-full ${category.color} mr-2`}></div>
-              <div className="text-sm flex-grow">{category.label}</div>
-              <div className="text-sm font-semibold">
+            <React.Fragment key={index}>
+              <div className="col-start-1 border-t border-zinc-950/5 pt-2 text-zinc-500 first:border-none sm:border-t sm:border-zinc-950/5 sm:py-2 dark:border-white/5 dark:text-zinc-400 sm:dark:border-white/5">
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full ${category.color} mr-2`}></div>
+                  {category.label}
+                </div>
+              </div>
+              <div className="pb-2 pt-1 text-zinc-950 sm:border-t sm:border-zinc-950/5 sm:py-2 dark:text-white dark:sm:border-white/5 sm:[&:nth-child(2)]:border-none">
                 {category.hours.toFixed(1)}h ({getPercentage(category.hours)}%)
               </div>
-            </div>
+            </React.Fragment>
           ))}
         </div>
       </motion.div>

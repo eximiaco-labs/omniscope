@@ -164,6 +164,9 @@ export const WEEK_REVIEW_QUERY = gql`
             entries
             timeInHours
         }
+
+        minDate
+        maxDate
     }
   }
 `;
