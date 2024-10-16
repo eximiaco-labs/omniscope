@@ -12,6 +12,7 @@ import { MonthComparisonPanel, WeekComparisonPanel } from './ComparisonPanels';
 import { WeekDayCards } from './WeekDayCards';
 import { FilterFieldsSelect } from './FilterFieldsSelect';
 import TimelinessPanel from './TimelinessPanel';
+import AllocationAnalysisTables from './AllocationAnalysisTables';
 
 export default function WeekReview() {
   const [date, setDate] = useState<Date>(new Date());
@@ -113,6 +114,12 @@ export default function WeekReview() {
             <div className="col-span-3">
               <TimelinessPanel data={data.timelinessReview} />
             </div>
+          </div>
+          <div className="mt-8">
+            <AllocationAnalysisTables 
+              byWorker={data.weekReview.allocationAnalysisByWorker}
+              byClient={data.weekReview.allocationAnalysisByClient}
+            />
           </div>
         </>
       )}
