@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
+from backend.models.helpers import beauty
 from models.helpers.weeks import Weeks
 import globals
 
@@ -48,6 +49,9 @@ def resolve_week_review(_, info, date_of_interest, filters=None):
     result['hours_previous_weeks'] = summary['hours_previous_weeks']
     result['hours_previous_weeks_until_this_date'] = summary['hours_previous_weeks_until_this_date']
     result['hours_this_week'] = summary['hours_this_week']
+
+    result['allocation_analysis_by_worker'] = create_six_weeks_allocation_analysis(df, date_of_interest)
+    result['allocation_analysis_by_client'] = create_six_weeks_allocation_analysis(df, date_of_interest, 'ClientName')
 
     return result
 
@@ -117,6 +121,45 @@ def calculate_month_summary(six_weeks_df, date_of_interest, filters=None):
         'hours_previous_month_until_this_date': hours_until_this_date,
         'limit_date': limit_date
     }
+
+def create_six_weeks_allocation_analysis(
+        df: pd.DataFrame,
+        date_of_interest: datetime,
+        column_of_interest: str = 'WorkerName'
+):
+    week_day = (date_of_interest.weekday() + 1) % 7
+    week = Weeks.get_week_string(date_of_interest)
+    output_column_name = beauty.convert_to_label(column_of_interest)
+
+    df = df[df['NDayOfWeek'] <= week_day]
+    df_left = df[df['Week'] != week]
+    df_right = df[df['Week'] == week]
+
+    summary_left = df_left.groupby([column_of_interest, 'Week'])['TimeInHs'].sum().reset_index()
+    summary_left = summary_left.groupby(column_of_interest)['TimeInHs'].mean().reset_index()
+    summary_left.rename(columns={'TimeInHs': 'Mean'}, inplace=True)
+
+    summary_right = df_right.groupby(column_of_interest)['TimeInHs'].sum().reset_index()
+    summary_right.rename(columns={'TimeInHs': 'Current'}, inplace=True)
+    merged_summary = pd.merge(summary_left, summary_right, on=column_of_interest, how='outer').fillna(0)
+    merged_summary.rename(columns={column_of_interest: output_column_name}, inplace=True)
+
+    merged_summary['Total'] = merged_summary['Current'] + merged_summary['Mean']
+    merged_summary = merged_summary.sort_values(by='Total', ascending=False).reset_index(drop=True)
+    merged_summary.drop(columns=['Total'], inplace=True)
+
+    conditions = [
+        merged_summary['Current'] > merged_summary['Mean'],
+        merged_summary['Current'] < merged_summary['Mean'],
+        merged_summary['Current'] == merged_summary['Mean']
+    ]
+    choices = [1, -1, 0]
+
+    merged_summary['Status'] = np.select(conditions, choices, default=0)
+
+    cols = ['Status', output_column_name, 'Mean', 'Current']
+    return merged_summary[cols].to_dict('records')
+
 
 class TimesheetDateAnalysis:
     def __init__(self, df, date_of_interest: datetime, number_of_weeks: int = 6):

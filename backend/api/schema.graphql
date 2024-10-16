@@ -440,6 +440,9 @@ type TimelinessReview {
   latePercentage: Float!
   lateWorkers: [WorkerSummary!]!
 
+  allocationAnalysisByWorker: [WorkerAllocationAnalysisEntry!]!
+  allocationAnalysisByClient: [ClientAllocationAnalysisEntry!]!
+
   minDate: Date!
   maxDate: Date!
 }
@@ -450,7 +453,19 @@ type WorkerSummary {
   timeInHours: Float!
 }
 
+type WorkerAllocationAnalysisEntry {
+  status: int
+  worker: String!
+  mean: Float!
+  current: Float!
+}
 
+type ClientAllocationAnalysisEntry {
+  status: int
+  client: String!
+  mean: Float!
+  current: Float!
+}
 # Query
 
 type Query {
