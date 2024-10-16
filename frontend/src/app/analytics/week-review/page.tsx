@@ -348,20 +348,28 @@ export default function WeekReview() {
     );
   };
 
-  const renderMonthHoursComparison = (data: any) => {
-    const hoursPreviousMonth =
-      data?.weekReview?.monthSummary?.hoursPreviousMonth || 10;
-    const hoursThisMonth = data?.weekReview?.monthSummary?.hoursThisMonth || 5;
-    const targetHours = Math.max(hoursPreviousMonth * 1.1, hoursThisMonth);
-    const hoursPreviousMonthUntilThisDate =
-      data?.weekReview?.monthSummary?.hoursPreviousMonthUntilThisDate || 0;
+  const renderHoursComparison = (data: any, type: 'month' | 'week') => {
+    const isMonth = type === 'month';
+    const prefix = isMonth ? 'month' : 'week';
+    const capitalizedPrefix = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+
+    const hoursPrevious = isMonth
+      ? data?.weekReview?.monthSummary?.hoursPreviousMonth || 10
+      : data?.weekReview?.hoursPreviousWeeks || 10;
+    const hoursCurrent = isMonth
+      ? data?.weekReview?.monthSummary?.hoursThisMonth || 5
+      : data?.weekReview?.hoursThisWeek || 5;
+    const targetHours = Math.max(hoursPrevious * 1.1, hoursCurrent);
+    const hoursPreviousUntilThisDate = isMonth
+      ? data?.weekReview?.monthSummary?.hoursPreviousMonthUntilThisDate || 0
+      : data?.weekReview?.hoursPreviousWeeksUntilThisDate || 0;
 
     return (
       <motion.div
         className="col-span-2 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-hidden mb-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.7 }}
+        transition={{ duration: 0.3, delay: isMonth ? 0.7 : 0.8 }}
       >
         {/* Header */}
         <motion.div
@@ -370,7 +378,7 @@ export default function WeekReview() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="text-sm font-bold">Monthly Hours Comparison</div>
+          <div className="text-sm font-bold">{capitalizedPrefix}ly Hours Comparison</div>
         </motion.div>
 
         {/* Content */}
@@ -382,8 +390,8 @@ export default function WeekReview() {
         >
           <div className="relative w-full h-[150px]">
             <GaugeComponent
-              id="month-hours-gauge"
-              value={hoursThisMonth}
+              id={`${prefix}-hours-gauge`}
+              value={hoursCurrent}
               maxValue={targetHours}
               type="radial"
               marginInPercent={{
@@ -397,11 +405,11 @@ export default function WeekReview() {
                 width: 0.3,
                 subArcs: [
                   {
-                    limit: hoursPreviousMonthUntilThisDate,
+                    limit: hoursPreviousUntilThisDate,
                     color: "#B22222",
                   },
                   {
-                    limit: hoursPreviousMonth,
+                    limit: hoursPrevious,
                     color: "#B77A00",
                   },
                   {
@@ -423,19 +431,19 @@ export default function WeekReview() {
             />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-bold text-black">
-                {hoursThisMonth.toFixed(1)}h
+                {hoursCurrent.toFixed(1)}h
               </span>
               <span
                 className={`text-xs ${
-                  hoursThisMonth > hoursPreviousMonthUntilThisDate
+                  hoursCurrent > hoursPreviousUntilThisDate
                     ? "text-green-800"
                     : "text-red-800"
                 }`}
               >
-                {hoursThisMonth > hoursPreviousMonthUntilThisDate ? "▲" : "▼"}
+                {hoursCurrent > hoursPreviousUntilThisDate ? "▲" : "▼"}
                 {Math.abs(
-                  ((hoursThisMonth - hoursPreviousMonthUntilThisDate) /
-                    (hoursPreviousMonthUntilThisDate || 1)) *
+                  ((hoursCurrent - hoursPreviousUntilThisDate) /
+                    (hoursPreviousUntilThisDate || 1)) *
                     100
                 ).toFixed(1)}
                 %
@@ -452,141 +460,24 @@ export default function WeekReview() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <div style={{ color: "#B22222" }}>
-            <span>Previous Month (Same Date)</span>
+            <span>Previous {capitalizedPrefix === "Week" ? "Weeks" : capitalizedPrefix}</span>
             <br />
             <span className="font-bold">
-              {hoursPreviousMonthUntilThisDate.toFixed(1)}h
+              {hoursPreviousUntilThisDate.toFixed(1)}h
             </span>
           </div>
           <div style={{ color: "#B77A00" }} className="text-right">
-            <span>Previous Month (Total)</span>
+            <span>Previous {capitalizedPrefix === "Week" ? "Weeks" : capitalizedPrefix} (Total)</span>
             <br />
-            <span className="font-bold">{hoursPreviousMonth.toFixed(1)}h</span>
+            <span className="font-bold">{hoursPrevious.toFixed(1)}h</span>
           </div>
         </motion.div>
       </motion.div>
     );
   };
 
-  const renderWeekHoursComparison = (data: any) => {
-    const hoursPreviousWeeks =
-      data?.weekReview?.hoursPreviousWeeks || 10;
-    const hoursThisWeek = data?.weekReview?.hoursThisWeek || 5;
-    const targetHours = Math.max(hoursPreviousWeeks * 1.1, hoursThisWeek);
-    const hoursPreviousWeeksUntilThisDate =
-      data?.weekReview?.hoursPreviousWeeksUntilThisDate || 0;
-
-    return (
-      <motion.div
-        className="col-span-2 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-hidden mb-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.8 }}
-      >
-        {/* Header */}
-        <motion.div
-          className="p-2 border-b border-gray-200"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="text-sm font-bold">Weekly Hours Comparison</div>
-        </motion.div>
-
-        {/* Content */}
-        <motion.div
-          className="p-4 flex items-center justify-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="relative w-full h-[150px]">
-            <GaugeComponent
-              id="week-hours-gauge"
-              value={hoursThisWeek}
-              maxValue={targetHours}
-              type="radial"
-              marginInPercent={{
-                top: 0,
-                left: 0.3,
-                bottom: 0,
-                right: 0.3,
-              }}
-              arc={{
-                padding: 0.02,
-                width: 0.3,
-                subArcs: [
-                  {
-                    limit: hoursPreviousWeeksUntilThisDate,
-                    color: "#B22222",
-                  },
-                  {
-                    limit: hoursPreviousWeeks,
-                    color: "#B77A00",
-                  },
-                  {
-                    limit: targetHours,
-                    color: "#228B22",
-                  },
-                ],
-              }}
-              pointer={{
-                type: "arrow",
-                color: "#345243",
-                length: 0.8,
-                width: 15,
-              }}
-              labels={{
-                valueLabel: { hide: true },
-                tickLabels: { hideMinMax: true },
-              }}
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-black">
-                {hoursThisWeek.toFixed(1)}h
-              </span>
-              <span
-                className={`text-xs ${
-                  hoursThisWeek > hoursPreviousWeeksUntilThisDate
-                    ? "text-green-800"
-                    : "text-red-800"
-                }`}
-              >
-                {hoursThisWeek > hoursPreviousWeeksUntilThisDate ? "▲" : "▼"}
-                {Math.abs(
-                  ((hoursThisWeek - hoursPreviousWeeksUntilThisDate) /
-                    (hoursPreviousWeeksUntilThisDate || 1)) *
-                    100
-                ).toFixed(1)}
-                %
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Footer */}
-        <motion.div
-          className="flex justify-between text-xs px-4 py-2 bg-gray-50 border-t border-gray-200"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <div style={{ color: "#B22222" }}>
-            <span>Previous Weeks (Same Date)</span>
-            <br />
-            <span className="font-bold">
-              {hoursPreviousWeeksUntilThisDate.toFixed(1)}h
-            </span>
-          </div>
-          <div style={{ color: "#B77A00" }} className="text-right">
-            <span>Previous Weeks (Total)</span>
-            <br />
-            <span className="font-bold">{hoursPreviousWeeks.toFixed(1)}h</span>
-          </div>
-        </motion.div>
-      </motion.div>
-    );
-  };
+  const renderMonthHoursComparison = (data: any) => renderHoursComparison(data, 'month');
+  const renderWeekHoursComparison = (data: any) => renderHoursComparison(data, 'week');
 
   return (
     <>
