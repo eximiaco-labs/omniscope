@@ -159,7 +159,10 @@ def create_six_weeks_allocation_analysis(
     merged_summary['Status'] = np.select(conditions, choices, default=0)
 
     cols = ['Status', output_column_name, 'Mean', 'Current']
-    return merged_summary[cols].to_dict('records')
+    result = merged_summary[cols]
+    # Convert column names to lowercase
+    result.columns = result.columns.str.lower()
+    return result.to_dict('records')
 
 
 class TimesheetDateAnalysis:

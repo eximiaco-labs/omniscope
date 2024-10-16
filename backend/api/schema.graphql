@@ -387,6 +387,9 @@ type WeekReview {
 
   monthSummary: MonthSummary
   filterableFields: [FilterableField]!
+
+  allocationAnalysisByWorker: [WorkerAllocationAnalysisEntry!]!
+  allocationAnalysisByClient: [ClientAllocationAnalysisEntry!]!
 }
 
 type MonthSummary {
@@ -412,6 +415,20 @@ type DailySummaryEntry {
   handsOn: Float!
   squad: Float!
   internal: Float!
+}
+
+type WorkerAllocationAnalysisEntry {
+  status: Int!
+  worker: String!
+  mean: Float!
+  current: Float!
+}
+
+type ClientAllocationAnalysisEntry {
+  status: Int!
+  client: String!
+  mean: Float!
+  current: Float!
 }
 
 # Timeliness Review
@@ -440,9 +457,6 @@ type TimelinessReview {
   latePercentage: Float!
   lateWorkers: [WorkerSummary!]!
 
-  allocationAnalysisByWorker: [WorkerAllocationAnalysisEntry!]!
-  allocationAnalysisByClient: [ClientAllocationAnalysisEntry!]!
-
   minDate: Date!
   maxDate: Date!
 }
@@ -453,19 +467,7 @@ type WorkerSummary {
   timeInHours: Float!
 }
 
-type WorkerAllocationAnalysisEntry {
-  status: Int!
-  worker: String!
-  mean: Float!
-  current: Float!
-}
 
-type ClientAllocationAnalysisEntry {
-  status: Int!
-  client: String!
-  mean: Float!
-  current: Float!
-}
 # Query
 
 type Query {
