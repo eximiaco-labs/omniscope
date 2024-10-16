@@ -43,8 +43,41 @@ def resolve_week_review(_, info, date_of_interest, filters=None):
 
     # Add month summary
     result['month_summary'] = calculate_month_summary(df, date_of_interest, filters)
+    
+    summary = calculate_week_summary(df, date_of_interest, filters)
+    result['hours_previous_weeks'] = summary['hours_previous_weeks']
+    result['hours_previous_weeks_until_this_date'] = summary['hours_previous_weeks_until_this_date']
+    result['hours_this_week'] = summary['hours_this_week']
 
     return result
+
+def calculate_week_summary(six_weeks_df: pd.DataFrame, date_of_interest: datetime, filters=None):
+    week = Weeks.get_week_string(date_of_interest)
+    week_day = (date_of_interest.weekday() + 1) % 7
+
+    # Filter timesheets
+    week_timesheet_data = six_weeks_df[six_weeks_df['Week'] == week]
+    previous_weeks_data = six_weeks_df[six_weeks_df['Week'] != week]
+
+    # Group and compute the necessary aggregates
+    grouped_timesheet = previous_weeks_data.groupby('Week')['TimeInHs'].sum().reset_index()
+    previous_weeks_mean = grouped_timesheet['TimeInHs'].mean()
+
+    # Filter up to the current weekday and compute mean
+    filtered_df = previous_weeks_data[previous_weeks_data['NDayOfWeek'] <= week_day]
+    previous_weeks_to_date_mean = filtered_df.groupby('Week')['TimeInHs'].sum().mean()
+
+    # Compute the current week's sum
+    week_timesheet_data = week_timesheet_data[week_timesheet_data['NDayOfWeek'] <= week_day]
+    week_timesheet_sum = week_timesheet_data["TimeInHs"].sum()
+
+    return {
+        'week': week,
+        'week_day': week_day,
+        'hours_previous_weeks': previous_weeks_mean,
+        'hours_previous_weeks_until_this_date': previous_weeks_to_date_mean,
+        'hours_this_week': week_timesheet_sum
+    }
 
 def calculate_month_summary(six_weeks_df, date_of_interest, filters=None):
     current_month = date_of_interest.replace(day=1)

@@ -373,6 +373,10 @@ type DatasetsSet {
 # Week Review
 
 type WeekReview {
+  hoursPreviousWeeks: Float!
+  hoursPreviousWeeksUntilThisDate: Float!
+  hoursThisWeek: Float!
+
   sunday: TimesheetDateAnalysis
   monday: TimesheetDateAnalysis
   tuesday: TimesheetDateAnalysis
@@ -382,9 +386,7 @@ type WeekReview {
   saturday: TimesheetDateAnalysis
 
   monthSummary: MonthSummary
-
   filterableFields: [FilterableField]!
-
 }
 
 type MonthSummary {
