@@ -14,6 +14,7 @@ const GET_PROJECTS = gql`
   query GetProjects {
     projects {
       id
+      
       isFavorite
       folder
       name
@@ -71,43 +72,50 @@ export default function Projects() {
     const isNextTaskLate = nextTask && isPast(parseISO(nextTask.due));
 
     return (
-      <Card 
-        key={project.id} 
-        className={`hover:shadow-lg transition-all duration-300 transform hover:scale-105 ${isLate ? 'bg-rose-100' : ''}`}
+      <a 
+        href={`https://todoist.com/showProject?id=${project.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        key={project.id}
+        className="block"
       >
-        <CardHeader className="flex flex-col items-start pb-2">
-          {project.folder && (
-            <Badge color="zinc" className="mb-2">
-              {project.folder}
-            </Badge>
-          )}
-          <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center text-sm text-gray-600 mb-2">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {project.expectedDueDate
-              ? format(new Date(project.expectedDueDate), 'MMM dd')
-              : "No due date"}
-          </div>
-          <div className="flex items-center text-sm text-gray-600 mb-2">
-            <ListIcon className="mr-2 h-4 w-4" />
-            {project.numberOfTasks} tasks
-          </div>
-          {nextTask && (
-            <div className={`mt-4 p-2 rounded-md border ${isNextTaskLate ? 'border-amber-500 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
-              <div className="flex items-center mb-1">
-                <AlertCircle className={`mr-2 h-4 w-4 ${isNextTaskLate ? 'text-amber-500' : 'text-blue-500'}`} />
-                <span className="font-semibold text-sm text-gray-700">Next Task</span>
-              </div>
-              <p className="text-sm text-gray-600">{nextTask.content}</p>
-              <p className={`text-xs mt-1 ${isNextTaskLate ? 'text-amber-600' : 'text-blue-600'}`}>
-                Due: {format(parseISO(nextTask.due), 'MMM dd, yyyy')}
-              </p>
+        <Card 
+          className={`hover:shadow-lg transition-all duration-300 transform hover:scale-105 ${isLate ? 'bg-rose-100' : ''}`}
+        >
+          <CardHeader className="flex flex-col items-start pb-2">
+            {project.folder && (
+              <Badge color="zinc" className="mb-2">
+                {project.folder}
+              </Badge>
+            )}
+            <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-sm text-gray-600 mb-2">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {project.expectedDueDate
+                ? format(new Date(project.expectedDueDate), 'MMM dd')
+                : "No due date"}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex items-center text-sm text-gray-600 mb-2">
+              <ListIcon className="mr-2 h-4 w-4" />
+              {project.numberOfTasks} tasks
+            </div>
+            {nextTask && (
+              <div className={`mt-4 p-2 rounded-md border ${isNextTaskLate ? 'border-amber-500 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
+                <div className="flex items-center mb-1">
+                  <AlertCircle className={`mr-2 h-4 w-4 ${isNextTaskLate ? 'text-amber-500' : 'text-blue-500'}`} />
+                  <span className="font-semibold text-sm text-gray-700">Next Task</span>
+                </div>
+                <p className="text-sm text-gray-600">{nextTask.content}</p>
+                <p className={`text-xs mt-1 ${isNextTaskLate ? 'text-amber-600' : 'text-blue-600'}`}>
+                  Due: {format(parseISO(nextTask.due), 'MMM dd, yyyy')}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </a>
     );
   };
 
