@@ -96,6 +96,31 @@ type Offer {
   omniUrl: String!
 }
 
+type Project {
+  id: Int!
+  name: String!
+  tasks: [Task!]!
+  folder: String
+  isFavorite: Boolean!
+  errors: [String!]!
+  numberOfTasks: Int!
+  hasTasksWithNoDueDate: Boolean!
+  expectedDueDate: String
+  hasTasksWithNoAssignee: Boolean!
+  hasLateTasks: Boolean!
+}
+
+type Task {
+  id: Int!
+  assigneeId: Int
+  projectId: Int!
+  content: String!
+  description: String!
+  isCompleted: Boolean!
+  due: String
+  isLate: Boolean!
+}
+
 # Timesheets
 
 interface ISummary {
@@ -493,6 +518,7 @@ type Query {
   thisWeek(kind: TimesheetKind = ALL): DatasetsSet
   weekReview(date_of_interest: Date!, filters: [FilterInput]): WeekReview!
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
+  projects: [Project!]!
 }
 
 enum TimesheetKind {

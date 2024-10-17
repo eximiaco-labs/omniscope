@@ -6,6 +6,7 @@ from .clients import resolve_clients, resolve_client
 from .sponsors import resolve_sponsors, resolve_sponsor
 from .cases import resolve_cases, resolve_case
 from .offers import resolve_offers, resolve_offer
+from .projects import resolve_projects
 
 def setup_query_for_domain(query: QueryType):
     query.set_field("accountManagers", resolve_account_managers)
@@ -20,3 +21,4 @@ def setup_query_for_domain(query: QueryType):
     query.set_field("case", resolve_case)
     query.set_field("offers", resolve_offers)
     query.set_field("offer", resolve_offer)
+    query.set_field("projects", resolve_projects)
