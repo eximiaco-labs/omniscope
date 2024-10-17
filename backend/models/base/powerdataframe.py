@@ -35,24 +35,25 @@ class PowerDataFrame:
                   contains=None,
                   ):
         result = self.data
+        if len(result) > 0:
 
-        if equals_to is not None:
-            result = self.filter_equals(result, by, equals_to).data
+            if equals_to is not None:
+                result = self.filter_equals(result, by, equals_to).data
 
-        if not_equals_to is not None:
-            result = self.filter_not_equals(result, by, not_equals_to).data
+            if not_equals_to is not None:
+                result = self.filter_not_equals(result, by, not_equals_to).data
 
-        if starts_with is not None:
-            result = self.filter_starts_with(result, by, starts_with).data
+            if starts_with is not None:
+                result = self.filter_starts_with(result, by, starts_with).data
 
-        if not_starts_with is not None:
-            result = self.filter_not_starts_with(result, by, not_starts_with).data
+            if not_starts_with is not None:
+                result = self.filter_not_starts_with(result, by, not_starts_with).data
 
-        if is_in is not None:
-            result = self.filter_is_in(result, by, is_in).data
+            if is_in is not None:
+                result = self.filter_is_in(result, by, is_in).data
 
-        if contains is not None:
-            result = self.filter_contains(result, by, contains).data
+            if contains is not None:
+                result = self.filter_contains(result, by, contains).data
 
         return self.__class__(result)
 
