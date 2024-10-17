@@ -7,6 +7,8 @@ import {
   SidebarItem,
   SidebarLabel,
   SidebarSection,
+  SidebarFooter,
+  SidebarSpacer,
 } from "@/components/catalyst/sidebar";
 import {
   CalendarCheckIcon,
@@ -20,8 +22,21 @@ import {
   FolderOpenIcon,
   ProjectorIcon,
   ScaleIcon,
+  ChevronUpIcon,
+  RefreshCwIcon,
+  TrophyIcon,
+  CalendarIcon,
 } from "lucide-react";
 import Logo from "./logo";
+import { Avatar } from '@/components/catalyst/avatar';
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownDivider,
+  DropdownItem,
+  DropdownLabel,
+  DropdownMenu,
+} from '@/components/catalyst/dropdown';
 
 interface OmniSidebarItemProps {
   href: string;
@@ -52,12 +67,12 @@ export function OmniscopeSidebar() {
     { href: "/about-us/clients", caption: "Clients", icon: <UsersIcon /> },
     { href: "/about-us/sponsors", caption: "Sponsors", icon: <HandshakeIcon /> },
     { href: "/about-us/products-or-services", caption: "Products and Services", icon: <BoxIcon /> },
-    { href: "/about-us/cases", caption: "Cases", icon: <FolderOpenIcon /> },
-    { href: "/about-us/projects", caption: "Projects", icon: <ProjectorIcon /> },
+    { href: "/about-us/cases", caption: "Cases", icon: <TrophyIcon /> },
+    { href: "/about-us/projects", caption: "Projects", icon: <CalendarIcon /> },
   ];
 
   const administrativeSidebarItems: OmniSidebarItemProps[] = [
-    { href: "/management/hit-refresh", caption: "Refresh data", icon: <ScaleIcon /> },
+    { href: "/management/hit-refresh", caption: "Refresh data", icon: <RefreshCwIcon /> },
   ];
 
   return (
@@ -77,13 +92,35 @@ export function OmniscopeSidebar() {
             <OmniSidebarItem key={item.href} {...item} />
           ))}
         </SidebarSection>
+        <SidebarSpacer />
         <SidebarSection>
-          <SidebarHeading>Administrative</SidebarHeading>
           {administrativeSidebarItems.map((item) => (
             <OmniSidebarItem key={item.href} {...item} />
           ))}
         </SidebarSection>
       </SidebarBody>
+      <SidebarFooter className="max-lg:hidden">
+        <Dropdown>
+          <DropdownButton as={SidebarItem}>
+            <span className="flex min-w-0 items-center gap-3">
+              <Avatar src="/profile-photo.jpg" className="size-10" square alt="" />
+              <span className="min-w-0">
+                <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">John Doe</span>
+                <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
+                  john@example.com
+                </span>
+              </span>
+            </span>
+            <ChevronUpIcon />
+          </DropdownButton>
+          <DropdownMenu className="min-w-64" anchor="top start">
+            <DropdownItem href="/logout">
+              <BoxIcon />
+              <DropdownLabel>Sign out</DropdownLabel>
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
+      </SidebarFooter>
     </Sidebar>
   );
 }
