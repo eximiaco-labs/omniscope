@@ -1,30 +1,32 @@
 "use client";
 
 import { useQuery, useLazyQuery } from "@apollo/client";
-import { TotalWorkingHours } from "@/app/components/analytics/TotalWorkingHours";
-import { ByClient } from "@/app/components/analytics/ByClient";
-import { ByWorker } from "@/app/components/analytics/ByWorker";
 import { useState, useEffect } from "react";
 import { Heading } from "@/components/catalyst/heading";
 import { Divider } from "@/components/catalyst/divider";
 import Select from "react-tailwindcss-select";
-import { ByWorkingDay } from "@/app/components/analytics/ByWorkingDay";
-import { BySponsor } from "@/app/components/analytics/BySponsor";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { ByAccountManager } from "@/app/components/analytics/ByAccountManager";
-import { GET_DATASETS, GET_TIMESHEET, GET_ONTOLOGY } from '../datasetQueries';
+import { GET_DATASETS, GET_TIMESHEET } from '../datasetQueries';
+import TimesheetData from '../TimesheetData';
 
 export default function Datasets() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const defaultDataset = 'timesheet-this-month';
-  const [selectedDataset, setSelectedDataset] = useState(
-    params.slug && params.slug.length > 0 ? params.slug[0] : defaultDataset
-  );
+  const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
   const [selectedValues, setSelectedValues] = useState<SelectValue[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<Array<{field: string, selectedValues: string[]}>>([]);
+
+  const { data: datasetsData } = useQuery(GET_DATASETS);
+
+  const [getFilteredTimesheet, { loading: filterLoading, error: filterError, data: filteredData }] = useLazyQuery(GET_TIMESHEET);
+
+  useEffect(() => {
+    const slug = params.slug && params.slug.length > 0 ? params.slug[0] : defaultDataset;
+    setSelectedDataset(slug);
+  }, [params.slug]);
 
   useEffect(() => {
     if (selectedDataset) {
@@ -37,11 +39,7 @@ export default function Datasets() {
 
   useEffect(() => {
     const filters = parseFiltersFromSearchParams(searchParams);
-    setFormattedSelectedValues((prev) => {
-      const prevFiltersString = JSON.stringify(prev);
-      const newFiltersString = JSON.stringify(filters);
-      return prevFiltersString !== newFiltersString ? filters : prev;
-    });
+    setFormattedSelectedValues(filters);
 
     const newSelectedValues = filters.flatMap(filter => 
       filter.selectedValues.map(value => ({
@@ -51,16 +49,6 @@ export default function Datasets() {
     );
     setSelectedValues(newSelectedValues);
   }, [searchParams]);
-
-  const [getFilteredTimesheet, { loading: filterLoading, error: filterError, data: filteredData }] = useLazyQuery(GET_TIMESHEET);
-
-  const { loading, error, data } = useQuery(GET_TIMESHEET, {
-    variables: { 
-      slug: selectedDataset,
-      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
-    },
-    skip: !selectedDataset,
-  });
 
   useEffect(() => {
     if (selectedDataset) {
@@ -74,28 +62,11 @@ export default function Datasets() {
     }
   }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet]);
 
-  useEffect(() => {
-    if (selectedDataset) {
-      const initialFilters = Array.from(searchParams.entries()).map(([field, value]) => ({
-        field,
-        selectedValues: [value]
-      }));
-      getFilteredTimesheet({
-        variables: {
-          slug: selectedDataset,
-          filters: initialFilters.length > 0 ? initialFilters : null
-        }
-      });
-    }
-  }, [selectedDataset, searchParams, getFilteredTimesheet]);
-
-  const timesheetData = filteredData || data;
-
   const updateQueryString = (newSelectedValues: SelectValue[]) => {
     const params = new URLSearchParams(searchParams);
     params.delete('field');
     newSelectedValues.forEach(value => {
-      if (value && typeof value.value === 'string') {
+      if (typeof value.value === 'string') {
         const [field, fieldValue] = value.value.split(':');
         params.append(field, fieldValue);
       }
@@ -112,134 +83,30 @@ export default function Datasets() {
     return Object.entries(filters).map(([field, selectedValues]) => ({ field, selectedValues }));
   }
 
+  const handleDatasetSelect = (value: string) => {
+    setSelectedDataset(value);
+    setSelectedValues([]);
+    setFormattedSelectedValues([]);
+  };
+
   return (
     <>
-      <DatasetsList
-        onDatasetSelect={setSelectedDataset}
-        selectedDataset={selectedDataset}
-      />
-      {selectedDataset && (
-        <>
-          {(loading || filterLoading) && <p className="text-center py-5">Loading...</p>}
-          {(error || filterError) && (
-            <p className="text-center py-5 text-red-500">
-              Error: {(error || filterError)?.message}
-            </p>
-          )}
-          {timesheetData && timesheetData.timesheet && (
-            <>
-              {timesheetData.timesheet.filterableFields && (
-                <div className="mb-6">
-                  <form className="pl-2 pr-2">
-                    <Select
-                      value={selectedValues}
-                      options={timesheetData.timesheet.filterableFields.map((f: any) => {
-                        const options = (f.options || [])
-                          .filter((o: any) => o != null)
-                          .map((o: any) => ({
-                            value: `${f.field}:${String(o)}`,
-                            label: String(o),
-                          }));
-                        return {
-                          label: String(f.field ?? 'Unknown Field'),
-                          options: options,
-                        };
-                      })}
-                      placeholder="Filters..."
-                      onChange={(value): void => {
-                        const newSelectedValues = Array.isArray(value) ? value : [];
-                        setSelectedValues(newSelectedValues);
-                        updateQueryString(newSelectedValues);
-                        
-                        const formattedValues = timesheetData.timesheet.filterableFields.reduce((acc: any[], field: any) => {
-                          const fieldValues = newSelectedValues
-                            .filter(v => v && typeof v.value === 'string' && v.value.startsWith(`${field.field}:`))
-                            .map(v => (v.value as string).split(':')[1]);
-                          
-                          if (fieldValues.length > 0) {
-                            acc.push({
-                              field: field.field,
-                              selectedValues: fieldValues
-                            });
-                          }
-                          return acc;
-                        }, []);
-                        
-                        setFormattedSelectedValues(formattedValues);
-                      }}
-                      primaryColor={""}
-                      isMultiple={true}
-                      isSearchable={true}
-                      isClearable={true}
-                      formatGroupLabel={(data) => (
-                        <div
-                          className={`py-2 text-xs flex items-center justify-between`}
-                        >
-                          <span className="font-bold uppercase">
-                            {data.label
-                              .replace(/([A-Z])/g, ' $1')
-                              .trim()
-                              .replace(/(Name|Title)$/, '')}
-                          </span>
-                          <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
-                            {data.options.length}
-                          </span>
-                        </div>
-                      )}
-                    />
-                  </form>
-                </div>
-              )}
-              <TotalWorkingHours
-                timesheet={timesheetData.timesheet}
-                className="mb-6"
-              />
-              <ByClient timesheet={timesheetData.timesheet} className="mb-6" />
-              <ByAccountManager timesheet={timesheetData.timesheet} className="mb-6" />
-              <ByWorker timesheet={timesheetData.timesheet} className="mb-6" />
-              <BySponsor timesheet={timesheetData.timesheet} className="mb-6" />
-              <ByWorkingDay timesheet={timesheetData.timesheet} />
-            </>
-          )}
-        </>
-      )}
-    </>
-  );
-}
-
-interface DatasetsListProps {
-  onDatasetSelect: (value: string) => void;
-  selectedDataset: string;
-}
-
-function DatasetsList({
-  onDatasetSelect,
-  selectedDataset,
-}: DatasetsListProps) {
-  const { loading, error, data } = useQuery(GET_DATASETS);
-
-  if (loading) return <p>Loading datasets...</p>;
-  if (error)
-    return <p>Error loading datasets: {error.message}</p>;
-
-  return (
-    <div className="mb-3">
       <Heading>Available Datasets</Heading>
       <Divider className="my-3" />
-      <div className="pl-2 pr-2">
+      <div className="pl-2 pr-2 mb-6">
         <Select
           value={
             selectedDataset
               ? {
                   value: selectedDataset,
                   label:
-                    data.datasets.find(
+                    datasetsData?.datasets.find(
                       (d: any) => d.slug === selectedDataset
                     )?.name || '',
                 }
               : null
           }
-          options={data.datasets.reduce(
+          options={datasetsData?.datasets.reduce(
             (acc: any[], dataset: any) => {
               const group = acc.find(
                 (g) => g.label === dataset.kind
@@ -263,10 +130,10 @@ function DatasetsList({
               return acc;
             },
             []
-          )}
+          ) || []}
           placeholder="Select a dataset"
           onChange={(value: any) =>
-            onDatasetSelect(value ? value.value : '')
+            handleDatasetSelect(value ? value.value : '')
           }
           primaryColor={""}
           isMultiple={false}
@@ -286,6 +153,26 @@ function DatasetsList({
           )}
         />
       </div>
-    </div>
+
+      {selectedDataset && (
+        <>
+          {filterLoading && <p className="text-center py-5">Loading...</p>}
+          {filterError && (
+            <p className="text-center py-5 text-red-500">
+              Error: {filterError.message}
+            </p>
+          )}
+          {filteredData && filteredData.timesheet && (
+            <TimesheetData
+              filteredData={filteredData}
+              selectedValues={selectedValues}
+              setSelectedValues={setSelectedValues}
+              updateQueryString={updateQueryString}
+              setFormattedSelectedValues={setFormattedSelectedValues}
+            />
+          )}
+        </>
+      )}
+    </>
   );
 }
