@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery, useLazyQuery } from "@apollo/client";
-import { gql } from "@apollo/client";
 import { TotalWorkingHours } from "@/app/components/analytics/TotalWorkingHours";
 import { ByClient } from "@/app/components/analytics/ByClient";
 import { ByWorker } from "@/app/components/analytics/ByWorker";
@@ -14,120 +13,7 @@ import { BySponsor } from "@/app/components/analytics/BySponsor";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ByAccountManager } from "@/app/components/analytics/ByAccountManager";
-
-const GET_DATASETS = gql`
-  query GetDatasets {
-    datasets {
-      slug
-      kind
-      name
-    }
-  }
-`;
-
-const GET_TIMESHEET = gql`
-  query GetTimesheet($slug: String!, $filters: [FilterInput]) {
-    timesheet(slug: $slug, filters: $filters) {
-      totalHours
-      totalConsultingHours
-      totalSquadHours
-      totalInternalHours
-      totalHandsOnHours
-
-      byKind {
-        consulting {
-          uniqueClients
-          uniqueWorkers
-          uniqueWorkingDays
-          uniqueSponsors
-          uniqueAccountManagers
-        }
-
-        squad {
-          uniqueClients
-          uniqueWorkers
-          uniqueWorkingDays
-          uniqueSponsors
-          uniqueAccountManagers
-        }
-
-        handsOn {
-          uniqueClients
-          uniqueWorkers
-          uniqueWorkingDays
-          uniqueSponsors
-          uniqueAccountManagers
-        }
-
-        internal {
-          uniqueClients
-          uniqueWorkers
-          uniqueWorkingDays
-          uniqueSponsors
-          uniqueAccountManagers
-        }
-      }
-
-      uniqueClients
-
-      byClient {
-        name
-        totalHours
-        totalConsultingHours
-        totalSquadHours
-        totalInternalHours
-        totalHandsOnHours
-      }
-
-      uniqueWorkers
-
-      byWorker {
-        name
-        totalHours
-        totalConsultingHours
-        totalSquadHours
-        totalInternalHours
-        totalHandsOnHours
-      }
-
-      bySponsor {
-        name
-        totalHours
-        totalConsultingHours
-        totalSquadHours
-        totalInternalHours
-        totalHandsOnHours
-      }
-      uniqueSponsors
-
-      byAccountManager {
-        name
-        totalHours
-        totalConsultingHours
-        totalSquadHours
-        totalInternalHours
-        totalHandsOnHours
-      }
-      uniqueAccountManagers
-
-      byDate {
-        date
-        totalHours
-        totalConsultingHours
-        totalSquadHours
-        totalInternalHours
-        totalHandsOnHours
-      }
-      uniqueWorkingDays
-
-      filterableFields {
-        field
-        selectedValues
-        options
-      }
-    }
-  }
-`;
+import { GET_DATASETS, GET_TIMESHEET, GET_ONTOLOGY } from '../datasetQueries';
 
 export default function Datasets() {
   const router = useRouter();
@@ -188,7 +74,6 @@ export default function Datasets() {
     }
   }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet]);
 
-  // Adicione este useEffect para carregar os dados iniciais com os filtros da URL
   useEffect(() => {
     if (selectedDataset) {
       const initialFilters = Array.from(searchParams.entries()).map(([field, value]) => ({
@@ -202,15 +87,15 @@ export default function Datasets() {
         }
       });
     }
-  }, []);
+  }, [selectedDataset, searchParams, getFilteredTimesheet]);
 
   const timesheetData = filteredData || data;
 
   const updateQueryString = (newSelectedValues: SelectValue[]) => {
     const params = new URLSearchParams(searchParams);
-    params.delete('field'); // Remova os antigos
+    params.delete('field');
     newSelectedValues.forEach(value => {
-      if (typeof value.value === 'string') {
+      if (value && typeof value.value === 'string') {
         const [field, fieldValue] = value.value.split(':');
         params.append(field, fieldValue);
       }
@@ -241,7 +126,7 @@ export default function Datasets() {
               Error: {(error || filterError)?.message}
             </p>
           )}
-          {timesheetData && (
+          {timesheetData && timesheetData.timesheet && (
             <>
               {timesheetData.timesheet.filterableFields && (
                 <div className="mb-6">
@@ -261,15 +146,14 @@ export default function Datasets() {
                         };
                       })}
                       placeholder="Filters..."
-                      onChange={(value: SelectValue | SelectValue[]): void => {
+                      onChange={(value): void => {
                         const newSelectedValues = Array.isArray(value) ? value : [];
                         setSelectedValues(newSelectedValues);
                         updateQueryString(newSelectedValues);
                         
-                        // Create the formatted structure
                         const formattedValues = timesheetData.timesheet.filterableFields.reduce((acc: any[], field: any) => {
                           const fieldValues = newSelectedValues
-                            .filter(v => typeof v.value === 'string' && v.value.startsWith(`${field.field}:`))
+                            .filter(v => v && typeof v.value === 'string' && v.value.startsWith(`${field.field}:`))
                             .map(v => (v.value as string).split(':')[1]);
                           
                           if (fieldValues.length > 0) {
@@ -282,8 +166,6 @@ export default function Datasets() {
                         }, []);
                         
                         setFormattedSelectedValues(formattedValues);
-                        // Remova ou comente a linha abaixo
-                        // console.log("Formatted selected values:", formattedValues);
                       }}
                       primaryColor={""}
                       isMultiple={true}
