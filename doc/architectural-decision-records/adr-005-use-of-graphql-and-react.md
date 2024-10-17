@@ -24,6 +24,6 @@ We considered maintaining the original architecture with Python + Dash + Plotly,
 
 ## Implementation
 - The backend was implemented using Python with a GraphQL server (using Ariadne, as seen in the code).
-- The frontend was migrated to React, allowing for a more modular and reusable component structure.
+- The frontend was migrated to React, specifically using Next.js as the React framework.
 - GraphQL resolvers were created to handle various domain entities, such as accountManagers, clients, sponsors, etc.
-- The frontend uses Apollo Client to interact with the GraphQL API.
+- The frontend uses Apollo Client to interact with the GraphQL API, providing efficient data fetching and caching capabilities.

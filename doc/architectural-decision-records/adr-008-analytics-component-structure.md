@@ -13,16 +13,18 @@ We considered having a single, large analytics component or implementing each an
 
 ## Consequences
 ### Positive:
-- **Reusability**: The base `By` component can be reused across different types of analytics views.
+- **Reusability**: Common functionality can be shared across different types of analytics views.
 - **Consistency**: Using a common structure ensures consistency across different analytics components.
 - **Maintainability**: The modular structure makes it easier to update and maintain the analytics components.
+- **Flexibility**: The structure allows for easy addition of new analytics features and views.
 
 ### Negative:
 - **Initial Complexity**: The abstraction level might make it slightly harder for new developers to understand the component structure.
 - **Potential Over-engineering**: For simpler analytics views, this structure might be more complex than necessary.
 
 ## Implementation
-- A base `By` component was created to handle common functionality across different analytics views.
-- Specific components like `ByAccountManager`, `ByClient`, `BySponsor`, etc., were created extending the base `By` component.
-- Each specific component can customize its behavior and appearance while leveraging the common structure.
-- Additional components like `TotalWorkingHours` and `ByWorkingDay` were created for specific analytics needs.
+- A set of reusable components was created for common analytics functionalities.
+- Specific components like `MonthComparisonPanel`, `WeekComparisonPanel`, `WeekDayCards`, etc., were created for different aspects of analytics.
+- Additional components like `TimelinessPanel` and `AllocationAnalysisTables` were created for specific analytics needs.
+- The main analytics page (`week-review/page.tsx`) composes these components to create a comprehensive analytics view.
+- State management for analytics is handled using React hooks and Apollo Client for GraphQL queries.
