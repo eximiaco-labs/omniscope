@@ -146,3 +146,25 @@ export const GET_ONTOLOGY = gql`
     }
   }
 `;
+
+export const GET_INSIGHTS = gql`
+  query GetInsights($slug: String!, $filters: [FilterInput]) {
+    insights(slug: $slug, filters: $filters) {
+      totalEntries
+      uniqueAuthors
+      averageEntriesPerAuthor
+      stdDevEntriesPerAuthor
+      
+      byAuthor {
+        name
+        entries
+      }
+
+      filterableFields {
+        field
+        selectedValues
+        options
+      }
+    }
+  }
+`;

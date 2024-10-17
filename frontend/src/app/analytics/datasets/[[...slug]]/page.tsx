@@ -7,9 +7,10 @@ import { Divider } from "@/components/catalyst/divider";
 import Select from "react-tailwindcss-select";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { GET_TIMESHEET, GET_ONTOLOGY } from '../datasetQueries';
+import { GET_TIMESHEET, GET_ONTOLOGY, GET_INSIGHTS } from '../datasetQueries';
 import TimesheetData from '../TimesheetData';
 import OntologyData from '../OntologyData';
+import InsightsData from '../InsightsData';
 import DatasetSelector from '../DatasetSelector';
 
 export default function Datasets() {
@@ -24,6 +25,7 @@ export default function Datasets() {
 
   const [getFilteredTimesheet, { loading: timesheetLoading, error: timesheetError, data: timesheetData }] = useLazyQuery(GET_TIMESHEET);
   const [getFilteredOntology, { loading: ontologyLoading, error: ontologyError, data: ontologyData }] = useLazyQuery(GET_ONTOLOGY);
+  const [getFilteredInsights, { loading: insightsLoading, error: insightsError, data: insightsData }] = useLazyQuery(GET_INSIGHTS);
 
   useEffect(() => {
     const slug = params.slug && params.slug.length > 0 ? params.slug[0] : defaultDataset;
@@ -69,17 +71,26 @@ export default function Datasets() {
             filters: filters
           }
         });
+      } else if (selectedDataset.startsWith('insights')) {
+        getFilteredInsights({
+          variables: {
+            slug: selectedDataset,
+            filters: filters
+          }
+        });
       }
     }
-  }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet, getFilteredOntology]);
+  }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet, getFilteredOntology, getFilteredInsights]);
 
   useEffect(() => {
     if (timesheetData?.timesheet?.filterableFields) {
       setFilterableFields(timesheetData.timesheet.filterableFields);
     } else if (ontologyData?.ontology?.filterableFields) {
       setFilterableFields(ontologyData.ontology.filterableFields);
+    } else if (insightsData?.insights?.filterableFields) {
+      setFilterableFields(insightsData.insights.filterableFields);
     }
-  }, [timesheetData, ontologyData]);
+  }, [timesheetData, ontologyData, insightsData]);
 
   const updateQueryString = (newSelectedValues: SelectValue[]) => {
     const params = new URLSearchParams();
@@ -185,10 +196,10 @@ export default function Datasets() {
 
       {selectedDataset && (
         <>
-          {(timesheetLoading || ontologyLoading) && <p className="text-center py-5">Loading...</p>}
-          {(timesheetError || ontologyError) && (
+          {(timesheetLoading || ontologyLoading || insightsLoading) && <p className="text-center py-5">Loading...</p>}
+          {(timesheetError || ontologyError || insightsError) && (
             <p className="text-center py-5 text-red-500">
-              Error: {timesheetError?.message || ontologyError?.message}
+              Error: {timesheetError?.message || ontologyError?.message || insightsError?.message}
             </p>
           )}
           {timesheetData && timesheetData.timesheet && selectedDataset.startsWith('timesheet') && (
@@ -199,6 +210,11 @@ export default function Datasets() {
           {ontologyData && ontologyData.ontology && selectedDataset.startsWith('ontology') && (
             <OntologyData
               ontologyData={ontologyData}
+            />
+          )}
+          {insightsData && insightsData.insights && selectedDataset.startsWith('insights') && (
+            <InsightsData
+              insightsData={insightsData}
             />
           )}
         </>
