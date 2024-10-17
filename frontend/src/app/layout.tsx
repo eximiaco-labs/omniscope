@@ -8,8 +8,7 @@ import { Navbar } from "@/components/catalyst/navbar";
 import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
-import { Providers } from "./providers";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
 import { useEffect } from "react";
 
 // Create and export the Apollo Client instance
@@ -33,7 +32,7 @@ export default function RootLayout({
       </head>
       <ApolloProvider client={client}>
         <body>
-          <Providers>
+          <SessionProvider>
             <SessionComponent>
               <SidebarLayout
                 sidebar={<OmniscopeSidebar />}
@@ -43,7 +42,7 @@ export default function RootLayout({
                 <main>{children}</main>
               </SidebarLayout>
             </SessionComponent>
-          </Providers>
+          </SessionProvider>
         </body>
       </ApolloProvider>
     </html>
@@ -58,7 +57,7 @@ function SessionComponent({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated") {
       signIn("google");
     }
-    
+
     if (session) {
       console.log("User signed in:", session.user);
     }
