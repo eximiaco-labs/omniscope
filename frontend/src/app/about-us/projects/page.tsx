@@ -4,7 +4,7 @@ import { Heading } from "@/components/catalyst/heading";
 import { gql, useQuery } from "@apollo/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/catalyst/badge";
-import { CalendarIcon, ListIcon, StarIcon, AlertCircle } from "lucide-react";
+import { CalendarIcon, ListIcon, StarIcon, AlertCircle, AlertTriangle } from "lucide-react";
 import { format, isPast, parseISO } from 'date-fns';
 import { useState, useMemo } from 'react';
 import SelectComponent from "react-tailwindcss-select";
@@ -14,17 +14,16 @@ const GET_PROJECTS = gql`
   query GetProjects {
     projects {
       id
-      
       isFavorite
       folder
       name
       expectedDueDate
       numberOfTasks
-
       tasks {
         due
         content
       }
+      errors
     }
   }
 `;
@@ -70,6 +69,7 @@ export default function Projects() {
     const isLate = project.expectedDueDate && isPast(new Date(project.expectedDueDate));
     const nextTask = getNextTask(project.tasks);
     const isNextTaskLate = nextTask && isPast(parseISO(nextTask.due));
+    const hasProblems = !project.expectedDueDate || project.numberOfTasks === 0 || isLate;
 
     return (
       <a 
@@ -80,8 +80,15 @@ export default function Projects() {
         className="block"
       >
         <Card 
-          className={`hover:shadow-lg transition-all duration-300 transform hover:scale-105 ${isLate ? 'bg-rose-100' : ''}`}
+          className={`hover:shadow-lg transition-all duration-300 transform hover:scale-105 ${hasProblems ? 'bg-rose-100' : ''} relative`}
         >
+          {hasProblems && (
+            <div className="absolute -top-2 -left-2 z-10">
+              <div className="bg-red-500 rounded-full p-1">
+                <AlertTriangle className="text-white" size={20} />
+              </div>
+            </div>
+          )}
           <CardHeader className="flex flex-col items-start pb-2">
             {project.folder && (
               <Badge color="zinc" className="mb-2">
