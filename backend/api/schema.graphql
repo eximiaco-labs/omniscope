@@ -121,6 +121,51 @@ type Task {
   isLate: Boolean!
 }
 
+# Ontology
+
+type Ontology {
+  totalEntries: Int!
+  uniqueClasses: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+
+  byClass: [OntologyClassSummary!]!
+  byAuthor: [OntologyAuthorSummary!]!
+
+  filterableFields: [OntologyFilterableField!]!
+}
+
+type OntologyClassSummary {
+  name: String!
+  totalEntries: Int!
+  uniqueClasses: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+}
+
+type OntologyAuthorSummary {
+  name: String!
+  totalEntries: Int!
+  uniqueClasses: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+}
+
+type OntologyFilterableField {
+  field: String!
+  selectedValues: [String!]!
+  options: [String!]!
+}
+
 # Timesheets
 
 interface ISummary {
@@ -515,6 +560,7 @@ type Query {
   datasets(kind: String): [Dataset!]!
 
   timesheet(slug: String!, kind: TimesheetKind = ALL, filters: [FilterInput]): TimesheetSummary
+  ontology(slug: String!, filters: [FilterInput]): Ontology
   thisWeek(kind: TimesheetKind = ALL): DatasetsSet
   weekReview(date_of_interest: Date!, filters: [FilterInput]): WeekReview!
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
