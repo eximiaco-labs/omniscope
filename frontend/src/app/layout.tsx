@@ -5,13 +5,16 @@ import "./globals.css";
 
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
 import { Navbar } from "@/components/catalyst/navbar";
-import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
+import { Providers } from "./providers";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { useEffect } from "react";
 
 // Create and export the Apollo Client instance
 export const client = new ApolloClient({
-  uri: 'http://127.0.0.1:5000/graphql', 
+  uri: "http://127.0.0.1:5000/graphql",
   cache: new InMemoryCache(),
 });
 
@@ -30,15 +33,36 @@ export default function RootLayout({
       </head>
       <ApolloProvider client={client}>
         <body>
-          <SidebarLayout
-            sidebar={<OmniscopeSidebar />}
-            navbar={<Navbar>{/* Your navbar content */}</Navbar>}
-          >
-            <InconsistencyAlerts />
-            <main>{children}</main>
-          </SidebarLayout>
+          <Providers>
+            <SessionComponent>
+              <SidebarLayout
+                sidebar={<OmniscopeSidebar />}
+                navbar={<Navbar>{/* Your navbar content */}</Navbar>}
+              >
+                <InconsistencyAlerts />
+                <main>{children}</main>
+              </SidebarLayout>
+            </SessionComponent>
+          </Providers>
         </body>
       </ApolloProvider>
     </html>
   );
+}
+
+function SessionComponent({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      signIn("google");
+    }
+    
+    if (session) {
+      console.log("User signed in:", session.user);
+    }
+  }, [session]);
+
+  return <>{children}</>;
 }
