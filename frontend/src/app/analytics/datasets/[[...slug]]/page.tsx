@@ -1,14 +1,15 @@
 "use client";
 
-import { useQuery, useLazyQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { useState, useEffect } from "react";
 import { Heading } from "@/components/catalyst/heading";
 import { Divider } from "@/components/catalyst/divider";
 import Select from "react-tailwindcss-select";
 import { SelectValue } from "react-tailwindcss-select/dist/components/type";
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { GET_DATASETS, GET_TIMESHEET } from '../datasetQueries';
+import { GET_TIMESHEET } from '../datasetQueries';
 import TimesheetData from '../TimesheetData';
+import DatasetSelector from '../DatasetSelector';
 
 export default function Datasets() {
   const router = useRouter();
@@ -18,8 +19,7 @@ export default function Datasets() {
   const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
   const [selectedValues, setSelectedValues] = useState<SelectValue[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<Array<{field: string, selectedValues: string[]}>>([]);
-
-  const { data: datasetsData } = useQuery(GET_DATASETS);
+  const [filterableFields, setFilterableFields] = useState<any[]>([]);
 
   const [getFilteredTimesheet, { loading: filterLoading, error: filterError, data: filteredData }] = useLazyQuery(GET_TIMESHEET);
 
@@ -62,25 +62,40 @@ export default function Datasets() {
     }
   }, [formattedSelectedValues, selectedDataset, getFilteredTimesheet]);
 
+  useEffect(() => {
+    if (filteredData?.timesheet?.filterableFields) {
+      setFilterableFields(filteredData.timesheet.filterableFields);
+    }
+  }, [filteredData]);
+
   const updateQueryString = (newSelectedValues: SelectValue[]) => {
-    const params = new URLSearchParams(searchParams);
-    params.delete('field');
+    const params = new URLSearchParams();
+    const uniqueFilters: Record<string, Set<string>> = {};
+
     newSelectedValues.forEach(value => {
       if (typeof value.value === 'string') {
         const [field, fieldValue] = value.value.split(':');
-        params.append(field, fieldValue);
+        if (!uniqueFilters[field]) {
+          uniqueFilters[field] = new Set();
+        }
+        uniqueFilters[field].add(fieldValue);
       }
     });
+
+    Object.entries(uniqueFilters).forEach(([field, values]) => {
+      values.forEach(value => params.append(field, value));
+    });
+
     router.push(`/analytics/datasets/${selectedDataset}?${params.toString()}`);
   };
 
   function parseFiltersFromSearchParams(searchParams: URLSearchParams): Array<{ field: string; selectedValues: string[] }> {
-    const filters: Record<string, string[]> = {};
+    const filters: Record<string, Set<string>> = {};
     searchParams.forEach((value, key) => {
-      if (!filters[key]) filters[key] = [];
-      filters[key].push(value);
+      if (!filters[key]) filters[key] = new Set();
+      filters[key].add(value);
     });
-    return Object.entries(filters).map(([field, selectedValues]) => ({ field, selectedValues }));
+    return Object.entries(filters).map(([field, selectedValues]) => ({ field, selectedValues: Array.from(selectedValues) }));
   }
 
   const handleDatasetSelect = (value: string) => {
@@ -93,65 +108,66 @@ export default function Datasets() {
     <>
       <Heading>Available Datasets</Heading>
       <Divider className="my-3" />
-      <div className="pl-2 pr-2 mb-6">
-        <Select
-          value={
-            selectedDataset
-              ? {
-                  value: selectedDataset,
-                  label:
-                    datasetsData?.datasets.find(
-                      (d: any) => d.slug === selectedDataset
-                    )?.name || '',
+      <DatasetSelector
+        selectedDataset={selectedDataset}
+        onDatasetSelect={handleDatasetSelect}
+      />
+
+      <div className="mb-6">
+        <form className="pl-2 pr-2">
+          <Select
+            value={selectedValues}
+            options={filterableFields.map((f: any) => ({
+              label: String(f.field ?? 'Unknown Field'),
+              options: Array.from(new Set((f.options || [])
+                .filter((o: any) => o != null)
+                .map((o: any) => String(o))))
+                .map((o: string) => ({
+                  value: `${f.field}:${o}`,
+                  label: o,
+                }))
+            }))}
+            placeholder="Filters..."
+            onChange={(value): void => {
+              const newSelectedValues = Array.isArray(value) ? value : [];
+              setSelectedValues(newSelectedValues);
+              updateQueryString(newSelectedValues);
+              
+              const formattedValues = filterableFields.reduce((acc: any[], field: any) => {
+                const fieldValues = new Set(newSelectedValues
+                  .filter(v => typeof v.value === 'string' && v.value.startsWith(`${field.field}:`))
+                  .map(v => (v.value as string).split(':')[1]));
+                
+                if (fieldValues.size > 0) {
+                  acc.push({
+                    field: field.field,
+                    selectedValues: Array.from(fieldValues)
+                  });
                 }
-              : null
-          }
-          options={datasetsData?.datasets.reduce(
-            (acc: any[], dataset: any) => {
-              const group = acc.find(
-                (g) => g.label === dataset.kind
-              );
-              if (group) {
-                group.options.push({
-                  value: dataset.slug,
-                  label: dataset.name,
-                });
-              } else {
-                acc.push({
-                  label: dataset.kind,
-                  options: [
-                    {
-                      value: dataset.slug,
-                      label: dataset.name,
-                    },
-                  ],
-                });
-              }
-              return acc;
-            },
-            []
-          ) || []}
-          placeholder="Select a dataset"
-          onChange={(value: any) =>
-            handleDatasetSelect(value ? value.value : '')
-          }
-          primaryColor={""}
-          isMultiple={false}
-          isSearchable={true}
-          isClearable={false}
-          formatGroupLabel={(data) => (
-            <div
-              className={`py-2 text-xs flex items-center justify-between`}
-            >
-              <span className="font-bold uppercase">
-                {data.label}
-              </span>
-              <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
-                {data.options.length}
-              </span>
-            </div>
-          )}
-        />
+                return acc;
+              }, []);
+              
+              setFormattedSelectedValues(formattedValues);
+            }}
+            primaryColor={""}
+            isMultiple={true}
+            isSearchable={true}
+            isClearable={true}
+            formatGroupLabel={(data) => (
+              <div className={`py-2 text-xs flex items-center justify-between`}>
+                <span className="font-bold uppercase">
+                  {data.label
+                    .replace(/([A-Z])/g, ' $1')
+                    .trim()
+                    .replace(/(Name|Title)$/, '')}
+                </span>
+                <span className="bg-gray-200 h-5 h-5 p-1.5 flex items-center justify-center rounded-full">
+                  {data.options.length}
+                </span>
+              </div>
+            )}
+          />
+        </form>
       </div>
 
       {selectedDataset && (
@@ -165,10 +181,6 @@ export default function Datasets() {
           {filteredData && filteredData.timesheet && (
             <TimesheetData
               filteredData={filteredData}
-              selectedValues={selectedValues}
-              setSelectedValues={setSelectedValues}
-              updateQueryString={updateQueryString}
-              setFormattedSelectedValues={setFormattedSelectedValues}
             />
           )}
         </>
