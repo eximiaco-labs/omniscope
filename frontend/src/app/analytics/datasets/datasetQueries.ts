@@ -117,23 +117,31 @@ export const GET_TIMESHEET = gql`
 export const GET_ONTOLOGY = gql`
   query GetOntology($slug: String!, $filters: [FilterInput]) {
     ontology(slug: $slug, filters: $filters) {
+    totalEntries
+    uniqueClasses
+    uniqueAuthors
+    byAuthor {
+      name
       totalEntries
       uniqueClasses
+      classes {
+        name
+        entries
+      }
+    }
+    byClass {
+      name
+      totalEntries
       uniqueAuthors
-      byAuthor {
+      authors {
         name
-        totalEntries
-        uniqueClasses
+        entries
       }
-      byClass {
-        name
-        totalEntries
-        uniqueAuthors
-      }
-      filterableFields {
-        field
-        selectedValues
-        options
+    }
+    filterableFields {
+      field
+      selectedValues
+      options
       }
     }
   }
