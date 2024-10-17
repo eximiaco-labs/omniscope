@@ -95,13 +95,13 @@ export default function Projects() {
             {project.numberOfTasks} tasks
           </div>
           {nextTask && (
-            <div className={`mt-4 p-2 rounded-md ${isNextTaskLate ? 'bg-red-500 text-white' : 'bg-blue-100'}`}>
+            <div className={`mt-4 p-2 rounded-md border ${isNextTaskLate ? 'border-amber-500 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
               <div className="flex items-center mb-1">
-                <AlertCircle className="mr-2 h-4 w-4" />
-                <span className="font-semibold">Next Task:</span>
+                <AlertCircle className={`mr-2 h-4 w-4 ${isNextTaskLate ? 'text-amber-500' : 'text-blue-500'}`} />
+                <span className="font-semibold text-sm text-gray-700">Next Task</span>
               </div>
-              <p className="text-sm">{nextTask.content}</p>
-              <p className="text-xs mt-1">
+              <p className="text-sm text-gray-600">{nextTask.content}</p>
+              <p className={`text-xs mt-1 ${isNextTaskLate ? 'text-amber-600' : 'text-blue-600'}`}>
                 Due: {format(parseISO(nextTask.due), 'MMM dd, yyyy')}
               </p>
             </div>
