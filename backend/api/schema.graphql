@@ -97,7 +97,7 @@ type Offer {
 }
 
 type Project {
-  id: Int!
+  id: String!
   name: String!
   tasks: [Task!]!
   folder: String
