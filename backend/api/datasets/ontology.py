@@ -25,24 +25,46 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 def summarize_by_class(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'ClassName')
-
-def summarize_by_author(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'AuthorName')
-
-def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name") -> List[Dict[str, Union[Dict[str, Any], Any]]]:
     summaries = []
-    for group_value, group_df in df.groupby(group_column):
-        summary = summarize(group_df)
-        summary[name_key] = group_value
+    for class_name, class_df in df.groupby("ClassName"):
+        authors = class_df.groupby("AuthorName").size().reset_index(name="entries")
+        authors = authors.sort_values("entries", ascending=False)
+        authors = authors.rename(columns={"AuthorName": "name"}).to_dict("records")
+
+        summary = {
+            "name": class_name,
+            "total_entries": len(class_df),
+            "unique_authors": len(authors),
+            "average_entries_per_author": class_df.groupby("AuthorId").size().mean(),
+            "std_dev_entries_per_author": class_df.groupby("AuthorId").size().std(),
+            "authors": authors
+        }
         summaries.append(summary)
 
-    summaries = sorted(summaries, key=lambda x: x["total_entries"], reverse=True)
-    return summaries
+    return sorted(summaries, key=lambda x: x["total_entries"], reverse=True)
 
-def resolve_ontology(_, info, slug: str, requested_fields: List[str] = []) -> Dict[str, Any]:
+def summarize_by_author(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    summaries = []
+    for author_name, author_df in df.groupby("AuthorName"):
+        classes = author_df.groupby("ClassName").size().reset_index(name="entries")
+        classes = classes.sort_values("entries", ascending=False)
+        classes = classes.rename(columns={"ClassName": "name"}).to_dict("records")
+
+        summary = {
+            "name": author_name,
+            "total_entries": len(author_df),
+            "unique_classes": len(classes),
+            "average_entries_per_class": author_df.groupby("ClassName").size().mean(),
+            "std_dev_entries_per_class": author_df.groupby("ClassName").size().std(),
+            "classes": classes
+        }
+        summaries.append(summary)
+
+    return sorted(summaries, key=lambda x: x["total_entries"], reverse=True)
+
+def resolve_ontology(_, info, slug: str, filters = None) -> Dict[str, Any]:
     requested_fields = get_requested_fields_from(info)
-    return compute_ontology(requested_fields, slug)
+    return compute_ontology(requested_fields, slug, filters)
 
 def compute_ontology(requested_fields: List[str], slug: str, filters = None) -> Dict[str, Any]:
     if not slug.startswith('ontology-entries'):
@@ -87,5 +109,3 @@ def compute_ontology(requested_fields: List[str], slug: str, filters = None) -> 
         result['by_author'] = summarize_by_author(df)
 
     return result
-
-

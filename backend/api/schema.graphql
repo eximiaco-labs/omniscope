@@ -141,23 +141,24 @@ type Ontology {
 type OntologyClassSummary {
   name: String!
   totalEntries: Int!
-  uniqueClasses: Int!
   uniqueAuthors: Int!
-  averageEntriesPerClass: Float!
-  stdDevEntriesPerClass: Float!
   averageEntriesPerAuthor: Float!
   stdDevEntriesPerAuthor: Float!
+  authors: [OntologyNamedSummary!]!
 }
 
 type OntologyAuthorSummary {
   name: String!
   totalEntries: Int!
   uniqueClasses: Int!
-  uniqueAuthors: Int!
   averageEntriesPerClass: Float!
   stdDevEntriesPerClass: Float!
-  averageEntriesPerAuthor: Float!
-  stdDevEntriesPerAuthor: Float!
+  classes: [OntologyNamedSummary!]!
+}
+
+type OntologyNamedSummary {
+  name: String!
+  entries: Int!
 }
 
 type OntologyFilterableField {
