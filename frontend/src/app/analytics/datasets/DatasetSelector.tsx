@@ -18,10 +18,12 @@ const DatasetSelector: React.FC<DatasetSelectorProps> = ({ selectedDataset, onDa
           selectedDataset
             ? {
                 value: selectedDataset,
-                label:
-                  datasetsData?.datasets.find(
+                label: (() => {
+                  const dataset = datasetsData?.datasets.find(
                     (d: any) => d.slug === selectedDataset
-                  )?.name || '',
+                  );
+                  return dataset ? `${dataset.kind} - ${dataset.name}` : '';
+                })(),
               }
             : null
         }
@@ -33,7 +35,7 @@ const DatasetSelector: React.FC<DatasetSelectorProps> = ({ selectedDataset, onDa
             if (group) {
               group.options.push({
                 value: dataset.slug,
-                label: dataset.name,
+                label: `${dataset.kind} - ${dataset.name}`,
               });
             } else {
               acc.push({
@@ -41,7 +43,7 @@ const DatasetSelector: React.FC<DatasetSelectorProps> = ({ selectedDataset, onDa
                 options: [
                   {
                     value: dataset.slug,
-                    label: dataset.name,
+                    label: `${dataset.kind} - ${dataset.name}`,
                   },
                 ],
               });
