@@ -610,3 +610,10 @@ input FilterInput {
 }
 
 scalar Date
+
+
+# Mutations
+
+type Mutation {
+  refreshData: Boolean!
+}
