@@ -1,7 +1,37 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/catalyst/button';
 import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
+import { gql, useMutation } from '@apollo/client';
+
+const REFRESH_DATA_MUTATION = gql`
+  mutation RefreshData {
+    refreshData
+  }
+`;
 
 export default function HitRefresh() {
+  const router = useRouter();
+  const [refreshData, { loading, error }] = useMutation(REFRESH_DATA_MUTATION);
+  const [message, setMessage] = useState('');
+
+  const handleRefresh = async () => {
+    try {
+      const { data } = await refreshData();
+      if (data.refreshData) {
+        setMessage('Data refreshed successfully. Redirecting...');
+        setTimeout(() => router.push('/'), 2000);
+      } else {
+        setMessage('Failed to refresh data. Please try again.');
+      }
+    } catch (err) {
+      setMessage('An error occurred. Please try again.');
+      console.error(err);
+    }
+  };
+
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <div className="mx-auto max-w-3xl">
@@ -20,10 +50,16 @@ export default function HitRefresh() {
                 </p>
               </div>
               <div className="mt-5">
-                <Button color="blue">
-                  Reset Caches
+                <Button color="blue" onClick={handleRefresh} disabled={loading}>
+                  {loading ? 'Resetting...' : 'Reset Caches'}
                 </Button>
               </div>
+              {message && (
+                <p className="mt-2 text-sm text-gray-600">{message}</p>
+              )}
+              {error && (
+                <p className="mt-2 text-sm text-red-600">Error: {error.message}</p>
+              )}
             </div>
           </div>
           <div className="rounded-md bg-yellow-50 p-4">
