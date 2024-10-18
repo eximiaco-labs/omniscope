@@ -5,6 +5,17 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/catalyst/button';
 import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 import { gql, useMutation } from '@apollo/client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const REFRESH_DATA_MUTATION = gql`
   mutation RefreshData {
@@ -50,9 +61,25 @@ export default function HitRefresh() {
                 </p>
               </div>
               <div className="mt-5">
-                <Button color="blue" onClick={handleRefresh} disabled={loading}>
-                  {loading ? 'Resetting...' : 'Reset Caches'}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button color="blue" disabled={loading}>
+                      {loading ? 'Resetting...' : 'Reset Caches'}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action will reset all system caches. It may temporarily slow down the system as new cache bases are being built.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleRefresh}>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               {message && (
                 <p className="mt-2 text-sm text-gray-600">{message}</p>
