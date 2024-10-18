@@ -78,9 +78,3 @@ Future Plans:
 - Continuous improvement of the GraphQL API for more efficient data fetching
 - Enhancement of analytics components for better data visualization
 - Exploration of server-side rendering capabilities in Next.js for improved performance
-
-<div align="center">
-  <img src="assets/general-arquitecture-decisions.png" width="400">
-</div>
-
-![general-arquitecture-decisions.png](assets/general-arquitecture-decisions.png)
