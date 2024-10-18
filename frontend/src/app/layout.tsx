@@ -41,7 +41,7 @@ export default function RootLayout({
                 <InconsistencyAlerts />
                 <main>{children}</main>
               </SidebarLayout>
-            </SessionComponent>
+           </SessionComponent>
           </SessionProvider>
         </body>
       </ApolloProvider>
@@ -54,14 +54,18 @@ function SessionComponent({ children }: { children: React.ReactNode }) {
   const isLoading = status === "loading";
 
   useEffect(() => {
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+
     if (status === "unauthenticated") {
+      console.log("Redirecting to sign in...");
       signIn("google");
     }
 
     if (session) {
       console.log("User signed in:", session.user);
     }
-  }, [session]);
+  }, [session, status]);
 
   return <>{children}</>;
 }
