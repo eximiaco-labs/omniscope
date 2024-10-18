@@ -1,6 +1,6 @@
 # ADR 009: UI Component Library
 
-**Status:** Approved
+**Status:** Obsolete
 
 ## Context
 As we developed the frontend for Omniscope, we needed a consistent and efficient approach to building UI components.
@@ -26,3 +26,6 @@ We considered using off-the-shelf component libraries like Material-UI or Ant De
 - Custom UI components are created in the `components/ui` and `components/catalyst` directories.
 - Tailwind CSS is used for styling throughout the application.
 - Framer Motion is used for implementing animations where needed.
+
+## Update
+This decision has been superseded by a newer ADR describing the adoption of Catalyst as the main framework for interface development.

@@ -51,11 +51,11 @@ Technologies Chosen:
 - GraphQL for efficient API communication between frontend and backend
 - Python for backend development, maintaining data processing capabilities
 - Pydantic for data validation and GraphQL schema generation
-- Tailwind CSS for flexible and customizable UI styling
+- Catalyst as the main UI development framework for consistent and efficient interface design
 
 System Data Architecture:
 
-- Frontend Layer: Next.js-based React application
+- Frontend Layer: Next.js-based React application with Catalyst components
 - GraphQL Layer: Facilitates communication between frontend and backend
 - Backend Layers:
   - Syntactic Layer: Interface with external APIs
@@ -65,8 +65,8 @@ System Data Architecture:
 
 User Interface:
 
-- Tailwind CSS adopted for consistent and customizable visual components
-- Custom React components for specific UI needs
+- Catalyst adopted as the main UI development framework for consistent and customizable visual components
+- Custom React components for specific UI needs not covered by Catalyst
 - Ongoing UI revisions to improve user experience
 
 Authentication:
@@ -78,3 +78,4 @@ Future Plans:
 - Continuous improvement of the GraphQL API for more efficient data fetching
 - Enhancement of analytics components for better data visualization
 - Exploration of server-side rendering capabilities in Next.js for improved performance
+- Further integration and customization of Catalyst components to meet specific project needs
