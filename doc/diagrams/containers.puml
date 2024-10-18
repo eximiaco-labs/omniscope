@@ -1,4 +1,3 @@
-
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
@@ -11,9 +10,14 @@ Person(en, "Engineer", "Uses Omniscope to monitor project progress and access de
 Person(am, "Account Manager", "Uses Omniscope to track the progress of various engagements and obtain precise information to better serve clients.")
 Person(manager, "Manager", "Uses Omniscope to access detailed information about organizational projects.")
 
-System_Boundary(c1, "Omniscope") {
-    Container(webApp, "UI", "Dash,Plotly", "Presents integrated data visually for effective management")
-    Container(models, "Models", "Python,Requests,Pydantic", "Fetches and consolidates data from external systems using REST APIs, with Pydantic validation")
+System_Boundary(frontend, "Frontend") {
+    Container(webApp, "UI", "NextJS, React, TailwindUI", "Presents integrated data visually for effective management")
+    Container(auth, "Authentication", "NextAuth.js", "Handles user authentication")
+}
+
+System_Boundary(backend, "Backend") {
+    Container(graphql, "API", "Python, GraphQL (Ariadne), Flask", "Shares the models information")
+    Container(models, "Models", "Python, Requests, Pydantic", "Fetches, consolidates, and processes data from external systems")
 }
 
 Rel(consultant, webApp, "Uses", "https")
@@ -21,17 +25,22 @@ Rel(en, webApp, "Uses", "https")
 Rel(am, webApp, "Uses", "https")
 Rel(manager, webApp, "Uses", "https")
 
-Rel_Neighbor(webApp, models, "Fetches consolidated data")
-System_Ext(TasksManager, "Task Management (TodoIst)", "Organizes non-routine tasks such as project-related tasks")
-Rel(models, TasksManager, "fetches data from", "REST")
+Rel_Neighbor(webApp, auth, "Uses")
+Rel_Neighbor(webApp, graphql, "Fetches data from", "GraphQL queries/mutations")
+Rel_Neighbor(graphql, models, "Uses")
+
+System_Ext(TasksManager, "Task Management (Todoist)", "Organizes non-routine tasks such as project-related tasks")
 System_Ext(Ontology, "Ontology (Wordpress)", "Serves as the company's knowledge base, covering concepts, frameworks, clients, and more")
-Rel(models, Ontology, "fetches data from", "REST")
 System_Ext(TimeTracker, "Time Tracker (Everhour)", "Logs EximiaCo engagements, detailing all projects and hours worked")
-Rel(models, TimeTracker, "fetches data from", "REST")
 System_Ext(CRM, "CRM (Pipedrive)", "Serves as the company's CRM system, golden source for Clients and Contact Infos")
-Rel(models, CRM, "fetches data from", "REST")
 System_Ext(Insights, "Insights (Wordpress)", "Where EximiaCo shares lessons learned with clients")
-Rel(models, Insights, "fetches data from", "REST")
 System_Ext(SalesFunnelB2B, "SalesFunnelB2B (Pipedrive)", "Information about deals and opportunities B2B")
-Rel(models, SalesFunnelB2B, "fetches data from", "REST")
+
+Rel(models, TasksManager, "Fetches data from", "REST")
+Rel(models, Ontology, "Fetches data from", "REST")
+Rel(models, TimeTracker, "Fetches data from", "REST")
+Rel(models, CRM, "Fetches data from", "REST")
+Rel(models, Insights, "Fetches data from", "REST")
+Rel(models, SalesFunnelB2B, "Fetches data from", "REST")
+
 @enduml
