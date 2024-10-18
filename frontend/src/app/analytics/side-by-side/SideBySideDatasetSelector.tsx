@@ -7,6 +7,7 @@ interface SideBySideDatasetSelectorProps {
   selectedDataset: string | null;
   onDatasetSelect: (value: string) => void;
   filterKind?: string;
+  id: string;
 }
 
 interface Dataset {
@@ -20,15 +21,26 @@ interface GroupedOption {
   options: { value: string; label: string }[];
 }
 
-const SideBySideDatasetSelector: React.FC<SideBySideDatasetSelectorProps> = ({ selectedDataset, onDatasetSelect, filterKind }) => {
+const SideBySideDatasetSelector: React.FC<SideBySideDatasetSelectorProps> = ({ 
+  selectedDataset, 
+  onDatasetSelect, 
+  filterKind,
+  id
+}) => {
   const { data: datasetsData, loading, error } = useQuery(GET_DATASETS);
 
   if (loading) return <div>Loading datasets...</div>;
   if (error) return <div>Error loading datasets: {error.message}</div>;
 
+  // Log datasets for debugging
+  console.log('Datasets:', datasetsData?.datasets);
+  console.log('Filter kind:', filterKind);
+
   const filteredDatasets = filterKind
-    ? datasetsData?.datasets.filter((d: Dataset) => d.kind.startsWith(filterKind))
-    : datasetsData?.datasets;
+     ? datasetsData?.datasets.filter((d: Dataset) => d.slug.startsWith(filterKind))
+     : datasetsData?.datasets;
+
+  //const filteredDatasets = datasetsData?.datasets;
 
   const options: GroupedOption[] = filteredDatasets?.reduce(
     (acc: GroupedOption[], dataset: Dataset) => {
@@ -55,8 +67,9 @@ const SideBySideDatasetSelector: React.FC<SideBySideDatasetSelectorProps> = ({ s
   ) || [];
 
   return (
-    <div className="pl-2 pr-2 mb-6">
+    <div>
       <Select
+        key={id}
         value={
           selectedDataset
             ? {

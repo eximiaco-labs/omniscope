@@ -22,8 +22,8 @@ interface FilterOption {
 }
 
 export default function SideBySide() {
-  const [leftDataset, setLeftDataset] = useState<string>('timesheet-this-week');
-  const [rightDataset, setRightDataset] = useState<string>('timesheet-previous-week');
+  const [leftDataset, setLeftDataset] = useState<string>('timesheet-previous-week');
+  const [rightDataset, setRightDataset] = useState<string>('timesheet-this-week');
   const [leftFilters, setLeftFilters] = useState<FilterOption[]>([]);
   const [rightFilters, setRightFilters] = useState<FilterOption[]>([]);
   const [leftFilterableFields, setLeftFilterableFields] = useState<FilterableField[]>([]);
@@ -146,20 +146,22 @@ export default function SideBySide() {
   const error = leftTimesheetError || rightTimesheetError || leftOntologyError || rightOntologyError || leftInsightsError || rightInsightsError;
 
   return (
-    <div className="p-6">
+    <div>
       <Heading>Side-by-side Comparison</Heading>
       <Divider className="my-3" />
       
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-4 mb-2">
         <SideBySideDatasetSelector
+          id="left-dataset-selector"
           selectedDataset={leftDataset}
           onDatasetSelect={(value) => handleDatasetSelect(value, 'left')}
         />
         <SideBySideDatasetSelector
+          id="right-dataset-selector"
           selectedDataset={rightDataset}
           onDatasetSelect={(value) => handleDatasetSelect(value, 'right')}
-          filterKind={leftDataset.split('-')[0]}
-        />
+          filterKind={leftDataset ? leftDataset.split('-')[0] : undefined}
+        />˜
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
