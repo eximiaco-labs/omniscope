@@ -24,6 +24,16 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             f'{len(unrecognized_workers)} worker(s) do not yet have a profile in the ontology.'
         ))
 
+    workers_without_email_or_with_invalid_email = [
+        worker for worker in workers.values()
+        if not worker.email or not (worker.email.endswith('@eximia.co') or worker.email.endswith('@elemarjr.com'))
+    ]
+    if len(workers_without_email_or_with_invalid_email) > 0:
+        result.append(Inconsistency(
+            'Workers without email or with invalid email',
+            f'{len(workers_without_email_or_with_invalid_email)} worker(s) do not have an email or have an email that is not recognized.'
+        ))
+
     cases = globals.omni_models.cases.get_all().values()
     projects_with_hours_recorded_without_case = sorted(
         [
@@ -70,5 +80,6 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             'Projects Without Due Dates',
             f'{len(projects_without_due_dates)} project(s) have no expected due date set.'
         ))
+
 
     return result
