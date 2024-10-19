@@ -47,29 +47,35 @@
 
 Technologies Chosen:
 
-- Python, Dash, and Plotly for ease of development in data visualization.
-- Pydantic for ensuring a strongly typed model whenever possible. 
-- Bootstrap for UI consistency
+- Next.js for frontend development, providing a robust React-based framework
+- GraphQL for efficient API communication between frontend and backend
+- Python for backend development, maintaining data processing capabilities
+- Pydantic for data validation and GraphQL schema generation
+- Catalyst as the main UI development framework for consistent and efficient interface design
 
 System Data Architecture:
 
-- Syntactic Layer: Interface with external APIs.
-- Semantic Layer: Translate data into a common language. 
-- Domain Layer: Manage data relationships and business logic. 
-- Dataset Layer: Expose and analyze data.
+- Frontend Layer: Next.js-based React application with Catalyst components
+- GraphQL Layer: Facilitates communication between frontend and backend
+- Backend Layers:
+  - Syntactic Layer: Interface with external APIs
+  - Semantic Layer: Translate data into a common language
+  - Domain Layer: Manage data relationships and business logic
+  - Dataset Layer: Expose and analyze data
 
 User Interface:
 
-- Bootstrap adopted for minimum consistency in visual components. 
-- Ongoing UI revisions due to the absence of dedicated designers. 
-- Plotly + Dash for dashboards
+- Catalyst adopted as the main UI development framework for consistent and customizable visual components
+- Custom React components for specific UI needs not covered by Catalyst
+- Ongoing UI revisions to improve user experience
+
+Authentication:
+
+- Google Authentication implemented for secure and streamlined user access
 
 Future Plans:
 
-- Introduction of Artificial Intelligence to accelerate analyses and inferences.
- 
-<div align="center">
-  <img src="assets/general-arquitecture-decisions.png" width="400">
-</div>
-
-![general-arquitecture-decisions.png](assets/general-arquitecture-decisions.png)
+- Continuous improvement of the GraphQL API for more efficient data fetching
+- Enhancement of analytics components for better data visualization
+- Exploration of server-side rendering capabilities in Next.js for improved performance
+- Further integration and customization of Catalyst components to meet specific project needs

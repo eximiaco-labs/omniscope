@@ -1,5 +1,5 @@
 # ADR 003: Adoption of Bootstrap for Frontend Development
-**Status:** Approved
+**Status:** Obsolete
 
 ## Context
 To streamline frontend development for programmers without prior experience in this area, we identified the need for a framework that simplifies the process of creating consistent and responsive user interfaces. The adoption of Bootstrap, along with the dash-bootstrap-components library, was considered to facilitate this process.
@@ -18,3 +18,6 @@ Before adopting Bootstrap, we considered using only the default components provi
 ### Negative:
 - **Aesthetic Trade-offs**: While the use of Bootstrap accelerates the development process, it has delayed the focus on aesthetic refinement. This could lead to a need for future adjustments to improve the visual appeal of the interfaces.
 - **Potential Design Uniformity**: Heavy reliance on Bootstrap might result in less flexibility in design, making it harder to differentiate the visual style of the application from other Bootstrap-based projects.
+
+## Update
+This decision has been superseded by ADR-009, which details the use of a custom UI component library with Tailwind CSS and Framer Motion. ADR-009 has since been superseded by a newer ADR describing the adoption of Catalyst as the main framework for interface development.

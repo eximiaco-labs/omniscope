@@ -27,7 +27,7 @@ Rel(manager, webApp, "Uses", "https")
 Rel_Neighbor(webApp, models, "Fetches consolidated data")
 """
 
-semantic_folder = os.path.abspath('../../src/models/semantic')
+semantic_folder = os.path.abspath('../../backend/models/semantic')
 external_systems = list_c4_external_systems_from_dir(semantic_folder)
 
 with open('containers.puml', 'w') as file:

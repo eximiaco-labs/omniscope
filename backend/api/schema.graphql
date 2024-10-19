@@ -1,0 +1,621 @@
+enum WorkerKind {
+  ALL
+  ACCOUNT_MANAGER
+  CONSULTANT
+}
+
+# Admin
+
+type Inconsistency {
+  title: String!
+  description: String!
+}
+
+# Domain 
+
+type Worker {
+  id: Int!
+  slug: String!
+  name: String!
+  email: String
+  kind: WorkerKind!
+  errors: [String]
+  position: String!
+  ontologyUserId: Int
+  insightsUserId: Int
+  todoistUserId: Int
+  pipedriveUserId: Int
+  isRecognized: Boolean!
+  omniUrl: String!
+  photoUrl: String!
+
+  isOntologyAuthor: Boolean!
+  isInsightsAuthor: Boolean!
+  isTimeTrackerWorker: Boolean!
+  isSpecialProjectsWorker: Boolean!
+}
+
+type Client {
+  id: Int!
+  slug: String!
+  name: String!
+  isStrategic: Boolean!
+  accountManager: Worker
+  isRecognized: Boolean!
+  omniUrl: String!
+  logoUrl: String!
+}
+
+type Sponsor {
+  slug: String!
+  name: String!
+  photoUrl: String
+  clientId: Int
+  crmId: String
+  jobTitle: String
+  linkedinUrl: String
+  omniUrl: String
+
+  client: Client
+}
+
+type Case {
+  id: String!
+  slug: String!
+  title: String!
+  isActive: Boolean!
+  clientId: String
+  everhourProjectsIds: [String!]
+  status: String
+  lastUpdated: String
+  sponsor: String
+  offersIds: [Int!]
+  errors: [String!]!
+  hasDescription: Boolean!
+  hasClient: Boolean!
+  hasEverhourProjectsIds: Boolean!
+  numberOfDaysWithNoUpdates: Int!
+  hasUpdatedDescription: Boolean!
+  omniUrl: String!
+  updates: [CaseUpdate]
+  lastUpdate: CaseUpdate
+  client: Client
+}
+
+type CaseUpdate {
+  date: String!
+  author: String
+  status: String
+  observations: String
+}
+
+type Offer {
+  id: Int!
+  slug: String!
+  name: String!
+  coverImageUrl: String
+  omniUrl: String!
+}
+
+type Project {
+  id: String!
+  name: String!
+  tasks: [Task!]!
+  folder: String
+  isFavorite: Boolean!
+  errors: [String!]!
+  numberOfTasks: Int!
+  hasTasksWithNoDueDate: Boolean!
+  expectedDueDate: String
+  hasTasksWithNoAssignee: Boolean!
+  hasLateTasks: Boolean!
+}
+
+type Task {
+  id: Int!
+  assigneeId: Int
+  projectId: Int!
+  content: String!
+  description: String!
+  isCompleted: Boolean!
+  due: String
+  isLate: Boolean!
+}
+
+# Ontology
+
+type Ontology {
+  totalEntries: Int!
+  uniqueClasses: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+
+  byClass: [OntologyClassSummary!]!
+  byAuthor: [OntologyAuthorSummary!]!
+
+  filterableFields: [OntologyFilterableField!]!
+}
+
+type OntologyClassSummary {
+  name: String!
+  totalEntries: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+  authors: [OntologyNamedSummary!]!
+}
+
+type OntologyAuthorSummary {
+  name: String!
+  totalEntries: Int!
+  uniqueClasses: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  classes: [OntologyNamedSummary!]!
+}
+
+type OntologyNamedSummary {
+  name: String!
+  entries: Int!
+}
+
+type OntologyFilterableField {
+  field: String!
+  selectedValues: [String!]!
+  options: [String!]!
+}
+
+# Insights
+
+type Insights {
+  totalEntries: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+
+  byAuthor: [InsightAuthorSummary!]!
+
+  filterableFields: [InsightFilterableField!]!
+}
+
+type InsightAuthorSummary {
+  name: String!
+  entries: Int!
+}
+
+type InsightFilterableField {
+  field: String!
+  selectedValues: [String!]!
+  options: [String!]!
+}
+
+
+# Timesheets
+
+interface ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+}
+
+type Summary implements ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+}
+
+type KindSummary {
+  internal: Summary
+  consulting: Summary
+  squad: Summary
+  handsOn: Summary
+}
+
+type NamedSummary implements ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+
+  name: String!
+  byKind: KindSummary!
+}
+
+type TitledSummary implements ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+
+  title: String!
+  byKind: KindSummary!
+}
+
+
+type DateSummary implements ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+
+  date: String!
+  byKind: KindSummary!
+}
+
+type WeekSummary implements ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  week: String!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  byKind: KindSummary!
+}
+
+type FilterableField {
+  field: String!
+  options: [String]!
+  selectedValues: [String]!
+}
+
+type TimesheetSummary implements ISummary{
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+
+  byKind: KindSummary
+  byWorker: [NamedSummary!]!
+  byClient: [NamedSummary!]!
+  byCase: [TitledSummary!]!
+  bySponsor: [NamedSummary!]!
+  byAccountManager: [NamedSummary!]!
+  byDate: [DateSummary!]!
+  byWeek: [WeekSummary!]!
+  byOffer: [NamedSummary!]!
+
+  filterableFields: [FilterableField]!
+}
+
+# Datasets
+type Dataset {
+  slug: String
+  kind: String
+  name: String
+}
+
+type DatasetsSet {
+  timesheet: TimesheetSummary
+}
+
+# Week Review
+
+type WeekReview {
+  hoursPreviousWeeks: Float!
+  hoursPreviousWeeksUntilThisDate: Float!
+  hoursThisWeek: Float!
+
+  sunday: TimesheetDateAnalysis
+  monday: TimesheetDateAnalysis
+  tuesday: TimesheetDateAnalysis
+  wednesday: TimesheetDateAnalysis
+  thursday: TimesheetDateAnalysis
+  friday: TimesheetDateAnalysis
+  saturday: TimesheetDateAnalysis
+
+  monthSummary: MonthSummary
+  filterableFields: [FilterableField]!
+
+  allocationAnalysisByWorker: [WorkerAllocationAnalysisEntry!]!
+  allocationAnalysisByClient: [ClientAllocationAnalysisEntry!]!
+}
+
+type MonthSummary {
+  hoursThisMonth: Float!
+  hoursPreviousMonth: Float!
+  hoursPreviousMonthUntilThisDate: Float!
+  limitDate: Date!
+}
+
+type TimesheetDateAnalysis {
+  dailySummary: [DailySummaryEntry!]!
+  totalHours: Float!
+  bestDay: Date
+  bestDayHours: Float!
+  worstDay: Date
+  worstDayHours: Float!
+  averageHours: Float!
+}
+
+type DailySummaryEntry {
+  date: Date!
+  consulting: Float!
+  handsOn: Float!
+  squad: Float!
+  internal: Float!
+}
+
+type WorkerAllocationAnalysisEntry {
+  status: Int!
+  worker: String!
+  mean: Float!
+  current: Float!
+}
+
+type ClientAllocationAnalysisEntry {
+  status: Int!
+  client: String!
+  mean: Float!
+  current: Float!
+}
+
+# Timeliness Review
+
+type TimelinessReview {
+  totalRows: Int!
+  totalTimeInHours: Float!
+  
+  earlyRows: Int!
+  earlyTimeInHours: Float!
+  earlyPercentage: Float!
+  earlyWorkers: [WorkerSummary!]!
+  
+  okRows: Int!
+  okTimeInHours: Float!
+  okPercentage: Float!
+  okWorkers: [WorkerSummary!]!
+  
+  acceptableRows: Int!
+  acceptableTimeInHours: Float!
+  acceptablePercentage: Float!
+  acceptableWorkers: [WorkerSummary!]!
+  
+  lateRows: Int!
+  lateTimeInHours: Float!
+  latePercentage: Float!
+  lateWorkers: [WorkerSummary!]!
+
+  minDate: Date!
+  maxDate: Date!
+}
+
+type WorkerSummary {
+  worker: String!
+  entries: Int!
+  timeInHours: Float!
+}
+
+
+# Query
+
+type Query {
+  inconsistencies: [Inconsistency]!
+
+  accountManagers: [Worker!]!
+  consultantsAndEngineers: [Worker!]!
+  clients: [Client!]!
+  sponsors: [Sponsor!]!
+  cases(onlyActives: Boolean): [Case!]!
+  offers: [Offer!]!
+
+  accountManager(id: Int, slug: String): Worker @atLeastOne
+  consultantOrEngineer(id: Int, slug: String): Worker @atLeastOne
+  client(id: Int, slug: String): Client @atLeastOne
+  sponsor(slug: String!): Sponsor
+  case(id: String, slug: String): Case @atLeastOne
+  offer(id: Int, slug: String): Offer @atLeastOne
+  user(email: String): Worker @atLeastOne
+
+  datasets(kind: String): [Dataset!]!
+
+  timesheet(slug: String!, kind: TimesheetKind = ALL, filters: [FilterInput]): TimesheetSummary
+  ontology(slug: String!, filters: [FilterInput]): Ontology
+  insights(slug: String!, filters: [FilterInput]): Insights
+  thisWeek(kind: TimesheetKind = ALL): DatasetsSet
+  weekReview(date_of_interest: Date!, filters: [FilterInput]): WeekReview!
+  timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
+  projects: [Project!]!
+}
+
+enum TimesheetKind {
+  ALL
+  CONSULTING
+  SQUAD
+  INTERNAL
+  HANDS_ON
+}
+
+directive @atLeastOne on FIELD_DEFINITION
+
+input FilterInput {
+  field: String!
+  selectedValues: [String!]!
+}
+
+scalar Date
+
+
+# Mutations
+
+type Mutation {
+  refreshData: Boolean!
+}
