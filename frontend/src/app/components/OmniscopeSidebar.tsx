@@ -24,6 +24,7 @@ import {
   RefreshCwIcon,
   TrophyIcon,
   CalendarIcon,
+  LogOutIcon,
 } from "lucide-react";
 import Logo from "./logo";
 import { Avatar } from '@/components/catalyst/avatar';
@@ -34,6 +35,7 @@ import {
   DropdownLabel,
   DropdownMenu,
 } from '@/components/catalyst/dropdown';
+import { useQuery, gql } from '@apollo/client';
 
 interface OmniSidebarItemProps {
   href: string;
@@ -51,8 +53,20 @@ function OmniSidebarItem({ href, caption, icon }: OmniSidebarItemProps) {
   );
 }
 
+const GET_USER_PHOTO = gql`
+  query GetUserPhoto($email: String!) {
+    user(email: $email) {
+      photoUrl
+    }
+  }
+`;
+
 export function OmniscopeSidebar() {
   const { data: session } = useSession();
+  const { data: userData } = useQuery(GET_USER_PHOTO, {
+    variables: { email: session?.user?.email },
+    skip: !session?.user?.email,
+  });
 
   const analyticsSidebarItems: OmniSidebarItemProps[] = [
     { href: "/analytics/week-review", caption: "Week Review", icon: <CalendarCheckIcon /> },
@@ -102,13 +116,13 @@ export function OmniscopeSidebar() {
         <Dropdown>
           <DropdownButton as={SidebarItem}>
             <span className="flex min-w-0 items-center gap-3">
-              <Avatar src="/profile-photo.jpg" className="size-10" square alt="" />
+              <Avatar src={userData?.user?.photoUrl || "/profile-photo.jpg"} className="size-10" square alt="" />
               <span className="min-w-0">
                 <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
-                  {session?.user?.name || "User"}
+                  {session?.user?.name || "Not recognized"}
                 </span>
                 <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
-                  {session?.user?.email || "email@example.com"}
+                  {session?.user?.email || ""}
                 </span>
               </span>
             </span>
@@ -116,7 +130,7 @@ export function OmniscopeSidebar() {
           </DropdownButton>
           <DropdownMenu className="min-w-64" anchor="top start">
             <DropdownItem href="/logout">
-              <BoxIcon />
+              <LogOutIcon />
               <DropdownLabel>Sign out</DropdownLabel>
             </DropdownItem>
           </DropdownMenu>
