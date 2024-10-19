@@ -40,15 +40,21 @@ export default function SideBySide() {
   useEffect(() => {
     fetchData(leftDataset, 'left');
     fetchData(rightDataset, 'right');
-  }, [leftDataset, rightDataset]);
+  }, [leftDataset, rightDataset, leftFilters, rightFilters]);
 
   const fetchData = (dataset: string, side: 'left' | 'right') => {
     const fetchFunction = getFetchFunction(dataset, side);
+    const filters = side === 'left' ? leftFilters : rightFilters;
+
+    const formattedFilters = filters.map(filter => {
+      const [field, value] = filter.value.split(':');
+      return { field, selectedValues: [value] };
+    });
 
     fetchFunction({
       variables: {
         slug: dataset,
-        filters: []
+        filters: formattedFilters
       }
     });
   };
@@ -76,8 +82,6 @@ export default function SideBySide() {
     } else {
       setRightFilters([]);
     }
-    // Fetch new data for the selected dataset
-    fetchData(value, side);
   };
 
   useEffect(() => {
@@ -101,17 +105,10 @@ export default function SideBySide() {
   }, [rightTimesheetData, rightOntologyData, rightInsightsData]);
 
   const handleFilterChange = (newFilters: FilterOption[], side: 'left' | 'right') => {
-    const formattedFilters = newFilters.map(filter => {
-      const [field, value] = filter.value.split(':');
-      return { field, selectedValues: [value] };
-    });
-
     if (side === 'left') {
       setLeftFilters(newFilters);
-      fetchData(leftDataset, 'left');
     } else {
       setRightFilters(newFilters);
-      fetchData(rightDataset, 'right');
     }
   };
 
