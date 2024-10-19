@@ -1,6 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
 import "./globals.css";
 
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
@@ -29,6 +28,8 @@ export default function RootLayout({
     >
       <head>
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <title>Omniscope</title>
+        <meta name="description" content="Analytics and management platform" />
       </head>
       <ApolloProvider client={client}>
         <body>
