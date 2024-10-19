@@ -1,65 +1,15 @@
 "use client";
 
 import { Heading } from "@/components/catalyst/heading";
-import { gql, useQuery } from "@apollo/client";
-import Link from "next/link";
+import { useQuery } from "@apollo/client";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/catalyst/badge";
 import { print } from 'graphql';
 import { client } from '@/app/layout';
-import { AlertTriangle } from 'lucide-react';
-
-const GET_CASES_AND_TIMESHEET = gql`
-  query GetCasesAndTimesheet {
-    cases(onlyActives: true) {
-      id
-      slug
-      title
-      isActive
-      sponsor
-      hasDescription
-      everhourProjectsIds
-      client {
-        name
-      }
-      lastUpdate {
-        date
-        author
-        status
-        observations
-      }
-    }
-    timesheet(slug: "last-six-weeks", kind: ALL) {
-      uniqueClients
-      byKind {
-        consulting {
-          uniqueClients
-        }
-        handsOn {
-          uniqueClients
-        }
-        squad {
-          uniqueClients
-        }
-        internal {
-          uniqueClients
-        }
-      }
-      byCase {
-        title
-        totalHours
-        totalConsultingHours
-        totalHandsOnHours
-        totalSquadHours
-        totalInternalHours
-      }
-    }
-  }
-`;
+import { GET_CASES_AND_TIMESHEET } from './queries';
+import { CaseCard } from './CaseCard';
 
 export default function Cases() {
   const { loading, error, data } = useQuery(GET_CASES_AND_TIMESHEET, { ssr: true });
@@ -69,7 +19,7 @@ export default function Cases() {
   if (error) return <p>Error: {error.message}</p>;
 
   const queryString = print(GET_CASES_AND_TIMESHEET);
-  const GRAPHQL_ENDPOINT = (client.link.options as any).uri;
+  const GRAPHQL_ENDPOINT = (client.link as any).options?.uri;
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
@@ -79,110 +29,6 @@ export default function Cases() {
     return `cursor-pointer transition-all duration-300 ${
       selectedStat === statName ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
     }`;
-  };
-
-  const CaseCard = ({ caseItem }: { caseItem: any }) => {
-    const [isHovered, setIsHovered] = useState(false);
-    const caseData = data.timesheet.byCase.find((c: any) => c.title === caseItem.title);
-
-    const getBadgeColor = (type: string) => {
-      switch (type) {
-        case 'consulting': return 'amber';
-        case 'handsOn': return 'purple';
-        case 'squad': return 'blue';
-        case 'internal': return 'emerald';
-        default: return 'zinc';
-      }
-    };
-
-    const getStatusColor = (status: string) => {
-      const statusColor = {
-        "Critical": "rose",
-        "Requires attention": "amber",
-        "All right": "lime"
-      };
-      return statusColor[status] || "zinc";
-    };
-
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    };
-
-    return (
-      <Link 
-        href={`/analytics/datasets/timesheet-last-six-weeks?CaseTitle=${encodeURIComponent(caseItem.title)}`}
-        className="block transition-all duration-300 ease-in-out"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300 relative`}>
-          {!caseItem.hasDescription && (
-            <div className="absolute -top-2 -left-2 z-10">
-              <div className="bg-red-500 rounded-full p-1">
-                <AlertTriangle className="text-white" size={20} />
-              </div>
-            </div>
-          )}
-          <CardContent className="flex flex-col items-center p-4">
-            <div className="w-full mb-2 text-center">
-              <h3 className="font-bold uppercase">{caseItem.client?.name || 'Unknown Client'}</h3>
-              {caseItem.sponsor && (
-                <div className="text-xs text-gray-600 mt-1">
-                  {caseItem.sponsor}
-                </div>
-              )}
-            </div>
-            <CardHeader className="p-0 mt-2">
-              <CardTitle className={`text-center text-sm transition-all duration-300`}>
-                {caseItem.title}
-              </CardTitle>
-            </CardHeader>
-            {!caseItem.hasDescription && caseItem.everhourProjectsIds && (
-              <div className="mt-2">
-                <Badge color="red" className="text-xs">
-                  {caseItem.everhourProjectsIds.join(', ')}
-                </Badge>
-              </div>
-            )}
-            {caseData && (
-              <div className="flex flex-wrap justify-center gap-1 mt-2">
-                {caseData.totalConsultingHours > 0 && (
-                  <Badge color={getBadgeColor('consulting')}>
-                    {caseData.totalConsultingHours.toFixed(1).replace(/\.0$/, '')}h
-                  </Badge>
-                )}
-                {caseData.totalHandsOnHours > 0 && (
-                  <Badge color={getBadgeColor('handsOn')}>
-                    {caseData.totalHandsOnHours.toFixed(1).replace(/\.0$/, '')}h
-                  </Badge>
-                )}
-                {caseData.totalSquadHours > 0 && (
-                  <Badge color={getBadgeColor('squad')}>
-                    {caseData.totalSquadHours.toFixed(1).replace(/\.0$/, '')}h
-                  </Badge>
-                )}
-                {caseData.totalInternalHours > 0 && (
-                  <Badge color={getBadgeColor('internal')}>
-                    {caseData.totalInternalHours.toFixed(1).replace(/\.0$/, '')}h
-                  </Badge>
-                )}
-              </div>
-            )}
-            {caseItem.lastUpdate && (
-              <div className="mt-2 text-xs text-gray-600 text-center">
-                <p>Updated on {formatDate(caseItem.lastUpdate.date)} by {caseItem.lastUpdate.author}</p>
-                <div className="flex justify-center mt-1">
-                  <Badge color={getStatusColor(caseItem.lastUpdate.status)}>
-                    {caseItem.lastUpdate.status}
-                  </Badge>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </Link>
-    );
   };
 
   const filteredCases = data.cases.filter((caseItem: any) => {
@@ -299,7 +145,7 @@ export default function Cases() {
         <Divider className="my-8" />
         <AnimatePresence>
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -313,7 +159,10 @@ export default function Cases() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
               >
-                <CaseCard caseItem={caseItem} />
+                <CaseCard 
+                  caseItem={caseItem} 
+                  caseData={data.timesheet.byCase.find((c: any) => c.title === caseItem.title)}
+                />
               </motion.div>
             ))}
           </motion.div>
