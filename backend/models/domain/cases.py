@@ -4,7 +4,7 @@ import models.semantic.ontology as o
 from typing import Optional, Dict, List
 from models.domain.clients import ClientsRepository
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 import models.helpers.numbers as numbers
 
 
@@ -20,8 +20,8 @@ class Case(BaseModel):
     tracker_info: Optional[List[Project]] = []
     updates: Optional[List[EventDetail]] = None
 
-    start_of_contract: Optional[datetime] = None
-    end_of_contract: Optional[datetime] = None
+    start_of_contract: Optional[date] = None
+    end_of_contract: Optional[date] = None
     weekly_approved_hours: Optional[float] = None
 
     status: Optional[str] = None

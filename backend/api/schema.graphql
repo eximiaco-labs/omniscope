@@ -80,8 +80,8 @@ type Case {
   updates: [CaseUpdate]
   lastUpdate: CaseUpdate
   client: Client
-  startOfContract: String
-  endOfContract: String
+  startOfContract: Date
+  endOfContract: Date
   weeklyApprovedHours: Float
 }
 
