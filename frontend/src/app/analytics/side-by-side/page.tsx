@@ -13,6 +13,7 @@ import SideBySideDatasetSelector from './SideBySideDatasetSelector';
 
 interface FilterableField {
   field: string;
+  selectedValues: string[];
   options: string[];
 }
 
@@ -39,17 +40,15 @@ export default function SideBySide() {
   useEffect(() => {
     fetchData(leftDataset, 'left');
     fetchData(rightDataset, 'right');
-  }, [leftDataset, rightDataset, leftFilters, rightFilters]);
+  }, [leftDataset, rightDataset]);
 
   const fetchData = (dataset: string, side: 'left' | 'right') => {
-    const filters = side === 'left' ? leftFilters : rightFilters;
-    const formattedFilters = formatFilters(filters);
     const fetchFunction = getFetchFunction(dataset, side);
 
     fetchFunction({
       variables: {
         slug: dataset,
-        filters: formattedFilters
+        filters: []
       }
     });
   };
@@ -59,13 +58,6 @@ export default function SideBySide() {
     if (dataset.startsWith('ontology')) return side === 'left' ? getLeftOntology : getRightOntology;
     if (dataset.startsWith('insights')) return side === 'left' ? getLeftInsights : getRightInsights;
     return side === 'left' ? getLeftTimesheet : getRightTimesheet; // Default to timesheet query
-  };
-
-  const formatFilters = (filters: FilterOption[]) => {
-    return filters.map(filter => {
-      const [field, value] = filter.value.split(':');
-      return { field, selectedValues: [value] };
-    });
   };
 
   const handleDatasetSelect = (value: string, side: 'left' | 'right') => {
@@ -78,13 +70,48 @@ export default function SideBySide() {
     } else {
       setRightDataset(value);
     }
+    // Reset filters when dataset changes
+    if (side === 'left') {
+      setLeftFilters([]);
+    } else {
+      setRightFilters([]);
+    }
+    // Fetch new data for the selected dataset
+    fetchData(value, side);
   };
 
+  useEffect(() => {
+    if (leftTimesheetData?.timesheet?.filterableFields) {
+      setLeftFilterableFields(leftTimesheetData.timesheet.filterableFields);
+    } else if (leftOntologyData?.ontology?.filterableFields) {
+      setLeftFilterableFields(leftOntologyData.ontology.filterableFields);
+    } else if (leftInsightsData?.insights?.filterableFields) {
+      setLeftFilterableFields(leftInsightsData.insights.filterableFields);
+    }
+  }, [leftTimesheetData, leftOntologyData, leftInsightsData]);
+
+  useEffect(() => {
+    if (rightTimesheetData?.timesheet?.filterableFields) {
+      setRightFilterableFields(rightTimesheetData.timesheet.filterableFields);
+    } else if (rightOntologyData?.ontology?.filterableFields) {
+      setRightFilterableFields(rightOntologyData.ontology.filterableFields);
+    } else if (rightInsightsData?.insights?.filterableFields) {
+      setRightFilterableFields(rightInsightsData.insights.filterableFields);
+    }
+  }, [rightTimesheetData, rightOntologyData, rightInsightsData]);
+
   const handleFilterChange = (newFilters: FilterOption[], side: 'left' | 'right') => {
+    const formattedFilters = newFilters.map(filter => {
+      const [field, value] = filter.value.split(':');
+      return { field, selectedValues: [value] };
+    });
+
     if (side === 'left') {
       setLeftFilters(newFilters);
+      fetchData(leftDataset, 'left');
     } else {
       setRightFilters(newFilters);
+      fetchData(rightDataset, 'right');
     }
   };
 
@@ -161,7 +188,7 @@ export default function SideBySide() {
           selectedDataset={rightDataset}
           onDatasetSelect={(value) => handleDatasetSelect(value, 'right')}
           filterKind={leftDataset ? leftDataset.split('-')[0] : undefined}
-        />˜
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
