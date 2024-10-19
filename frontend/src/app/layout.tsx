@@ -41,7 +41,7 @@ export default function RootLayout({
                 <InconsistencyAlerts />
                 <main>{children}</main>
               </SidebarLayout>
-           </SessionComponent>
+            </SessionComponent>
           </SessionProvider>
         </body>
       </ApolloProvider>

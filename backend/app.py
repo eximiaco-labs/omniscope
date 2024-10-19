@@ -25,7 +25,7 @@ explorer_html = ExplorerGraphiQL().html(None)
 
 @app.route("/graphql", methods=["GET"])
 def graphql_playground():
-    return PLAYGROUND_HTML, 200
+    return explorer_html, 200
 
 @app.route("/graphql", methods=["POST"])
 def graphql_server():
