@@ -19,6 +19,11 @@ class Case(BaseModel):
     ontology_info: Optional[o.Case] = None
     tracker_info: Optional[List[Project]] = []
     updates: Optional[List[EventDetail]] = None
+
+    start_of_contract: Optional[datetime] = None
+    end_of_contract: Optional[datetime] = None
+    weekly_approved_hours: Optional[float] = None
+
     status: Optional[str] = None
     last_updated: Optional[datetime] = None
     sponsor: Optional[str] = None
@@ -151,6 +156,9 @@ class CasesRepository:
                     ';'
                 ) if onto_case.everhour_projects_ids else [],
                 ontology_info=onto_case,
+                start_of_contract=onto_case.start_of_contract,
+                end_of_contract=onto_case.end_of_contract,
+                weekly_approved_hours=onto_case.weekly_approved_hours,
                 tracker_info=[],
                 sponsor=onto_case.sponsor,
                 offers_ids=onto_case.offers
