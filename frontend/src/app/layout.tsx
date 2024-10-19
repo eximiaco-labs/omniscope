@@ -34,13 +34,17 @@ export default function RootLayout({
         <body>
           <SessionProvider>
             <SessionComponent>
-              <SidebarLayout
-                sidebar={<OmniscopeSidebar />}
-                navbar={<Navbar>{/* Your navbar content */}</Navbar>}
-              >
-                <InconsistencyAlerts />
-                <main>{children}</main>
-              </SidebarLayout>
+              {(session) => (
+                session ? (
+                  <SidebarLayout
+                    sidebar={<OmniscopeSidebar />}
+                    navbar={<Navbar>{/* Your navbar content */}</Navbar>}
+                  >
+                    <InconsistencyAlerts />
+                    <main>{children}</main>
+                  </SidebarLayout>
+                ) : null
+              )}
             </SessionComponent>
           </SessionProvider>
         </body>
@@ -49,7 +53,7 @@ export default function RootLayout({
   );
 }
 
-function SessionComponent({ children }: { children: React.ReactNode }) {
+function SessionComponent({ children }: { children: (session: any) => React.ReactNode }) {
   const { data: session, status } = useSession();
   const isLoading = status === "loading";
 
@@ -67,5 +71,9 @@ function SessionComponent({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]);
 
-  return <>{children}</>;
+  if (isLoading) {
+    return null; // Or a loading spinner if you prefer
+  }
+
+  return children(session);
 }

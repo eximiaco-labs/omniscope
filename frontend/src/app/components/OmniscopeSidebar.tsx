@@ -129,7 +129,7 @@ export function OmniscopeSidebar() {
             <ChevronUpIcon />
           </DropdownButton>
           <DropdownMenu className="min-w-64" anchor="top start">
-            <DropdownItem href="/logout">
+            <DropdownItem href="/api/auth/signout">
               <LogOutIcon />
               <DropdownLabel>Sign out</DropdownLabel>
             </DropdownItem>
