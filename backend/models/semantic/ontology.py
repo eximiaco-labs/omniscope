@@ -28,6 +28,7 @@ class Worker(BaseModel):
     id: int
     name: str
     photo_url: Optional[HttpUrl] = None
+    email: Optional[str] = None
     position: str
     slug: str
     link: HttpUrl
@@ -47,6 +48,7 @@ class Worker(BaseModel):
             name=post.title.rendered,
             photo_url=photo_url,
             position=post.meta.get('atividade-principal', None),
+            email=post.meta.get('e-mail', None),
             slug=post.slug,
             link=post.link,
             profile=post.content.rendered,

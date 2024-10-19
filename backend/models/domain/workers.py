@@ -17,6 +17,7 @@ class WorkerKind(Enum):
 
 class Worker(BaseModel):
     id: int
+    email: Optional[str] = None
     slug: str
     name: str
     kind: WorkerKind
@@ -43,10 +44,6 @@ class Worker(BaseModel):
 
             if not self.insights_user_id:
                 result.append("NO INSIGHTS")
-
-            # ltes = globals.omni.get_last_six_weeks_ltes_df().filter_by('WorkerSlug', self.slug).data
-            # if len(ltes) > 0:
-            #     result.append(f"LTE:{len(ltes)}")
 
         return result
 
@@ -135,6 +132,22 @@ class WorkersRepository:
     def get_by_name(self, name: str) -> Worker:
         all_workers = self.get_all().values()
         return next((worker for worker in all_workers if worker.name == name), None)
+    
+    def get_by_email(self, email: str) -> Worker:
+        all_workers = self.get_all().values()
+        
+        if not email.endswith('@eximia.co') and not email.endswith('@elemarjr.com'):
+            return None
+
+        user_name = email.split('@')[0]
+        email1 = f'{user_name}@eximia.co'
+        email2 = f'{user_name}@elemarjr.com'
+
+        return next(
+            (worker for worker in all_workers if (
+                worker.email == email1 or worker.email == email2
+            )), None
+        )
 
     def get_by_everhour_id(self, id: int) -> Worker:
         all_workers = self.get_all().values()
@@ -195,6 +208,7 @@ class WorkersRepository:
             workers_dict[onto_worker.name] = Worker(
                 id=onto_worker.id,
                 name=onto_worker.name,
+                email=onto_worker.email,
                 slug=onto_worker.slug,
                 position=onto_worker.position,
                 kind=WorkerKind.ACCOUNT_MANAGER if onto_worker.is_account_manager else WorkerKind.CONSULTANT,
