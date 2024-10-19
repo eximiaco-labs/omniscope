@@ -11,13 +11,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { BookOpen, Briefcase, Lightbulb, ListTodo, AlertTriangle } from "lucide-react";
+import { BookOpen, Briefcase, Lightbulb, ListTodo, AlertTriangle, Mail } from "lucide-react";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
     consultantsAndEngineers {
       slug
       name
+      email
       position
       photoUrl
       errors
@@ -127,6 +128,12 @@ export default function ConsultantsAndEngineers() {
                 {worker.name}
               </CardTitle>
             </CardHeader>
+            {worker.email && (
+              <div className="text-xs text-center text-zinc-700 mt-1 flex items-center justify-center">
+                <Mail className="mr-1" size={12} />
+                <span>{worker.email}</span>
+              </div>
+            )}
             <div className="text-xs text-center text-zinc-500 mt-1">
               {worker.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
             </div>

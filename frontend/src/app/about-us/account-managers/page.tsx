@@ -10,12 +10,14 @@ import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { Mail } from "lucide-react";
 
 const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
   query GetAccountManagersAndTimesheet {
     accountManagers {
       slug
       name
+      email
       position
       photoUrl
       errors
@@ -113,6 +115,12 @@ export default function AccountManagers() {
                 {manager.name}
               </CardTitle>
             </CardHeader>
+            {manager.email && (
+              <div className="text-xs text-center text-zinc-700 mt-1 flex items-center justify-center">
+                <Mail className="mr-1" size={12} />
+                <span>{manager.email}</span>
+              </div>
+            )}
             <div className="text-xs text-center text-zinc-500 mt-1">
               {manager.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
             </div>

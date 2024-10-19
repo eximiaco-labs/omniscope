@@ -17,6 +17,7 @@ type Worker {
   id: Int!
   slug: String!
   name: String!
+  email: String
   kind: WorkerKind!
   errors: [String]
   position: String!
