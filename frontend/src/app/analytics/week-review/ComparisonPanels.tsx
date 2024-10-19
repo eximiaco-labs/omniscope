@@ -25,6 +25,32 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ type, data }) => {
   const { hoursPrevious, hoursCurrent, hoursPreviousUntilThisDate } = data;
   const targetHours = Math.max(hoursPrevious * 1.1, hoursCurrent);
 
+  const gaugeSubArcs = hoursPrevious === hoursPreviousUntilThisDate
+    ? [
+        {
+          limit: hoursPrevious,
+          color: "#B77A00",
+        },
+        {
+          limit: targetHours,
+          color: "#228B22",
+        },
+      ]
+    : [
+        {
+          limit: hoursPreviousUntilThisDate,
+          color: "#B22222",
+        },
+        {
+          limit: hoursPrevious,
+          color: "#B77A00",
+        },
+        {
+          limit: targetHours,
+          color: "#228B22",
+        },
+      ];
+
   return (
     <motion.div
       className="col-span-2 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-hidden mb-4"
@@ -64,20 +90,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ type, data }) => {
             arc={{
               padding: 0.02,
               width: 0.3,
-              subArcs: [
-                {
-                  limit: hoursPreviousUntilThisDate,
-                  color: "#B22222",
-                },
-                {
-                  limit: hoursPrevious,
-                  color: "#B77A00",
-                },
-                {
-                  limit: targetHours,
-                  color: "#228B22",
-                },
-              ],
+              subArcs: gaugeSubArcs,
             }}
             pointer={{
               type: "arrow",
@@ -120,14 +133,16 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ type, data }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <div style={{ color: "#B22222" }}>
-          <span>Previous {capitalizedPrefix === "Week" ? "Weeks" : capitalizedPrefix}</span>
-          <br />
-          <span className="font-bold">
-            {hoursPreviousUntilThisDate.toFixed(1)}h
-          </span>
-        </div>
-        <div style={{ color: "#B77A00" }} className="text-right">
+        {hoursPrevious !== hoursPreviousUntilThisDate && (
+          <div style={{ color: "#B22222" }}>
+            <span>Previous {capitalizedPrefix === "Week" ? "Weeks" : capitalizedPrefix}</span>
+            <br />
+            <span className="font-bold">
+              {hoursPreviousUntilThisDate.toFixed(1)}h
+            </span>
+          </div>
+        )}
+        <div style={{ color: "#B77A00" }} className={hoursPrevious === hoursPreviousUntilThisDate ? "" : "text-right"}>
           <span>Previous {capitalizedPrefix === "Week" ? "Weeks" : capitalizedPrefix} (Total)</span>
           <br />
           <span className="font-bold">{hoursPrevious.toFixed(1)}h</span>
