@@ -583,6 +583,7 @@ type Query {
   sponsor(slug: String!): Sponsor
   case(id: String, slug: String): Case @atLeastOne
   offer(id: Int, slug: String): Offer @atLeastOne
+  user(email: String): Worker @atLeastOne
 
   datasets(kind: String): [Dataset!]!
 

@@ -1,5 +1,6 @@
 from ariadne import QueryType
 
+from .user import resolve_user
 from .account_managers import resolve_account_managers, resolve_account_manager
 from .consultants_engineers import resolve_consultants_and_engineers, resolve_consultant_or_engineer
 from .clients import resolve_clients, resolve_client
@@ -22,3 +23,4 @@ def setup_query_for_domain(query: QueryType):
     query.set_field("offers", resolve_offers)
     query.set_field("offer", resolve_offer)
     query.set_field("projects", resolve_projects)
+    query.set_field("user", resolve_user)
