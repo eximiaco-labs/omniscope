@@ -10,7 +10,7 @@ import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { AlertTriangle, Mail } from "lucide-react";
 
 const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
   query GetAccountManagersAndTimesheet {
@@ -108,6 +108,13 @@ export default function AccountManagers() {
         onMouseLeave={() => setIsHovered(false)}
       >
         <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300`}>
+          {(!manager.isRecognized || !manager.email || (manager.email && !manager.email.endsWith('@elemarjr.com') && !manager.email.endsWith('@eximia.co'))) && (
+            <div className="absolute -top-2 -left-2 z-10">
+              <div className="bg-red-500 rounded-full p-1">
+                <AlertTriangle className="text-white" size={20} />
+              </div>
+            </div>
+          )}
           <CardContent className="flex flex-col items-center p-4">
             <Avatar src={manager.photoUrl} className="size-16 mb-2" />
             <CardHeader className="p-0 mt-2">
@@ -115,12 +122,22 @@ export default function AccountManagers() {
                 {manager.name}
               </CardTitle>
             </CardHeader>
-            {manager.email && (
-              <div className="text-xs text-center text-zinc-700 mt-1 flex items-center justify-center">
-                <Mail className="mr-1" size={12} />
-                <span>{manager.email}</span>
-              </div>
-            )}
+            <div className="text-xs text-center mt-1 flex items-center justify-center">
+              {manager.email ? (
+                <>
+                  <Mail className="mr-1" size={12} />
+                  <span className={
+                    manager.email.endsWith('@eximia.co') || manager.email.endsWith('@elemarjr.com')
+                      ? 'text-zinc-700'
+                      : 'text-red-500'
+                  }>
+                    {manager.email}
+                  </span>
+                </>
+              ) : (
+                <Mail className="text-red-500" size={12} />
+              )}
+            </div>
             <div className="text-xs text-center text-zinc-500 mt-1">
               {manager.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
             </div>

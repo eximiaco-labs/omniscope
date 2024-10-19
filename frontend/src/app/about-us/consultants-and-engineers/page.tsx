@@ -114,7 +114,7 @@ export default function ConsultantsAndEngineers() {
         onMouseLeave={() => setIsHovered(false)}
       >
         <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300 relative`}>
-          {!worker.isRecognized && (
+          {(!worker.isRecognized || !worker.email || (worker.email && !worker.email.endsWith('@elemarjr.com') && !worker.email.endsWith('@eximia.co'))) && (
             <div className="absolute -top-2 -left-2 z-10">
               <div className="bg-red-500 rounded-full p-1">
                 <AlertTriangle className="text-white" size={20} />
@@ -128,12 +128,22 @@ export default function ConsultantsAndEngineers() {
                 {worker.name}
               </CardTitle>
             </CardHeader>
-            {worker.email && (
-              <div className="text-xs text-center text-zinc-700 mt-1 flex items-center justify-center">
-                <Mail className="mr-1" size={12} />
-                <span>{worker.email}</span>
-              </div>
-            )}
+            <div className="text-xs text-center text-zinc-700 mt-1 flex items-center justify-center">
+              {worker.email ? (
+                <>
+                  <Mail className="mr-1" size={12} />
+                  <span className={
+                    worker.email.endsWith('@eximia.co') || worker.email.endsWith('@elemarjr.com')
+                      ? 'text-zinc-700'
+                      : 'text-red-500'
+                  }>
+                    {worker.email}
+                  </span>
+                </>
+              ) : (
+                <Mail className="text-red-500" size={12} />
+              )}
+            </div>
             <div className="text-xs text-center text-zinc-500 mt-1">
               {worker.position.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
             </div>
