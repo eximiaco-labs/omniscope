@@ -6,13 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
-import { Button } from "@/components/catalyst/button";
-import { print } from 'graphql'; // Import the print function
-import { client } from '@/app/layout'; // Import the client
+import ClientStatsSection from '../../components/ClientStatsSection';
 
 const GET_CLIENTS = gql`
   query GetClients {
@@ -57,22 +54,11 @@ export default function Clients() {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const queryString = print(GET_CLIENTS); // Convert the query to a string
-
-  // Get the GraphQL endpoint from the client
-  const GRAPHQL_ENDPOINT = (client.link.options as any).uri;
-
   const strategicClients = data.clients.filter((client: any) => client.isStrategic);
   const nonStrategicClients = data.clients.filter((client: any) => !client.isStrategic);
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
-  };
-
-  const getStatClassName = (statName: string) => {
-    return `cursor-pointer transition-all duration-300 ${
-      selectedStat === statName ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
-    }`;
   };
 
   const ClientCard = ({ client }: { client: any }) => {
@@ -203,92 +189,11 @@ export default function Clients() {
         <Heading className="text-3xl font-bold text-gray-900">Clients</Heading>
       </div>
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-6 gap-4 mb-8">
-          <div className="col-span-6">
-            <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-              <div className="lg:col-span-1">
-                <div className="flex items-center mb-3">
-                  <p className="text-sm font-semibold text-gray-900 uppercase">
-                    ALL TIME
-                  </p>
-                  <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-                </div>
-                <div
-                  className={`${getStatClassName('allClients')} transform`}
-                  onClick={() => handleStatClick('allClients')}
-                >
-                  <Stat
-                    title="All Clients"
-                    value={data.clients.length.toString()}
-                  />
-                </div>
-              </div>
-              <div className="lg:col-span-5">
-                <div className="flex items-center mb-3">
-                  <p className="text-sm font-semibold text-gray-900 uppercase">
-                    ACTIVE <span className="text-xs text-gray-600 uppercase">LAST SIX WEEKS</span>
-                  </p>
-                  <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                  <div
-                    className={`${getStatClassName('total')} transform`}
-                    onClick={() => handleStatClick('total')}
-                  >
-                    <Stat
-                      title="Active Clients"
-                      value={data.timesheet.uniqueClients.toString()}
-                    />
-                  </div>
-                  <div
-                    className={`${getStatClassName('consulting')} transform`}
-                    onClick={() => handleStatClick('consulting')}
-                  >
-                    <Stat
-                      title="Consulting"
-                      value={data.timesheet.byKind.consulting.uniqueClients.toString()}
-                      color="#F59E0B"
-                      total={data.timesheet.uniqueClients}
-                    />
-                  </div>
-                  <div
-                    className={`${getStatClassName('handsOn')} transform`}
-                    onClick={() => handleStatClick('handsOn')}
-                  >
-                    <Stat
-                      title="Hands-On"
-                      value={data.timesheet.byKind.handsOn.uniqueClients.toString()}
-                      color="#8B5CF6"
-                      total={data.timesheet.uniqueClients}
-                    />
-                  </div>
-                  <div
-                    className={`${getStatClassName('squad')} transform`}
-                    onClick={() => handleStatClick('squad')}
-                  >
-                    <Stat
-                      title="Squad"
-                      value={data.timesheet.byKind.squad.uniqueClients.toString()}
-                      color="#3B82F6"
-                      total={data.timesheet.uniqueClients}
-                    />
-                  </div>
-                  <div
-                    className={`${getStatClassName('internal')} transform`}
-                    onClick={() => handleStatClick('internal')}
-                  >
-                    <Stat
-                      title="Internal"
-                      value={data.timesheet.byKind.internal.uniqueClients.toString()}
-                      color="#10B981"
-                      total={data.timesheet.uniqueClients}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ClientStatsSection
+          data={data}
+          selectedStat={selectedStat}
+          onStatClick={handleStatClick}
+        />
         <Divider className="my-8" />
         <ClientGallery clients={strategicClients} title="Strategic Clients" />
         <ClientGallery clients={nonStrategicClients} title="Other Clients" />
