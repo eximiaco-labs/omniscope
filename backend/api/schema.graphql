@@ -606,7 +606,7 @@ type Query {
 
   accountManagers: [Worker!]!
   consultantsAndEngineers: [Worker!]!
-  clients: [Client!]!
+  clients(accountManagerName: String): [Client!]!
   sponsors: [Sponsor!]!
   cases(onlyActives: Boolean): [Case!]!
   offers: [Offer!]!
