@@ -48,6 +48,14 @@ export const GET_CASES_AND_TIMESHEET = gql`
         totalHandsOnHours
         totalSquadHours
         totalInternalHours
+
+        byWeek {
+          week
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
       }
     }
   }

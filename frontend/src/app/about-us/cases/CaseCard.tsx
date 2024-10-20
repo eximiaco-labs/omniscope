@@ -113,6 +113,37 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
               )}
             </div>
           )}
+          {caseData && caseData.byWeek && (
+            <div className="mt-2 w-full">
+              <div className="flex justify-between text-[9px] text-gray-600">
+                {[...Array.from({ length: 6 }, (_, i) => {
+                  const date = new Date();
+                  date.setDate(date.getDate() - date.getDay() - 7 * (6 - i));
+                  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                }), 'AVG'].map((date, index) => {
+                  const weekData = index < 6 ? caseData.byWeek.find(week => week.week.startsWith(date)) : null;
+                  const averageData = index === 6 ? {
+                    totalConsultingHours: caseData.byWeek.reduce((sum, week) => sum + week.totalConsultingHours, 0) / 6,
+                    totalHandsOnHours: caseData.byWeek.reduce((sum, week) => sum + week.totalHandsOnHours, 0) / 6,
+                    totalSquadHours: caseData.byWeek.reduce((sum, week) => sum + week.totalSquadHours, 0) / 6,
+                    totalInternalHours: caseData.byWeek.reduce((sum, week) => sum + week.totalInternalHours, 0) / 6
+                  } : null;
+                  const data = index < 6 ? weekData : averageData;
+                  return (
+                    <div key={index} className="flex flex-col items-center">
+                      <span>{date}</span>
+                      <div className="flex flex-col gap-0.5 mt-0.5">
+                        {data?.totalConsultingHours > 0 && <div className="text-amber-500 text-[9px]">{data.totalConsultingHours % 1 === 0 ? data.totalConsultingHours.toFixed(0) : data.totalConsultingHours.toFixed(1)}</div>}
+                        {data?.totalHandsOnHours > 0 && <div className="text-purple-500 text-[9px]">{data.totalHandsOnHours % 1 === 0 ? data.totalHandsOnHours.toFixed(0) : data.totalHandsOnHours.toFixed(1)}</div>}
+                        {data?.totalSquadHours > 0 && <div className="text-blue-500 text-[9px]">{data.totalSquadHours % 1 === 0 ? data.totalSquadHours.toFixed(0) : data.totalSquadHours.toFixed(1)}</div>}
+                        {data?.totalInternalHours > 0 && <div className="text-emerald-500 text-[9px]">{data.totalInternalHours % 1 === 0 ? data.totalInternalHours.toFixed(0) : data.totalInternalHours.toFixed(1)}</div>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="mt-2 text-xs text-gray-600 text-center">
             {caseItem.weeklyApprovedHours > 0 && (
               <p>Weekly Approved Hours: {caseItem.weeklyApprovedHours}</p>
