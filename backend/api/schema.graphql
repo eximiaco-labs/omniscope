@@ -1,18 +1,54 @@
+# Common types and enums
 enum WorkerKind {
   ALL
   ACCOUNT_MANAGER
   CONSULTANT
 }
 
-# Admin
-
-type Inconsistency {
-  title: String!
-  description: String!
+enum TimesheetKind {
+  ALL
+  CONSULTING
+  SQUAD
+  INTERNAL
+  HANDS_ON
 }
 
-# Domain 
+scalar Date
 
+# Shared interfaces
+interface ISummary {
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+}
+
+# Domain types
 type Worker {
   id: Int!
   slug: String!
@@ -125,8 +161,7 @@ type Task {
   isLate: Boolean!
 }
 
-# Ontology
-
+# Ontology types
 type Ontology {
   totalEntries: Int!
   uniqueClasses: Int!
@@ -171,8 +206,7 @@ type OntologyFilterableField {
   options: [String!]!
 }
 
-# Insights
-
+# Insights types
 type Insights {
   totalEntries: Int!
   uniqueAuthors: Int!
@@ -195,42 +229,16 @@ type InsightFilterableField {
   options: [String!]!
 }
 
+# Admin
 
-# Timesheets
-
-interface ISummary {
-  totalEntries: Int!
-  totalHours: Float!
-  uniqueClients: Int!
-  uniqueWorkers: Int!
-  uniqueCases: Int!
-  uniqueWorkingDays: Int!
-  uniqueSponsors: Int!
-  uniqueAccountManagers: Int!
-  uniqueWeeks: Int!
-  averageHoursPerEntry: Float!
-  stdDevHoursPerEntry: Float!
-  averageHoursPerDay: Float!
-  stdDevHoursPerDay: Float!
-  averageHoursPerWorker: Float!
-  stdDevHoursPerWorker: Float!
-  averageHoursPerClient: Float!
-  stdDevHoursPerClient: Float!
-  averageHoursPerCase: Float!
-  stdDevHoursPerCase: Float!
-  averageHoursPerSponsor: Float!
-  stdDevHoursPerSponsor: Float!
-  averageHoursPerAccountManager: Float!
-  stdDevHoursPerAccountManager: Float!
-  averageHoursPerWeek: Float!
-  stdDevHoursPerWeek: Float!
-  totalSquadHours: Float!
-  totalConsultingHours: Float!
-  totalInternalHours: Float!
-  totalHandsOnHours: Float!
+type Inconsistency {
+  title: String!
+  description: String!
 }
 
+# Timesheet types
 type Summary implements ISummary {
+  # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
   uniqueClients: Int!
@@ -270,6 +278,7 @@ type KindSummary {
 }
 
 type NamedSummary implements ISummary {
+  # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
   uniqueClients: Int!
@@ -300,11 +309,14 @@ type NamedSummary implements ISummary {
   totalInternalHours: Float!
   totalHandsOnHours: Float!
 
+  # Additional fields
   name: String!
   byKind: KindSummary!
+  byWeek: [WeekSummary!]!
 }
 
 type TitledSummary implements ISummary {
+  # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
   uniqueClients: Int!
@@ -335,12 +347,15 @@ type TitledSummary implements ISummary {
   totalInternalHours: Float!
   totalHandsOnHours: Float!
 
+  # Additional fields
   title: String!
   byKind: KindSummary!
+  byWeek: [WeekSummary!]!
 }
 
 
 type DateSummary implements ISummary {
+  # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
   uniqueClients: Int!
@@ -371,11 +386,14 @@ type DateSummary implements ISummary {
   totalInternalHours: Float!
   totalHandsOnHours: Float!
 
+  # Additional fields
   date: String!
   byKind: KindSummary!
+  byWeek: [WeekSummary!]!
 }
 
 type WeekSummary implements ISummary {
+  # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
   uniqueClients: Int!
@@ -401,11 +419,13 @@ type WeekSummary implements ISummary {
   stdDevHoursPerAccountManager: Float!
   averageHoursPerWeek: Float!
   stdDevHoursPerWeek: Float!
-  week: String!
   totalSquadHours: Float!
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+
+  # Additional fields
+  week: String!
   byKind: KindSummary!
 }
 
@@ -416,6 +436,7 @@ type FilterableField {
 }
 
 type TimesheetSummary implements ISummary{
+  # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
   uniqueClients: Int!
@@ -446,6 +467,7 @@ type TimesheetSummary implements ISummary{
   totalInternalHours: Float!
   totalHandsOnHours: Float!
 
+  # Additional fields
   byKind: KindSummary
   byWorker: [NamedSummary!]!
   byClient: [NamedSummary!]!
@@ -470,8 +492,7 @@ type DatasetsSet {
   timesheet: TimesheetSummary
 }
 
-# Week Review
-
+# Week Review types
 type WeekReview {
   hoursPreviousWeeks: Float!
   hoursPreviousWeeksUntilThisDate: Float!
@@ -531,8 +552,7 @@ type ClientAllocationAnalysisEntry {
   current: Float!
 }
 
-# Timeliness Review
-
+# Timeliness Review types
 type TimelinessReview {
   totalRows: Int!
   totalTimeInHours: Float!
@@ -568,8 +588,7 @@ type WorkerSummary {
 }
 
 
-# Query
-
+# Query type
 type Query {
   inconsistencies: [Inconsistency]!
 
@@ -599,26 +618,16 @@ type Query {
   projects: [Project!]!
 }
 
-enum TimesheetKind {
-  ALL
-  CONSULTING
-  SQUAD
-  INTERNAL
-  HANDS_ON
+# Mutation type
+type Mutation {
+  refreshData: Boolean!
 }
 
+# Directives
 directive @atLeastOne on FIELD_DEFINITION
 
+# Input types
 input FilterInput {
   field: String!
   selectedValues: [String!]!
-}
-
-scalar Date
-
-
-# Mutations
-
-type Mutation {
-  refreshData: Boolean!
 }
