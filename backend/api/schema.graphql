@@ -229,6 +229,18 @@ type InsightFilterableField {
   options: [String!]!
 }
 
+# User type
+type User {
+  id: Int!
+  name: String!
+  email: String!
+  slug: String!
+  kind: String!
+  position: String!
+  photoUrl: String!
+}
+
+
 # Admin
 
 type Inconsistency {
@@ -605,7 +617,7 @@ type Query {
   sponsor(slug: String!): Sponsor
   case(id: String, slug: String): Case @atLeastOne
   offer(id: Int, slug: String): Offer @atLeastOne
-  user(email: String, slug: String): Worker @atLeastOne
+  user(email: String, slug: String): User @atLeastOne
 
   datasets(kind: String): [Dataset!]!
 
