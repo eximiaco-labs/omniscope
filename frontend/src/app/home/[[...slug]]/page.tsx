@@ -143,7 +143,7 @@ export default function HomePage() {
       case 'internal':
         return "#10B981";
       default:
-        return "#6366F1";
+        return undefined;
     }
   };
 
