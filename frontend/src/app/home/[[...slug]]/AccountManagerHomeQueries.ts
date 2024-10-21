@@ -131,6 +131,11 @@ export const GET_CLIENT_STATS = gql`
 
       byCase {
         title
+        totalHours
+        totalConsultingHours
+        totalHandsOnHours
+        totalSquadHours
+        totalInternalHours
         caseDetails {
           startOfContract
           endOfContract

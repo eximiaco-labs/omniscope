@@ -136,6 +136,7 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
             />
             <CasesByContractEnd
               caseData={clientStatsData.timesheet.byCase}
+              selectedStat={selectedStat}
             />
           </Masonry>
         </ResponsiveMasonry>

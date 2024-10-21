@@ -12,6 +12,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface CasesByContractEndProps {
   caseData: any[];
+  selectedStat: string;
 }
 
 const fadeInAnimation = `
@@ -27,13 +28,19 @@ const fadeInAnimation = `
   }
 `;
 
-const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData }) => {
+const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData, selectedStat }) => {
   const [animationTrigger, setAnimationTrigger] = useState(0);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setAnimationTrigger(prev => prev + 1);
-  }, [caseData]);
+  }, [caseData, selectedStat]);
+
+  const filterItems = (item: any) => {
+    if (selectedStat === "allClients" || selectedStat === "total") return true;
+    const relevantHours = item[`total${selectedStat.charAt(0).toUpperCase() + selectedStat.slice(1)}Hours`];
+    return relevantHours > 0;
+  };
 
   const sortCases = (a: any, b: any) => {
     if (!a.caseDetails.endOfContract) return -1;
@@ -56,8 +63,15 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData }) => 
     return diffDays;
   };
 
-  const sortedCases = [...caseData].sort(sortCases);
-  const displayedCases = expanded ? sortedCases : sortedCases.slice(0, 3);
+  const getRelevantHours = (item: any) => {
+    if (selectedStat === "allClients" || selectedStat === "total") {
+      return item.totalHours;
+    }
+    return item[`total${selectedStat.charAt(0).toUpperCase() + selectedStat.slice(1)}Hours`];
+  };
+
+  const filteredAndSortedCases = caseData.filter(filterItems).sort(sortCases);
+  const displayedCases = expanded ? filteredAndSortedCases : filteredAndSortedCases.slice(0, 3);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
@@ -125,7 +139,7 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData }) => 
               })}
             </TableBody>
           </Table>
-          {sortedCases.length > 3 && (
+          {filteredAndSortedCases.length > 3 && (
             <div className="mt-4">
               <button
                 onClick={toggleExpand}
