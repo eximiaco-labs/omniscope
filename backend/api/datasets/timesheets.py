@@ -1,6 +1,9 @@
 from datetime import datetime
 import pandas as pd
 from typing import Dict, Any, List, Union
+
+from h5py.h5ds import detach_scale
+
 from api.utils.fields import get_requested_fields_from
 
 import globals
@@ -81,27 +84,22 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
             summary['by_week'] = summarize_by_week(group_df)
 
         if group_column == 'CaseTitle':
-            details = globals.omni_models.cases.get_by_title(group_value)
-            if details:
-                details = {
-                    'id': details.id,
-                    'slug': details.slug,
-                    'title': details.title,
-                    'is_active': details.is_active,
-                    'client_id': details.client_id,
-                    'everhour_projects_ids': details.everhour_projects_ids,
-                    'status': details.status,
-                    'last_updated': details.last_updated,
-                    'sponsor': details.sponsor,
-                    'offers_ids': details.offers_ids,
-                    'start_of_contract': details.start_of_contract,
-                    'end_of_contract': details.end_of_contract,
-                    'weekly_approved_hours': details.weekly_approved_hours
-                }
+            details_obj = globals.omni_models.cases.get_by_title(group_value)
+            if details_obj:
+                details = {**details_obj.__dict__}
+
+                # Add all properties
+                for prop in dir(details_obj):
+                    if not prop.startswith('_') and prop not in details:
+                        details[prop] = getattr(details_obj, prop)
+
                 if details['client_id']:
                     details['client'] = globals.omni_models.clients.get_by_id(details['client_id'])
                 else:
                     details['client'] = None
+            else:
+                details = {}
+
             summary['case_details'] = details
 
         summaries.append(summary)

@@ -9,6 +9,7 @@ import TopClients from "./TopClients";
 import TopSponsors from "./TopSponsors";
 import TopWorkers from "./TopWorkers";
 import CasesByContractEnd from "./CasesByContractEnd";
+import CasesUpdates from "./CasesUpdates";
 
 interface AccountManagerHomeProps {
   user: {
@@ -135,6 +136,10 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
               totalHours={selectedStats?.totalHours || 0}
             />
             <CasesByContractEnd
+              caseData={clientStatsData.timesheet.byCase}
+              selectedStat={selectedStat}
+            />
+            <CasesUpdates
               caseData={clientStatsData.timesheet.byCase}
               selectedStat={selectedStat}
             />
