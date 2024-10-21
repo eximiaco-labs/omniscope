@@ -5,6 +5,7 @@ import { Heading } from "@/components/catalyst/heading";
 import { format } from "date-fns";
 import { useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
+import { Option } from "react-tailwindcss-select/dist/components/type";
 
 import { WEEK_REVIEW_QUERY } from "./weekReviewQuery";
 import { DatePicker } from "@/components/DatePicker";
@@ -16,7 +17,7 @@ import AllocationAnalysisTables from './AllocationAnalysisTables';
 
 export default function WeekReview() {
   const [date, setDate] = useState<Date>(new Date());
-  const [selectedFilters, setSelectedFilters] = useState<TailwindSelectValue[]>(
+  const [selectedFilters, setSelectedFilters] = useState<Option[]>(
     []
   );
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -41,9 +42,9 @@ export default function WeekReview() {
   };
 
   const handleFilterChange = (
-    value: TailwindSelectValue | TailwindSelectValue[]
+    value: Option | Option[] | null
   ): void => {
-    const newSelectedValues = Array.isArray(value) ? value : [];
+    const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
