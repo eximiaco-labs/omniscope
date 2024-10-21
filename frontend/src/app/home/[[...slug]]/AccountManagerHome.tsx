@@ -267,10 +267,8 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
               <Table className="w-full table-fixed">
                 <TableHead>
                   <TableRow className="bg-gray-100">
-                    <TableHeader className="font-semibold text-left w-5/12">Client</TableHeader>
-                    <TableHeader className="font-semibold text-center w-2/12">Cases</TableHeader>
-                    <TableHeader className="font-semibold text-center w-2/12">Workers</TableHeader>
-                    <TableHeader className="font-semibold text-center w-3/12">Hours</TableHeader>
+                    <TableHeader className="font-semibold text-left w-8/12">Client</TableHeader>
+                    <TableHeader className="font-semibold text-center w-4/12">Hours</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -290,11 +288,14 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
                               index={index + 1}
                               percentage={calculatePercentage(getItemValue(client, 'totalHours'))}
                             />
-                            <span>{client.name}</span>
+                            <div className="flex flex-col">
+                              <span>{client.name}</span>
+                              <span className="text-xs text-gray-500">
+                                {getItemValue(client, 'uniqueCases')} cases • {getItemValue(client, 'uniqueWorkers')} workers
+                              </span>
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">{getItemValue(client, 'uniqueCases')}</TableCell>
-                        <TableCell className="text-center">{getItemValue(client, 'uniqueWorkers')}</TableCell>
                         <TableCell className="text-center">
                           <span className="font-medium">{formatHours(getItemValue(client, 'totalHours'))}</span>
                         </TableCell>
@@ -317,10 +318,8 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
               <Table className="w-full table-fixed">
                 <TableHead>
                   <TableRow className="bg-gray-100">
-                    <TableHeader className="font-semibold text-left w-5/12">Sponsor</TableHeader>
-                    <TableHeader className="font-semibold text-center w-2/12">Cases</TableHeader>
-                    <TableHeader className="font-semibold text-center w-2/12">Workers</TableHeader>
-                    <TableHeader className="font-semibold text-center w-3/12">Hours</TableHeader>
+                    <TableHeader className="font-semibold text-left w-8/12">Sponsor</TableHeader>
+                    <TableHeader className="font-semibold text-center w-4/12">Hours</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -340,11 +339,14 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
                               index={index + 1}
                               percentage={calculatePercentage(getItemValue(sponsor, 'totalHours'))}
                             />
-                            <span>{sponsor.name}</span>
+                            <div className="flex flex-col">
+                              <span>{sponsor.name}</span>
+                              <span className="text-xs text-gray-500">
+                                {getItemValue(sponsor, 'uniqueCases')} cases • {getItemValue(sponsor, 'uniqueWorkers')} workers
+                              </span>
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">{getItemValue(sponsor, 'uniqueCases')}</TableCell>
-                        <TableCell className="text-center">{getItemValue(sponsor, 'uniqueWorkers')}</TableCell>
                         <TableCell className="text-center">
                           <span className="font-medium">{formatHours(getItemValue(sponsor, 'totalHours'))}</span>
                         </TableCell>
