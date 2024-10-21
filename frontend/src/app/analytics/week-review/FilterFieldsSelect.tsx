@@ -1,11 +1,11 @@
 import React from 'react';
 import SelectComponent from "react-tailwindcss-select";
-import { SelectValue as TailwindSelectValue } from "react-tailwindcss-select/dist/components/type";
+import { Option } from "react-tailwindcss-select/dist/components/type";
 
 interface FilterFieldsSelectProps {
   data: any;
-  selectedFilters: TailwindSelectValue[];
-  handleFilterChange: (value: TailwindSelectValue | TailwindSelectValue[]) => void;
+  selectedFilters: Option[];
+  handleFilterChange: (value: Option | Option[] | null) => void;
 }
 
 export const FilterFieldsSelect: React.FC<FilterFieldsSelectProps> = ({ data, selectedFilters, handleFilterChange }) => {

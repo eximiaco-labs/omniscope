@@ -1,7 +1,7 @@
 "use client";
 
 import { Heading } from "@/components/catalyst/heading";
-import { gql, useQuery } from "@apollo/client";
+import { gql, HttpLink, useQuery } from "@apollo/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -55,9 +55,8 @@ export default function ProductsOrServices() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
   const queryString = print(GET_OFFERS_AND_TIMESHEET);
-  const GRAPHQL_ENDPOINT = (client.link.options as any).uri;
+  const GRAPHQL_ENDPOINT = client.link instanceof HttpLink ? client.link.options.uri : undefined;
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
