@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery } from "@apollo/client";
 import ClientStatsSection from "@/app/components/ClientStatsSection";
 import { Stat } from "@/app/components/analytics/stat";
+import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
 import { GET_CLIENT_STATS } from "./AccountManagerHomeQueries";
 import TopClients from "./TopClients";
@@ -115,23 +116,25 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
       )}
 
       {clientStatsData && (
-        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-8 auto-rows-fr">
-          <TopClients
-            clientData={clientStatsData.timesheet.byClient}
-            selectedStat={selectedStat}
-            totalHours={selectedStats?.totalHours || 0}
-          />
-          <TopSponsors
-            sponsorData={clientStatsData.timesheet.bySponsor}
-            selectedStat={selectedStat}
-            totalHours={selectedStats?.totalHours || 0}
-          />
-          <TopWorkers
-            workerData={clientStatsData.timesheet.byWorker}
-            selectedStat={selectedStat}
-            totalHours={selectedStats?.totalHours || 0}
-          /> 
-        </div>
+        <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2 }}>
+          <Masonry gutter="1rem">
+            <TopClients
+              clientData={clientStatsData.timesheet.byClient}
+              selectedStat={selectedStat}
+              totalHours={selectedStats?.totalHours || 0}
+            />
+            <TopSponsors
+              sponsorData={clientStatsData.timesheet.bySponsor}
+              selectedStat={selectedStat}
+              totalHours={selectedStats?.totalHours || 0}
+            />
+            <TopWorkers
+              workerData={clientStatsData.timesheet.byWorker}
+              selectedStat={selectedStat}
+              totalHours={selectedStats?.totalHours || 0}
+            />
+          </Masonry>
+        </ResponsiveMasonry>
       )}
     </main>
   );

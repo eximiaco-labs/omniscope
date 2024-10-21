@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import RankingIndicator from "@/components/RankingIndicator";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface TopClientsProps {
   clientData: any[];
@@ -31,6 +32,7 @@ const fadeInAnimation = `
 
 const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, totalHours }) => {
   const [animationTrigger, setAnimationTrigger] = useState(0);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setAnimationTrigger(prev => prev + 1);
@@ -67,14 +69,27 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
   };
 
   const filteredClients = clientData.filter(filterItems).sort(sortItems).slice(0, 10);
+  const displayedClients = expanded ? filteredClients : filteredClients.slice(0, 3);
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
+  const getTitle = () => {
+    if (!expanded) {
+      return filteredClients.length > 3 ? "Top 3 Clients" : "Clients";
+    } else {
+      return filteredClients.length < 10 ? "Clients" : "Top 10 Clients";
+    }
+  };
 
   return (
     <div>
       <style>{fadeInAnimation}</style>
-      <Card className="mt-8 shadow-lg">
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            {filteredClients.length < 10 ? "Clients" : "Top 10 Clients"}
+            {getTitle()}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -86,7 +101,7 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredClients.map((client: any, index: number) => (
+              {displayedClients.map((client: any, index: number) => (
                 <TableRow 
                   key={`${client.name}-${animationTrigger}`}
                   className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
@@ -104,7 +119,7 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
                       <div className="flex flex-col">
                         <span style={{ transition: 'all 0.3s ease-in-out' }}>{client.name}</span>
                         <span className="text-xs text-gray-500" style={{ transition: 'all 0.3s ease-in-out' }}>
-                          {getItemValue(client, 'uniqueCases')} cases • {getItemValue(client, 'uniqueWorkers')} workers
+                          {getItemValue(client, 'uniqueCases')} case(s) • {getItemValue(client, 'uniqueWorkers')} worker(s)
                         </span>
                       </div>
                     </div>
@@ -118,6 +133,26 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
               ))}
             </TableBody>
           </Table>
+          {filteredClients.length > 3 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={toggleExpand}
+                className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                {expanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-2" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-2" />
+                    Show More
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

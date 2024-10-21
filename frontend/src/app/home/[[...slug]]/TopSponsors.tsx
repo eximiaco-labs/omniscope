@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import RankingIndicator from "@/components/RankingIndicator";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface TopSponsorsProps {
   sponsorData: any[];
@@ -16,12 +17,26 @@ interface TopSponsorsProps {
   totalHours: number;
 }
 
+const fadeInAnimation = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
 const TopSponsors: React.FC<TopSponsorsProps> = ({
   sponsorData,
   selectedStat,
   totalHours,
 }) => {
   const [animationTrigger, setAnimationTrigger] = useState(0);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setAnimationTrigger((prev) => prev + 1);
@@ -62,12 +77,27 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
     .sort(sortItems)
     .slice(0, 10);
 
+  const displayedSponsors = expanded ? filteredSponsors : filteredSponsors.slice(0, 3);
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
+  const getTitle = () => {
+    if (!expanded) {
+      return filteredSponsors.length > 3 ? "Top 3 Sponsors" : "Sponsors";
+    } else {
+      return filteredSponsors.length < 10 ? "Sponsors" : "Top 10 Sponsors";
+    }
+  };
+
   return (
     <div>
-      <Card className="mt-8 shadow-lg">
+      <style>{fadeInAnimation}</style>
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            {filteredSponsors.length < 10 ? "Sponsors" : "Top 10 Sponsors"}
+            {getTitle()}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -83,16 +113,15 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredSponsors.map((sponsor: any, index: number) => (
+              {displayedSponsors.map((sponsor: any, index: number) => (
                 <TableRow
                   key={`${sponsor.name}-${animationTrigger}`}
-                  className={`animate-fadeIn hover:bg-gray-50 transition-all duration-300 ease-in-out ${
+                  className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
                     index % 2 === 0 ? "bg-white" : "bg-gray-50"
                   }`}
                   style={{
-                    animationDelay: `${index * 50}ms`,
-                    opacity: 0,
                     animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
+                    opacity: 0,
                   }}
                 >
                   <TableCell className="font-medium">
@@ -108,8 +137,8 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
                           {sponsor.name}
                         </span>
                         <span className="text-xs text-gray-500 transition-all duration-300 ease-in-out">
-                          {getItemValue(sponsor, "uniqueCases")} cases •{" "}
-                          {getItemValue(sponsor, "uniqueWorkers")} workers
+                          {getItemValue(sponsor, "uniqueCases")} case(s) •{" "}
+                          {getItemValue(sponsor, "uniqueWorkers")} worker(s)
                         </span>
                       </div>
                     </div>
@@ -123,6 +152,26 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
               ))}
             </TableBody>
           </Table>
+          {filteredSponsors.length > 3 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={toggleExpand}
+                className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                {expanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-2" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-2" />
+                    Show More
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

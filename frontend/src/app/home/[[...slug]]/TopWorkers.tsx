@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import RankingIndicator from "@/components/RankingIndicator";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface TopWorkersProps {
   workerData: any[];
@@ -31,6 +32,7 @@ const fadeInAnimation = `
 
 const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, totalHours }) => {
   const [animationTrigger, setAnimationTrigger] = useState(0);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setAnimationTrigger(prev => prev + 1);
@@ -38,8 +40,7 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
 
   const filterItems = (item: any) => {
     if (selectedStat === "allWorkers" || selectedStat === "total") return true;
-    return item.byKind[selectedStat].totalHours > 0;
-    return true;
+    return item.byKind && item.byKind[selectedStat] && item.byKind[selectedStat].totalHours > 0;
   };
 
   const sortItems = (a: any, b: any) => {
@@ -47,16 +48,16 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
       if (selectedStat === "allWorkers" || selectedStat === "total") {
         return item.totalHours;
       }
-      return item.byKind[selectedStat].totalHours;
+      return item.byKind && item.byKind[selectedStat] ? item.byKind[selectedStat].totalHours : 0;
     };
     return getRelevantHours(b) - getRelevantHours(a);
   };
 
   const getItemValue = (item: any, field: string) => {
     if (selectedStat === "allWorkers" || selectedStat === "total") {
-      return item[field];
+      return item[field] || 0;
     }
-    return item.byKind[selectedStat][field];
+    return item.byKind && item.byKind[selectedStat] ? item.byKind[selectedStat][field] || 0 : 0;
   };
 
   const formatHours = (hours: number) => {
@@ -68,14 +69,27 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   };
 
   const filteredWorkers = workerData.filter(filterItems).sort(sortItems).slice(0, 10);
+  const displayedWorkers = expanded ? filteredWorkers : filteredWorkers.slice(0, 3);
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
+  const getTitle = () => {
+    if (!expanded) {
+      return filteredWorkers.length > 3 ? "Top 3 Workers" : "Workers";
+    } else {
+      return filteredWorkers.length < 10 ? "Workers" : "Top 10 Workers";
+    }
+  };
 
   return (
     <div>
       <style>{fadeInAnimation}</style>
-      <Card className="mt-8 shadow-lg">
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            {filteredWorkers.length < 10 ? "Workers" : "Top 10 Workers"}
+            {getTitle()}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -87,7 +101,7 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredWorkers.map((worker: any, index: number) => (
+              {displayedWorkers.map((worker: any, index: number) => (
                 <TableRow 
                   key={`${worker.name}-${animationTrigger}`}
                   className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
@@ -119,6 +133,26 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
               ))}
             </TableBody>
           </Table>
+          {filteredWorkers.length > 3 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={toggleExpand}
+                className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                {expanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-2" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-2" />
+                    Show More
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
