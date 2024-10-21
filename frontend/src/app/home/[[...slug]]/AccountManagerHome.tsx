@@ -335,11 +335,13 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
                         <TableCell className="font-medium">
-                          <RankingIndicator
-                            index={index + 1}
-                            percentage={calculatePercentage(getItemValue(sponsor, 'totalHours'))}
-                          />
-                          {sponsor.name}
+                          <div className="flex items-center space-x-3">
+                            <RankingIndicator
+                              index={index + 1}
+                              percentage={calculatePercentage(getItemValue(sponsor, 'totalHours'))}
+                            />
+                            <span>{sponsor.name}</span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-center">{getItemValue(sponsor, 'uniqueCases')}</TableCell>
                         <TableCell className="text-center">{getItemValue(sponsor, 'uniqueWorkers')}</TableCell>
