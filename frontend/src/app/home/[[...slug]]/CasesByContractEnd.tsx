@@ -93,7 +93,7 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData }) => 
                   >
                     <TableCell>
                       <div className="flex flex-col space-y-2">
-                        <p className="font-bold uppercase text-xs">{caseItem.client?.name || 'Unknown Client'}</p>
+                        <p className="font-bold uppercase text-xs">{caseItem.caseDetails?.client?.name || 'Unknown Client'}</p>
                         <p className="text-base whitespace-normal break-words" title={caseItem.title}>
                           {caseItem.title}
                         </p>
