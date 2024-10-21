@@ -39,13 +39,13 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   }, [workerData, selectedStat]);
 
   const filterItems = (item: any) => {
-    if (selectedStat === "allWorkers" || selectedStat === "total") return true;
+    if (selectedStat === "allClients" || selectedStat === "total") return true;
     return item.byKind && item.byKind[selectedStat] && item.byKind[selectedStat].totalHours > 0;
   };
 
   const sortItems = (a: any, b: any) => {
     const getRelevantHours = (item: any) => {
-      if (selectedStat === "allWorkers" || selectedStat === "total") {
+      if (selectedStat === "allClients" || selectedStat === "total") {
         return item.totalHours;
       }
       return item.byKind && item.byKind[selectedStat] ? item.byKind[selectedStat].totalHours : 0;
@@ -54,7 +54,7 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   };
 
   const getItemValue = (item: any, field: string) => {
-    if (selectedStat === "allWorkers" || selectedStat === "total") {
+    if (selectedStat === "allClients" || selectedStat === "total") {
       return item[field] || 0;
     }
     return item.byKind && item.byKind[selectedStat] ? item.byKind[selectedStat][field] || 0 : 0;

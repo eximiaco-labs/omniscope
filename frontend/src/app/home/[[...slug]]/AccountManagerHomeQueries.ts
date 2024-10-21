@@ -128,6 +128,22 @@ export const GET_CLIENT_STATS = gql`
           }
         }
       }
+
+      byCase {
+        title
+        caseDetails {
+          startOfContract
+          endOfContract
+          weeklyApprovedHours
+          client {
+            name
+          }
+          lastUpdate {
+            date
+            status
+          }
+        }
+      }
     }
   }
 `;

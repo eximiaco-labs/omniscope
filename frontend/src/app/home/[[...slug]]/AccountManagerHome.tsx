@@ -8,6 +8,7 @@ import { GET_CLIENT_STATS } from "./AccountManagerHomeQueries";
 import TopClients from "./TopClients";
 import TopSponsors from "./TopSponsors";
 import TopWorkers from "./TopWorkers";
+import CasesByContractEnd from "./CasesByContractEnd";
 
 interface AccountManagerHomeProps {
   user: {
@@ -132,6 +133,9 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
               workerData={clientStatsData.timesheet.byWorker}
               selectedStat={selectedStat}
               totalHours={selectedStats?.totalHours || 0}
+            />
+            <CasesByContractEnd
+              caseData={clientStatsData.timesheet.byCase}
             />
           </Masonry>
         </ResponsiveMasonry>
