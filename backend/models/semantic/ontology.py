@@ -1,8 +1,9 @@
+import numbers
 import re
 
 from settings import api_settings
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional, Dict
 
 import validators
@@ -116,6 +117,11 @@ class Case(BaseModel):
     offers: List[int]
     is_active: bool
     everhour_projects_ids: Optional[str] = None
+    
+    start_of_contract: Optional[date] = None
+    end_of_contract: Optional[date] = None
+    weekly_approved_hours: Optional[float] = None
+
     client_id: Optional[int] = None
     last_update_gmt: datetime
     updates: Optional[List[EventDetail]] = None
@@ -137,6 +143,11 @@ class Case(BaseModel):
         else:
             client_id = None
 
+        allocation = post.meta.get('alocacao-semanal-em-horas', '0')
+        allocation = allocation.strip().replace(',', '.')
+        match = re.match(r'^(\d+(?:\.\d+)?)', allocation)
+        allocation = match.group(1) if match else '0'
+
         return Case(
             id=post.id,
             title=post.title.rendered,
@@ -145,6 +156,9 @@ class Case(BaseModel):
             is_active=post.meta.get('status', None) == 'Em andamento',
             everhour_projects_ids=post.meta.get('codigo-do-projeto', None),
             sponsor=post.meta.get('sponsor', None),
+            start_of_contract=datetime.strptime(post.meta.get('inicio-do-contrato'), '%Y-%m-%d').date() if post.meta.get('inicio-do-contrato') and post.meta.get('inicio-do-contrato').strip() else None,
+            end_of_contract=datetime.strptime(post.meta.get('fim-do-contrato'), '%Y-%m-%d').date() if post.meta.get('fim-do-contrato') and post.meta.get('fim-do-contrato').strip() else None,
+            weekly_approved_hours=float(allocation) if allocation else None,
             offers=offers.get(post.id, []),
             client_id=client_id,
             last_update_gmt=post.modified_gmt,

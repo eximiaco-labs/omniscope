@@ -10,9 +10,9 @@ from models.semantic import Insights, Ontology, TasksManager, TimeTracker, Sales
 
 
 class WorkerKind(Enum):
-    ALL = "All"
-    ACCOUNT_MANAGER = "Account Manager"
-    CONSULTANT = "Consultant"
+    ALL = "ALL"
+    ACCOUNT_MANAGER = "ACCOUNT_MANAGER"
+    CONSULTANT = "CONSULTANT"
 
 
 class Worker(BaseModel):

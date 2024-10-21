@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 from typing import Dict, Any, List, Union
 from api.utils.fields import get_requested_fields_from
@@ -16,7 +17,7 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
 
     # Calculate statistics
     total_hours = df["TimeInHs"].sum()
-    average_hours_per_entry = total_hours / len(df)
+    average_hours_per_entry = total_hours / len(df) if len(df) > 0 else 0
 
     return {
         "total_entries": len(df),
@@ -70,13 +71,15 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
     summaries = []
     for group_value, group_df in df.groupby(group_column):
         summary = summarize(group_df)
-        summary["by_kind"] = summarize_by_kind(group_df)
         summary[name_key] = group_value
 
-        # Add support for squad, consulting, internal, and hands-on total hours
         for kind in ['Squad', 'Consulting', 'Internal', 'HandsOn']:
             summary[f"total_{kind.lower()}_hours"] = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()
-        
+
+        summary["by_kind"] = summarize_by_kind(group_df)
+        if group_column != 'Week':
+            summary['by_week'] = summarize_by_week(group_df)
+
         summaries.append(summary)
 
     summaries = sorted(summaries, key=lambda x: x["total_hours"], reverse=True)
@@ -101,7 +104,12 @@ def summarize_by_date(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], 
     return summarize_by_group(df, 'Date', name_key="date")
 
 def summarize_by_week(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'Week', name_key="week")
+    summaries = summarize_by_group(df, 'Week', name_key="week")
+    
+    # Sort the summaries based on the 'week' key
+    sorted_summaries = sorted(summaries, key=lambda x: datetime.strptime(x['week'].split(' - ')[0], '%d/%m'))
+    
+    return sorted_summaries
 
 def summarize_by_offer(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
     return summarize_by_group(df, 'ProductsOrServices', name_key="name")
