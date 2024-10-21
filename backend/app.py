@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, snake_case_fallback_resolvers
 from ariadne.explorer import ExplorerGraphiQL
+
 from api.queries import query
-from api.mutations import mutation
+from api.mutations import (mutation)
 import logging
 import argparse
 
@@ -23,9 +24,11 @@ schema = make_executable_schema(
 
 explorer_html = ExplorerGraphiQL().html(None)
 
+
 @app.route("/graphql", methods=["GET"])
 def graphql_playground():
     return explorer_html, 200
+
 
 @app.route("/graphql", methods=["POST"])
 def graphql_server():
@@ -38,6 +41,7 @@ def graphql_server():
     )
     status_code = 200 if success else 400
     return jsonify(result), status_code
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

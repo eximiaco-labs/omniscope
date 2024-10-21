@@ -1,3 +1,9 @@
+requests
 Flask
 Flask-CORS
 ariadne
+pydantic
+pytz
+python-dotenv
+validators
+pandas

@@ -1,9 +1,10 @@
 version: "3.10"
 
 services:
-  omniscope:
+  backend:
     build: 
-      context: .
+      context: ./backend
+    env_file: ./backend/.env
     ports:
       - "8085:80"
     environment:

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from backend.models.helpers import beauty
+from models.helpers import beauty
 from models.helpers.weeks import Weeks
 import globals
 
