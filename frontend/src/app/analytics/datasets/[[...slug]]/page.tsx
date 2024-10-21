@@ -95,14 +95,16 @@ export default function Datasets() {
   const updateQueryString = (newSelectedValues: SelectValue[]) => {
     const params = new URLSearchParams();
     const uniqueFilters: Record<string, Set<string>> = {};
-
+    
     newSelectedValues.forEach(value => {
-      if (typeof value.value === 'string') {
+      if (value && 'value' in value && typeof value.value === 'string') {
         const [field, fieldValue] = value.value.split(':');
-        if (!uniqueFilters[field]) {
-          uniqueFilters[field] = new Set();
+        if (field && fieldValue) {
+          if (!uniqueFilters[field]) {
+            uniqueFilters[field] = new Set();
+          }
+          uniqueFilters[field].add(fieldValue);
         }
-        uniqueFilters[field].add(fieldValue);
       }
     });
 
@@ -140,19 +142,19 @@ export default function Datasets() {
       <div className="mb-6">
         <form className="pl-2 pr-2">
           <Select
-            value={selectedValues}
+            value={selectedValues as SelectValue}
             options={filterableFields.map((f: any) => ({
               label: String(f.field ?? 'Unknown Field'),
               options: Array.from(new Set((f.options || [])
-                .filter((o: any) => o != null)
-                .map((o: any) => String(o))))
-                .map((o: string) => ({
+                .filter((o: unknown) => o != null)
+                .map((o: unknown) => String(o))))
+                .map((o: unknown) => ({
                   value: `${f.field}:${o}`,
-                  label: o,
+                  label: String(o),
                 }))
             }))}
             placeholder="Filters..."
-            onChange={(value): void => {
+            onChange={(value: unknown | unknown[]): void => {
               const newSelectedValues = Array.isArray(value) ? value : [];
               setSelectedValues(newSelectedValues);
               updateQueryString(newSelectedValues);

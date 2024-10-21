@@ -22,13 +22,13 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const statusColor: { [key: string]: string } = {
-      "Critical": "rose",
-      "Requires attention": "amber",
-      "All right": "lime"
-    };
-    return statusColor[status] || "zinc";
+  const getStatusColor = (status: string): "zinc" | "rose" | "amber" | "lime" => {
+    switch (status) {
+      case "Critical": return "rose";
+      case "Requires attention": return "amber";
+      case "All right": return "lime";
+      default: return "zinc";
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -121,12 +121,12 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
                   date.setDate(date.getDate() - date.getDay() - 7 * (6 - i));
                   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 }), 'AVG'].map((date, index) => {
-                  const weekData = index < 6 ? caseData.byWeek.find(week => week.week.startsWith(date)) : null;
+                  const weekData = index < 6 ? caseData.byWeek.find((week: { week: string; }) => week.week.startsWith(date)) : null;
                   const averageData = index === 6 ? {
-                    totalConsultingHours: caseData.byWeek.reduce((sum, week) => sum + week.totalConsultingHours, 0) / 6,
-                    totalHandsOnHours: caseData.byWeek.reduce((sum, week) => sum + week.totalHandsOnHours, 0) / 6,
-                    totalSquadHours: caseData.byWeek.reduce((sum, week) => sum + week.totalSquadHours, 0) / 6,
-                    totalInternalHours: caseData.byWeek.reduce((sum, week) => sum + week.totalInternalHours, 0) / 6
+                    totalConsultingHours: caseData.byWeek.reduce((sum: any, week: { totalConsultingHours: any; }) => sum + week.totalConsultingHours, 0) / 6,
+                    totalHandsOnHours: caseData.byWeek.reduce((sum: any, week: { totalHandsOnHours: any; }) => sum + week.totalHandsOnHours, 0) / 6,
+                    totalSquadHours: caseData.byWeek.reduce((sum: any, week: { totalSquadHours: any; }) => sum + week.totalSquadHours, 0) / 6,
+                    totalInternalHours: caseData.byWeek.reduce((sum: any, week: { totalInternalHours: any; }) => sum + week.totalInternalHours, 0) / 6
                   } : null;
                   const data = index < 6 ? weekData : averageData;
                   return (
