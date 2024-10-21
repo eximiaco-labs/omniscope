@@ -80,6 +80,30 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
         if group_column != 'Week':
             summary['by_week'] = summarize_by_week(group_df)
 
+        if group_column == 'CaseTitle':
+            details = globals.omni_models.cases.get_by_title(group_value)
+            if details:
+                details = {
+                    'id': details.id,
+                    'slug': details.slug,
+                    'title': details.title,
+                    'is_active': details.is_active,
+                    'client_id': details.client_id,
+                    'everhour_projects_ids': details.everhour_projects_ids,
+                    'status': details.status,
+                    'last_updated': details.last_updated,
+                    'sponsor': details.sponsor,
+                    'offers_ids': details.offers_ids,
+                    'start_of_contract': details.start_of_contract,
+                    'end_of_contract': details.end_of_contract,
+                    'weekly_approved_hours': details.weekly_approved_hours
+                }
+                if details['client_id']:
+                    details['client'] = globals.omni_models.clients.get_by_id(details['client_id'])
+                else:
+                    details['client'] = None
+            summary['case_details'] = details
+
         summaries.append(summary)
 
     summaries = sorted(summaries, key=lambda x: x["total_hours"], reverse=True)
