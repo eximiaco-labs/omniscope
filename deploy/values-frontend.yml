@@ -14,7 +14,7 @@ ingress:
   hosts:
     - host: omniscope.eximia.co
       paths:
-        - path: /insights/
+        - path: /
           pathType: Prefix
   tls:
    - secretName: omniscope-tls
