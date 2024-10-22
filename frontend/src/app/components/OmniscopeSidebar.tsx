@@ -25,6 +25,7 @@ import {
   TrophyIcon,
   CalendarIcon,
   LogOutIcon,
+  HomeIcon,
 } from "lucide-react";
 import Logo from "./logo";
 import { Avatar } from '@/components/catalyst/avatar';
@@ -36,6 +37,7 @@ import {
   DropdownMenu,
 } from '@/components/catalyst/dropdown';
 import { useQuery, gql } from '@apollo/client';
+import Link from 'next/link';
 
 interface OmniSidebarItemProps {
   href: string;
@@ -67,8 +69,8 @@ export function OmniscopeSidebar() {
     variables: { email: session?.user?.email },
     skip: !session?.user?.email,
   });
-
   const analyticsSidebarItems: OmniSidebarItemProps[] = [
+    { href: "/", caption: "Home", icon: <HomeIcon /> },
     { href: "/analytics/week-review", caption: "Week Review", icon: <CalendarCheckIcon /> },
     { href: "/analytics/side-by-side", caption: "Side-by-side", icon: <ColumnsIcon /> },
     { href: "/analytics/datasets", caption: "Datasets", icon: <DatabaseIcon /> },
@@ -92,7 +94,9 @@ export function OmniscopeSidebar() {
     <Sidebar>
       <SidebarBody>
         <div className="flex mb-3">
-          <Logo />
+          <Link href="/">
+            <Logo width={150} height={30} />
+          </Link>
         </div>
         <SidebarSection>
           {analyticsSidebarItems.map((item) => (
