@@ -20,6 +20,7 @@ const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
       email
       position
       photoUrl
+      isRecognized
       errors
     }
     timesheet(slug: "last-six-weeks", kind: ALL) {

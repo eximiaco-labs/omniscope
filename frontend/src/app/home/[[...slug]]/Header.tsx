@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
           />
           <div>
             <Heading className="text-3xl font-bold text-gray-800">
-              Welcome back, {user?.name || "User"}!
+              {user?.name || "User"}
             </Heading>
             {user?.position && (
               <p className="text-lg text-gray-600 mt-1">{user.position}</p>

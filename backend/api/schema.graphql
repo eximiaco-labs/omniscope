@@ -327,7 +327,7 @@ type NamedSummary implements ISummary {
   byWeek: [WeekSummary!]!
 }
 
-type TitledSummary implements ISummary {
+type CaseSummary implements ISummary {
   # Fields from ISummary interface
   totalEntries: Int!
   totalHours: Float!
@@ -361,6 +361,7 @@ type TitledSummary implements ISummary {
 
   # Additional fields
   title: String!
+  caseDetails: Case
   byKind: KindSummary!
   byWeek: [WeekSummary!]!
 }
@@ -483,7 +484,7 @@ type TimesheetSummary implements ISummary{
   byKind: KindSummary
   byWorker: [NamedSummary!]!
   byClient: [NamedSummary!]!
-  byCase: [TitledSummary!]!
+  byCase: [CaseSummary!]!
   bySponsor: [NamedSummary!]!
   byAccountManager: [NamedSummary!]!
   byDate: [DateSummary!]!

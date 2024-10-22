@@ -7,6 +7,7 @@ from api.mutations import mutation
 import logging
 import argparse
 
+from backend.api.execution_stats import ExecutionStatsExtension
 import globals
 
 app = Flask(__name__)
@@ -34,7 +35,8 @@ def graphql_server():
         schema,
         data,
         context_value=request,
-        debug=app.debug
+        debug=app.debug,
+        extensions=[ExecutionStatsExtension]
     )
     status_code = 200 if success else 400
     return jsonify(result), status_code

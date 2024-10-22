@@ -122,6 +122,10 @@ class CasesRepository:
     def get_by_slug(self, slug: str) -> Case:
         o_case = next((case for case in self.get_all().values() if case.slug == slug), None)
         return o_case
+    
+    def get_by_title(self, title: str) -> Case:
+        o_case = next((case for case in self.get_all().values() if case.title == title), None)
+        return o_case
 
     def get_by_everhour_project_id(self, id) -> Case:
         cases = self.get_all().values()
