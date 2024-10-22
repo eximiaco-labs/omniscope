@@ -108,7 +108,7 @@ export default function ConsultantsAndEngineers() {
 
     return (
       <Link 
-        href={`/analytics/datasets/timesheet-this-month?WorkerName=${encodeURIComponent(worker.name)}`}
+        href={`/home/${encodeURIComponent(worker.slug)}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

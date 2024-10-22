@@ -137,8 +137,8 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
                           {sponsor.name}
                         </span>
                         <span className="text-xs text-gray-500 transition-all duration-300 ease-in-out">
-                          {getItemValue(sponsor, "uniqueCases")} case(s) •{" "}
-                          {getItemValue(sponsor, "uniqueWorkers")} worker(s)
+                          {getItemValue(sponsor, "uniqueCases")} case(s)
+                          {getItemValue(sponsor, "uniqueWorkers") > 1 && ` • ${getItemValue(sponsor, "uniqueWorkers")} workers`}
                         </span>
                       </div>
                     </div>
