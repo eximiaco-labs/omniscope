@@ -57,4 +57,4 @@ if __name__ == '__main__':
 
     app.logger.info("Starting the application")
     globals.update()
-    app.run(debug=args.verbose)
+    app.run(debug=args.verbose,host="0.0.0.0")
