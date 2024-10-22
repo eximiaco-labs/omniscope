@@ -23,7 +23,7 @@ ingress:
 
 envVars:
   - name: GRAPHQL_ENDPOINT
-    value: http://omniscope-backend:5000/graphql
+    value: http://backend-omniscope:5000/graphql
   - name: NEXTAUTH_URL
     value: https://omniscope.eximia.co
   - name: NEXTAUTH_URL_INTERNAL
