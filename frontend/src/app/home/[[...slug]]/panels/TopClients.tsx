@@ -119,7 +119,8 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
                       <div className="flex flex-col">
                         <span style={{ transition: 'all 0.3s ease-in-out' }}>{client.name}</span>
                         <span className="text-xs text-gray-500" style={{ transition: 'all 0.3s ease-in-out' }}>
-                          {getItemValue(client, 'uniqueCases')} case(s) • {getItemValue(client, 'uniqueWorkers')} worker(s)
+                          {getItemValue(client, 'uniqueCases')} case(s)
+                          {getItemValue(client, 'uniqueWorkers') > 1 && ` • ${getItemValue(client, 'uniqueWorkers')} workers`}
                         </span>
                       </div>
                     </div>

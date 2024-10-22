@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
 import AccountManagerHome from "./AccountManagerHome";
+import ConsultantOrEngineerHome from "./ConsultantOrEngineerHome";
 import Header from "./Header";
 
 const GET_USER = gql`
@@ -46,6 +47,7 @@ export default function HomePage() {
     <div className="container mx-auto px-4 py-8">
       <Header user={user} />
       {user && user.kind === "ACCOUNT_MANAGER" && <AccountManagerHome user={user} />}
+      {user && user.kind === "CONSULTANT" && <ConsultantOrEngineerHome user={user} />}
     </div>
   );
 }

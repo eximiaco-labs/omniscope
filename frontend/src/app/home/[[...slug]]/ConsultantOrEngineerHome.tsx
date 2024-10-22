@@ -4,30 +4,29 @@ import ClientStatsSection from "@/app/components/ClientStatsSection";
 import { Stat } from "@/app/components/analytics/stat";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
-import { GET_CLIENT_STATS } from "./AccountManagerHomeQueries";
+import { GET_CLIENT_STATS } from "./ConsultantOrEngineerHomeQueries";
 import TopClients from "./panels/TopClients";
 import TopSponsors from "./panels/TopSponsors";
 import TopWorkers from "./panels/TopWorkers";
 import CasesByContractEnd from "./panels/CasesByContractEnd";
 import CasesUpdates from "./panels/CasesUpdates";
 
-interface AccountManagerHomeProps {
+interface ConsultantOrEngineerHomeProps {
   user: {
     name: string;
   };
 }
 
-const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
+const ConsultantOrEngineerHome: React.FC<ConsultantOrEngineerHomeProps> = ({ user }) => {
   const [selectedStat, setSelectedStat] = React.useState<string>("allClients");
 
   const { loading: statsLoading, data: clientStatsData } = useQuery(
     GET_CLIENT_STATS,
     {
       variables: {
-        accountManagerName: user?.name || "",
         filters: [
           {
-            field: "AccountManagerName",
+            field: "WorkerName",
             selectedValues: [user?.name || ""],
           },
         ],
@@ -98,13 +97,13 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
           {selectedStats && (
             <div className="grid grid-cols-3 gap-4 mt-4">
               <Stat
-                title="Unique Cases"
-                value={selectedStats.uniqueCases.toString()}
+                title="Unique Clients"
+                value={selectedStats.uniqueClients.toString()}
                 color={getStatColor()}
               />
               <Stat
-                title="Unique Workers"
-                value={selectedStats.uniqueWorkers.toString()}
+                title="Unique Cases"
+                value={selectedStats.uniqueCases.toString()}
                 color={getStatColor()}
               />
               <Stat
@@ -130,11 +129,11 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
               selectedStat={selectedStat}
               totalHours={selectedStats?.totalHours || 0}
             />
-            <TopWorkers
+            {/* <TopWorkers
               workerData={clientStatsData.timesheet.byWorker}
               selectedStat={selectedStat}
               totalHours={selectedStats?.totalHours || 0}
-            />
+            /> */}
             <CasesByContractEnd
               caseData={clientStatsData.timesheet.byCase}
               selectedStat={selectedStat}
@@ -150,4 +149,4 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
   );
 };
 
-export default AccountManagerHome;
+export default ConsultantOrEngineerHome;
