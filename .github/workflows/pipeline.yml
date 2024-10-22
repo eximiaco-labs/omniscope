@@ -55,18 +55,8 @@ jobs:
       run: |
         aws eks update-kubeconfig --name ia-factory-cluster --region us-east-1
         helm upgrade --install backend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-backend.yml --set image.tag=${{ github.run_id }}
-          
-    # - name: Backend - Deploy Helm chart to AWS EKS Cluster
-    #   uses: bitovi/github-actions-deploy-eks-helm@v1.2.9
-    #   with:
-    #     aws-region: us-east-1
-    #     cluster-name: ia-factory-cluster                  
-    #     namespace: omniscope
-    #     values: image.tag=${{ github.run_id }}
-    #     name: backend
-    #     action: install        
-    #     chart-path: ./deploy/chart/omniscope
-        
+        helm upgrade --install frontend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-frontend.yml --set image.tag=${{ github.run_id }}
+
           
 
     
