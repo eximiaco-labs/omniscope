@@ -2,24 +2,56 @@
 
 import { Heading } from "@/components/catalyst/heading";
 import { useQuery } from "@apollo/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
-import { print } from 'graphql';
-import { client } from '@/app/layout';
 import { GET_CASES_AND_TIMESHEET } from './queries';
 import { CaseCard } from './CaseCard';
+import { FilterFieldsSelect } from '@/app/components/FilterFieldsSelect';
+import { Option } from "react-tailwindcss-select/dist/components/type";
 
 export default function Cases() {
-  const { loading, error, data } = useQuery(GET_CASES_AND_TIMESHEET, { ssr: true });
+  const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [formattedSelectedValues, setFormattedSelectedValues] = useState<
+    Array<{ field: string; selectedValues: string[] }>
+  >([]);
+
+  const { loading, error, data } = useQuery(GET_CASES_AND_TIMESHEET, {
+    variables: {
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
+    },
+  });
   const [selectedStat, setSelectedStat] = useState<string>('allCases');
+
+  const handleFilterChange = (value: Option | Option[] | null): void => {
+    const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
+    setSelectedFilters(newSelectedValues);
+
+    const formattedValues =
+      data?.timesheet.filterableFields?.reduce((acc: any[], field: any) => {
+        const fieldValues = newSelectedValues
+          .filter(
+            (v) =>
+              typeof v.value === "string" &&
+              v.value.startsWith(`${field.field}:`)
+          )
+          .map((v) => (v.value as string).split(":")[1]);
+
+        if (fieldValues.length > 0) {
+          acc.push({
+            field: field.field,
+            selectedValues: fieldValues,
+          });
+        }
+        return acc;
+      }, []) || [];
+
+    setFormattedSelectedValues(formattedValues);
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
-  const queryString = print(GET_CASES_AND_TIMESHEET);
-  const GRAPHQL_ENDPOINT = (client.link as any).options?.uri;
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
@@ -52,10 +84,20 @@ export default function Cases() {
 
   return (
     <>
-      <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 pb-6 dark:border-white/10">
+      <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 mb-4 dark:border-white/10">
         <Heading className="text-3xl font-bold text-gray-900">Cases</Heading>
       </div>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto">
+        <div className="grid grid-cols-6 gap-4 mb-4">
+          <div className="col-span-1"></div>
+          <div className="col-span-5">
+            <FilterFieldsSelect
+              data={data.timesheet}
+              selectedFilters={selectedFilters}
+              handleFilterChange={handleFilterChange}
+            />
+          </div>
+        </div>
         <div className="grid grid-cols-6 gap-4 mb-8">
           <div className="col-span-6">
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">

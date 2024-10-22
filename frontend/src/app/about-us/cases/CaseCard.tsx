@@ -37,6 +37,13 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+function isOlderThan30Days(date: any) {
+  if (!date) return false;
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  return new Date(date) < thirtyDaysAgo;
+}
+
   return (
     <Link 
       href={`/analytics/datasets/timesheet-last-six-weeks?CaseTitle=${encodeURIComponent(caseItem.title)}`}
@@ -151,7 +158,9 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
           </div>
           {caseItem.lastUpdate && (
             <div className="mt-2 text-[10px] text-gray-600 text-center">
-              <p>Updated on {formatDate(caseItem.lastUpdate.date)} by {caseItem.lastUpdate.author}</p>
+              <p className={`${isOlderThan30Days(caseItem.lastUpdate.date) ? 'text-red-500 font-semibold' : ''}`}>
+                Updated on {formatDate(caseItem.lastUpdate.date)} by {caseItem.lastUpdate.author}
+              </p>
               <div className="flex justify-center mt-1">
                 <Badge color={getStatusColor(caseItem.lastUpdate.status)}>
                   {caseItem.lastUpdate.status}

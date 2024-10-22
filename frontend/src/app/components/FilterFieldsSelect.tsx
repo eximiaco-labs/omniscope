@@ -13,7 +13,7 @@ export const FilterFieldsSelect: React.FC<FilterFieldsSelectProps> = ({ data, se
     <SelectComponent
       value={selectedFilters}
       options={
-        data?.weekReview?.filterableFields?.map((f: any) => {
+        data?.filterableFields?.map((f: any) => {
           const options = (f.options || [])
             .filter((o: any) => o != null)
             .map((o: any) => ({

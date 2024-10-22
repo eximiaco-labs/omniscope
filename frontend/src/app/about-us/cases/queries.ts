@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_CASES_AND_TIMESHEET = gql`
-  query GetCasesAndTimesheet {
+  query GetCasesAndTimesheet($filters: [FilterInput]) {
     cases(onlyActives: true) {
       id
       slug
@@ -25,7 +25,7 @@ export const GET_CASES_AND_TIMESHEET = gql`
         observations
       }
     }
-    timesheet(slug: "last-six-weeks", kind: ALL) {
+    timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
       uniqueClients
       byKind {
         consulting {
@@ -56,6 +56,11 @@ export const GET_CASES_AND_TIMESHEET = gql`
           totalSquadHours
           totalInternalHours
         }
+      }
+      filterableFields {
+        field
+        options
+        selectedValues
       }
     }
   }
