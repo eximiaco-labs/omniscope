@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "feature/new-deploy" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "feature/new-deploy" ]
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -16,13 +16,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build the Docker image
-      run: docker build . --tag 256696114092.dkr.ecr.us-east-1.amazonaws.com/omniscope/app:${{ github.run_id }} --tag 256696114092.dkr.ecr.us-east-1.amazonaws.com/omniscope/app:latest
+    - name: Build the Docker image - Frontend
+      run: docker build ./frontend --tag 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend:${{ github.run_id }} --tag 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend:latest
+
+    - name: Build the Docker image - Backend
+      run: docker build ./backend --tag 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend:${{ github.run_id }} --tag 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend:latest
 
     - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v3
       with:
-        role-to-assume: arn:aws:iam::256696114092:role/GithubDeploymentRole
+        role-to-assume: arn:aws:iam::339713015367:role/GithubIdentityProviderRole
         role-session-name: GithubSession
         aws-region: us-east-1
 
@@ -31,23 +34,25 @@ jobs:
 
     - name: Push Docker images
       run: |
-        docker image push 256696114092.dkr.ecr.us-east-1.amazonaws.com/omniscope/app:${{ github.run_id }}
-        docker image push 256696114092.dkr.ecr.us-east-1.amazonaws.com/omniscope/app:latest
+        docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend:${{ github.run_id }}
+        docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend:latest
+        docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend:${{ github.run_id }}
+        docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend:latest
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - name: configure aws credentials
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        role-to-assume: arn:aws:iam::256696114092:role/GithubDeploymentRole
-        role-session-name: GithubSession
-        aws-region: us-east-1
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #   - name: configure aws credentials
+  #     uses: aws-actions/configure-aws-credentials@v3
+  #     with:
+  #       role-to-assume: arn:aws:iam::256696114092:role/GithubDeploymentRole
+  #       role-session-name: GithubSession
+  #       aws-region: us-east-1
 
-      #TODO: Atualizar a task definition e o service
-    - name: ECS Restart Service      
-      run: aws ecs update-service --cluster arn:aws:ecs:us-east-1:256696114092:cluster/fargate-spot-stack-ecscluster7830E7B5-5A2jZtnQeSlV --service omniscope-app --region us-east-1 --force-new-deployment
+  #     #TODO: Atualizar a task definition e o service
+  #   - name: ECS Restart Service      
+  #     run: aws ecs update-service --cluster arn:aws:ecs:us-east-1:256696114092:cluster/fargate-spot-stack-ecscluster7830E7B5-5A2jZtnQeSlV --service omniscope-app --region us-east-1 --force-new-deployment
 
     #   aws ecs update-service --cluster <nome_do_cluster> --service <nome_do_serviço> --force-new-deployment
     # - name: ECS Restart Service      

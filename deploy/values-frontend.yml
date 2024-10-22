@@ -1,0 +1,42 @@
+replicaCount: 1
+
+image:
+  repository: 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:  
+    cert-manager.io/issuer: "letsencrypt"
+  hosts:
+    - host: omniscope.eximia.co
+      paths:
+        - path: /insights/
+          pathType: Prefix
+  tls:
+   - secretName: omniscope-tls
+     hosts:
+       - omniscope.eximia.co
+
+envVars:
+  - name: GRAPHQL_ENDPOINT
+    value: http://omniscope-frontend/graphql
+  - name: NEXTAUTH_URL
+    value: https://omniscope.eximia.co
+  - name: NEXTAUTH_URL_INTERNAL
+    value: http://localhost:3000
+  - name: GOOGLE_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-fronend-secrets
+        key: AUTH_CLIENT_ID
+  - name: GOOGLE_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-fronend-secrets
+        key: AUTH_CLIENT_SECRET
+  - name: NEXTAUTH_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-fronend-secrets
+        key: NEXTAUTH_SECRET
