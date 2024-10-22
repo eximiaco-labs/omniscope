@@ -11,7 +11,7 @@ import { WEEK_REVIEW_QUERY } from "./weekReviewQuery";
 import { DatePicker } from "@/components/DatePicker";
 import { MonthComparisonPanel, WeekComparisonPanel } from './ComparisonPanels';
 import { WeekDayCards } from './WeekDayCards';
-import { FilterFieldsSelect } from './FilterFieldsSelect';
+import { FilterFieldsSelect } from '../../components/FilterFieldsSelect';
 import TimelinessPanel from './TimelinessPanel';
 import AllocationAnalysisTables from './AllocationAnalysisTables';
 
@@ -80,7 +80,7 @@ export default function WeekReview() {
 
       <div className="mb-3">
         <FilterFieldsSelect
-          data={data}
+          data={data.weekReview}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
