@@ -3,6 +3,9 @@ replicaCount: 1
 image:
   repository: 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend
 
+service:  
+  port: 3000
+
 ingress:
   enabled: true
   className: nginx

@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend
+  repository: nginx
   pullPolicy: Always
   tag: latest
 
@@ -13,19 +13,19 @@ service:
   port: 80
 
 ingress:
-  enabled: true
-  className: nginx
-  annotations:  
-    cert-manager.io/issuer: "letsencrypt"
-  hosts:
-    - host: omniscope.eximia.co
-      paths:
-        - path: /insights/
-          pathType: Prefix
-  tls:
-   - secretName: omniscope-tls
-     hosts:
-       - omniscope.eximia.co
+  enabled: false
+  # className: nginx
+  # annotations:  
+  #   cert-manager.io/issuer: "letsencrypt"
+  # hosts:
+  #   - host: omniscope.eximia.co
+  #     paths:
+  #       - path: /insights/
+  #         pathType: Prefix
+  # tls:
+  #  - secretName: omniscope-tls
+  #    hosts:
+  #      - omniscope.eximia.co
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -39,22 +39,16 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
+# livenessProbe:
+#   httpGet:
+#     path: /
+#     port: http
     
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
+# readinessProbe:
+#   httpGet:
+#     path: /
+#     port: http
 
-envVars:
-  - GRAPHQL_ENDPOINT="http://omniscope-frontend/graphql"
-  - NEXTAUTH_SECRET="027grb120gbfc1328cygnfv130fvgcb30fvg30fvncg3r3444"
-  - NEXTAUTH_URL=https://omniscope.eximia.co
-  - NEXTAUTH_URL_INTERNAL=http://localhost:3000
-  - GOOGLE_CLIENT_ID=""
-  - GOOGLE_CLIENT_SECRET=""
+envVars: []
 
 

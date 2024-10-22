@@ -39,28 +39,33 @@ jobs:
         docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend:${{ github.run_id }}
         docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend:latest
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   steps:
-  #   - name: configure aws credentials
-  #     uses: aws-actions/configure-aws-credentials@v3
-  #     with:
-  #       role-to-assume: arn:aws:iam::256696114092:role/GithubDeploymentRole
-  #       role-session-name: GithubSession
-  #       aws-region: us-east-1
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v4
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        role-to-assume: arn:aws:iam::339713015367:role/GithubIdentityProviderRole
+        role-session-name: GithubSession
+        aws-region: us-east-1
 
-  #     #TODO: Atualizar a task definition e o service
-  #   - name: ECS Restart Service      
-  #     run: aws ecs update-service --cluster arn:aws:ecs:us-east-1:256696114092:cluster/fargate-spot-stack-ecscluster7830E7B5-5A2jZtnQeSlV --service omniscope-app --region us-east-1 --force-new-deployment
-
-    #   aws ecs update-service --cluster <nome_do_cluster> --service <nome_do_serviço> --force-new-deployment
-    # - name: ECS Restart Service      
-    #   uses: apideck-libraries/ecs-restart-service@v1
-    #   with:        
-    #     service: ominiscope-app
-    #     # The short name or full Amazon Resource Name (ARN) of the cluster that your service runs on. If you do not specify a cluster, the default cluster is assumed.
-    #     cluster: arn:aws:ecs:us-east-1:256696114092:cluster/fargate-spot-stack-ecscluster7830E7B5-5A2jZtnQeSlV
+    - name: Deploy Backend
+      run: |
+        aws eks update-kubeconfig --name ia-factory-cluster --region us-east-1
+        helm upgrade --install backend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-backend.yml --set image.tag=${{ github.run_id }}
+          
+    # - name: Backend - Deploy Helm chart to AWS EKS Cluster
+    #   uses: bitovi/github-actions-deploy-eks-helm@v1.2.9
+    #   with:
+    #     aws-region: us-east-1
+    #     cluster-name: ia-factory-cluster                  
+    #     namespace: omniscope
+    #     values: image.tag=${{ github.run_id }}
+    #     name: backend
+    #     action: install        
+    #     chart-path: ./deploy/chart/omniscope
         
           
 
