@@ -31,4 +31,4 @@ def get_selections_from_selection_set(selection_set, info) -> List[Any]:
     return result
 
 def get_selections_from_info(info):
-    return get_selections_from_selection_set(info.field_nodes[0].selection_set)
+    return get_selections_from_selection_set(info.field_nodes[0].selection_set, info)

@@ -18,7 +18,11 @@ class ExecutionStatsExtension(Extension):
 
         if self.start_time and self.end_time:
             execution_time = (self.end_time - self.start_time) / 1e6  # Converting to milliseconds
+
+            extra_data = getattr(context, 'extra_data', {})
+
             return {
-                "executionTime": f"{execution_time:.2f} ms"
+                "executionTime": f"{execution_time:.2f} ms",
+                **extra_data
             }
         return None

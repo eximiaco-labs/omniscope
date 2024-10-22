@@ -1,22 +1,27 @@
+
 from datetime import datetime
 import pandas as pd
 from typing import Dict, Any, List, Union
 
-from h5py.h5ds import detach_scale
+from graphql import GraphQLResolveInfo
 
-from api.utils.fields import get_requested_fields_from
+from api.utils.fields import get_requested_fields_from, get_selections_from_info
 
 import globals
 
 def summarize(df: pd.DataFrame) -> Dict[str, Any]:
-    # Precompute groupby operations
-    date_group = df.groupby("Date")["TimeInHs"].sum()
-    worker_group = df.groupby("WorkerSlug")["TimeInHs"].sum()
-    client_group = df.groupby("ClientId")["TimeInHs"].sum()
-    case_group = df.groupby("CaseId")["TimeInHs"].sum()
-    sponsor_group = df.groupby("Sponsor")["TimeInHs"].sum()
-    account_manager_group = df.groupby("AccountManagerSlug")["TimeInHs"].sum()
-    week_group = df.groupby("Week")["TimeInHs"].sum()
+    # Perform groupby operations once
+    group_operations = {
+        "date": df.groupby("Date")["TimeInHs"],
+        "worker": df.groupby("WorkerSlug")["TimeInHs"],
+        "client": df.groupby("ClientId")["TimeInHs"],
+        "case": df.groupby("CaseId")["TimeInHs"],
+        "sponsor": df.groupby("Sponsor")["TimeInHs"],
+        "account_manager": df.groupby("AccountManagerSlug")["TimeInHs"],
+        "week": df.groupby("Week")["TimeInHs"]
+    }
+
+    group_results = {k: g.agg(['sum', 'mean', 'std']) for k, g in group_operations.items()}
 
     # Calculate statistics
     total_hours = df["TimeInHs"].sum()
@@ -34,20 +39,20 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
         "unique_weeks": df["Week"].nunique(),
         "average_hours_per_entry": average_hours_per_entry,
         "std_dev_hours_per_entry": df["TimeInHs"].std(),
-        "average_hours_per_day": date_group.mean(),
-        "std_dev_hours_per_day": date_group.std(),
-        "average_hours_per_worker": worker_group.mean(),
-        "std_dev_hours_per_worker": worker_group.std(),
-        "average_hours_per_client": client_group.mean(),
-        "std_dev_hours_per_client": client_group.std(),
-        "average_hours_per_case": case_group.mean(),
-        "std_dev_hours_per_case": case_group.std(),
-        "average_hours_per_sponsor": sponsor_group.mean(),
-        "std_dev_hours_per_sponsor": sponsor_group.std(),
-        "average_hours_per_account_manager": account_manager_group.mean(),
-        "std_dev_hours_per_account_manager": account_manager_group.std(),
-        "average_hours_per_week": week_group.mean(),
-        "std_dev_hours_per_week": week_group.std(),
+        "average_hours_per_day": group_results["date"]['mean'],
+        "std_dev_hours_per_day": group_results["date"]['std'],
+        "average_hours_per_worker": group_results["worker"]['mean'],
+        "std_dev_hours_per_worker": group_results["worker"]['std'],
+        "average_hours_per_client": group_results["client"]['mean'],
+        "std_dev_hours_per_client": group_results["client"]['std'],
+        "average_hours_per_case": group_results["case"]['mean'],
+        "std_dev_hours_per_case": group_results["case"]['std'],
+        "average_hours_per_sponsor": group_results["sponsor"]['mean'],
+        "std_dev_hours_per_sponsor": group_results["sponsor"]['std'],
+        "average_hours_per_account_manager": group_results["account_manager"]['mean'],
+        "std_dev_hours_per_account_manager": group_results["account_manager"]['std'],
+        "average_hours_per_week": group_results["week"]['mean'],
+        "std_dev_hours_per_week": group_results["week"]['std'],
         "total_squad_hours": df[df['Kind'] == 'Squad']['TimeInHs'].sum(),
         "total_consulting_hours": df[df['Kind'] == 'Consulting']['TimeInHs'].sum(),
         "total_internal_hours": df[df['Kind'] == 'Internal']['TimeInHs'].sum(),
@@ -55,7 +60,8 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 
-def summarize_by_kind(df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
+
+def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
     kinds = ['Internal', 'Consulting', 'Squad', 'HandsOn']
     summary_by_kind = {}
 
@@ -66,11 +72,12 @@ def summarize_by_kind(df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
             label = 'hands_on'
         else:
             label = kind.lower()
+            
         summary_by_kind[label] = summarize(df_kind)
     
     return summary_by_kind
 
-def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name") -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name", map: Dict = None) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
     summaries = []
     for group_value, group_df in df.groupby(group_column):
         summary = summarize(group_df)
@@ -79,11 +86,11 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
         for kind in ['Squad', 'Consulting', 'Internal', 'HandsOn']:
             summary[f"total_{kind.lower()}_hours"] = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()
 
-        summary["by_kind"] = summarize_by_kind(group_df)
+        summary["by_kind"] = summarize_by_kind(group_df, map['byKind']) if map and 'byKind' in map else None
         if group_column != 'Week':
-            summary['by_week'] = summarize_by_week(group_df)
+            summary['by_week'] = summarize_by_week(group_df, map['byWeek']) if map and 'byWeek' in map else None
 
-        if group_column == 'CaseTitle':
+        if group_column == 'CaseTitle' and 'caseDetails' in map:
             details_obj = globals.omni_models.cases.get_by_title(group_value)
             if details_obj:
                 details = {**details_obj.__dict__}
@@ -93,7 +100,7 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
                     if not prop.startswith('_') and prop not in details:
                         details[prop] = getattr(details_obj, prop)
 
-                if details['client_id']:
+                if details['client_id'] and 'client' in map['caseDetails']:
                     details['client'] = globals.omni_models.clients.get_by_id(details['client_id'])
                 else:
                     details['client'] = None
@@ -107,39 +114,41 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
     summaries = sorted(summaries, key=lambda x: x["total_hours"], reverse=True)
     return summaries
 
-def summarize_by_worker(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'WorkerName')
+def summarize_by_worker(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'WorkerName', map=map)
 
-def summarize_by_client(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'ClientName')
+def summarize_by_client(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'ClientName', map=map)
 
-def summarize_by_case(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'CaseTitle', name_key="title")
+def summarize_by_case(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'CaseTitle', name_key="title", map=map)
 
-def summarize_by_sponsor(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'Sponsor')
+def summarize_by_sponsor(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'Sponsor', map=map)
 
-def summarize_by_account_manager(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'AccountManagerName')
+def summarize_by_account_manager(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'AccountManagerName', map=map)
 
-def summarize_by_date(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'Date', name_key="date")
+def summarize_by_date(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'Date', name_key="date", map=map)
 
-def summarize_by_week(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    summaries = summarize_by_group(df, 'Week', name_key="week")
+def summarize_by_week(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    summaries = summarize_by_group(df, 'Week', name_key="week", map=map)
     
     # Sort the summaries based on the 'week' key
     sorted_summaries = sorted(summaries, key=lambda x: datetime.strptime(x['week'].split(' - ')[0], '%d/%m'))
     
     return sorted_summaries
 
-def summarize_by_offer(df: pd.DataFrame) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
-    return summarize_by_group(df, 'ProductsOrServices', name_key="name")
+def summarize_by_offer(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    return summarize_by_group(df, 'ProductsOrServices', name_key="name", map=map)
 
-def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters = None):
+def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
     if not slug.startswith('timesheet-'):
         slug = f'timesheet-{slug}'
-    
+
+    requested_fields = map.keys()
+
     timesheet = globals.omni_datasets.get_by_slug(slug)
     source = globals.omni_datasets.get_dataset_source_by_slug(slug)
     df = timesheet.data
@@ -184,41 +193,64 @@ def compute_timesheet(requested_fields, slug: str=None, kind: str="ALL", filters
 
     # By kind
     if 'byKind' in requested_fields:
-        result['by_kind'] = summarize_by_kind(df)
+        result['by_kind'] = summarize_by_kind(df, map['byKind'])
 
     # By worker
     if 'byWorker' in requested_fields:
-        result['by_worker'] = summarize_by_worker(df)
+        result['by_worker'] = summarize_by_worker(df, map['byWorker'])
 
     # By client
     if 'byClient' in requested_fields:
-        result['by_client'] = summarize_by_client(df)
+        result['by_client'] = summarize_by_client(df, map['byClient'])
 
     # By case
     if 'byCase' in requested_fields:
-        result['by_case'] = summarize_by_case(df)
+        result['by_case'] = summarize_by_case(df, map['byCase'])
 
     # By sponsor
     if 'bySponsor' in requested_fields:
-        result['by_sponsor'] = summarize_by_sponsor(df)
+        result['by_sponsor'] = summarize_by_sponsor(df, map['bySponsor'])
 
     # By account manager
     if 'byAccountManager' in requested_fields:
-        result['by_account_manager'] = summarize_by_account_manager(df)
+        result['by_account_manager'] = summarize_by_account_manager(df, map['byAccountManager'])
 
     # By date
     if 'byDate' in requested_fields:
-        result['by_date'] = summarize_by_date(df)
+        result['by_date'] = summarize_by_date(df, map['byDate'])
 
     # By week
     if 'byWeek' in requested_fields:
-        result['by_week'] = summarize_by_week(df)
+        result['by_week'] = summarize_by_week(df, map['byWeek'])
     
     if 'byOffer' in requested_fields:
-        result['by_offer'] = summarize_by_offer(df)
+        result['by_offer'] = summarize_by_offer(df, map['byOffer'])
 
     return result
 
 def resolve_timesheet(_, info, slug: str, kind: str = "ALL", filters = None):
     requested_fields = get_requested_fields_from(info)
-    return compute_timesheet(requested_fields, slug, kind, filters)
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, kind, filters)
+    return result
+
+def build_fields_map(info):
+    selections = get_selections_from_info(info)
+    fields_map = {}
+    for selection in selections:
+        new_info = GraphQLResolveInfo(
+            field_name=selection.name.value,
+            field_nodes=[selection],
+            return_type=info.return_type,
+            parent_type=info.parent_type,
+            schema=info.schema,
+            fragments=info.fragments,
+            root_value=info.root_value,
+            operation=info.operation,
+            variable_values=info.variable_values,
+            context=info.context,
+            path=info.path,
+            is_awaitable=info.is_awaitable
+        )
+        fields_map[selection.name.value] = build_fields_map(new_info) if selection.selection_set else None
+    return fields_map
