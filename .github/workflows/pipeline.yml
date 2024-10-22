@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "feature/new-deploy" ]
+    branches: [ "feature/deploy-new-version" ]
   pull_request:
-    branches: [ "feature/new-deploy" ]
+    branches: [ "feature/deploy-new-version" ]
 
 permissions:
   id-token: write # This is required for requesting the JWT
