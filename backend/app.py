@@ -2,6 +2,12 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, snake_case_fallback_resolvers
 from ariadne.explorer import ExplorerGraphiQL
+
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from functools import wraps
+from settings import auth_settings  # Import your auth settings
+
 from api.queries import query
 from api.mutations import mutation
 import logging
@@ -9,6 +15,41 @@ import argparse
 
 from backend.api.execution_stats import ExecutionStatsExtension
 import globals
+
+def verify_token(token):
+    try:
+        # Use the client_id from your settings
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), auth_settings["client_id"])
+        
+        if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+            raise ValueError('Wrong issuer.')
+        
+        # ID token is valid. Get the user's Google Account ID from the decoded token.
+        userid = idinfo['sub']
+        return userid
+    except ValueError:
+        # Invalid token
+        return None
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ', 1)[1]
+            else:
+                token = None
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+        
+        user_id = verify_token(token)
+        if not user_id:
+            return jsonify({'message': 'Token is invalid!'}), 401
+        
+        return f(*args, **kwargs)
+    return decorated
 
 app = Flask(__name__)
 CORS(app)
@@ -29,6 +70,7 @@ def graphql_playground():
     return explorer_html, 200
 
 @app.route("/graphql", methods=["POST"])
+@token_required
 def graphql_server():
     data = request.get_json()
     success, result = graphql_sync(
@@ -56,3 +98,4 @@ if __name__ == '__main__':
     app.logger.info("Starting the application")
     globals.update()
     app.run(debug=args.verbose)
+
