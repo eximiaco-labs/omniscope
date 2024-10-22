@@ -57,7 +57,7 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
     ]
     if late_projects:
         result.append(Inconsistency(
-            'Late Projects',
+            'Late projects',
             f'{len(late_projects)} project(s) are past their expected due date.'
         ))
 
@@ -77,7 +77,7 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
     ]
     if projects_without_due_dates:
         result.append(Inconsistency(
-            'Projects Without Due Dates',
+            'Projects without due dates',
             f'{len(projects_without_due_dates)} project(s) have no expected due date set.'
         ))
 
