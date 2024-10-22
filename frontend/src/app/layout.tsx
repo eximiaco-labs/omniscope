@@ -12,7 +12,7 @@ import { useEffect } from "react";
 
 // Create and export the Apollo Client instance
 export const client = new ApolloClient({
-  uri: process.env.GRAPHQL_ENDPOINT || "http://127.0.0.1:5000/graphql",
+  uri: "http://omniscope.eximia.co/graphql",
   cache: new InMemoryCache(),
 });
 
