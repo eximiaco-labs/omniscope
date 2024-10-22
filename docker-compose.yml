@@ -18,7 +18,6 @@ services:
     ports:
       - "8098:3000"
     environment:
-      - GRAPHQL_ENDPOINT="http://backend:5000/graphql"
       - NEXTAUTH_SECRET="027grb120gbfc1328cygnfv130fvgcb30fvg30fvncg3r3444"
       - NEXTAUTH_URL=http://localhost:8098 
       - NEXTAUTH_URL_INTERNAL=http://localhost:3000
