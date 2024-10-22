@@ -54,8 +54,8 @@ jobs:
     - name: Deploy Backend
       run: |
         aws eks update-kubeconfig --name ia-factory-cluster --region us-east-1
-        helm upgrade --install backend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-backend.yml --set image.tag=${{ github.run_id }}
-        helm upgrade --install frontend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-frontend.yml --set image.tag=${{ github.run_id }}
+        helm upgrade --install backend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-backend.yml --set image.tag=${{ github.run_id }} --wait
+        helm upgrade --install frontend ./deploy/chart/omniscope --namespace omniscope -f ./deploy/values-frontend.yml --set image.tag=${{ github.run_id }} --wait
 
           
 
