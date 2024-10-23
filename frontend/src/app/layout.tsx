@@ -18,7 +18,9 @@ const httpLink = createHttpLink({
 
 const authLink =  setContext(async (_, { headers }) => {  
   const token = await getSession()
-  if(!token) {
+  console.log(token);
+  // @ts-ignore
+  if(!token || !token.accessToken) {
     return { headers }
   }
 

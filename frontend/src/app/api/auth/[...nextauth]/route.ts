@@ -22,7 +22,7 @@ const authOptions: NextAuthOptions = {
     async signIn({ account, profile }) {
       return true;
     },
-    async session({ session, token }) {            
+    async session({ session, token }) {                  
       // @ts-ignore
       session.accessToken = token.accessToken
       return session;
