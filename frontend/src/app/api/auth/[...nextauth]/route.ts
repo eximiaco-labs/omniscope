@@ -22,14 +22,19 @@ const authOptions: NextAuthOptions = {
     async signIn({ account, profile }) {
       return true;
     },
-    async session({ session, token }) {                        
+    async session({ session, token }) {  
+      console.log("Session Callback - Token:", token)
+      console.log("Session Callback - Current Session:", session)      
       // @ts-ignore
       session.accessToken = token.accessToken
       return session;
     },
-    async jwt({ token, account }) {            
+    async jwt({ token, account }) {   
+      console.log("JWT Callback - Account:", account)
+      console.log("JWT Callback - Current Token:", token)         
       if (account) {
         token.accessToken = account.access_token;
+        console.log("JWT Callback - New Token:", token)
       }
       return token;
     }
