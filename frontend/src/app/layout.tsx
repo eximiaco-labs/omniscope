@@ -10,13 +10,14 @@ import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
 import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
 import { useEffect } from "react";
+import { getSession } from "next-auth/react";
 
 const httpLink = createHttpLink({
   uri: "https://omniscope.eximia.co/graphql"
 });
 
 const authLink =  setContext(async (_, { headers }) => {  
-  const { data: session } = useSession()
+  const session = await getSession()
   console.log(session);
   // @ts-ignore
   if(!session || !session.accessToken) {
