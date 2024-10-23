@@ -3,7 +3,7 @@ const nextConfig = {
   images: {
     domains: ['ontologia.eximia.co', "localhost:8098"],
   },
-  output: "standalone"
+  output: "standalone",
   async redirects() {
     return [
       {
