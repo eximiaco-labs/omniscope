@@ -10,7 +10,6 @@ COPY . .
 
 EXPOSE 80
 
-CMD ["python", "app.py"]
+CMD ["python", "src/app.py"]
 
-RUN mkdir /.cache
-RUN chmod 777 /.cache
+RUN mkdir /.cache && chmod 777 /.cache
