@@ -18,16 +18,17 @@ const httpLink = createHttpLink({
 
 const authLink =  setContext(async (_, { headers }) => {  
   const token = await getSession()
-  // if(!token) {
+  if(!token) {
     return { headers }
-  // }
+  }
 
-  // return {
-  //   headers: {
-  //     ...headers,
-  //     authorization: token ? `Bearer ${token.accessToken}` : "",
-  //   }
-  // }
+  return {
+    headers: {
+      ...headers,
+      // @ts-ignore
+      authorization: token ? `Bearer ${token.accessToken}` : "",
+    }
+  }
 });
 
 export const client = new ApolloClient({  
