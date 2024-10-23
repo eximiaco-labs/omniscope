@@ -3,7 +3,7 @@ import argparse
 import sys
 import globals
 import os
-import jwt
+#import jwt
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -13,7 +13,7 @@ from ariadne.explorer import ExplorerGraphiQL
 
 from api.queries import query
 from api.mutations import (mutation)
-from jwt import PyJWKClient
+# from jwt import PyJWKClient
 
 
 app = Flask(__name__)
@@ -32,22 +32,11 @@ schema = make_executable_schema(
 explorer_html = ExplorerGraphiQL().html(None)
 
 @auth.verify_token
-def verify_token(token):    
-    public_key_url = os.environ.get("AUTH_PUBLIC_KEY")    
-    jwks_client = PyJWKClient(public_key_url)
-    signing_key = jwks_client.get_signing_key_from_jwt(token)
-    try:
-        jwt.decode(
-            token,
-            signing_key,
-            audience="304391605162-0ev7k6rcuompvu9gblf17mbb467pq8gu.apps.googleusercontent.com",
-            options={"verify_exp": False}
-        )
-    except Exception as e:
-        print(e, file=sys.stderr)
+def verify_token(token):        
+    if token:
+        return True
+    else:
         return False
-
-    return True
 
 @app.route("/graphql", methods=["GET"])
 @auth.login_required
