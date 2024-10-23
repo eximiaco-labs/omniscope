@@ -44,7 +44,7 @@ def verify_token(token):
             options={"verify_exp": False}
         )
     except Exception as e:
-        print(e)
+        print(e, file=sys.stderr)
         return False
 
     return True
