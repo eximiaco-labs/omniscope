@@ -22,6 +22,17 @@ const authOptions: NextAuthOptions = {
     async signIn({ account, profile }) {
       return true;
     },
+    async session({ session, token }) {
+      console.log(session, token);
+      return session;
+    },
+    async jwt({ token, account }) {
+      console.log(token, account);
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    }
   },
 };
 
