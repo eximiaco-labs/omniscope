@@ -47,7 +47,7 @@ class Weeks:
         return Weeks.to_string(start, end)
 
     @staticmethod
-    def get_week_string(reference_date):
+    def get_week_string(reference_date) -> str:
         start, end = Weeks.get_week_dates(reference_date)
         return Weeks.to_string(start, end)
 

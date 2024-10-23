@@ -3,3 +3,8 @@ Flask-CORS
 ariadne
 
 google-auth
+pytest
+pytest-cov
+pytest-mock
+pytest-parametrize
+
