@@ -12,7 +12,7 @@ from api.queries import query
 from api.mutations import mutation
 import logging
 import argparse
-
+import sys
 from api.execution_stats import ExecutionStatsExtension
 import globals
 
@@ -20,7 +20,7 @@ def verify_token(token):
     try:
         # Use the client_id from your settings
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), auth_settings["client_id"])
-        
+        print(idinfo, file=sys.stderr)
         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
             raise ValueError('Wrong issuer.')
         
