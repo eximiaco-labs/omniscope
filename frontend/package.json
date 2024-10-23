@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev -p 80",
+    "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -27,6 +27,7 @@
     "lucide-react": "^0.447.0",
     "next": "14.2.14",
     "next-auth": "^4.24.8",
+    "next-themes": "^0.3.0",
     "react": "^18",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18",
@@ -34,6 +35,7 @@
     "react-responsive-masonry": "^2.4.1",
     "react-tailwindcss-select": "^1.8.5",
     "recharts": "^2.12.7",
+    "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.3",
     "tailwindcss-animate": "^1.0.7"
   },

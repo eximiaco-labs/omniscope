@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const GET_CLIENT_STATS = gql`
+export const GET_HOME_DATA = gql`
   query GetClientStats($accountManagerName: String, $filters: [FilterInput]) {
     clients(accountManagerName: $accountManagerName) {
       id

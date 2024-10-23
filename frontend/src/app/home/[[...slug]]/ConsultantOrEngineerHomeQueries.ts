@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
-export const GET_CLIENT_STATS = gql`
-  query GetData($filters: [FilterInput]) {
+export const GET_HOME_DATA = gql`
+  query GetHomeData($filters: [FilterInput], $dateOfInterest: Date!) {
     timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
       uniqueClients
       uniqueCases
@@ -146,6 +146,62 @@ export const GET_CLIENT_STATS = gql`
           }
         }
       }
+    }
+
+    weekReview(date_of_interest: $dateOfInterest, filters: $filters) {
+      hoursPreviousWeeks
+      hoursPreviousWeeksUntilThisDate
+      hoursThisWeek
+
+      monthSummary {
+        hoursThisMonth
+        hoursPreviousMonth
+        hoursPreviousMonthUntilThisDate
+        limitDate
+      }
+    }
+
+    timelinessReview(date_of_interest: $dateOfInterest, filters: $filters) {
+      totalRows
+
+      earlyRows
+      earlyTimeInHours
+
+      okRows
+      okTimeInHours
+
+      acceptableRows
+      acceptableTimeInHours
+
+      lateRows
+      lateTimeInHours
+
+      earlyWorkers {
+        worker
+        entries
+        timeInHours
+      }
+
+      okWorkers {
+        worker
+        entries
+        timeInHours
+      }
+
+      acceptableWorkers {
+        worker
+        entries
+        timeInHours
+      }
+
+      lateWorkers {
+        worker
+        entries
+        timeInHours
+      }
+
+      minDate
+      maxDate
     }
   }
 `;

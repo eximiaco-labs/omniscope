@@ -42,12 +42,6 @@ const ClientStatsSection: React.FC<ClientStatsSectionProps> = ({ data, selectedS
     { name: 'internal', title: 'Internal', value: data.timesheet.byKind.internal.uniqueClients.toString(), color: '#10B981' },
   ];
 
-  const selectedStatIndex = stats.findIndex(stat => stat.name === selectedStat);
-  if (selectedStatIndex !== -1) {
-    const selectedStat = stats.splice(selectedStatIndex, 1)[0];
-    stats.unshift(selectedStat);
-  }
-
   return (
     <div className="grid grid-cols-6 gap-4 mb-8">
       <div className="col-span-6">

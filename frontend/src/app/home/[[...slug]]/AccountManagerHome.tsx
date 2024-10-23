@@ -4,7 +4,7 @@ import ClientStatsSection from "@/app/components/ClientStatsSection";
 import { Stat } from "@/app/components/analytics/stat";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
-import { GET_CLIENT_STATS } from "./AccountManagerHomeQueries";
+import { GET_HOME_DATA } from "./AccountManagerHomeQueries";
 import TopClients from "./panels/TopClients";
 import TopSponsors from "./panels/TopSponsors";
 import TopWorkers from "./panels/TopWorkers";
@@ -21,7 +21,7 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
   const [selectedStat, setSelectedStat] = React.useState<string>("allClients");
 
   const { loading: statsLoading, data: clientStatsData } = useQuery(
-    GET_CLIENT_STATS,
+    GET_HOME_DATA,
     {
       variables: {
         accountManagerName: user?.name || "",
