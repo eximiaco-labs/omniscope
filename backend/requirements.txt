@@ -3,6 +3,14 @@ Flask
 Flask-CORS
 flask_httpauth
 ariadne
+
+google-auth
+pytest
+pytest-cov
+pytest-mock
+pytest-parametrize
+
+
 pydantic
 pytz
 python-dotenv

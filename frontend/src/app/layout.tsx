@@ -4,47 +4,35 @@ import "./globals.css";
 
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
 import { Navbar } from "@/components/catalyst/navbar";
-import { ApolloProvider, ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
-import { setContext } from '@apollo/client/link/context';
+import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
-import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
-import { useEffect, useMemo } from "react";
+import { useSession, signIn, SessionProvider } from "next-auth/react";
+import { useEffect } from "react";
 
-function ApolloWrapper({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession()
+function createApolloClient(session: any) {
+  const httpLink = createHttpLink({
+    uri: typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      ? "http://127.0.0.1:5000/graphql"
+      : "https://omniscope.eximia.co/graphql",
+  });
 
-  const client = useMemo(() => {
-    const httpLink = createHttpLink({
-      uri: "https://omniscope.eximia.co/graphql"
-    });
+  const authLink = setContext((_, prevContext) => {
+    // Use idToken instead of accessToken
+    const token = session?.idToken;
+    return {
+      headers: {
+        ...prevContext.headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
 
-    const authLink = setContext(async (_, { headers }) => {
-      // @ts-ignore
-      if (!session || !session.accessToken) {
-        return { headers }
-      }
-
-      return {
-        headers: {
-          ...headers,
-          // @ts-ignore
-          authorization: `Bearer ${session.accessToken}`,
-        }
-      }
-    });
-
-    return new ApolloClient({
-      link: authLink.concat(httpLink),
-      cache: new InMemoryCache(),
-    });
-  }, [session]);
-
-  return (
-    <ApolloProvider client={client}>
-      {children}
-    </ApolloProvider>
-  )
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+  });
 }
 
 export default function RootLayout({
@@ -64,21 +52,21 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          <ApolloWrapper>
-            <SessionComponent>
-              {(session) => (
-                session ? (
+          <SessionComponent>
+            {(session) => (
+              session ? (
+                <ApolloProvider client={createApolloClient(session)}>
                   <SidebarLayout
                     sidebar={<OmniscopeSidebar />}
-                    navbar={<Navbar>{/* Your navbar content */}</Navbar>}
+                    navbar={<Navbar />}
                   >
                     <InconsistencyAlerts />
                     <main>{children}</main>
                   </SidebarLayout>
-                ) : null
-              )}
-            </SessionComponent>
-          </ApolloWrapper>
+                </ApolloProvider>
+              ) : null
+            )}
+          </SessionComponent>
         </SessionProvider>
       </body>
     </html>
@@ -104,7 +92,7 @@ function SessionComponent({ children }: { children: (session: any) => React.Reac
   }, [session, status]);
 
   if (isLoading) {
-    return null; // Or a loading spinner if you prefer
+    return null;
   }
 
   return children(session);

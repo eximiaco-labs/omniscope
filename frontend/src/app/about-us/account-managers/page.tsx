@@ -20,6 +20,7 @@ const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
       email
       position
       photoUrl
+      isRecognized
       errors
     }
     timesheet(slug: "last-six-weeks", kind: ALL) {
@@ -102,7 +103,7 @@ export default function AccountManagers() {
 
     return (
       <Link 
-        href={`/analytics/datasets/timesheet-this-month?AccountManagerName=${encodeURIComponent(manager.name)}`}
+        href={`/home/${encodeURIComponent(manager.slug)}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

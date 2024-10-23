@@ -100,7 +100,7 @@ package-lock.json
 # Project specific
 docker-compose.override.yml
 cache/
-backend/cache
+backend/src/cache
 src/flask_session/
 nb/cache/
 src/cache/

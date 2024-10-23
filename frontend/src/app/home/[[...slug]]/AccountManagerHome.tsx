@@ -1,120 +1,15 @@
 import React from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import ClientStatsSection from "@/app/components/ClientStatsSection";
 import { Stat } from "@/app/components/analytics/stat";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/catalyst/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import RankingIndicator from "@/components/RankingIndicator";
+import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
-const GET_CLIENT_STATS = gql`
-  query GetClientStats($accountManagerName: String, $filters: [FilterInput]) {
-    clients(accountManagerName: $accountManagerName) {
-      id
-    }
-    timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
-      uniqueClients
-      uniqueCases
-      uniqueWorkers
-      totalHours
-
-      byKind {
-        consulting {
-          uniqueClients
-          uniqueCases
-          uniqueWorkers
-          totalHours
-        }
-        handsOn {
-          uniqueClients
-          uniqueCases
-          uniqueWorkers
-          totalHours
-        }
-        squad {
-          uniqueClients
-          uniqueCases
-          uniqueWorkers
-          totalHours
-        }
-        internal {
-          uniqueClients
-          uniqueCases
-          uniqueWorkers
-          totalHours
-        }
-      }
-
-      byClient {
-        name
-        uniqueCases
-        uniqueWorkers
-        totalHours
-        byKind {
-          consulting {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          handsOn {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          squad {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          internal {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-        }
-      }
-
-      bySponsor {
-        name
-        uniqueCases
-        uniqueWorkers
-        totalHours
-        byKind {
-          consulting {
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          handsOn {
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          squad {
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          internal {
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-        }
-      }
-    }
-  }
-`;
+import { GET_CLIENT_STATS } from "./AccountManagerHomeQueries";
+import TopClients from "./panels/TopClients";
+import TopSponsors from "./panels/TopSponsors";
+import TopWorkers from "./panels/TopWorkers";
+import CasesByContractEnd from "./panels/CasesByContractEnd";
+import CasesUpdates from "./panels/CasesUpdates";
 
 interface AccountManagerHomeProps {
   user: {
@@ -191,37 +86,6 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
     }
   };
 
-  const filterItems = (item: any) => {
-    if (selectedStat === "allClients" || selectedStat === "total") return true;
-    return item.byKind[selectedStat].totalHours > 0;
-  };
-
-  const sortItems = (a: any, b: any) => {
-    const getRelevantHours = (item: any) => {
-      if (selectedStat === "allClients" || selectedStat === "total") {
-        return item.totalHours;
-      }
-      return item.byKind[selectedStat].totalHours;
-    };
-    return getRelevantHours(b) - getRelevantHours(a);
-  };
-
-  const getItemValue = (item: any, field: string) => {
-    if (selectedStat === "allClients" || selectedStat === "total") {
-      return item[field];
-    }
-    return item.byKind[selectedStat][field];
-  };
-
-  const formatHours = (hours: number) => {
-    return hours % 1 === 0 ? Math.floor(hours) : hours.toFixed(1);
-  };
-
-  const calculatePercentage = (itemHours: number) => {
-    const totalHours = selectedStats?.totalHours || 0;
-    return totalHours > 0 ? ((itemHours / totalHours) * 100).toFixed(1) : "0.0";
-  };
-
   return (
     <main>
       {clientStatsData && (
@@ -254,109 +118,33 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
       )}
 
       {clientStatsData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="mt-8 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-800">
-                {clientStatsData.timesheet.byClient.filter(filterItems).length > 10
-                  ? "Top 10 Clients"
-                  : "Clients"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table className="w-full table-fixed">
-                <TableHead>
-                  <TableRow className="bg-gray-100">
-                    <TableHeader className="font-semibold text-left w-8/12">Client</TableHeader>
-                    <TableHeader className="font-semibold text-center w-4/12">Hours</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clientStatsData.timesheet.byClient
-                    .filter(filterItems)
-                    .sort(sortItems)
-                    .slice(0, 10)
-                    .map((client: any, index: number) => (
-                      <TableRow 
-                        key={client.name}
-                        className={`animate-fadeIn hover:bg-gray-50 transition-colors duration-150 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                        style={{ animationDelay: `${index * 100}ms` }}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center space-x-3">
-                            <RankingIndicator
-                              index={index + 1}
-                              percentage={calculatePercentage(getItemValue(client, 'totalHours'))}
-                            />
-                            <div className="flex flex-col">
-                              <span>{client.name}</span>
-                              <span className="text-xs text-gray-500">
-                                {getItemValue(client, 'uniqueCases')} cases • {getItemValue(client, 'uniqueWorkers')} workers
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-medium">{formatHours(getItemValue(client, 'totalHours'))}</span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <Card className="mt-8 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-800">
-                {clientStatsData.timesheet.bySponsor.filter(filterItems).length > 10
-                  ? "Top 10 Sponsors"
-                  : "Sponsors"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table className="w-full table-fixed">
-                <TableHead>
-                  <TableRow className="bg-gray-100">
-                    <TableHeader className="font-semibold text-left w-8/12">Sponsor</TableHeader>
-                    <TableHeader className="font-semibold text-center w-4/12">Hours</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clientStatsData.timesheet.bySponsor
-                    .filter(filterItems)
-                    .sort(sortItems)
-                    .slice(0, 10)
-                    .map((sponsor: any, index: number) => (
-                      <TableRow 
-                        key={sponsor.name}
-                        className={`animate-fadeIn hover:bg-gray-50 transition-colors duration-150 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                        style={{ animationDelay: `${index * 100}ms` }}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center space-x-3">
-                            <RankingIndicator
-                              index={index + 1}
-                              percentage={calculatePercentage(getItemValue(sponsor, 'totalHours'))}
-                            />
-                            <div className="flex flex-col">
-                              <span>{sponsor.name}</span>
-                              <span className="text-xs text-gray-500">
-                                {getItemValue(sponsor, 'uniqueCases')} cases • {getItemValue(sponsor, 'uniqueWorkers')} workers
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-medium">{formatHours(getItemValue(sponsor, 'totalHours'))}</span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+        <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2 }}>
+          <Masonry gutter="1rem">
+            <TopClients
+              clientData={clientStatsData.timesheet.byClient}
+              selectedStat={selectedStat}
+              totalHours={selectedStats?.totalHours || 0}
+            />
+            <TopSponsors
+              sponsorData={clientStatsData.timesheet.bySponsor}
+              selectedStat={selectedStat}
+              totalHours={selectedStats?.totalHours || 0}
+            />
+            <TopWorkers
+              workerData={clientStatsData.timesheet.byWorker}
+              selectedStat={selectedStat}
+              totalHours={selectedStats?.totalHours || 0}
+            />
+            <CasesByContractEnd
+              caseData={clientStatsData.timesheet.byCase}
+              selectedStat={selectedStat}
+            />
+            <CasesUpdates
+              caseData={clientStatsData.timesheet.byCase}
+              selectedStat={selectedStat}
+            />
+          </Masonry>
+        </ResponsiveMasonry>
       )}
     </main>
   );
