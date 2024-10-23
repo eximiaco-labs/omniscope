@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/catalyst/button';
 import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 import { gql, useMutation } from '@apollo/client';
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,19 +27,28 @@ const REFRESH_DATA_MUTATION = gql`
 export default function HitRefresh() {
   const router = useRouter();
   const [refreshData, { loading, error }] = useMutation(REFRESH_DATA_MUTATION);
-  const [message, setMessage] = useState('');
 
   const handleRefresh = async () => {
     try {
       const { data } = await refreshData();
       if (data.refreshData) {
-        setMessage('Data refreshed successfully. Redirecting...');
+        toast("Cache refresh initiated", {
+          description: "The system is now updating. This may take a few moments.",
+          action: {
+            label: "Dismiss",
+            onClick: () => console.log("Toast dismissed"),
+          },
+        });
         setTimeout(() => router.push('/'), 2000);
       } else {
-        setMessage('Failed to refresh data. Please try again.');
+        toast.error("Failed to refresh data", {
+          description: "Please try again later.",
+        });
       }
     } catch (err) {
-      setMessage('An error occurred. Please try again.');
+      toast.error("An error occurred", {
+        description: "Please try again or contact support if the issue persists.",
+      });
       console.error(err);
     }
   };
@@ -81,9 +91,6 @@ export default function HitRefresh() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-              {message && (
-                <p className="mt-2 text-sm text-gray-600">{message}</p>
-              )}
               {error && (
                 <p className="mt-2 text-sm text-red-600">Error: {error.message}</p>
               )}
