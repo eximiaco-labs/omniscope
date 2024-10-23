@@ -7,13 +7,27 @@ service:
   port: 5000
 
 ingress:
-  enabled: false
+  enabled: true
+  className: nginx
+  annotations:  
+    cert-manager.io/issuer: "letsencrypt"
+  hosts:
+    - host: omniscope.eximia.co
+      paths:
+        - path: /graphql
+          pathType: Prefix
+  tls:
+   - secretName: omniscope-tls
+     hosts:
+       - omniscope.eximia.co
 
 envVars:
   - name: OAUTHLIB_INSECURE_TRANSPORT
     value: "1"
   - name: AUTH_METADATA_URL
     value: https://accounts.google.com/.well-known/openid-configuration
+  - name: AUTH_PUBLIC_KEY
+    value: https://www.googleapis.com/oauth2/v3/certs
   - name: TODOIST_API_KEY
     valueFrom:
       secretKeyRef:
