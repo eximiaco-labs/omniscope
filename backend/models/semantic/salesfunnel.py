@@ -166,29 +166,6 @@ class SalesFunnelB2B(SemanticModel):
             a for a in activities #if a.is_correct
         ]
 
-    # @property
-    # def active_deals(self) -> PowerDataFrame:
-    #     workers = self.ontology.workers.data.copy()
-    #     workers = workers[['Title', 'Url']]
-    #     workers.columns = ['customer_agent_name', 'customer_agent_url']
-    #
-    #     stages = self.stages.data
-    #     stages_ids = stages['StageId'].tolist()
-    #     deals = self.pipedrive.get_active_deals_in_stages(stages_ids)
-    #
-    #     deals = pd.merge(deals, stages, left_on='stage_id', right_on='StageId', how='left')
-    #     deals['customer_agent_name'] = deals['user_id'].apply(lambda x: x['name'])
-    #     deals = pd.merge(deals, workers, on='customer_agent_name', how="left")
-    #
-    #     deals['is_unrecognized_agent'] = deals['customer_agent_url'].isna()
-    #
-    #     deals['customer_agent_html_name'] = np.where(
-    #         deals['customer_agent_url'].isna(),
-    #         '[WHO?] ' + deals['customer_agent_name'],
-    #         '<a href="' + deals['customer_agent_url'] + '">' + deals['customer_agent_name'] + '</a>'
-    #     )
-    #
-    #     return DealsDataFrame(deals)
 
     def get_summary_by_ca(self, compute_total=True):
         stages = self.get_stages()
@@ -215,32 +192,3 @@ class SalesFunnelB2B(SemanticModel):
             results = pd.concat([results, total_row], ignore_index=True)
 
         return results
-
-    # @property
-    # def common_queries(self):
-    #     return CommonQueries(self)
-
-# class DealsDataFrame(PowerDataFrame):
-#     def __init__(self, data):
-#         super().__init__(data)
-#
-#     def to_ui(self):
-#         columns = ['Title', 'StageName', 'CustomerAgentName']
-#         df = self.data[columns].copy()
-#         df.columns = ['Title', 'Stage', 'Agent']
-#         return df
-
-
-# class CommonQueries:
-#     def __init__(self, salesFunnel: SalesFunnelPJ = None):
-#         self.salesFunnel = salesFunnel or SalesFunnelPJ()
-#
-#     @x9('salesfunnel')
-#     def find_deals_without_product(self):
-#         return self.salesFunnel.active_deals.filter_by(by='ProductsCount', equals_to=0)
-#
-#
-#     @x9('salesfunnel')
-#     def find_agents_without_profile(self):
-#         ua = self.salesFunnel.active_deals.filter_by(by='IsUnrecognizedAgent', equals_to=True).data
-#         return ua['CustomerAgentName'].unique()
