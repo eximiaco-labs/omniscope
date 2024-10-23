@@ -10,8 +10,6 @@ from models.base.powerdataframe import SummarizablePowerDataFrame
 from models.datasets.omni_dataset import OmniDataset
 from models.helpers.weeks import Weeks
 from models.omnimodels import OmniModels
-from models.domain import Offer
-import models.helpers.beauty as beauty
 
 
 class TimesheetDataset(OmniDataset):
@@ -121,7 +119,7 @@ class TimesheetDataset(OmniDataset):
         # Aplicar enriquecimento nas linhas
         df = df.apply(enrich_row, axis=1)
 
-        return SummarizablePowerDataFrame(df)
+        return SummarizablePowerDataFrame(df.copy())
 
     def get_common_fields(self):
         return ['Kind', 'ClientName', 'Sponsor', 'WorkerName', 'TimeInHs', 'Date', 'Week', 'IsLte']
