@@ -186,4 +186,3 @@ class SummarizablePowerDataFrame(PowerDataFrame):
             result.rename(columns={by: alias}, inplace=True)
 
         return result
-

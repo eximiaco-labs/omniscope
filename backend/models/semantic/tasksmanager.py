@@ -7,8 +7,6 @@ from decorators import c4_external_system
 
 import models.syntactic.todoist as t
 
-from models.dashboard.x9 import x9
-
 from typing import List, Optional
 from pydantic import BaseModel
 from settings import api_settings
@@ -139,21 +137,11 @@ class TasksManager(SemanticModel):
             if task.project_id == project_id and not task.is_deleted
         ]
 
-        # todoist_completed_tasks = self.todoist.fetch_completed_tasks(project_id)
-        # completed_tasks = [
-        #     Task.from_todoist_task(task)
-        #     for task in todoist_completed_tasks
-        # ]
-
         return tasks
 
     @property
     def users(self):
         return self.todoist.fetch_collaborators()
-
-    @property
-    def common_queries(self):
-        return CommonQueries(self)
 
 
 class ProjectsDataFrame(PowerDataFrame):
@@ -165,26 +153,3 @@ class ProjectsDataFrame(PowerDataFrame):
         df = self.data[columns].copy()
         df.columns = ['Project']
         return df
-
-
-class CommonQueries:
-    def __init__(self, tm: TasksManager):
-        self.tm = tm or TasksManager()
-
-    @x9(family='todoist')
-    def find_projects_without_tasks(self):
-        return (self.tm.projects
-                .filter_by(by='HasTasks', equals_to=False)
-                )
-
-    @x9(family='todoist')
-    def find_projects_with_late_tasks(self):
-        return (self.tm.projects
-                .filter_by(by='HasLateTasks', equals_to=False)
-                )
-
-    @x9(family='todoist')
-    def find_projects_without_due(self):
-        return (self.tm.projects
-                .filter_by(by='AllTasksHaveDue', equals_to=False)
-                )
