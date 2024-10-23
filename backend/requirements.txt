@@ -1,9 +1,11 @@
 requests
 Flask
 Flask-CORS
+flask_httpauth
 ariadne
 pydantic
 pytz
 python-dotenv
 validators
 pandas
+jwt

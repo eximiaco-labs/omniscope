@@ -5,8 +5,12 @@ services:
     build: 
       context: ./backend
     env_file: ./backend/.env
+    ports:
+      - "8099:5000"
     environment:
       - OAUTHLIB_INSECURE_TRANSPORT="1"
+      - AUTH_METADATA_URL="https://accounts.google.com/.well-known/openid-configuration"
+      - AUTH_PUBLIC_KEY="https://www.googleapis.com/oauth2/v3/certs"
       - TODOIST_API_KEY
       - EVERHOUR_API_KEY
       - PIPEDRIVE_API_KEY
