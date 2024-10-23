@@ -4,15 +4,30 @@ import "./globals.css";
 
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
 import { Navbar } from "@/components/catalyst/navbar";
-import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloProvider, ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
 import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
 import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
 import { useEffect } from "react";
+import { getSession } from "next-auth/react"
 
-// Create and export the Apollo Client instance
-export const client = new ApolloClient({
-  uri: "https://omniscope.eximia.co/graphql",
+const httpLink = createHttpLink({
+  uri: "https://omniscope.eximia.co/graphql"
+});
+
+const authLink =  setContext(async (_, { headers }) => {  
+  const token = await getSession()
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  }
+});
+
+export const client = new ApolloClient({  
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
 
