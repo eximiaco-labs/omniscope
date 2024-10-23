@@ -23,11 +23,13 @@ const authOptions: NextAuthOptions = {
       return true;
     },
     async session({ session, token }) {                  
+      console.log(session, token);
       // @ts-ignore
       session.accessToken = token.accessToken
       return session;
     },
     async jwt({ token, account }) {      
+      console.log(token, account);
       if (account) {
         token.accessToken = account.access_token;
       }
