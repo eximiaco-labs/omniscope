@@ -17,10 +17,10 @@ const httpLink = createHttpLink({
 });
 
 const authLink =  setContext(async (_, { headers }) => {  
-  const token = await getSession()
-  console.log(token);
+  const { data: session } = useSession()
+  console.log(session);
   // @ts-ignore
-  if(!token || !token.accessToken) {
+  if(!session || !session.accessToken) {
     return { headers }
   }
 
@@ -28,7 +28,7 @@ const authLink =  setContext(async (_, { headers }) => {
     headers: {
       ...headers,
       // @ts-ignore
-      authorization: token ? `Bearer ${token.accessToken}` : "",
+      authorization: token ? `Bearer ${session.accessToken}` : "",
     }
   }
 });
