@@ -53,9 +53,9 @@ export default function RootLayout({
         <title>Omniscope</title>
         <meta name="description" content="Analytics and management platform" />
       </head>
-      <ApolloProvider client={client}>
         <body>
           <SessionProvider>
+          <ApolloProvider client={client}>
             <SessionComponent>
               {(session) => (
                 session ? (
@@ -69,9 +69,9 @@ export default function RootLayout({
                 ) : null
               )}
             </SessionComponent>
+          </ApolloProvider>
           </SessionProvider>
         </body>
-      </ApolloProvider>
     </html>
   );
 }
