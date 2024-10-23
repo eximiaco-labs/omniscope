@@ -80,7 +80,7 @@ export default function WeekReview() {
 
       <div className="mb-3">
         <FilterFieldsSelect
-          data={data.weekReview}
+          data={data?.weekReview}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
