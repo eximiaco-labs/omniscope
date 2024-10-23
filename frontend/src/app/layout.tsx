@@ -9,34 +9,43 @@ import { setContext } from '@apollo/client/link/context';
 import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
 import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
-import { useEffect } from "react";
-import { getSession } from "next-auth/react";
+import { useEffect, useMemo } from "react";
 
-const httpLink = createHttpLink({
-  uri: "https://omniscope.eximia.co/graphql"
-});
-
-const authLink =  setContext(async (_, { headers }) => {  
+function ApolloWrapper({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
-  console.log(session);
-  // @ts-ignore
-  if(!session || !session.accessToken) {
-    return { headers }
-  }
 
-  return {
-    headers: {
-      ...headers,
+  const client = useMemo(() => {
+    const httpLink = createHttpLink({
+      uri: "https://omniscope.eximia.co/graphql"
+    });
+
+    const authLink = setContext(async (_, { headers }) => {
       // @ts-ignore
-      authorization: token ? `Bearer ${session.accessToken}` : "",
-    }
-  }
-});
+      if (!session || !session.accessToken) {
+        return { headers }
+      }
 
-export const client = new ApolloClient({  
-  link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
-});
+      return {
+        headers: {
+          ...headers,
+          // @ts-ignore
+          authorization: `Bearer ${session.accessToken}`,
+        }
+      }
+    });
+
+    return new ApolloClient({
+      link: authLink.concat(httpLink),
+      cache: new InMemoryCache(),
+    });
+  }, [session]);
+
+  return (
+    <ApolloProvider client={client}>
+      {children}
+    </ApolloProvider>
+  )
+}
 
 export default function RootLayout({
   children,
@@ -53,9 +62,9 @@ export default function RootLayout({
         <title>Omniscope</title>
         <meta name="description" content="Analytics and management platform" />
       </head>
-        <body>
-          <SessionProvider>
-          <ApolloProvider client={client}>
+      <body>
+        <SessionProvider>
+          <ApolloWrapper>
             <SessionComponent>
               {(session) => (
                 session ? (
@@ -69,9 +78,9 @@ export default function RootLayout({
                 ) : null
               )}
             </SessionComponent>
-          </ApolloProvider>
-          </SessionProvider>
-        </body>
+          </ApolloWrapper>
+        </SessionProvider>
+      </body>
     </html>
   );
 }

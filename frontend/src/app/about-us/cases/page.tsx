@@ -7,7 +7,6 @@ import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { print } from 'graphql';
-import { client } from '@/app/layout';
 import { GET_CASES_AND_TIMESHEET } from './queries';
 import { CaseCard } from './CaseCard';
 
@@ -18,8 +17,7 @@ export default function Cases() {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const queryString = print(GET_CASES_AND_TIMESHEET);
-  const GRAPHQL_ENDPOINT = (client.link as any).options?.uri;
+  const queryString = print(GET_CASES_AND_TIMESHEET);  
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
