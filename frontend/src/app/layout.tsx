@@ -4,11 +4,12 @@ import "./globals.css";
 
 import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
 import { Navbar } from "@/components/catalyst/navbar";
-import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
+import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink, from } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
 import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
-import { useSession, signIn, SessionProvider } from "next-auth/react";
+import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
 import { useEffect } from "react";
 
 function createApolloClient(session: any) {
@@ -19,7 +20,6 @@ function createApolloClient(session: any) {
   });
 
   const authLink = setContext((_, prevContext) => {
-    // Use idToken instead of accessToken
     const token = session?.idToken;
     return {
       headers: {
@@ -29,8 +29,15 @@ function createApolloClient(session: any) {
     };
   });
 
+  const errorLink = onError(({ networkError }) => {
+    if (networkError && 'statusCode' in networkError && networkError.statusCode === 401) {
+      console.log("Token expirado ou inválido. Fazendo logout...");
+      signOut();
+    }
+  });
+
   return new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: from([errorLink, authLink, httpLink]),
     cache: new InMemoryCache(),
   });
 }
@@ -78,16 +85,18 @@ function SessionComponent({ children }: { children: (session: any) => React.Reac
   const isLoading = status === "loading";
 
   useEffect(() => {
-    console.log("Session status:", status);
-    console.log("Session data:", session);
-
     if (status === "unauthenticated") {
-      console.log("Redirecting to sign in...");
+      console.log("Redirecionando para login...");
       signIn("google");
     }
-
     if (session) {
-      console.log("User signed in:", session.user);
+      const expirationTime = new Date(session.expires).getTime() / 1000;
+      const currentTime = Date.now() / 1000;
+
+      if (expirationTime < currentTime) {
+        console.log("Sessão expirada. Fazendo logout...");
+        signOut();
+      }
     }
   }, [session, status]);
 
