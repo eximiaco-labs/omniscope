@@ -10,7 +10,6 @@ import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
 import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
 import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
 import { useEffect } from "react";
-import { getSession } from "next-auth/react"
 
 const httpLink = createHttpLink({
   uri: "https://omniscope.eximia.co/graphql"
