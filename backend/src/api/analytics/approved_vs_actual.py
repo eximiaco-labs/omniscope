@@ -5,7 +5,7 @@ from models.helpers.weeks import Weeks
 
 import globals
 
-def resolve_planned_vs_actual(_, info, start, end):
+def resolve_approved_vs_actual(_, info, start, end):
     if isinstance(start, str):
         start = datetime.fromisoformat(start)
         

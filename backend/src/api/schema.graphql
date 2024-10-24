@@ -601,31 +601,31 @@ type WorkerSummary {
 }
 
 # Planned vs Actual types
-type PlannedVsActual {
+type ApprovedVsActual {
   start: Date!
   end: Date!
-  weeks: [PlannedVsActualWeek!]!
+  weeks: [ApprovedVsActualWeek!]!
 }
 
-type PlannedVsActualWeek {
+type ApprovedVsActualWeek {
   start: Date!
   end: Date!
   title: String!
-  data: [PlannedVsActualWeekData!]!
+  data: [ApprovedVsActualWeekData!]!
 }
 
-type PlannedVsActualWeekData {
-  client_id: Int!
+type ApprovedVsActualWeekData {
+  clientId: Int!
   id: Int!
   title: String!
-  start_of_contract: Date
-  end_of_contract: Date
-  weekly_approved_hours: Float!
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float!
   actual: Float
-  start_of_week: Date!
-  end_of_week: Date!
-  number_of_days: Int!
-  approved_hours: Float!
+  startOfWeek: Date!
+  endOfWeek: Date!
+  numberOfDays: Int!
+  approvedHours: Float!
 }
 
 
@@ -657,7 +657,7 @@ type Query {
   weekReview(date_of_interest: Date!, filters: [FilterInput]): WeekReview!
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
   projects: [Project!]!
-  plannedVsActual(start: Date!, end: Date!): PlannedVsActual!
+  approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
 }
 
 # Mutation type
