@@ -12,9 +12,9 @@ import RankingIndicator from "@/components/RankingIndicator";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface TopWorkersProps {
-  workerData: any[];
-  selectedStat: string;
-  totalHours: number;
+  workerData?: any[] | null;
+  selectedStat?: string | null;
+  totalHours?: number | null;
 }
 
 const fadeInAnimation = `
@@ -39,13 +39,13 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   }, [workerData, selectedStat]);
 
   const filterItems = (item: any) => {
-    if (selectedStat === "allClients" || selectedStat === "total") return true;
+    if (!selectedStat || selectedStat === "allClients" || selectedStat === "total") return true;
     return item.byKind && item.byKind[selectedStat] && item.byKind[selectedStat].totalHours > 0;
   };
 
   const sortItems = (a: any, b: any) => {
     const getRelevantHours = (item: any) => {
-      if (selectedStat === "allClients" || selectedStat === "total") {
+      if (!selectedStat || selectedStat === "allClients" || selectedStat === "total") {
         return item.totalHours;
       }
       return item.byKind && item.byKind[selectedStat] ? item.byKind[selectedStat].totalHours : 0;
@@ -54,7 +54,7 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   };
 
   const getItemValue = (item: any, field: string) => {
-    if (selectedStat === "allClients" || selectedStat === "total") {
+    if (!selectedStat || selectedStat === "allClients" || selectedStat === "total") {
       return item[field] || 0;
     }
     return item.byKind && item.byKind[selectedStat] ? item.byKind[selectedStat][field] || 0 : 0;
@@ -65,10 +65,10 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   };
 
   const calculatePercentage = (itemHours: number) => {
-    return totalHours > 0 ? ((itemHours / totalHours) * 100).toFixed(1) : "0.0";
+    return totalHours && totalHours > 0 ? ((itemHours / totalHours) * 100).toFixed(1) : "0.0";
   };
 
-  const filteredWorkers = workerData.filter(filterItems).sort(sortItems).slice(0, 10);
+  const filteredWorkers = workerData ? workerData.filter(filterItems).sort(sortItems).slice(0, 10) : [];
   const displayedWorkers = expanded ? filteredWorkers : filteredWorkers.slice(0, 3);
 
   const toggleExpand = () => {
@@ -82,6 +82,19 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
       return filteredWorkers.length < 10 ? "Workers" : "Top 10 Workers";
     }
   };
+
+  if (!workerData || workerData.length === 0) {
+    return (
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-gray-800">Workers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-gray-500">No worker data available</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div>
