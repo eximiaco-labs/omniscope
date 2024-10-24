@@ -12,7 +12,7 @@ import RankingIndicator from "@/components/RankingIndicator";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface TopSponsorsProps {
-  sponsorData: any[];
+  sponsorData: any[] | null;
   selectedStat: string;
   totalHours: number;
 }
@@ -73,9 +73,11 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
   };
 
   const filteredSponsors = sponsorData
-    .filter(filterItems)
-    .sort(sortItems)
-    .slice(0, 10);
+    ? sponsorData
+        .filter(filterItems)
+        .sort(sortItems)
+        .slice(0, 10)
+    : [];
 
   const displayedSponsors = expanded ? filteredSponsors : filteredSponsors.slice(0, 3);
 
@@ -84,6 +86,9 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
   };
 
   const getTitle = () => {
+    if (!sponsorData || filteredSponsors.length === 0) {
+      return "Sponsors";
+    }
     if (!expanded) {
       return filteredSponsors.length > 3 ? "Top 3 Sponsors" : "Sponsors";
     } else {
@@ -101,76 +106,82 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table className="w-full table-fixed">
-            <TableHead>
-              <TableRow className="bg-gray-100">
-                <TableHeader className="font-semibold text-left w-8/12">
-                  Sponsor
-                </TableHeader>
-                <TableHeader className="font-semibold text-center w-4/12">
-                  Hours
-                </TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {displayedSponsors.map((sponsor: any, index: number) => (
-                <TableRow
-                  key={`${sponsor.name}-${animationTrigger}`}
-                  className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  }`}
-                  style={{
-                    animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
-                    opacity: 0,
-                  }}
-                >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center space-x-3">
-                      <RankingIndicator
-                        index={index + 1}
-                        percentage={calculatePercentage(
-                          getItemValue(sponsor, "totalHours")
-                        )}
-                      />
-                      <div className="flex flex-col">
-                        <span className="transition-all duration-300 ease-in-out">
-                          {sponsor.name}
+          {!sponsorData || filteredSponsors.length === 0 ? (
+            <p className="text-center text-gray-500">No sponsor data available</p>
+          ) : (
+            <>
+              <Table className="w-full table-fixed">
+                <TableHead>
+                  <TableRow className="bg-gray-100">
+                    <TableHeader className="font-semibold text-left w-8/12">
+                      Sponsor
+                    </TableHeader>
+                    <TableHeader className="font-semibold text-center w-4/12">
+                      Hours
+                    </TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {displayedSponsors.map((sponsor: any, index: number) => (
+                    <TableRow
+                      key={`${sponsor.name}-${animationTrigger}`}
+                      className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
+                      style={{
+                        animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
+                        opacity: 0,
+                      }}
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center space-x-3">
+                          <RankingIndicator
+                            index={index + 1}
+                            percentage={calculatePercentage(
+                              getItemValue(sponsor, "totalHours")
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span className="transition-all duration-300 ease-in-out">
+                              {sponsor.name}
+                            </span>
+                            <span className="text-xs text-gray-500 transition-all duration-300 ease-in-out">
+                              {getItemValue(sponsor, "uniqueCases")} case(s)
+                              {getItemValue(sponsor, "uniqueWorkers") > 1 && ` • ${getItemValue(sponsor, "uniqueWorkers")} workers`}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="font-medium transition-all duration-300 ease-in-out">
+                          {formatHours(getItemValue(sponsor, "totalHours"))}
                         </span>
-                        <span className="text-xs text-gray-500 transition-all duration-300 ease-in-out">
-                          {getItemValue(sponsor, "uniqueCases")} case(s)
-                          {getItemValue(sponsor, "uniqueWorkers") > 1 && ` • ${getItemValue(sponsor, "uniqueWorkers")} workers`}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className="font-medium transition-all duration-300 ease-in-out">
-                      {formatHours(getItemValue(sponsor, "totalHours"))}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {filteredSponsors.length > 3 && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={toggleExpand}
-                className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                {expanded ? (
-                  <>
-                    <ChevronUp className="w-4 h-4 mr-2" />
-                    Show Less
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-4 h-4 mr-2" />
-                    Show More
-                  </>
-                )}
-              </button>
-            </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredSponsors.length > 3 && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={toggleExpand}
+                    className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    {expanded ? (
+                      <>
+                        <ChevronUp className="w-4 h-4 mr-2" />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-2" />
+                        Show More
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

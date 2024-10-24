@@ -12,7 +12,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/catalyst/badge";
 
 interface CasesUpdatesProps {
-  caseData: any[];
+  caseData: any[] | null;
   selectedStat: string;
 }
 
@@ -84,7 +84,7 @@ const CasesUpdates: React.FC<CasesUpdatesProps> = ({
     return diffDays;
   };
 
-  const filteredAndSortedCases = caseData.filter(filterItems).sort(sortCases);
+  const filteredAndSortedCases = caseData ? caseData.filter(filterItems).sort(sortCases) : [];
   const displayedCases = expanded
     ? filteredAndSortedCases
     : filteredAndSortedCases.slice(0, 3);
@@ -103,102 +103,108 @@ const CasesUpdates: React.FC<CasesUpdatesProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table className="w-full">
-            <TableHead>
-              <TableRow className="bg-gray-100">
-                <TableHeader className="font-semibold text-left">
-                  Case
-                </TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {displayedCases.map((caseItem: any, index: number) => {
-                const daysSinceUpdate = getDaysSinceUpdate(
-                  caseItem.caseDetails.lastUpdate?.date
-                );
-                return (
-                  <TableRow
-                    key={`${caseItem.title}-${animationTrigger}`}
-                    className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
-                    style={{
-                      animation: `fadeIn 0.5s ease-out ${
-                        index * 50
-                      }ms forwards`,
-                      opacity: 0,
-                    }}
-                  >
-                    <TableCell>
-                      <div className="flex flex-col space-y-2">
-                        <p className="font-bold uppercase text-xs">
-                          {caseItem.caseDetails?.client?.name ||
-                            "Unknown Client"}
-                        </p>
-                        <p
-                          className="text-base whitespace-normal break-words"
-                          title={caseItem.title}
-                        >
-                          {caseItem.title}
-                        </p>
-                        <div className="flex justify-between items-center text-sm">
-                          {caseItem.caseDetails.lastUpdate ? (
-                            <Badge
-                              color={getStatusColor(
-                                caseItem.caseDetails.lastUpdate.status
-                              )}
+          {caseData && caseData.length > 0 ? (
+            <>
+              <Table className="w-full">
+                <TableHead>
+                  <TableRow className="bg-gray-100">
+                    <TableHeader className="font-semibold text-left">
+                      Case
+                    </TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {displayedCases.map((caseItem: any, index: number) => {
+                    const daysSinceUpdate = getDaysSinceUpdate(
+                      caseItem.caseDetails.lastUpdate?.date
+                    );
+                    return (
+                      <TableRow
+                        key={`${caseItem.title}-${animationTrigger}`}
+                        className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        }`}
+                        style={{
+                          animation: `fadeIn 0.5s ease-out ${
+                            index * 50
+                          }ms forwards`,
+                          opacity: 0,
+                        }}
+                      >
+                        <TableCell>
+                          <div className="flex flex-col space-y-2">
+                            <p className="font-bold uppercase text-xs">
+                              {caseItem.caseDetails?.client?.name ||
+                                "Unknown Client"}
+                            </p>
+                            <p
+                              className="text-base whitespace-normal break-words"
+                              title={caseItem.title}
                             >
-                              {caseItem.caseDetails.lastUpdate.status}
-                            </Badge>
-                          ) : <></> }
-                          <div className="flex flex-col items-end">
-                            {caseItem.caseDetails.lastUpdate ? (
-                              <>
-                                {daysSinceUpdate !== null && (
-                                  <span
-                                    className={`text-xs ${
-                                      daysSinceUpdate > 30
-                                        ? "text-red-500 font-semibold"
-                                        : "text-gray-500"
-                                    }`}
-                                  >
-                                    {daysSinceUpdate} days since last update
+                              {caseItem.title}
+                            </p>
+                            <div className="flex justify-between items-center text-sm">
+                              {caseItem.caseDetails.lastUpdate ? (
+                                <Badge
+                                  color={getStatusColor(
+                                    caseItem.caseDetails.lastUpdate.status
+                                  )}
+                                >
+                                  {caseItem.caseDetails.lastUpdate.status}
+                                </Badge>
+                              ) : <></> }
+                              <div className="flex flex-col items-end">
+                                {caseItem.caseDetails.lastUpdate ? (
+                                  <>
+                                    {daysSinceUpdate !== null && (
+                                      <span
+                                        className={`text-xs ${
+                                          daysSinceUpdate > 30
+                                            ? "text-red-500 font-semibold"
+                                            : "text-gray-500"
+                                        }`}
+                                      >
+                                        {daysSinceUpdate} days since last update
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-red-500">
+                                    No update information
                                   </span>
                                 )}
-                              </>
-                            ) : (
-                              <span className="text-red-500">
-                                No update information
-                              </span>
-                            )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          {filteredAndSortedCases.length > 3 && (
-            <div className="mt-4">
-              <button
-                onClick={toggleExpand}
-                className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                {expanded ? (
-                  <>
-                    <ChevronUp className="w-4 h-4 mr-2" />
-                    Show Less
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-4 h-4 mr-2" />
-                    Show More
-                  </>
-                )}
-              </button>
-            </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {filteredAndSortedCases.length > 3 && (
+                <div className="mt-4">
+                  <button
+                    onClick={toggleExpand}
+                    className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    {expanded ? (
+                      <>
+                        <ChevronUp className="w-4 h-4 mr-2" />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-2" />
+                        Show More
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-center text-gray-500">No case data available</p>
           )}
         </CardContent>
       </Card>
