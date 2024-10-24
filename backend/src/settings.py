@@ -21,3 +21,7 @@ api_settings = {
     "wordpress_user": os.environ.get("WORDPRESS_USER"),
     "wordpress_pass": os.environ.get("WORDPRESS_PASS")
 }
+
+graphql_settings = {
+    "require_auth": os.environ.get("GRAPHQL_REQUIRE_AUTH", "True").lower() == "true"
+}
