@@ -1,0 +1,60 @@
+replicaCount: 1
+
+image:
+  repository: 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/backend
+
+service:  
+  port: 5000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:  
+    cert-manager.io/issuer: "letsencrypt"
+  hosts:
+    - host: omniscope.eximia.co
+      paths:
+        - path: /graphql
+          pathType: Prefix
+  tls:
+   - secretName: omniscope-tls
+     hosts:
+       - omniscope.eximia.co
+
+envVars:
+  - name: OAUTHLIB_INSECURE_TRANSPORT
+    value: "1"
+  - name: AUTH_METADATA_URL
+    value: https://accounts.google.com/.well-known/openid-configuration
+  - name: AUTH_PUBLIC_KEY
+    value: https://www.googleapis.com/oauth2/v3/certs
+  - name: TODOIST_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-backend-secrets
+        key: TODOIST_API_KEY
+  - name: EVERHOUR_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-backend-secrets
+        key: EVERHOUR_API_KEY
+  - name: PIPEDRIVE_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-backend-secrets
+        key: PIPEDRIVE_API_KEY 
+  - name: WORDPRESS_USER
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-backend-secrets
+        key: WORDPRESS_USER 
+  - name: WORDPRESS_PASS
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-backend-secrets
+        key: WORDPRESS_PASS 
+  - name: YOUTUBE_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-backend-secrets
+        key: YOUTUBE_API_KEY 
