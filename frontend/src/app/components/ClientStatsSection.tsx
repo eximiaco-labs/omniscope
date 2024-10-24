@@ -2,12 +2,16 @@ import React from 'react';
 import { Stat } from "@/app/components/analytics/stat";
 
 interface ClientStatsSectionProps {
-  data: any;
-  selectedStat: string;
+  data: any | null;
+  selectedStat: string | null;
   onStatClick?: (statName: string) => void;
 }
 
 const ClientStatsSection: React.FC<ClientStatsSectionProps> = ({ data, selectedStat, onStatClick }) => {
+  if (!data) {
+    return <div>No data available</div>;
+  }
+
   const getStatClassName = (statName: string) => {
     return `cursor-pointer transition-all duration-300 ${
       selectedStat === statName ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
@@ -35,11 +39,11 @@ const ClientStatsSection: React.FC<ClientStatsSectionProps> = ({ data, selectedS
   );
 
   const stats = [
-    { name: 'total', title: 'Active Clients', value: data.timesheet.uniqueClients.toString() },
-    { name: 'consulting', title: 'Consulting', value: data.timesheet.byKind.consulting.uniqueClients.toString(), color: '#F59E0B' },
-    { name: 'handsOn', title: 'Hands-On', value: data.timesheet.byKind.handsOn.uniqueClients.toString(), color: '#8B5CF6' },
-    { name: 'squad', title: 'Squad', value: data.timesheet.byKind.squad.uniqueClients.toString(), color: '#3B82F6' },
-    { name: 'internal', title: 'Internal', value: data.timesheet.byKind.internal.uniqueClients.toString(), color: '#10B981' },
+    { name: 'total', title: 'Active Clients', value: data.timesheet?.uniqueClients?.toString() ?? '0' },
+    { name: 'consulting', title: 'Consulting', value: data.timesheet?.byKind?.consulting?.uniqueClients?.toString() ?? '0', color: '#F59E0B' },
+    { name: 'handsOn', title: 'Hands-On', value: data.timesheet?.byKind?.handsOn?.uniqueClients?.toString() ?? '0', color: '#8B5CF6' },
+    { name: 'squad', title: 'Squad', value: data.timesheet?.byKind?.squad?.uniqueClients?.toString() ?? '0', color: '#3B82F6' },
+    { name: 'internal', title: 'Internal', value: data.timesheet?.byKind?.internal?.uniqueClients?.toString() ?? '0', color: '#10B981' },
   ];
 
   return (
@@ -65,7 +69,7 @@ const ClientStatsSection: React.FC<ClientStatsSectionProps> = ({ data, selectedS
               <div className="flex-grow h-px bg-gray-200 ml-2"></div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-              {stats.map(stat => renderStat(stat.name, stat.title, stat.value, stat.color, data.timesheet.uniqueClients))}
+              {stats.map(stat => renderStat(stat.name, stat.title, stat.value, stat.color, data.timesheet?.uniqueClients))}
             </div>
           </div>
         </div>

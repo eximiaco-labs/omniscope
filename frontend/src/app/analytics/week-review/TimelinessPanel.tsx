@@ -5,8 +5,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst/table'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/catalyst/description-list';
 
 type TimelinessData = {
   totalRows: number;
@@ -43,10 +41,23 @@ type TimelinessData = {
 };
 
 type TimelinessPanelProps = {
-  data: TimelinessData;
+  data: TimelinessData | null;
 };
 
 const TimelinessPanel: React.FC<TimelinessPanelProps> = ({ data }) => {
+  if (!data) {
+    return (
+      <motion.div
+        className="col-span-3 mt-4 transition-all duration-300 border border-gray-200 bg-white rounded-sm shadow-sm overflow-visible mb-4 p-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.9 }}
+      >
+        <p>No timeliness data available.</p>
+      </motion.div>
+    );
+  }
+
   const totalTime = data.earlyTimeInHours + data.okTimeInHours + data.acceptableTimeInHours + data.lateTimeInHours;
 
   const getPercentage = (value: number) => ((value / totalTime) * 100).toFixed(1);

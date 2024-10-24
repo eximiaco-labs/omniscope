@@ -1,13 +1,13 @@
 import { gql } from "@apollo/client";
 
-export const GET_HOME_DATA = gql`
-  query GetHomeData($filters: [FilterInput], $dateOfInterest: Date!) {
+export const GET_DATA = gql`
+  query GetData($filters: [FilterInput]) {
     timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
       uniqueClients
       uniqueCases
       uniqueWorkers
       totalHours
-
+      
       byKind {
         consulting {
           uniqueClients
@@ -147,7 +147,11 @@ export const GET_HOME_DATA = gql`
         }
       }
     }
+  }
+`;
 
+export const GET_ANALYTICS = gql`
+  query GetAnalytics($filters: [FilterInput], $dateOfInterest: Date!) {
     weekReview(date_of_interest: $dateOfInterest, filters: $filters) {
       hoursPreviousWeeks
       hoursPreviousWeeksUntilThisDate

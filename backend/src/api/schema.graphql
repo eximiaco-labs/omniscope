@@ -63,7 +63,7 @@ type Worker {
   pipedriveUserId: Int
   isRecognized: Boolean!
   omniUrl: String!
-  photoUrl: String!
+  photoUrl: String
 
   isOntologyAuthor: Boolean!
   isInsightsAuthor: Boolean!
