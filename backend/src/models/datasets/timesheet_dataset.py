@@ -30,6 +30,10 @@ class TimesheetDataset(OmniDataset):
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
 
+        # Check if df is empty
+        if df.empty:
+            return SummarizablePowerDataFrame(pd.DataFrame())
+
         # Criação de cache para evitar múltiplas consultas repetidas
         workers_cache = {}
         cases_cache = {}
@@ -120,7 +124,6 @@ class TimesheetDataset(OmniDataset):
         df = df.apply(enrich_row, axis=1)
 
         return SummarizablePowerDataFrame(df.copy())
-
     def get_common_fields(self):
         return ['Kind', 'ClientName', 'Sponsor', 'WorkerName', 'TimeInHs', 'Date', 'Week', 'IsLte']
 
