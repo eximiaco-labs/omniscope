@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { format } from "date-fns";
 import dynamic from "next/dynamic";
 
 const GaugeComponent = dynamic(() => import("react-gauge-component"), {

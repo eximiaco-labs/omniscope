@@ -70,8 +70,8 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData, selec
     return item[`total${selectedStat.charAt(0).toUpperCase() + selectedStat.slice(1)}Hours`];
   };
 
-  const filteredAndSortedCases = caseData.filter(filterItems).sort(sortCases);
-  const displayedCases = expanded ? filteredAndSortedCases : filteredAndSortedCases.slice(0, 3);
+  const filteredAndSortedCases = caseData?.filter(filterItems).sort(sortCases);
+  const displayedCases = expanded ? filteredAndSortedCases : filteredAndSortedCases?.slice(0, 3);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
@@ -94,7 +94,7 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData, selec
               </TableRow>
             </TableHead>
             <TableBody>
-              {displayedCases.map((caseItem: any, index: number) => {
+              {displayedCases?.map((caseItem: any, index: number) => {
                 const daysRemaining = getDaysRemaining(caseItem.caseDetails.endOfContract);
                 return (
                   <TableRow 
@@ -139,7 +139,7 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData, selec
               })}
             </TableBody>
           </Table>
-          {filteredAndSortedCases.length > 3 && (
+          {filteredAndSortedCases?.length > 3 && (
             <div className="mt-4">
               <button
                 onClick={toggleExpand}

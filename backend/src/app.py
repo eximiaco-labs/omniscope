@@ -27,7 +27,7 @@ def verify_token(token):
         # ID token is valid. Get the user's Google Account ID from the decoded token.
         userid = idinfo['sub']
         return userid
-    except ValueError:
+    except ValueError as e:
         # Invalid token
         return None
 

@@ -68,8 +68,8 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
     return totalHours > 0 ? ((itemHours / totalHours) * 100).toFixed(1) : "0.0";
   };
 
-  const filteredClients = clientData.filter(filterItems).sort(sortItems).slice(0, 10);
-  const displayedClients = expanded ? filteredClients : filteredClients.slice(0, 3);
+  const filteredClients = clientData?.filter(filterItems).sort(sortItems).slice(0, 10);
+  const displayedClients = expanded ? filteredClients : filteredClients?.slice(0, 3);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
@@ -77,9 +77,9 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
 
   const getTitle = () => {
     if (!expanded) {
-      return filteredClients.length > 3 ? "Top 3 Clients" : "Clients";
+      return filteredClients?.length > 3 ? "Top 3 Clients" : "Clients";
     } else {
-      return filteredClients.length < 10 ? "Clients" : "Top 10 Clients";
+      return filteredClients?.length < 10 ? "Clients" : "Top 10 Clients";
     }
   };
 
@@ -101,7 +101,7 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
               </TableRow>
             </TableHead>
             <TableBody>
-              {displayedClients.map((client: any, index: number) => (
+              {displayedClients?.map((client: any, index: number) => (
                 <TableRow 
                   key={`${client.name}-${animationTrigger}`}
                   className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
@@ -134,7 +134,7 @@ const TopClients: React.FC<TopClientsProps> = ({ clientData, selectedStat, total
               ))}
             </TableBody>
           </Table>
-          {filteredClients.length > 3 && (
+          {filteredClients?.length > 3 && (
             <div className="mt-4 text-center">
               <button
                 onClick={toggleExpand}
