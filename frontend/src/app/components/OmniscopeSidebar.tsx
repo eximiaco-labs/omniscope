@@ -26,6 +26,7 @@ import {
   CalendarIcon,
   LogOutIcon,
   HomeIcon,
+  TargetIcon
 } from "lucide-react";
 import Logo from "./logo";
 import { Avatar } from '@/components/catalyst/avatar';
@@ -74,6 +75,7 @@ export function OmniscopeSidebar() {
     { href: "/analytics/week-review", caption: "Week Review", icon: <CalendarCheckIcon /> },
     { href: "/analytics/side-by-side", caption: "Side-by-side", icon: <ColumnsIcon /> },
     { href: "/analytics/datasets", caption: "Datasets", icon: <DatabaseIcon /> },
+    { href: "/analytics/approved-vs-actual", caption: "Approved vs Actual", icon: <TargetIcon /> },
   ];
 
   const aboutUsSidebarItems: OmniSidebarItemProps[] = [
