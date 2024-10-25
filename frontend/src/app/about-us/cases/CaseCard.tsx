@@ -153,7 +153,7 @@ function isOlderThan30Days(date: any) {
           )}
           <div className="mt-2 text-xs text-gray-600 text-center">
             {caseItem.weeklyApprovedHours > 0 && (
-              <p>Weekly Approved Hours: {caseItem.weeklyApprovedHours}</p>
+              <p>Weekly Approved Hours: {caseItem.weeklyApprovedHours}{caseItem.preContractedValue ? ' (pre)' : ''}</p>
             )}
           </div>
           {caseItem.lastUpdate && (
