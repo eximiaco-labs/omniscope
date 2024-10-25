@@ -120,27 +120,11 @@ def compute_raw_data(start, end):
 
 class ActiveCasesWithApprovedHours:
     def __init__(self, start_date, end_date):
-        self.start_date = start_date.date() if isinstance(start_date, datetime) else start_date
-        self.end_date = end_date.date() if isinstance(end_date, datetime) else end_date
-        self.cases = self._get_filtered_cases()
+        self.cases = globals.omni_models.cases.get_live_cases_with_approved_hours(start_date, end_date)
 
     def __iter__(self):
         return iter(self.cases)
 
-    def _get_cases_with_approved_hours(self):
-        all_cases = globals.omni_models.cases.get_all().values()
-        return [case for case in all_cases if case.weekly_approved_hours]
-
-    def _filter_cases_by_date(self, cases):
-        return [
-            case for case in cases
-            if (not case.start_of_contract or case.start_of_contract <= self.end_date) and
-               (not case.end_of_contract or case.end_of_contract >= self.start_date)
-        ]
-
-    def _get_filtered_cases(self):
-        all_cases = self._get_cases_with_approved_hours()
-        return self._filter_cases_by_date(all_cases)
 
     def to_dataframe(self, consulting_timesheet=None):
         df = pd.DataFrame([{
