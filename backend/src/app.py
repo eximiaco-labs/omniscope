@@ -13,7 +13,7 @@ from api.queries import query
 from api.mutations import mutation
 import logging
 import argparse
-
+import sys
 from api.execution_stats import ExecutionStatsExtension
 import globals
 
@@ -21,7 +21,7 @@ def verify_token(token):
     try:
         # Use the client_id from your settings
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), auth_settings["client_id"])
-        
+        print(idinfo, file=sys.stderr)
         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
             raise ValueError('Wrong issuer.')
         
@@ -57,7 +57,7 @@ def token_required(f):
 app = Flask(__name__)
 CORS(app)
 
-type_defs = load_schema_from_path("api/schema.graphql")
+type_defs = load_schema_from_path("src/api/schema.graphql")
 schema = make_executable_schema(
     type_defs, 
     query,
@@ -100,5 +100,5 @@ if __name__ == '__main__':
 
     app.logger.info("Starting the application")
     globals.update()
-    app.run(debug=args.verbose)
+    app.run(debug=args.verbose,host="0.0.0.0")
 

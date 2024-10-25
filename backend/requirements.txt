@@ -1,5 +1,7 @@
+requests
 Flask
 Flask-CORS
+flask_httpauth
 ariadne
 
 google-auth
@@ -8,3 +10,10 @@ pytest-cov
 pytest-mock
 pytest-parametrize
 
+
+pydantic
+pytz
+python-dotenv
+validators
+pandas
+jwt

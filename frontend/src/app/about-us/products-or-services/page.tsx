@@ -11,7 +11,6 @@ import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
 import { print } from 'graphql';
-import { client } from '@/app/layout';
 
 const GET_OFFERS_AND_TIMESHEET = gql`
   query GetOffersAndTimesheet {
@@ -55,8 +54,7 @@ export default function ProductsOrServices() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
-  const queryString = print(GET_OFFERS_AND_TIMESHEET);
-  const GRAPHQL_ENDPOINT = client.link instanceof HttpLink ? client.link.options.uri : undefined;
+  const queryString = print(GET_OFFERS_AND_TIMESHEET);  
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
