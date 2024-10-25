@@ -115,6 +115,7 @@ class Case(BaseModel):
     link: HttpUrl
     offers: List[int]
     is_active: bool
+    pre_contracted_value: bool
     everhour_projects_ids: Optional[str] = None
     
     start_of_contract: Optional[date] = None
@@ -147,12 +148,21 @@ class Case(BaseModel):
         match = re.match(r'^(\d+(?:\.\d+)?)', allocation)
         allocation = match.group(1) if match else '0'
 
+        print(post.meta.get('valor-pre-contratado', {}))
+
+        pre_contracted_value = post.meta.get('valor-pre-contratado', {})
+        if isinstance(pre_contracted_value, list):
+            pre_contracted_value = False
+        else:
+            pre_contracted_value = pre_contracted_value.get('Valor pré-contratado', 'false') != 'false'
+
         return Case(
             id=post.id,
             title=post.title.rendered,
             slug=post.slug,
             link=post.link,
             is_active=post.meta.get('status', None) == 'Em andamento',
+            pre_contracted_value = pre_contracted_value,
             everhour_projects_ids=post.meta.get('codigo-do-projeto', None),
             sponsor=post.meta.get('sponsor', None),
             start_of_contract=datetime.strptime(post.meta.get('inicio-do-contrato'), '%Y-%m-%d').date() if post.meta.get('inicio-do-contrato') and post.meta.get('inicio-do-contrato').strip() else None,

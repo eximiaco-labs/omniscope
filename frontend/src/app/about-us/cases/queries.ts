@@ -7,6 +7,7 @@ export const GET_CASES_AND_TIMESHEET = gql`
       slug
       title
       isActive
+      preContractedValue
       sponsor
       hasDescription
       everhourProjectsIds

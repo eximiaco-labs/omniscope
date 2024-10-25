@@ -7,6 +7,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from functools import wraps
 from settings import auth_settings  # Import your auth settings
+from settings import graphql_settings
 
 from api.queries import query
 from api.mutations import mutation
@@ -34,20 +35,22 @@ def verify_token(token):
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            auth_header = request.headers.get('Authorization', '')
-            if auth_header.startswith('Bearer '):
-                token = auth_header.split(' ', 1)[1]
-            else:
-                token = None
-        if not token:
-            return jsonify({'message': 'Token is missing!'}), 401
+        if graphql_settings["require_auth"]:
+            token = None
+            if 'Authorization' in request.headers:
+                auth_header = request.headers.get('Authorization', '')
+                if auth_header.startswith('Bearer '):
+                    token = auth_header.split(' ', 1)[1]
+                else:
+                    token = None
+            
+            if not token:
+                return jsonify({'message': 'Token is missing!'}), 401
         
-        user_id = verify_token(token)
-        if not user_id:
-            return jsonify({'message': 'Token is invalid!'}), 401
-        
+            user_id = verify_token(token)
+            if not user_id:
+                return jsonify({'message': 'Token is invalid!'}), 401
+            
         return f(*args, **kwargs)
     return decorated
 

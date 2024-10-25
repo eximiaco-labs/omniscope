@@ -13,6 +13,7 @@ class Case(BaseModel):
     slug: str
     title: str
     is_active: bool
+    pre_contracted_value: bool = False
 
     client_id: Optional[str] = None
     everhour_projects_ids: Optional[List[str]] = []
@@ -156,6 +157,7 @@ class CasesRepository:
                 title=onto_case.title,
                 slug=onto_case.slug,
                 is_active=onto_case.is_active,
+                pre_contracted_value=onto_case.pre_contracted_value,
                 everhour_projects_ids=onto_case.everhour_projects_ids.split(
                     ';'
                 ) if onto_case.everhour_projects_ids else [],

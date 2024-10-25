@@ -100,6 +100,7 @@ type Case {
   slug: String!
   title: String!
   isActive: Boolean!
+  preContractedValue: Boolean!
   clientId: String
   everhourProjectsIds: [String!]
   status: String
@@ -600,6 +601,37 @@ type WorkerSummary {
   timeInHours: Float!
 }
 
+# Planned vs Actual types
+type ApprovedVsActual {
+  start: Date!
+  end: Date!
+  totalApprovedHours: Float!
+  totalActualHours: Float!
+  totalDifference: Float!
+  numberOfCases: Int!
+  cases: [ApprovedVsActualCase!]!
+}
+
+type ApprovedVsActualCase {
+  id: Int!
+  title: String!
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float!
+  totalApprovedHours: Float!
+  totalActualHours: Float!
+  totalDifference: Float!
+  preContractedValue: Boolean!
+  weeks: [ApprovedVsActualWeek!]!
+}
+
+type ApprovedVsActualWeek {
+  title: String!
+  numberOfDays: Int!
+  approvedHours: Float!
+  actualHours: Float!
+  difference: Float!
+}
 
 # Query type
 type Query {
@@ -629,6 +661,7 @@ type Query {
   weekReview(date_of_interest: Date!, filters: [FilterInput]): WeekReview!
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
   projects: [Project!]!
+  approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
 }
 
 # Mutation type
