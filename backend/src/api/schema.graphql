@@ -100,6 +100,7 @@ type Case {
   slug: String!
   title: String!
   isActive: Boolean!
+  preContractedValue: Boolean!
   clientId: String
   everhourProjectsIds: [String!]
   status: String
