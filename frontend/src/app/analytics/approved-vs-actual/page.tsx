@@ -141,6 +141,32 @@ export default function ApprovedVsActualPage() {
                           </span>
                         )}
                       </div>
+
+                      <div className="mt-4 mb-4">
+                        <table className="text-sm">
+                          <thead>
+                            <tr className="bg-white border-b border-gray-200">
+                              <th className="px-2 py-1 text-left w-48">Week</th>
+                              <th className="px-2 py-1 text-right w-24">Actual</th>
+                              <th className="px-2 py-1 text-right w-24">Difference</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {caseItem.weeks.map((week: any, weekIndex: number) => (
+                              <tr key={weekIndex} className={weekIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                <td className="px-2 py-1 w-48">{week.title}</td>
+                                <td className="px-2 py-1 text-right w-24">{week.actualHours.toFixed(1)}</td>
+                                <td className={`px-2 py-1 text-right w-24 ${
+                                  week.difference < 0 ? 'text-red-600' : 
+                                  week.difference > 0 ? 'text-blue-600' : 'text-green-600'
+                                }`}>
+                                  {week.difference.toFixed(1)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </td>
                     <td className="w-24">
                       <LittleStat
