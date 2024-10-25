@@ -604,30 +604,32 @@ type WorkerSummary {
 type ApprovedVsActual {
   start: Date!
   end: Date!
-  weeks: [ApprovedVsActualWeek!]!
+  totalApprovedHours: Float!
+  totalActualHours: Float!
+  totalDifference: Float!
+  numberOfCases: Int!
+  cases: [ApprovedVsActualCase!]!
 }
 
-type ApprovedVsActualWeek {
-  start: Date!
-  end: Date!
-  title: String!
-  data: [ApprovedVsActualWeekData!]!
-}
-
-type ApprovedVsActualWeekData {
-  clientId: Int!
+type ApprovedVsActualCase {
   id: Int!
   title: String!
   startOfContract: Date
   endOfContract: Date
   weeklyApprovedHours: Float!
-  actual: Float
-  startOfWeek: Date!
-  endOfWeek: Date!
-  numberOfDays: Int!
-  approvedHours: Float!
+  totalApprovedHours: Float!
+  totalActualHours: Float!
+  totalDifference: Float!
+  weeks: [ApprovedVsActualWeek!]!
 }
 
+type ApprovedVsActualWeek {
+  title: String!
+  numberOfDays: Int!
+  approvedHours: Float!
+  actualHours: Float!
+  difference: Float!
+}
 
 # Query type
 type Query {
