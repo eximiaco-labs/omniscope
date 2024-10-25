@@ -6,6 +6,68 @@ from models.helpers.weeks import Weeks
 import globals
 
 def resolve_approved_vs_actual(_, info, start, end):
+    # Call compute_raw_data to get the raw data
+    raw_data = compute_raw_data(start, end)
+
+    # Initialize a dictionary to store unique cases
+    unique_cases = {}
+
+    # Iterate through each week in the raw data
+    for week in raw_data['weeks']:
+        # Iterate through each case in the week's data
+        for case in week['data']:
+            case_id = case['id']
+            if case_id not in unique_cases:
+                unique_cases[case_id] = {
+                    'id': case_id,
+                    'title': case['title'],
+                    'start_of_contract': case['start_of_contract'],
+                    'end_of_contract': case['end_of_contract'],
+                    'weekly_approved_hours': case['weekly_approved_hours'],
+                    'weeks': []
+                }
+            
+            # Add week data to the case
+            unique_cases[case_id]['weeks'].append({
+                'title': week['title'],
+                'number_of_days': case['number_of_days'],
+                'approved_hours': case['approved_hours'],
+                'actual_hours': case['actual'],
+                'difference': case['actual'] - case['approved_hours']
+            })
+
+    # Convert the dictionary of unique cases to a list
+    all_cases = list(unique_cases.values())
+    for case in all_cases:
+        # Calculate sums for approved_hours, actual, and difference
+        case['total_approved_hours'] = sum(week['approved_hours'] for week in case['weeks'])
+        case['total_actual_hours'] = sum(week['actual_hours'] for week in case['weeks'])
+        case['total_difference'] = sum(week['difference'] for week in case['weeks'])
+
+
+    # Sort the list of cases by total difference in descending order
+    all_cases.sort(key=lambda x: x['total_difference'])
+
+    # Filter out cases that are not active or have no actual hours
+    all_cases = [
+        case 
+        for case in all_cases 
+        if globals.omni_models.cases.get_by_id(case['id']).is_active or case['total_actual_hours'] > 0
+    ]
+
+    # Return the result as a dictionary
+    return {
+        'start': raw_data['start'],
+        'end': raw_data['end'],
+        'total_approved_hours': sum(case['total_approved_hours'] for case in all_cases),
+        'total_actual_hours': sum(case['total_actual_hours'] for case in all_cases),
+        'total_difference': sum(case['total_difference'] for case in all_cases),
+        'number_of_cases': len(all_cases),
+        'cases': all_cases
+    }
+
+
+def compute_raw_data(start, end):
     if isinstance(start, str):
         start = datetime.fromisoformat(start)
         
@@ -86,7 +148,8 @@ class ActiveCasesWithApprovedHours:
             'title': case.title,
             'start_of_contract': case.start_of_contract,
             'end_of_contract': case.end_of_contract,
-            'weekly_approved_hours': case.weekly_approved_hours
+            'weekly_approved_hours': case.weekly_approved_hours,
+            'is_active': case.is_active
         } for case in self.cases])
         
         df['start_of_contract'] = pd.to_datetime(df['start_of_contract'])
