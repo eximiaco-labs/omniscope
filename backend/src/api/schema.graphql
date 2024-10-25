@@ -621,6 +621,7 @@ type ApprovedVsActualCase {
   totalApprovedHours: Float!
   totalActualHours: Float!
   totalDifference: Float!
+  preContractedValue: Boolean!
   weeks: [ApprovedVsActualWeek!]!
 }
 

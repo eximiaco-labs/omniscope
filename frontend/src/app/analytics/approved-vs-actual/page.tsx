@@ -27,6 +27,7 @@ const APPROVED_VS_ACTUAL_QUERY = gql`
       totalDifference
       cases {
         title
+        preContractedValue
         startOfContract
         endOfContract
         weeklyApprovedHours
@@ -72,22 +73,25 @@ export default function ApprovedVsActualPage() {
 
   return (
     <div className="space-y-6">
-      <Heading>Approved vs Actual Hours</Heading>
+      <Heading>Approved vs Actual Hours (Consulting)</Heading>
 
-      <DatePickerWithRange
-        date={{
-          from: dateRange.from,
-          to: dateRange.to,
-        }}
-        setDate={(newDateRange) => {
-          if (newDateRange) {
-            setDateRange({
-              from: newDateRange.from || dateRange.from,
-              to: newDateRange.to || dateRange.to,
-            });
-          }
-        }}
-      />
+      <div className="flex items-center">
+        <DatePickerWithRange
+          date={{
+            from: dateRange.from,
+            to: dateRange.to,
+          }}
+          setDate={(newDateRange) => {
+            if (newDateRange) {
+              setDateRange({
+                from: newDateRange.from || dateRange.from,
+                to: newDateRange.to || dateRange.to,
+              });
+            }
+          }}
+        />
+        <div className="flex-grow ml-4 border-t border-gray-300" />
+      </div>
 
       <div className="mt-4 grid grid-cols-4 gap-4">
         <Stat
@@ -137,7 +141,7 @@ export default function ApprovedVsActualPage() {
                         )}
                         {caseItem.weeklyApprovedHours && (
                           <span className={`${(caseItem.startOfContract || caseItem.endOfContract) ? 'ml-2' : ''}`}>
-                            {(caseItem.startOfContract || caseItem.endOfContract) ? '• ' : ''}Hours per week: {caseItem.weeklyApprovedHours}
+                            {(caseItem.startOfContract || caseItem.endOfContract) ? '• ' : ''}Hours per week: {caseItem.weeklyApprovedHours}{caseItem.preContractedValue ? ' (pre)' : ''}
                           </span>
                         )}
                       </div>

@@ -24,6 +24,7 @@ def resolve_approved_vs_actual(_, info, start, end):
                     'start_of_contract': case['start_of_contract'],
                     'end_of_contract': case['end_of_contract'],
                     'weekly_approved_hours': case['weekly_approved_hours'],
+                    'pre_contracted_value': case['pre_contracted_value'],
                     'weeks': []
                 }
             
@@ -149,7 +150,8 @@ class ActiveCasesWithApprovedHours:
             'start_of_contract': case.start_of_contract,
             'end_of_contract': case.end_of_contract,
             'weekly_approved_hours': case.weekly_approved_hours,
-            'is_active': case.is_active
+            'is_active': case.is_active,
+            'pre_contracted_value': case.pre_contracted_value
         } for case in self.cases])
         
         df['start_of_contract'] = pd.to_datetime(df['start_of_contract'])
