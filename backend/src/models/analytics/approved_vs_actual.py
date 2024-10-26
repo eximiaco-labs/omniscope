@@ -83,9 +83,8 @@ def _compute_raw_data(start, end):
     }
 
     while s < e:
-        cases = _ActiveCasesWithApprovedHours(s, ew)
         timesheet = _summarize_consulting_timesheet(s, ew)
-        df = cases.to_dataframe(timesheet)
+        df = _list_cases_with_approved_hours_and_actual(s, ew, timesheet)
 
         df['start_of_week'] = df['start_of_contract'].apply(lambda x: max(s, x) if pd.notna(x) else s)
         df['end_of_week'] = df['end_of_contract'].apply(lambda x: min(ew, x) if pd.notna(x) else ew)
@@ -117,39 +116,32 @@ def _compute_raw_data(start, end):
 
     return result
 
+def _list_cases_with_approved_hours_and_actual(start_date, end_date, consulting_timesheet_summary):
+    cases = globals.omni_models.cases.get_live_cases_with_approved_hours(start_date, end_date)
 
-class _ActiveCasesWithApprovedHours:
-    def __init__(self, start_date, end_date):
-        self.cases = globals.omni_models.cases.get_live_cases_with_approved_hours(start_date, end_date)
+    df = pd.DataFrame(
+        [{
+            'client_id': case.client_id,
+            'id': case.id,
+            'title': case.title,
+            'start_of_contract': case.start_of_contract,
+            'end_of_contract': case.end_of_contract,
+            'weekly_approved_hours': case.weekly_approved_hours,
+            'is_active': case.is_active,
+            'pre_contracted_value': case.pre_contracted_value
+        } for case in cases]
+    )
 
-    def __iter__(self):
-        return iter(self.cases)
+    df['start_of_contract'] = pd.to_datetime(df['start_of_contract'])
+    df['end_of_contract'] = pd.to_datetime(df['end_of_contract'])
 
-    def to_dataframe(self, consulting_timesheet_summary=None):
-        df = pd.DataFrame(
-            [{
-                'client_id': case.client_id,
-                'id': case.id,
-                'title': case.title,
-                'start_of_contract': case.start_of_contract,
-                'end_of_contract': case.end_of_contract,
-                'weekly_approved_hours': case.weekly_approved_hours,
-                'is_active': case.is_active,
-                'pre_contracted_value': case.pre_contracted_value
-            } for case in self.cases]
-        )
+    if consulting_timesheet_summary is not None and not consulting_timesheet_summary.empty:
+        df = pd.merge(df, consulting_timesheet_summary, on='id', how='left')
+        df['actual'] = df['actual'].fillna(0)
+    else:
+        df['actual'] = 0
 
-        df['start_of_contract'] = pd.to_datetime(df['start_of_contract'])
-        df['end_of_contract'] = pd.to_datetime(df['end_of_contract'])
-
-        if consulting_timesheet_summary is not None and not consulting_timesheet_summary.empty:
-            df = pd.merge(df, consulting_timesheet_summary, on='id', how='left')
-            df['actual'] = df['actual'].fillna(0)
-        else:
-            df['actual'] = 0
-
-        return df
-
+    return df
 
 def _summarize_consulting_timesheet(start, end):
     timesheet = globals.omni_datasets.timesheets.get(start, end)
