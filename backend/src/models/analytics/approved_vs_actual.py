@@ -1,43 +1,47 @@
+from typing import Dict, List, Any
 import pandas as pd
 from datetime import datetime
 from models.helpers.weeks import Weeks
 import globals
 
-def compute_approved_vs_actual(start, end):
-    # Call compute_raw_data to get the raw data
+def compute_approved_vs_actual(start: str | datetime, end: str | datetime) -> Dict[str, Any]:
     raw_data = _compute_raw_data(start, end)
+    unique_cases = _process_raw_data(raw_data)
+    all_cases = _prepare_cases_data(unique_cases)
+    
+    return _create_result_summary(raw_data, all_cases)
 
-    # Initialize a dictionary to store unique cases
+def _process_raw_data(raw_data: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     unique_cases = {}
-
-    # Iterate through each week in the raw data
     for week in raw_data['weeks']:
-        # Iterate through each case in the week's data
         for case in week['data']:
             case_id = case['id']
             if case_id not in unique_cases:
-                unique_cases[case_id] = {
-                    'id': case_id,
-                    'title': case['title'],
-                    'start_of_contract': case['start_of_contract'],
-                    'end_of_contract': case['end_of_contract'],
-                    'weekly_approved_hours': case['weekly_approved_hours'],
-                    'pre_contracted_value': case['pre_contracted_value'],
-                    'weeks': []
-                }
+                unique_cases[case_id] = _initialize_case(case)
+            unique_cases[case_id]['weeks'].append(_create_week_data(week, case))
+    return unique_cases
 
-            # Add week data to the case
-            unique_cases[case_id]['weeks'].append(
-                {
-                    'title': week['title'],
-                    'number_of_days': case['number_of_days'],
-                    'approved_hours': case['approved_hours'],
-                    'actual_hours': case['actual'],
-                    'difference': case['actual'] - case['approved_hours']
-                }
-            )
+def _initialize_case(case: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        'id': case['id'],
+        'title': case['title'],
+        'start_of_contract': case['start_of_contract'],
+        'end_of_contract': case['end_of_contract'],
+        'weekly_approved_hours': case['weekly_approved_hours'],
+        'pre_contracted_value': case['pre_contracted_value'],
+        'weeks': []
+    }
 
-    # Convert the dictionary of unique cases to a list
+def _create_week_data(week: Dict[str, Any], case: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        'title': week['title'],
+        'number_of_days': case['number_of_days'],
+        'approved_hours': case['approved_hours'],
+        'actual_hours': case['actual'],
+        'difference': case['actual'] - case['approved_hours']
+    }
+
+def _prepare_cases_data(unique_cases: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
     all_cases = list(unique_cases.values())
     for case in all_cases:
         # Calculate sums for approved_hours, actual, and difference
@@ -55,7 +59,9 @@ def compute_approved_vs_actual(start, end):
         if globals.omni_models.cases.get_by_id(case['id']).is_active or case['total_actual_hours'] > 0
     ]
 
-    # Return the result as a dictionary
+    return all_cases
+
+def _create_result_summary(raw_data: Dict[str, Any], all_cases: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {
         'start': raw_data['start'],
         'end': raw_data['end'],
