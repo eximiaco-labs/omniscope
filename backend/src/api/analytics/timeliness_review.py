@@ -8,34 +8,13 @@ def resolve_timeliness_review(_, info, date_of_interest, filters=None):
         date_of_interest = datetime.strptime(date_of_interest, '%Y-%m-%d')
 
     df = globals.omni_datasets.timesheets.get_last_six_weeks(date_of_interest).data
-    start, _ = Weeks.get_week_dates(date_of_interest)
-
+    
     # Compose filterable_fields and apply filters
-    source = globals.omni_datasets.timesheets
-    filterable_fields = source.get_filterable_fields()
-    result = {'filterable_fields': []}
-
-    for field in filterable_fields:
-        options = sorted([value for value in df[field].unique().tolist() if value is not None])
-        selected_values = []
-
-        if filters:
-            for filter_item in filters:
-                if filter_item['field'] == field:
-                    selected_values = filter_item['selected_values']
-                    break
-
-        result['filterable_fields'].append(
-            {
-                'field': field,
-                'selected_values': selected_values,
-                'options': options
-            }
-        )
-
-        # Apply filter to dataframe
-        if selected_values:
-            df = df[df[field].isin(selected_values)]
+    df, result = globals.omni_datasets.apply_filters(
+        globals.omni_datasets.timesheets,
+        df,
+        filters
+    )
 
     return TimelinessReview(df)
 
