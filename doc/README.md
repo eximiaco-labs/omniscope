@@ -25,6 +25,7 @@ The `architectural-decision-records` folder documents the key architectural deci
 | [`adr-011`](architectural-decision-records/adr-011-adoption-of-typescript.md) | Details the decision to adopt TypeScript for frontend development. | Approved  |
 | [`adr-012`](architectural-decision-records/adr-012-adoption-of-catalyst-framework.md) | Describes the adoption of Catalyst as the main UI development framework. | Approved  |
 | [`adr-013`](architectural-decision-records/adr-013-removal-of-dash-frontend-support.md) | Details the decision to remove support for the Dash-based frontend. | Approved  |
+| [`adr-014`](architectural-decision-records/adr-014-models-structure-and-separation-of-concerns.md) | Outlines the implementation of a layered architecture for models and separation of concerns between models and API layers. | Approved  |
 
 ## Diagrams
 
