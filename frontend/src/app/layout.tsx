@@ -15,7 +15,7 @@ import { useEffect } from "react";
 function createApolloClient(session: any) {
   const httpLink = createHttpLink({
     uri: typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? "http://127.0.0.1:5000/graphql"
+      ? "http://127.0.0.1:5001/graphql"
       : "https://omniscope.eximia.co/graphql",
   });
 
