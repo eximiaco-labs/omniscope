@@ -49,7 +49,7 @@ interface OmniSidebarItemProps {
 function OmniSidebarItem({ href, caption, icon }: OmniSidebarItemProps) {
   const pathname = usePathname();
   return (
-    <SidebarItem href={href} current={pathname.startsWith(href)}>
+    <SidebarItem href={href} current={href === '/' ? pathname === '/' : pathname.startsWith(href)}>
       {icon}
       <SidebarLabel>{caption}</SidebarLabel>
     </SidebarItem>
