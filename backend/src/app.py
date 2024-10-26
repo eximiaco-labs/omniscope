@@ -57,7 +57,7 @@ def token_required(f):
 app = Flask(__name__)
 CORS(app)
 
-type_defs = load_schema_from_path("src/api/schema.graphql")
+type_defs = load_schema_from_path("api/schema.graphql")
 schema = make_executable_schema(
     type_defs, 
     query,
@@ -100,4 +100,5 @@ if __name__ == '__main__':
 
     app.logger.info("Starting the application")
     globals.update()
+
     app.run(debug=args.verbose,host="0.0.0.0",port=5001)

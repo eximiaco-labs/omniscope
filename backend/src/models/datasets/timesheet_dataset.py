@@ -39,6 +39,7 @@ class TimesheetDataset(OmniDataset):
         cases_cache = {}
         clients_cache = {}
         offers_cache = {}
+        eh_projects_cache = self.models.tracker.all_projects
 
         # Função para obter trabalhador e usar cache
         def get_worker(user_id):
@@ -64,6 +65,10 @@ class TimesheetDataset(OmniDataset):
                 offer = self.models.products_or_services.get_by_id(offer_id)
                 offers_cache[offer_id] = offer.name if offer else None
             return offers_cache[offer_id]
+        
+        def get_billing_information(project_id):
+            project = eh_projects_cache.get(project_id)
+            return project.billing if project else None
 
         # Transformações vetorizadas para dados de data
         df['date'] = pd.to_datetime(df['date']).dt.date
@@ -76,6 +81,10 @@ class TimesheetDataset(OmniDataset):
         # Função para enriquecer as linhas
         def enrich_row(row):
             try:
+                billing = get_billing_information(row['project_id'])
+                row['billing_type'] = billing.type if billing else None
+                row['billing_fee'] = billing.fee if billing else None
+
                 # Enriquecer com dados do trabalhador
                 worker = get_worker(row['user_id'])
                 if worker:

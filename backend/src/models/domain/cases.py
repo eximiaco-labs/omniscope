@@ -97,7 +97,28 @@ class CasesRepository:
     def get_active_cases(self) -> List[Case]:
         cases = self.get_all()
         return [case for case in cases.values() if case.is_active and case.has_client]
+    
+    def get_live_cases_with_approved_hours(self, start_date, end_date) -> List[Case]:
+        
+        start_date = start_date.date() if isinstance(start_date, datetime) else start_date
+        end_date = end_date.date() if isinstance(end_date, datetime) else end_date
 
+        all_cases = self.get_all().values()
+        
+        all_cases = [
+            case 
+            for case in all_cases 
+            if case.weekly_approved_hours
+        ]
+
+        all_cases = [
+            case for case in all_cases
+            if (not case.start_of_contract or case.start_of_contract <= end_date) and
+               (not case.end_of_contract or case.end_of_contract >= start_date)
+        ]
+
+        return all_cases
+        
     def get_cases_with_ids(self, case_ids: List[str]) -> Dict[str, Case]:
         all_cases = self.get_all().values()
         result = {

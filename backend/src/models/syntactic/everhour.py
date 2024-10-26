@@ -20,6 +20,9 @@ class User(BaseModel):
     def slug(self) -> str:
         return slug.generate(self.name)
 
+class Billing(BaseModel):
+    type: Optional[str] = None
+    fee: Optional[float] = None
 
 class Project(BaseModel):
     id: str
@@ -27,7 +30,9 @@ class Project(BaseModel):
     name: str
     created_at: datetime = Field(alias='createdAt')
     status: str
+    billing: Optional[Billing] = None
     client_id: Optional[int] = Field(None, alias='client')
+
 
     @property
     def slug(self) -> str:

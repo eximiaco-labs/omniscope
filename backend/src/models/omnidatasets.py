@@ -280,3 +280,38 @@ class OmniDatasets:
                     data = data[data[filter].isin(filter_value)]
 
         return SummarizablePowerDataFrame(data)
+    
+    def apply_filters(self, 
+                      source: OmniDataset, 
+                      df: pd.DataFrame, 
+                      filters: dict
+                     ):
+        
+        # Compose filterable_fields and apply filters
+        filterable_fields = source.get_filterable_fields()
+        result = {'filterable_fields': []}
+
+        for field in filterable_fields:
+            options = sorted([value for value in df[field].unique().tolist() if value is not None])
+            selected_values = []
+
+            if filters:
+                for filter_item in filters:
+                    if filter_item['field'] == field:
+                        selected_values = filter_item['selected_values']
+                        break
+
+            result['filterable_fields'].append(
+                {
+                    'field': field,
+                    'selected_values': selected_values,
+                    'options': options
+                }
+            )
+
+            # Apply filter to dataframe
+            if selected_values:
+                df = df[df[field].isin(selected_values)]
+        
+        return df, result
+

@@ -105,6 +105,7 @@ src/flask_session/
 nb/cache/
 src/cache/
 
+frontend/yarn.lock
 # Uncomment if you're using Poetry
 # poetry.lock
 

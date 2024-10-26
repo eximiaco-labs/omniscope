@@ -28,7 +28,6 @@ class Project(e.Project):
         base_dict['is_squad'] = client.is_squad if client else False
         base_dict['is_eximiaco'] = client.is_eximiaco if client else True
         base_dict['is_handson'] = client.is_handson if client else False
-
         if base_instance.name.lower().endswith('- se'):
             base_dict['is_handson'] = True
 
