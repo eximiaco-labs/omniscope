@@ -16,20 +16,22 @@ def resolve_cases(_, info, only_actives: bool = False):
     )
 
 def resolve_case(_, info: GraphQLResolveInfo, id=None, slug=None):
+    case = None
     if id is not None:
-        return _make_result_object(
-            info,
-            globals.omni_models.cases.get_by_id(id)
-        )
+        case = globals.omni_models.cases.get_by_id(id)
+        if case is None:
+            case = globals.omni_models.cases.get_by_slug(id)
     elif slug is not None:
-        return _make_result_object(
-            info,
-            globals.omni_models.cases.get_by_slug(slug)
-        )
+        case = globals.omni_models.cases.get_by_slug(slug)
+        if case is None:
+            case = globals.omni_models.cases.get_by_id(slug)
+    
+    if case is not None:
+        return _make_result_object(info, case)
     
     return None
 
-def _make_result_object(info: GraphQLResolveInfo, case: Case):
+def _make_result_object(info: GraphQLResolveInfo, case):
     result = {**case.__dict__}
     
     # Add all properties
@@ -46,6 +48,6 @@ def _make_result_object(info: GraphQLResolveInfo, case: Case):
             result['client'] = globals.omni_models.clients.get_by_id(case.client_id)
 
     if any(x.name.value == 'sponsor' for x in selections):
-        result['sponsor'] = case
+        result['sponsor'] = case.sponsor
 
     return result
