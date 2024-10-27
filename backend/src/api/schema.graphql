@@ -285,16 +285,53 @@ type Summary implements ISummary {
   weeklyHours: [WeeklyHours!]!
 }
 
+type OneKindSummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  #
+  byWorker: [NamedSummary]
+}
+
 type WeeklyHours {
   week: String!
   hours: Float!
 }
 
 type KindSummary {
-  internal: Summary
-  consulting: Summary
-  squad: Summary
-  handsOn: Summary
+  internal: OneKindSummary
+  consulting: OneKindSummary
+  squad: OneKindSummary
+  handsOn: OneKindSummary
 }
 
 type NamedSummary implements ISummary {

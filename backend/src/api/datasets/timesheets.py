@@ -74,15 +74,23 @@ def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
     summary_by_kind = {}
 
     for kind in kinds:
-        df_kind = df[df['Kind'] == kind]
+        kind_in_map = 'handsOn' if kind == 'HandsOn' else kind.lower()
+        if kind_in_map in map:
+            kind_map = map[kind_in_map]
+            df_kind = df[df['Kind'] == kind]
 
-        if kind == 'HandsOn':
-            label = 'hands_on'
-        else:
-            label = kind.lower()
-            
-        summary_by_kind[label] = summarize(df_kind)
-    
+            if kind == 'HandsOn':
+                label = 'hands_on'
+            else:
+                label = kind.lower()
+
+            s = summarize(df_kind)
+
+            if 'byWorker' in kind_map:
+                s['by_worker'] = summarize_by_worker(df_kind, kind_map['byWorker'])
+
+            summary_by_kind[label] = s
+
     return summary_by_kind
 
 def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name", map: Dict = None) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
