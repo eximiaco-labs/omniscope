@@ -15,6 +15,7 @@ import {
 } from "@/components/catalyst/table";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import { LittleStat, Stat } from "@/app/components/analytics/stat";
+import Link from "next/link";
 
 const APPROVED_VS_ACTUAL_QUERY = gql`
   query ApprovedVsActual($start: Date!, $end: Date!) {
@@ -26,6 +27,7 @@ const APPROVED_VS_ACTUAL_QUERY = gql`
       totalActualHours
       totalDifference
       cases {
+        id
         title
         preContractedValue
         startOfContract
@@ -126,25 +128,27 @@ export default function ApprovedVsActualPage() {
                 <React.Fragment key={index}>
                   <tr className="mb-2">
                     <td className="whitespace-normal break-words w-auto">
-                      <div className="font-bold text-gray-700">{caseItem.title}</div>
-                      <div className="text-sm text-gray-600">
-                        {caseItem.startOfContract && (
-                          <span className="text-green-600">
-                            {new Date(caseItem.startOfContract).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                          </span>
-                        )}
-                        {caseItem.startOfContract && caseItem.endOfContract && ' - '}
-                        {caseItem.endOfContract && (
-                          <span className="text-red-600">
-                            {new Date(caseItem.endOfContract).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                          </span>
-                        )}
-                        {caseItem.weeklyApprovedHours && (
-                          <span className={`${(caseItem.startOfContract || caseItem.endOfContract) ? 'ml-2' : ''}`}>
-                            {(caseItem.startOfContract || caseItem.endOfContract) ? '• ' : ''}Hours per week: {caseItem.weeklyApprovedHours}{caseItem.preContractedValue ? ' (pre)' : ''}
-                          </span>
-                        )}
-                      </div>
+                      <Link href={`/about-us/cases/${caseItem.id}`}>
+                        <div className="font-bold text-gray-700">{caseItem.title}</div>
+                        <div className="text-sm text-gray-600">
+                          {caseItem.startOfContract && (
+                            <span className="text-green-600">
+                              {new Date(caseItem.startOfContract).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                          {caseItem.startOfContract && caseItem.endOfContract && ' - '}
+                          {caseItem.endOfContract && (
+                            <span className="text-red-600">
+                              {new Date(caseItem.endOfContract).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                          {caseItem.weeklyApprovedHours && (
+                            <span className={`${(caseItem.startOfContract || caseItem.endOfContract) ? 'ml-2' : ''}`}>
+                              {(caseItem.startOfContract || caseItem.endOfContract) ? '• ' : ''}Hours per week: {caseItem.weeklyApprovedHours}{caseItem.preContractedValue ? ' (pre)' : ''}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
 
                       <div className="mt-4 mb-4">
                         <table className="text-sm">
