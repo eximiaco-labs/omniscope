@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import Link from "next/link";
 
 interface CasesByContractEndProps {
   caseData: any[];
@@ -106,33 +107,35 @@ const CasesByContractEnd: React.FC<CasesByContractEndProps> = ({ caseData, selec
                     }}
                   >
                     <TableCell>
-                      <div className="flex flex-col space-y-2">
-                        <p className="font-bold uppercase text-xs">{caseItem.caseDetails?.client?.name || 'Unknown Client'}</p>
-                        <p className="text-base whitespace-normal break-words" title={caseItem.title}>
-                          {caseItem.title}
-                        </p>
-                        <div className="flex justify-between items-center text-sm">
-                          {caseItem.caseDetails.weeklyApprovedHours ? (
-                            <span className="text-gray-600">
-                              {caseItem.caseDetails.weeklyApprovedHours} hours/week
-                            </span>
-                          ) : (
-                            <span className="text-red-500">
-                              No weekly hours defined.
-                            </span>
-                          )}
-                          <div className="flex flex-col items-end">
-                            <span className="font-medium">
-                              {formatDate(caseItem.caseDetails.endOfContract)}
-                            </span>
-                            {daysRemaining !== null && (
-                              <span className={`text-xs ${daysRemaining < 30 ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
-                                {daysRemaining} days remaining
+                      <Link href={`/about-us/cases/${caseItem.caseDetails.slug}`} className="block">
+                        <div className="flex flex-col space-y-2">
+                          <p className="font-bold uppercase text-xs">{caseItem.caseDetails?.client?.name || 'Unknown Client'}</p>
+                          <p className="text-base whitespace-normal break-words" title={caseItem.title}>
+                            {caseItem.title}
+                          </p>
+                          <div className="flex justify-between items-center text-sm">
+                            {caseItem.caseDetails.weeklyApprovedHours ? (
+                              <span className="text-gray-600">
+                                {caseItem.caseDetails.weeklyApprovedHours} hours/week
+                              </span>
+                            ) : (
+                              <span className="text-red-500">
+                                No weekly hours defined.
                               </span>
                             )}
+                            <div className="flex flex-col items-end">
+                              <span className="font-medium">
+                                {formatDate(caseItem.caseDetails.endOfContract)}
+                              </span>
+                              {daysRemaining !== null && (
+                                <span className={`text-xs ${daysRemaining < 30 ? 'text-red-500 font-semibold' : 'text-gray-500'}`}>
+                                  {daysRemaining} days remaining
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 );

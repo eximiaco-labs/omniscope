@@ -10,6 +10,7 @@ import {
 } from "@/components/catalyst/table";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/catalyst/badge";
+import Link from "next/link";
 
 interface CasesUpdatesProps {
   caseData: any[] | null;
@@ -132,50 +133,52 @@ const CasesUpdates: React.FC<CasesUpdatesProps> = ({
                         }}
                       >
                         <TableCell>
-                          <div className="flex flex-col space-y-2">
-                            <p className="font-bold uppercase text-xs">
-                              {caseItem.caseDetails?.client?.name ||
-                                "Unknown Client"}
-                            </p>
-                            <p
-                              className="text-base whitespace-normal break-words"
-                              title={caseItem.title}
-                            >
-                              {caseItem.title}
-                            </p>
-                            <div className="flex justify-between items-center text-sm">
-                              {caseItem.caseDetails.lastUpdate ? (
-                                <Badge
-                                  color={getStatusColor(
-                                    caseItem.caseDetails.lastUpdate.status
-                                  )}
-                                >
-                                  {caseItem.caseDetails.lastUpdate.status}
-                                </Badge>
-                              ) : <></> }
-                              <div className="flex flex-col items-end">
+                          <Link href={`/about-us/cases/${caseItem.caseDetails.slug}`}>
+                            <div className="flex flex-col space-y-2">
+                              <p className="font-bold uppercase text-xs">
+                                {caseItem.caseDetails?.client?.name ||
+                                  "Unknown Client"}
+                              </p>
+                              <p
+                                className="text-base whitespace-normal break-words"
+                                title={caseItem.title}
+                              >
+                                {caseItem.title}
+                              </p>
+                              <div className="flex justify-between items-center text-sm">
                                 {caseItem.caseDetails.lastUpdate ? (
-                                  <>
-                                    {daysSinceUpdate !== null && (
-                                      <span
-                                        className={`text-xs ${
-                                          daysSinceUpdate > 30
-                                            ? "text-red-500 font-semibold"
-                                            : "text-gray-500"
-                                        }`}
-                                      >
-                                        {daysSinceUpdate} days since last update
-                                      </span>
+                                  <Badge
+                                    color={getStatusColor(
+                                      caseItem.caseDetails.lastUpdate.status
                                     )}
-                                  </>
-                                ) : (
-                                  <span className="text-red-500">
-                                    No update information
-                                  </span>
-                                )}
+                                  >
+                                    {caseItem.caseDetails.lastUpdate.status}
+                                  </Badge>
+                                ) : <></> }
+                                <div className="flex flex-col items-end">
+                                  {caseItem.caseDetails.lastUpdate ? (
+                                    <>
+                                      {daysSinceUpdate !== null && (
+                                        <span
+                                          className={`text-xs ${
+                                            daysSinceUpdate > 30
+                                              ? "text-red-500 font-semibold"
+                                              : "text-gray-500"
+                                          }`}
+                                        >
+                                          {daysSinceUpdate} days since last update
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-red-500">
+                                      No update information
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          </Link>
                         </TableCell>
                       </TableRow>
                     );
