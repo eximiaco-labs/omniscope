@@ -28,6 +28,14 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     total_hours = df["TimeInHs"].sum()
     average_hours_per_entry = total_hours / len(df) if len(df) > 0 else 0
 
+    weekly_summary = group_operations['week'].sum().reset_index()
+    weeks = []
+    for _, row in weekly_summary.iterrows():
+        weeks.append({
+            'week': row['Week'],
+            'hours': row['TimeInHs']
+        })
+
     return {
         "total_entries": len(df),
         "total_hours": total_hours,
@@ -58,9 +66,8 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
         "total_consulting_hours": df[df['Kind'] == 'Consulting']['TimeInHs'].sum(),
         "total_internal_hours": df[df['Kind'] == 'Internal']['TimeInHs'].sum(),
         "total_hands_on_hours": df[df['Kind'] == 'HandsOn']['TimeInHs'].sum(),
+        "weekly_hours": weeks
     }
-
-
 
 def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
     kinds = ['Internal', 'Consulting', 'Squad', 'HandsOn']
