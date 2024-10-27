@@ -5,7 +5,7 @@ from typing import Dict, Any, List, Union
 
 from graphql import GraphQLResolveInfo
 
-from api.utils.fields import get_requested_fields_from, get_selections_from_info
+from api.utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
 
 import globals
 
@@ -27,6 +27,14 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     # Calculate statistics
     total_hours = df["TimeInHs"].sum()
     average_hours_per_entry = total_hours / len(df) if len(df) > 0 else 0
+
+    weekly_summary = group_operations['week'].sum().reset_index()
+    weeks = []
+    for _, row in weekly_summary.iterrows():
+        weeks.append({
+            'week': row['Week'],
+            'hours': row['TimeInHs']
+        })
 
     return {
         "total_entries": len(df),
@@ -58,24 +66,31 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
         "total_consulting_hours": df[df['Kind'] == 'Consulting']['TimeInHs'].sum(),
         "total_internal_hours": df[df['Kind'] == 'Internal']['TimeInHs'].sum(),
         "total_hands_on_hours": df[df['Kind'] == 'HandsOn']['TimeInHs'].sum(),
+        "weekly_hours": weeks
     }
-
-
 
 def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
     kinds = ['Internal', 'Consulting', 'Squad', 'HandsOn']
     summary_by_kind = {}
 
     for kind in kinds:
-        df_kind = df[df['Kind'] == kind]
+        kind_in_map = 'handsOn' if kind == 'HandsOn' else kind.lower()
+        if kind_in_map in map:
+            kind_map = map[kind_in_map]
+            df_kind = df[df['Kind'] == kind]
 
-        if kind == 'HandsOn':
-            label = 'hands_on'
-        else:
-            label = kind.lower()
-            
-        summary_by_kind[label] = summarize(df_kind)
-    
+            if kind == 'HandsOn':
+                label = 'hands_on'
+            else:
+                label = kind.lower()
+
+            s = summarize(df_kind)
+
+            if 'byWorker' in kind_map:
+                s['by_worker'] = summarize_by_worker(df_kind, kind_map['byWorker'])
+
+            summary_by_kind[label] = s
+
     return summary_by_kind
 
 def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name", map: Dict = None) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
@@ -235,23 +250,3 @@ def resolve_timesheet(_, info, slug: str, kind: str = "ALL", filters = None):
     result = compute_timesheet(map, slug, kind, filters)
     return result
 
-def build_fields_map(info):
-    selections = get_selections_from_info(info)
-    fields_map = {}
-    for selection in selections:
-        new_info = GraphQLResolveInfo(
-            field_name=selection.name.value,
-            field_nodes=[selection],
-            return_type=info.return_type,
-            parent_type=info.parent_type,
-            schema=info.schema,
-            fragments=info.fragments,
-            root_value=info.root_value,
-            operation=info.operation,
-            variable_values=info.variable_values,
-            context=info.context,
-            path=info.path,
-            is_awaitable=info.is_awaitable
-        )
-        fields_map[selection.name.value] = build_fields_map(new_info) if selection.selection_set else None
-    return fields_map

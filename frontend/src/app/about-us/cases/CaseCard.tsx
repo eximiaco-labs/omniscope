@@ -37,16 +37,16 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-function isOlderThan30Days(date: any) {
-  if (!date) return false;
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  return new Date(date) < thirtyDaysAgo;
-}
+  function isOlderThan30Days(date: any) {
+    if (!date) return false;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return new Date(date) < thirtyDaysAgo;
+  }
 
   return (
     <Link 
-      href={`/analytics/datasets/timesheet-last-six-weeks?CaseTitle=${encodeURIComponent(caseItem.title)}`}
+      href={`/about-us/cases/${caseItem.slug}`}
       className="block transition-all duration-300 ease-in-out"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -130,10 +130,10 @@ function isOlderThan30Days(date: any) {
                 }), 'AVG'].map((date, index) => {
                   const weekData = index < 6 ? caseData.byWeek.find((week: { week: string; }) => week.week.startsWith(date)) : null;
                   const averageData = index === 6 ? {
-                    totalConsultingHours: caseData.byWeek.reduce((sum: any, week: { totalConsultingHours: any; }) => sum + week.totalConsultingHours, 0) / 6,
-                    totalHandsOnHours: caseData.byWeek.reduce((sum: any, week: { totalHandsOnHours: any; }) => sum + week.totalHandsOnHours, 0) / 6,
-                    totalSquadHours: caseData.byWeek.reduce((sum: any, week: { totalSquadHours: any; }) => sum + week.totalSquadHours, 0) / 6,
-                    totalInternalHours: caseData.byWeek.reduce((sum: any, week: { totalInternalHours: any; }) => sum + week.totalInternalHours, 0) / 6
+                    totalConsultingHours: caseData.byWeek.reduce((sum: number, week: { totalConsultingHours: number; }) => sum + week.totalConsultingHours, 0) / 6,
+                    totalHandsOnHours: caseData.byWeek.reduce((sum: number, week: { totalHandsOnHours: number; }) => sum + week.totalHandsOnHours, 0) / 6,
+                    totalSquadHours: caseData.byWeek.reduce((sum: number, week: { totalSquadHours: number; }) => sum + week.totalSquadHours, 0) / 6,
+                    totalInternalHours: caseData.byWeek.reduce((sum: number, week: { totalInternalHours: number; }) => sum + week.totalInternalHours, 0) / 6
                   } : null;
                   const data = index < 6 ? weekData : averageData;
                   return (

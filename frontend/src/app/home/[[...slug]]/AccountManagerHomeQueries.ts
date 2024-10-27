@@ -137,6 +137,7 @@ export const GET_HOME_DATA = gql`
         totalSquadHours
         totalInternalHours
         caseDetails {
+          slug
           startOfContract
           endOfContract
           weeklyApprovedHours

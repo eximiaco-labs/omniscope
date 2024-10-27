@@ -46,6 +46,7 @@ interface ISummary {
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
 }
 
 # Domain types
@@ -120,6 +121,12 @@ type Case {
   startOfContract: Date
   endOfContract: Date
   weeklyApprovedHours: Float
+
+  timesheets: Timesheets
+}
+
+type Timesheets {
+  lastSixWeeks: TimesheetSummary
 }
 
 type CaseUpdate {
@@ -281,13 +288,56 @@ type Summary implements ISummary {
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+}
+
+type OneKindSummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  #
+  byWorker: [NamedSummary]
+}
+
+type WeeklyHours {
+  week: String!
+  hours: Float!
 }
 
 type KindSummary {
-  internal: Summary
-  consulting: Summary
-  squad: Summary
-  handsOn: Summary
+  internal: OneKindSummary
+  consulting: OneKindSummary
+  squad: OneKindSummary
+  handsOn: OneKindSummary
 }
 
 type NamedSummary implements ISummary {
@@ -321,6 +371,7 @@ type NamedSummary implements ISummary {
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
 
   # Additional fields
   name: String!
@@ -359,6 +410,7 @@ type CaseSummary implements ISummary {
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
 
   # Additional fields
   title: String!
@@ -399,6 +451,7 @@ type DateSummary implements ISummary {
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
 
   # Additional fields
   date: String!
@@ -437,6 +490,7 @@ type WeekSummary implements ISummary {
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
 
   # Additional fields
   week: String!
@@ -480,6 +534,7 @@ type TimesheetSummary implements ISummary{
   totalConsultingHours: Float!
   totalInternalHours: Float!
   totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
 
   # Additional fields
   byKind: KindSummary
