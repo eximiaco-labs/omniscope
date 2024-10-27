@@ -287,23 +287,23 @@ class WorkersRepository:
                 )
                 neg_id -= 1
 
-        salesfunnel_users = self.salesfunnel.active_account_managers
-        for user in salesfunnel_users:
-            full_name = user.name
-            matching_key = find_matching_key(workers_dict, full_name)
-
-            if matching_key in workers_dict:
-                workers_dict[matching_key].pipedrive_user_id = user.id
-            else:
-                workers_dict[full_name] = Worker(
-                    id=neg_id,
-                    name=full_name,
-                    slug=user.slug,
-                    kind=WorkerKind.ACCOUNT_MANAGER,
-                    todoist_user_id=user.id,
-                    position=''
-                )
-                neg_id -= 1
+        # salesfunnel_users = self.salesfunnel.active_account_managers
+        # for user in salesfunnel_users:
+        #     full_name = user.name
+        #     matching_key = find_matching_key(workers_dict, full_name)
+        #
+        #     if matching_key in workers_dict:
+        #         workers_dict[matching_key].pipedrive_user_id = user.id
+        #     else:
+        #         workers_dict[full_name] = Worker(
+        #             id=neg_id,
+        #             name=full_name,
+        #             slug=user.slug,
+        #             kind=WorkerKind.ACCOUNT_MANAGER,
+        #             todoist_user_id=user.id,
+        #             position=''
+        #         )
+        #         neg_id -= 1
 
         self.__data = {
             worker.id: worker
