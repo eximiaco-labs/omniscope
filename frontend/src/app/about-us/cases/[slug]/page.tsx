@@ -5,6 +5,7 @@ import { useQuery } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { GET_CASE_BY_SLUG } from "./queries";
 import { CaseHeader } from "./CaseHeader";
+import { CaseUpdate } from "./CaseUpdate";
 
 export default function CasePage() {
   const { slug } = useParams();
@@ -20,24 +21,7 @@ export default function CasePage() {
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
-      {caseItem.lastUpdate && (
-        <div className="mt-4">
-          <h2 className="text-xl font-bold mb-2">Last Update</h2>
-          <p>
-            <strong>Date:</strong>{" "}
-            {new Date(caseItem.lastUpdate.date).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Author:</strong> {caseItem.lastUpdate.author}
-          </p>
-          <p>
-            <strong>Status:</strong> {caseItem.lastUpdate.status}
-          </p>
-          <p>
-            <strong>Observations:</strong> {caseItem.lastUpdate.observations}
-          </p>
-        </div>
-      )}
+      {caseItem.lastUpdate && <CaseUpdate lastUpdate={caseItem.lastUpdate} />}
     </div>
   );
 }
