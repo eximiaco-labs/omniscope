@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { GET_CASE_BY_SLUG } from "./queries";
 import { CaseHeader } from "./CaseHeader";
 import { CaseUpdate } from "./CaseUpdate";
+import { WeeklyHoursTable } from "./WeeklyHoursTable";
 
 export default function CasePage() {
   const { slug } = useParams();
@@ -17,41 +18,53 @@ export default function CasePage() {
   if (error) return <p>Error: {error.message}</p>;
 
   const caseItem = data.case;
-  const consultingWorkers = caseItem.timesheets?.lastSixWeeks?.byKind?.consulting?.byWorker || [];
-  const weeks = consultingWorkers[0]?.weeklyHours?.map((wh: { week: string }) => wh.week) || [];
+  const byKind = caseItem.timesheets?.lastSixWeeks?.byKind || {};
+  
+  // Generate last 6 weeks dates with start and end dates
+  const weeks = Array.from({ length: 6 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - date.getDay() - 7 * (6 - i));
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 6);
+    return {
+      start: startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      end: endDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+    };
+  });
 
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
       {caseItem.lastUpdate && <CaseUpdate lastUpdate={caseItem.lastUpdate} />}
       
-      <div className="mt-8 overflow-x-auto">
-        <table className="min-w-full border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="border border-gray-300 p-2">Worker</th>
-              {weeks.map((week: string) => (
-                <th key={week} className="border border-gray-300 p-2">{week}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {consultingWorkers.map((worker: { name: string, weeklyHours: Array<{ week: string, hours: number }> }) => (
-              <tr key={worker.name}>
-                <td className="border border-gray-300 p-2">{worker.name}</td>
-                {weeks.map((week: string) => {
-                  const hours = worker.weeklyHours.find((wh: { week: string, hours: number }) => wh.week === week)?.hours || 0;
-                  return (
-                    <td key={week} className="border border-gray-300 p-2 text-center">
-                      {hours.toFixed(1)}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {byKind.consulting?.byWorker?.length > 0 && (
+        <>
+          <h3 className="mt-8 mb-4 text-lg font-semibold">Consulting Hours</h3>
+          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.consulting.byWorker} />
+        </>
+      )}
+
+      {byKind.handsOn?.byWorker?.length > 0 && (
+        <>
+          <h3 className="mt-8 mb-4 text-lg font-semibold">Hands-on Hours</h3>
+          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.handsOn.byWorker} />
+        </>
+      )}
+
+      {byKind.squad?.byWorker?.length > 0 && (
+        <>
+          <h3 className="mt-8 mb-4 text-lg font-semibold">Squad Hours</h3>
+          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.squad.byWorker} />
+        </>
+      )}
+
+      {byKind.internal?.byWorker?.length > 0 && (
+        <>
+          <h3 className="mt-8 mb-4 text-lg font-semibold">Internal Hours</h3>
+          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.internal.byWorker} />
+        </>
+      )}
     </div>
   );
 }

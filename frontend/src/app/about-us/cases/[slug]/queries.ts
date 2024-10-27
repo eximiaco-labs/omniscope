@@ -37,6 +37,36 @@ export const GET_CASE_BY_SLUG = gql`
                 }
               }
             }
+            handsOn {
+              totalHours
+              byWorker {
+                name
+                weeklyHours {
+                  week
+                  hours
+                }
+              }
+            }
+            squad {
+              totalHours
+              byWorker {
+                name
+                weeklyHours {
+                  week
+                  hours
+                }
+              }
+            }
+            internal {
+              totalHours
+              byWorker {
+                name
+                weeklyHours {
+                  week
+                  hours
+                }
+              }
+            }
           }
         }
       }
