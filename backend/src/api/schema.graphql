@@ -121,6 +121,12 @@ type Case {
   startOfContract: Date
   endOfContract: Date
   weeklyApprovedHours: Float
+
+  timesheets: Timesheets
+}
+
+type Timesheets {
+  lastSixWeeks: TimesheetSummary
 }
 
 type CaseUpdate {
