@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+
 export const GET_CASE_BY_SLUG = gql`
   query GetCaseBySlug($slug: String!) {
     case(slug: $slug) {
@@ -22,6 +23,22 @@ export const GET_CASE_BY_SLUG = gql`
         author
         status
         observations
+      }
+      timesheets {
+        lastSixWeeks {
+          byKind {
+            consulting {
+              totalHours
+              byWorker {
+                name
+                weeklyHours {
+                  week
+                  hours
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
