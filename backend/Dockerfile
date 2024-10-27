@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 COPY . .
 
-EXPOSE 80
+EXPOSE 5001
 
 CMD ["python", "src/app.py"]
 
