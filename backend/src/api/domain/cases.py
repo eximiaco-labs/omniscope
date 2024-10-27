@@ -29,7 +29,7 @@ def resolve_case(_, info: GraphQLResolveInfo, id=None, slug=None):
     
     return None
 
-def _make_result_object(info: GraphQLResolveInfo, case):
+def _make_result_object(info: GraphQLResolveInfo, case: Case):
     result = {**case.__dict__}
     
     # Add all properties
@@ -44,5 +44,8 @@ def _make_result_object(info: GraphQLResolveInfo, case):
     if any(x.name.value == 'client' for x in selections):
         if case.client_id:
             result['client'] = globals.omni_models.clients.get_by_id(case.client_id)
+
+    if any(x.name.value == 'sponsor' for x in selections):
+        result['sponsor'] = case
 
     return result
