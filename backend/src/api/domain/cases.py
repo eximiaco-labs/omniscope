@@ -52,6 +52,19 @@ def _make_result_object(map, case):
     if 'sponsor' in map:
         result['sponsor'] = case.sponsor
 
+    if 'tracker' in map:
+        if case.tracker_info:
+            result['tracker'] = [
+                {
+                    'id': project.id,
+                    'name': project.name
+                }
+                for project in case.tracker_info
+            ]
+        else:
+            result['tracker'] = []
+
+
     if 'timesheets' in map:
         timesheets_map = map['timesheets']
         if 'lastSixWeeks' in timesheets_map:

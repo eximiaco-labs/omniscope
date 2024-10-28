@@ -86,6 +86,26 @@ class OmniDatasets:
 
         source = self.get_dataset_source_by_slug(slug)
 
+        if slug.startswith('timesheet-') and len(slug.split('-')) == 5:
+            parts = slug.split('-')
+            start_day = int(parts[1])
+            start_month = int(parts[2]) 
+            end_day = int(parts[3])
+            end_month = int(parts[4])
+
+            current_year = datetime.now().year
+            
+            # If start month is greater than end month, it means we're crossing years
+            start_year = current_year
+            end_year = current_year
+            if start_month > end_month:
+                end_year = current_year + 1
+
+            start_date = datetime(start_year, start_month, start_day, 0, 0, 0, 0)
+            end_date = datetime(end_year, end_month, end_day, 23, 59, 59, 9999)
+
+            return source.get(start_date, end_date)
+
         if slug.startswith('timesheet-month-'):
             parts = slug.split('-')
             year = int(parts[-2])
@@ -185,6 +205,10 @@ class OmniDatasets:
         ]
 
         now = datetime.now()
+        for i in range(1, 8):
+            ws = Weeks.get_week_string(now - timedelta(days=i * 7))
+            result.append({'kind': 'Timesheet', 'name': ws})
+
         current_year = now.year
         current_month = now.month
 

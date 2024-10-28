@@ -121,8 +121,13 @@ type Case {
   startOfContract: Date
   endOfContract: Date
   weeklyApprovedHours: Float
-
+  tracker: [TrackerProject]
   timesheets: Timesheets
+}
+
+type TrackerProject {
+  id: String!
+  name: String!
 }
 
 type Timesheets {

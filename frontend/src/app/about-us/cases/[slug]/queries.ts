@@ -14,6 +14,10 @@ export const GET_CASE_BY_SLUG = gql`
       startOfContract
       endOfContract
       weeklyApprovedHours
+      tracker {
+        id
+        name
+      }
       client {
         name
         logoUrl
