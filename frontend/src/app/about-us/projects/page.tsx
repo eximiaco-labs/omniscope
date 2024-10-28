@@ -130,7 +130,7 @@ export default function Projects() {
   if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <div className="container mx-auto py-8">
+    <>
       <SelectComponent
         value={selectedFolders}
         options={folderOptions}
@@ -149,7 +149,7 @@ export default function Projects() {
         <Heading className="text-3xl font-bold text-gray-800">Spotlight</Heading>
         <span className="text-xl font-semibold text-gray-600">{spotlightProjects.length}</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {spotlightProjects.map(renderProjectCard)}
       </div>
 
@@ -157,9 +157,9 @@ export default function Projects() {
         <Heading className="text-3xl font-bold text-gray-800">Other Projects</Heading>
         <span className="text-xl font-semibold text-gray-600">{otherProjects.length}</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {otherProjects.map(renderProjectCard)}
       </div>
-    </div>
+    </>
   );
 }

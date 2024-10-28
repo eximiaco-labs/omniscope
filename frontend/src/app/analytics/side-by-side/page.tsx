@@ -171,8 +171,6 @@ export default function SideBySide() {
 
   return (
     <div>
-      <Heading>Side-by-side Comparison</Heading>
-      <Divider className="my-3" />
       
       <div className="grid grid-cols-2 gap-4 mb-2">
         <SideBySideDatasetSelector

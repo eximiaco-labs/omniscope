@@ -17,7 +17,7 @@ export function TotalWorkingHours({ timesheet, className }: TotalWorkingHoursPro
     <div className={className}>
       <Heading>Total Working Hours</Heading>
       <Divider className="my-3" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 pl-3 pr-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat
           title="Total"
           value={timesheet.totalHours.toFixed(1)}

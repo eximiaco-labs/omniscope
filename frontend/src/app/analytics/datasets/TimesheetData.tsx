@@ -21,12 +21,12 @@ const TimesheetData: React.FC<TimesheetDataProps> = ({
     <>
       <TotalWorkingHours
         timesheet={filteredData.timesheet}
-        className="mb-6"
+        className="mb-4"
       />
-      <ByClient timesheet={filteredData.timesheet} className="mb-6" />
-      <ByAccountManager timesheet={filteredData.timesheet} className="mb-6" />
-      <ByWorker timesheet={filteredData.timesheet} className="mb-6" />
-      <BySponsor timesheet={filteredData.timesheet} className="mb-6" />
+      <ByClient timesheet={filteredData.timesheet} className="mb-4" />
+      <ByAccountManager timesheet={filteredData.timesheet} className="mb-4" />
+      <ByWorker timesheet={filteredData.timesheet} className="mb-4" />
+      <BySponsor timesheet={filteredData.timesheet} className="mb-4" />
       <ByWorkingDay timesheet={filteredData.timesheet} />
     </>
   );

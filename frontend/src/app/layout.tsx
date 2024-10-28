@@ -1,22 +1,34 @@
 "use client";
 
 import "./globals.css";
-
-import { SidebarLayout } from "@/components/catalyst/sidebar-layout";
-import { Navbar } from "@/components/catalyst/navbar";
-import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink, from } from "@apollo/client";
+import {
+  ApolloProvider,
+  ApolloClient,
+  InMemoryCache,
+  createHttpLink,
+  from,
+} from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
-import { OmniscopeSidebar } from "@/app/components/OmniscopeSidebar";
-import { InconsistencyAlerts } from "@/app/components/InconsistencyAlerts";
-import { useSession, signIn, signOut, SessionProvider } from "next-auth/react";
-import { useEffect } from "react";
+import { SessionProvider } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { OmniscopeSidebar } from "./components/OmniscopeSidebar";
+import { Separator } from "@/components/ui/separator";
+import { OmniBreadcrumb } from "./components/OmniBreadcrumb";
+import { SessionComponent } from "./components/SessionComponent";
+import { InconsistencyAlerts } from "./components/InconsistencyAlerts";
 
 function createApolloClient(session: any) {
   const httpLink = createHttpLink({
-    uri: typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? "http://127.0.0.1:5001/graphql"
-      : "https://omniscope.eximia.co/graphql",
+    uri:
+      typeof window !== "undefined" && window.location.hostname === "localhost"
+        ? "http://127.0.0.1:5001/graphql"
+        : "https://omniscope.eximia.co/graphql",
   });
 
   const authLink = setContext((_, prevContext) => {
@@ -30,7 +42,11 @@ function createApolloClient(session: any) {
   });
 
   const errorLink = onError(({ networkError }) => {
-    if (networkError && 'statusCode' in networkError && networkError.statusCode === 401) {
+    if (
+      networkError &&
+      "statusCode" in networkError &&
+      networkError.statusCode === 401
+    ) {
       console.log("Token expirado ou inválido. Fazendo logout...");
       signOut();
     }
@@ -60,49 +76,36 @@ export default function RootLayout({
       <body>
         <SessionProvider>
           <SessionComponent>
-            {(session) => (
+            {(session) =>
               session ? (
                 <ApolloProvider client={createApolloClient(session)}>
-                  <SidebarLayout
-                    sidebar={<OmniscopeSidebar />}
-                    navbar={<Navbar />}
-                  >
-                    <InconsistencyAlerts />
-                    <main>{children}</main>
-                  </SidebarLayout>
+                  <SidebarProvider>
+                    <OmniscopeSidebar />
+                    <SidebarInset>
+                      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                        <div className="flex items-center gap-2 px-4">
+                          <SidebarTrigger className="-ml-1" />
+                          <Separator
+                            orientation="vertical"
+                            className="mr-2 h-4"
+                          />
+                          <OmniBreadcrumb currentPage="Data Fetching" />
+                        </div>
+                      </header>
+                      <main>
+                        <div className="container mx-auto px-4 py-4">
+                          <InconsistencyAlerts />
+                          {children}
+                        </div>
+                      </main>
+                    </SidebarInset>
+                  </SidebarProvider>
                 </ApolloProvider>
               ) : null
-            )}
+            }
           </SessionComponent>
         </SessionProvider>
       </body>
     </html>
   );
-}
-
-function SessionComponent({ children }: { children: (session: any) => React.ReactNode }) {
-  const { data: session, status } = useSession();
-  const isLoading = status === "loading";
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      console.log("Redirecionando para login...");
-      signIn("google");
-    }
-    if (session) {
-      const expirationTime = new Date(session.expires).getTime() / 1000;
-      const currentTime = Date.now() / 1000;
-
-      if (expirationTime < currentTime) {
-        console.log("Sessão expirada. Fazendo logout...");
-        signOut();
-      }
-    }
-  }, [session, status]);
-
-  if (isLoading) {
-    return null;
-  }
-
-  return children(session);
 }

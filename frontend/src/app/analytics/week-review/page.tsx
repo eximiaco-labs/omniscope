@@ -71,14 +71,13 @@ export default function WeekReview() {
 
   return (
     <>
-      <Heading>Week Review</Heading>
 
-      <div className="mt-3 mb-3 flex items-center">
+      <div className="mb-2 flex items-center">
         <DatePicker date={date} onSelectedDateChange={setDate} />
         <div className="flex-grow h-px bg-gray-200 ml-4"></div>
       </div>
 
-      <div className="mb-3">
+      <div className="mb-4">
         <FilterFieldsSelect
           data={data?.weekReview}
           selectedFilters={selectedFilters}

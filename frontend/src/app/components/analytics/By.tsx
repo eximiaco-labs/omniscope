@@ -114,7 +114,7 @@ export function By({ title, data, labels, className }: ByProps) {
     <div className={className}>
       <Heading>{title}</Heading>
       <Divider className="my-3" />
-      <div className="pl-3 pr-3">
+      <div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
           <div
             className={`${getStatClassName('total')} transform`}
