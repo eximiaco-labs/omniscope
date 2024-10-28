@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
-import ClientStatsSection from '../../components/ClientStatsSection';
+import ClientStatsSection from "../../components/ClientStatsSection";
 
 const GET_CLIENTS = gql`
   query GetClients {
@@ -49,13 +49,17 @@ const GET_CLIENTS = gql`
 
 export default function Clients() {
   const { loading, error, data } = useQuery(GET_CLIENTS, { ssr: true });
-  const [selectedStat, setSelectedStat] = useState<string>('allClients');
+  const [selectedStat, setSelectedStat] = useState<string>("allClients");
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const strategicClients = data.clients.filter((client: any) => client.isStrategic);
-  const nonStrategicClients = data.clients.filter((client: any) => !client.isStrategic);
+  const strategicClients = data.clients.filter(
+    (client: any) => client.isStrategic
+  );
+  const nonStrategicClients = data.clients.filter(
+    (client: any) => !client.isStrategic
+  );
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
@@ -63,26 +67,39 @@ export default function Clients() {
 
   const ClientCard = ({ client }: { client: any }) => {
     const [isHovered, setIsHovered] = useState(false);
-    const clientData = data.timesheet.byClient.find((c: any) => c.name === client.name);
+    const clientData = data.timesheet.byClient.find(
+      (c: any) => c.name === client.name
+    );
 
     const getBadgeColor = (type: string) => {
       switch (type) {
-        case 'consulting': return 'amber';
-        case 'handsOn': return 'purple';
-        case 'squad': return 'blue';
-        case 'internal': return 'emerald';
-        default: return 'zinc';
+        case "consulting":
+          return "amber";
+        case "handsOn":
+          return "purple";
+        case "squad":
+          return "blue";
+        case "internal":
+          return "emerald";
+        default:
+          return "zinc";
       }
     };
 
     return (
-      <Link 
-        href={`/analytics/datasets/timesheet-last-six-weeks?ClientName=${encodeURIComponent(client.name)}`}
+      <Link
+        href={`/analytics/datasets/timesheet-last-six-weeks?ClientName=${encodeURIComponent(
+          client.name
+        )}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300`}>
+        <Card
+          className={`h-full ${
+            isHovered ? "shadow-lg scale-105" : "shadow"
+          } transition-all duration-300`}
+        >
           <CardContent className="flex flex-col items-center p-4">
             <div className="w-full h-32 relative mb-2">
               <Image
@@ -94,30 +111,43 @@ export default function Clients() {
               />
             </div>
             <CardHeader className="p-0 mt-2">
-              <CardTitle className={`text-center text-sm ${isHovered ? 'font-semibold' : ''} transition-all duration-300`}>
+              <CardTitle
+                className={`text-center text-sm ${
+                  isHovered ? "font-semibold" : ""
+                } transition-all duration-300`}
+              >
                 {client.name}
               </CardTitle>
             </CardHeader>
             {clientData && (
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {clientData.totalConsultingHours > 0 && (
-                  <Badge color={getBadgeColor('consulting')}>
-                    {clientData.totalConsultingHours.toFixed(1).replace(/\.0$/, '')}h
+                  <Badge color={getBadgeColor("consulting")}>
+                    {clientData.totalConsultingHours
+                      .toFixed(1)
+                      .replace(/\.0$/, "")}
+                    h
                   </Badge>
                 )}
                 {clientData.totalHandsOnHours > 0 && (
-                  <Badge color={getBadgeColor('handsOn')}>
-                    {clientData.totalHandsOnHours.toFixed(1).replace(/\.0$/, '')}h
+                  <Badge color={getBadgeColor("handsOn")}>
+                    {clientData.totalHandsOnHours
+                      .toFixed(1)
+                      .replace(/\.0$/, "")}
+                    h
                   </Badge>
                 )}
                 {clientData.totalSquadHours > 0 && (
-                  <Badge color={getBadgeColor('squad')}>
-                    {clientData.totalSquadHours.toFixed(1).replace(/\.0$/, '')}h
+                  <Badge color={getBadgeColor("squad")}>
+                    {clientData.totalSquadHours.toFixed(1).replace(/\.0$/, "")}h
                   </Badge>
                 )}
                 {clientData.totalInternalHours > 0 && (
-                  <Badge color={getBadgeColor('internal')}>
-                    {clientData.totalInternalHours.toFixed(1).replace(/\.0$/, '')}h
+                  <Badge color={getBadgeColor("internal")}>
+                    {clientData.totalInternalHours
+                      .toFixed(1)
+                      .replace(/\.0$/, "")}
+                    h
                   </Badge>
                 )}
               </div>
@@ -128,20 +158,28 @@ export default function Clients() {
     );
   };
 
-  const ClientGallery = ({ clients, title }: { clients: any[], title: string }) => {
+  const ClientGallery = ({
+    clients,
+    title,
+  }: {
+    clients: any[];
+    title: string;
+  }) => {
     const filteredClients = clients.filter((client: any) => {
-      const clientData = data.timesheet.byClient.find((c: any) => c.name === client.name);
-      if (!clientData) return selectedStat === 'allClients';
+      const clientData = data.timesheet.byClient.find(
+        (c: any) => c.name === client.name
+      );
+      if (!clientData) return selectedStat === "allClients";
       switch (selectedStat) {
-        case 'total':
+        case "total":
           return clientData.totalHours > 0;
-        case 'consulting':
+        case "consulting":
           return clientData.totalConsultingHours > 0;
-        case 'handsOn':
+        case "handsOn":
           return clientData.totalHandsOnHours > 0;
-        case 'squad':
+        case "squad":
           return clientData.totalSquadHours > 0;
-        case 'internal':
+        case "internal":
           return clientData.totalInternalHours > 0;
         default:
           return true;
@@ -155,11 +193,15 @@ export default function Clients() {
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <Heading level={3} className="text-xl font-semibold text-gray-800">{title}</Heading>
-          <span className="text-sm font-medium text-gray-600">{filteredClients.length} clients</span>
+          <Heading level={3} className="text-xl font-semibold text-gray-800">
+            {title}
+          </Heading>
+          <span className="text-sm font-medium text-gray-600">
+            {filteredClients.length} clients
+          </span>
         </div>
         <AnimatePresence>
-          <motion.div 
+          <motion.div
             className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -185,19 +227,14 @@ export default function Clients() {
 
   return (
     <>
-      <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 pb-6 dark:border-white/10">
-        <Heading className="text-3xl font-bold text-gray-900">Clients</Heading>
-      </div>
-      <div className="container mx-auto px-4 py-8">
-        <ClientStatsSection
-          data={data}
-          selectedStat={selectedStat}
-          onStatClick={handleStatClick}
-        />
-        <Divider className="my-8" />
-        <ClientGallery clients={strategicClients} title="Strategic Clients" />
-        <ClientGallery clients={nonStrategicClients} title="Other Clients" />
-      </div>
+      <ClientStatsSection
+        data={data}
+        selectedStat={selectedStat}
+        onStatClick={handleStatClick}
+      />
+      <Divider className="my-8" />
+      <ClientGallery clients={strategicClients} title="Strategic Clients" />
+      <ClientGallery clients={nonStrategicClients} title="Other Clients" />
     </>
   );
 }

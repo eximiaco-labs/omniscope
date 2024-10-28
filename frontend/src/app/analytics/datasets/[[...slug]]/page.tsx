@@ -132,15 +132,13 @@ export default function Datasets() {
 
   return (
     <>
-      <Heading>Available Datasets</Heading>
-      <Divider className="my-3" />
       <DatasetSelector
         selectedDataset={selectedDataset}
         onDatasetSelect={handleDatasetSelect}
       />
 
-      <div className="mb-6">
-        <form className="pl-2 pr-2">
+      <div className="mt-2 mb-2">
+        <form>
           <Select
             value={selectedValues as SelectValue}
             options={filterableFields.map((f: any) => ({

@@ -92,7 +92,9 @@ export default function RootLayout({
                         </div>
                       </header>
                       <main>
-                        {children}
+                        <div className="container mx-auto px-4 py-4">
+                          {children}
+                        </div>
                       </main>
                     </SidebarInset>
                   </SidebarProvider>

@@ -12,7 +12,7 @@ const DatasetSelector: React.FC<DatasetSelectorProps> = ({ selectedDataset, onDa
   const { data: datasetsData } = useQuery(GET_DATASETS);
 
   return (
-    <div className="pl-2 pr-2 mb-6">
+    <div>
       <Select
         value={
           selectedDataset

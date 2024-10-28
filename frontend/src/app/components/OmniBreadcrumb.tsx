@@ -20,7 +20,7 @@ export function OmniBreadcrumb({ currentPage }: OmniBreadcrumbProps) {
     .slice(1) // Skip first element
     .map(segment => ({
       name: segment.split("-").map(word => {
-        const connectors = ['e', 'do', 'de', 'das', 'dos', 'da', 'and', 'or', 'but', 'if', 'then', 'because', 'as', 'until', 'while', 'as', 'until', 'while', 'as', 'until', 'while'];
+        const connectors = ['e', 'do', 'de', 'das', 'dos', 'da', 'and', 'or', 'but', 'if', 'then', 'because', 'as', "by",  'until', 'while', 'as', 'until', 'while', 'as', 'until', 'while'];
         return connectors.includes(word) 
           ? word 
           : word.charAt(0).toUpperCase() + word.slice(1);
