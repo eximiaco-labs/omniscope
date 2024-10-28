@@ -2,19 +2,25 @@ import React from 'react';
 import Image from 'next/image';
 
 interface LogoProps {
+  alt?: string;
+  className?: string;
   width?: number;
   height?: number;
-  alt?: string;
 }
 
-const Logo: React.FC<LogoProps> = ({ width = 200, height = 50, alt = 'Omniscope Logo' }) => {
+const Logo: React.FC<LogoProps> = ({ 
+  alt = 'Omniscope Logo', 
+  className,
+  width = 72,
+  height = 72 
+}) => {
   return (
     <Image
       src="/images/logo.png"
       width={width}
-      height={height}
+      height={height} 
+      className={className}
       alt={alt}
-      priority
     />
   );
 };
