@@ -147,7 +147,7 @@ export default function ClientCard({ client, clientData }: ClientCardProps) {
                 ].map((date, index) => {
                   const weekData =
                     index < 6
-                      ? clientData.byWeek.find((week) =>
+                      ? clientData?.byWeek?.find((week) =>
                           week.week.startsWith(date)
                         )
                       : null;
