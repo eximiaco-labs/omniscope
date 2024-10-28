@@ -7,6 +7,7 @@ COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 COPY . .
+COPY ./src/api/schema.graphql ./api/schema.graphql
 
 EXPOSE 5001
 
