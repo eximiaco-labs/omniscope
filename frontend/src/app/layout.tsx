@@ -21,6 +21,7 @@ import { OmniscopeSidebar } from "./components/OmniscopeSidebar";
 import { Separator } from "@/components/ui/separator";
 import { OmniBreadcrumb } from "./components/OmniBreadcrumb";
 import { SessionComponent } from "./components/SessionComponent";
+import { InconsistencyAlerts } from "./components/InconsistencyAlerts";
 
 function createApolloClient(session: any) {
   const httpLink = createHttpLink({
@@ -93,6 +94,7 @@ export default function RootLayout({
                       </header>
                       <main>
                         <div className="container mx-auto px-4 py-4">
+                          <InconsistencyAlerts />
                           {children}
                         </div>
                       </main>
