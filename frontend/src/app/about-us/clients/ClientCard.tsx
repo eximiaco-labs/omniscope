@@ -26,6 +26,7 @@ interface ClientData {
 
 interface ClientCardProps {
   client: {
+    slug: string;
     name: string;
     logoUrl: string;
   };
@@ -85,9 +86,7 @@ export default function ClientCard({ client, clientData }: ClientCardProps) {
 
   return (
     <Link
-      href={`/analytics/datasets/timesheet-last-six-weeks?ClientName=${encodeURIComponent(
-        client.name
-      )}`}
+      href={`/about-us/clients/${client.slug}`}
       className="block transition-all duration-300 ease-in-out"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
