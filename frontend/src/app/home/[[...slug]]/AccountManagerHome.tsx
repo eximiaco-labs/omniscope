@@ -400,6 +400,16 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
 
       <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2 }}>
         <Masonry gutter="1rem">
+        <CasesByContractEnd
+            // @ts-ignore
+            caseData={clientStatsData?.timesheet.byCase}
+            selectedStat={selectedStat}
+          />
+          <CasesUpdates
+            // @ts-ignore
+            caseData={clientStatsData?.timesheet.byCase}
+            selectedStat={selectedStat}
+          />
           <TopClients
             // @ts-ignore
             clientData={clientStatsData?.timesheet.byClient}
@@ -417,16 +427,6 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
             workerData={clientStatsData?.timesheet.byWorker}
             selectedStat={selectedStat}
             totalHours={getSelectedStats?.totalHours || 0}
-          />
-          <CasesByContractEnd
-            // @ts-ignore
-            caseData={clientStatsData?.timesheet.byCase}
-            selectedStat={selectedStat}
-          />
-          <CasesUpdates
-            // @ts-ignore
-            caseData={clientStatsData?.timesheet.byCase}
-            selectedStat={selectedStat}
           />
         </Masonry>
       </ResponsiveMasonry>
