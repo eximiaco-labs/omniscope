@@ -43,7 +43,7 @@ export function CaseHeader({ caseItem }: CaseHeaderProps) {
                   <span className="text-xs text-gray-500">
                     {track.name}
                   </span>
-                  {index < caseItem.tracker.length - 1 && (
+                  {index < (caseItem.tracker?.length ?? 0) - 1 && (
                     <span className="mx-2 text-gray-300">•</span>
                   )}
                 </React.Fragment>
