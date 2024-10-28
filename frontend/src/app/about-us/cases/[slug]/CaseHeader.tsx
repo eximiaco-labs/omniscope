@@ -14,6 +14,10 @@ interface CaseHeaderProps {
     weeklyApprovedHours?: number;
     preContractedValue?: boolean;
     isActive: boolean;
+    tracker?: { // Adicionando o tipo para tracker
+      id: string;
+      name: string;
+    }[];
   };
 }
 
@@ -31,8 +35,21 @@ export function CaseHeader({ caseItem }: CaseHeaderProps) {
       )}
       <div className="flex flex-col flex-grow space-y-2">
         <div>
-          <h3 className="text-sm font-bold uppercase text-gray-600">{caseItem.client?.name || 'Unknown Client'}</h3>
           <Heading className="mt-1">{caseItem.title}</Heading>
+          {caseItem.tracker && caseItem.tracker.length > 0 && (
+            <div className="flex flex-wrap items-center mt-2">
+              {caseItem.tracker.map((track, index) => (
+                <React.Fragment key={track.id}>
+                  <span className="text-xs text-gray-500">
+                    {track.name}
+                  </span>
+                  {index < caseItem.tracker.length - 1 && (
+                    <span className="mx-2 text-gray-300">•</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </div>
         <p className="text-sm font-medium text-gray-700">{caseItem.sponsor}</p>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-600">
