@@ -12,6 +12,28 @@ export const GET_CLIENT_BY_SLUG = gql`
 
 export const GET_CLIENT_TIMESHEET = gql`
   query GetClientTimesheet($clientName: String!, $datasetSlug: String!) {
+    cases(onlyActives: true) {
+      id
+      slug
+      title
+      isActive
+      preContractedValue
+      sponsor
+      hasDescription
+      everhourProjectsIds
+      startOfContract
+      endOfContract
+      weeklyApprovedHours
+      client {
+        name
+      }
+      lastUpdate {
+        date
+        author
+        status
+        observations
+      }
+    }
     timesheet(slug: $datasetSlug, filters: [{ field: "ClientName", selectedValues: [$clientName] }]) {
       uniqueClients
       uniqueCases
@@ -42,39 +64,6 @@ export const GET_CLIENT_TIMESHEET = gql`
           uniqueCases
           uniqueWorkers
           totalHours
-        }
-      }
-
-      byClient {
-        name
-        uniqueCases
-        uniqueWorkers
-        totalHours
-        byKind {
-          consulting {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          handsOn {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          squad {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          internal {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
         }
       }
 
@@ -144,7 +133,14 @@ export const GET_CLIENT_TIMESHEET = gql`
         totalSquadHours
         totalInternalHours
         caseDetails {
+          id
           slug
+          title
+          isActive
+          preContractedValue
+          sponsor
+          hasDescription
+          everhourProjectsIds
           startOfContract
           endOfContract
           weeklyApprovedHours
@@ -153,9 +149,23 @@ export const GET_CLIENT_TIMESHEET = gql`
           }
           lastUpdate {
             date
+            author
             status
+            observations
           }
         }
+        byWeek {
+          week
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+      filterableFields {
+        field
+        options
+        selectedValues
       }
     }
   }

@@ -36,7 +36,7 @@ interface ClientGalleryProps {
     weeklyApprovedHours: number;
     client: {
       name: string;
-    };
+    } | null;
   }[];
 }
 
@@ -59,7 +59,7 @@ export function ClientGallery({
 
   // Compute weekly approved hours for each client
   const clientsWithApprovedHours = clients.map(client => {
-    const clientCases = cases.filter(c => c.client.name === client.name);
+    const clientCases = cases.filter(c => c.client?.name === client.name);
     const activeWeeklyHours = clientCases
       .filter(c => isActiveInLastSixWeeks(c.startOfContract, c.endOfContract))
       .reduce((sum, c) => sum + (c.weeklyApprovedHours || 0), 0);
