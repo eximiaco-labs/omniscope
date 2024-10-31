@@ -81,6 +81,8 @@ type Client {
   isRecognized: Boolean!
   omniUrl: String!
   logoUrl: String!
+  timesheets: Timesheets
+  timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
 }
 
 type Sponsor {

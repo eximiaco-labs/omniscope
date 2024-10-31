@@ -10,6 +10,7 @@ import { GET_CASES_AND_TIMESHEET } from "./queries";
 import { CaseCard } from "./CaseCard";
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
 import { Option } from "react-tailwindcss-select/dist/components/type";
+import { CasesGallery } from "./CasesGallery";
 
 export default function Cases() {
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
@@ -198,32 +199,10 @@ export default function Cases() {
         </div>
       </div>
       <Divider className="my-8" />
-      <AnimatePresence>
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {filteredCases.map((caseItem: any) => (
-            <motion.div
-              key={caseItem.slug}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-            >
-              <CaseCard
-                caseItem={caseItem}
-                caseData={data.timesheet.byCase.find(
-                  (c: any) => c.title === caseItem.title
-                )}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <CasesGallery 
+        filteredCases={filteredCases} 
+        timesheetData={data.timesheet} 
+      />
     </>
   );
 }

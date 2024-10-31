@@ -9,7 +9,7 @@ from functools import wraps
 from settings import auth_settings  # Import your auth settings
 from settings import graphql_settings
 
-from api.queries import query
+from api.queries import query_types
 from api.mutations import mutation
 import logging
 import argparse
@@ -60,7 +60,7 @@ CORS(app)
 type_defs = load_schema_from_path("api/schema.graphql")
 schema = make_executable_schema(
     type_defs, 
-    query,
+    query_types,
     snake_case_fallback_resolvers,
     mutation,
     convert_names_case=True

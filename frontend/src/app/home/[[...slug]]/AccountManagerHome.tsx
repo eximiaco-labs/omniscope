@@ -5,11 +5,11 @@ import { Stat } from "@/app/components/analytics/stat";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
 import { GET_HOME_DATA, GET_ANALYTICS } from "./AccountManagerHomeQueries";
-import TopClients from "./panels/TopClients";
-import TopSponsors from "./panels/TopSponsors";
-import TopWorkers from "./panels/TopWorkers";
-import CasesByContractEnd from "./panels/CasesByContractEnd";
-import CasesUpdates from "./panels/CasesUpdates";
+import TopClients from "../../components/panels/TopClients";
+import TopSponsors from "../../components/panels/TopSponsors";
+import TopWorkers from "../../components/panels/TopWorkers";
+import CasesByContractEnd from "../../components/panels/CasesByContractEnd";
+import CasesUpdates from "../../components/panels/CasesUpdates";
 
 import TimelinessPanel from "@/app/analytics/week-review/TimelinessPanel";
 import { motion } from "framer-motion";

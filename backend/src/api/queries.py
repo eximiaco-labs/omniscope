@@ -8,9 +8,12 @@ from .mutations import mutation
 
 query = QueryType()
 
-setup_query_for_domain(query)
+additional_types = setup_query_for_domain(query)
 setup_query_for_datasets(query)
 setup_query_for_analytics(query)
+
 query.set_field('inconsistencies', resolve_inconsistencies)
+
+query_types = [query] + additional_types
 
 __all__ = ['schema']
