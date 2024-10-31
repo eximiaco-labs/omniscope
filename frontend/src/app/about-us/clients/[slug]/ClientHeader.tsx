@@ -29,7 +29,6 @@ export function ClientHeader({ client }: ClientHeaderProps) {
             <Badge color="amber">Strategic</Badge>
           )}
         </div>
-        
       </div>
     </div>
   );

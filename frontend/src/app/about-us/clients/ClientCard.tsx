@@ -106,6 +106,7 @@ export default function ClientCard({ client, clientData }: ClientCardProps) {
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
             />
           </div>
+          <h3 className="text-center font-medium text-gray-800 mb-2">{client.name}</h3>
           {clientData && (
             <div className="flex flex-wrap justify-center gap-1 mt-2">
               {clientData.totalConsultingHours > 0 && (

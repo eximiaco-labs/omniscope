@@ -1,67 +1,78 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
-import { useParams } from "next/navigation";
-import { GET_CLIENT_BY_SLUG } from "./queries";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { GET_CLIENT_BY_SLUG, GET_CLIENT_TIMESHEET } from "./queries";
 import { ClientHeader } from "./ClientHeader";
-import { WeeklyHoursTable } from "./WeeklyHoursTable";
+import TopWorkers from "@/app/components/panels/TopWorkers";
+import TopSponsors from "@/app/components/panels/TopSponsors";
+import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
 
 export default function ClientPage() {
   const { slug } = useParams();
-  const { loading, error, data } = useQuery(GET_CLIENT_BY_SLUG, {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [selectedDataset, setSelectedDataset] = useState<string>("last-six-weeks");
+  const [selectedStat, setSelectedStat] = useState("total");
+
+  const { data: clientData, loading: clientLoading, error: clientError } = useQuery(GET_CLIENT_BY_SLUG, {
     variables: { slug },
   });
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-
-  const client = data.client;
-  const byKind = client.timesheets?.lastSixWeeks?.byKind || {};
-  
-  // Generate last 6 weeks dates with start and end dates
-  const weeks = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - date.getDay() - 7 * (6 - i));
-    const startDate = new Date(date);
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 6);
-    return {
-      start: startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      end: endDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    };
+  const { data: timesheetData, loading: timesheetLoading, error: timesheetError } = useQuery(GET_CLIENT_TIMESHEET, {
+    variables: { 
+      clientName: clientData?.client?.name,
+      datasetSlug: selectedDataset
+    },
+    skip: !selectedDataset || !clientData?.client?.name
   });
+
+  useEffect(() => {
+    const datasetParam = searchParams.get('dataset');
+    if (datasetParam) {
+      setSelectedDataset(datasetParam);
+    }
+  }, [searchParams]);
+
+  const handleDatasetSelect = (value: string) => {
+    setSelectedDataset(value);
+    router.push(`/about-us/clients/${slug}?dataset=${value}`);
+  };
+
+  if (clientLoading) return <p>Loading client data...</p>;
+  if (clientError) return <p>Error loading client: {clientError.message}</p>;
+
+  const timesheet = timesheetData?.timesheet;
 
   return (
     <div>
-      <ClientHeader client={client} />
+      <ClientHeader client={clientData?.client} />
       
-      {byKind.consulting?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Consulting Hours</h3>
-          <WeeklyHoursTable weeks={weeks} workers={byKind.consulting.byWorker} />
-        </>
-      )}
+      <div className="mt-6 mb-6">
+        <DatasetSelector
+          selectedDataset={selectedDataset}
+          onDatasetSelect={handleDatasetSelect}
+        />
+      </div>
 
-      {byKind.handsOn?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Hands-on Hours</h3>
-          <WeeklyHoursTable weeks={weeks} workers={byKind.handsOn.byWorker} />
-        </>
-      )}
-
-      {byKind.squad?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Squad Hours</h3>
-          <WeeklyHoursTable weeks={weeks} workers={byKind.squad.byWorker} />
-        </>
-      )}
-
-      {byKind.internal?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Internal Hours</h3>
-          <WeeklyHoursTable weeks={weeks} workers={byKind.internal.byWorker} />
-        </>
+      {timesheetLoading ? (
+        <p>Loading timesheet data...</p>
+      ) : timesheetError ? (
+        <p>Error loading timesheet: {timesheetError.message}</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TopWorkers 
+            workerData={timesheet?.byWorker || []}
+            selectedStat={selectedStat}
+            totalHours={timesheet?.totalHours || 0}
+          />
+          <TopSponsors 
+            sponsorData={timesheet?.bySponsor || []}
+            selectedStat={selectedStat}
+            totalHours={timesheet?.totalHours || 0}
+          />
+        </div>
       )}
     </div>
   );
