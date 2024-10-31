@@ -7,6 +7,8 @@ import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { WorkerCard } from "./WorkerCard";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
@@ -96,6 +98,7 @@ export default function ConsultantsAndEngineers() {
     { ssr: true }
   );
   const [selectedStat, setSelectedStat] = useState<string>("allWorkers");
+  const [searchTerm, setSearchTerm] = useState("");
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -113,27 +116,32 @@ export default function ConsultantsAndEngineers() {
     }`;
   };
 
-  const filteredWorkers = data.consultantsAndEngineers.filter((worker) => {
-    const workerData = data.timesheet.byWorker.find(
-      (w) => w.name === worker.name
-    );
-    if (!workerData) return selectedStat === "allWorkers";
+  const filteredWorkers = data.consultantsAndEngineers
+    .filter((worker) => 
+      worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      worker.position.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((worker) => {
+      const workerData = data.timesheet.byWorker.find(
+        (w) => w.name === worker.name
+      );
+      if (!workerData) return selectedStat === "allWorkers";
 
-    switch (selectedStat) {
-      case "total":
-        return workerData.totalHours > 0;
-      case "consulting":
-        return workerData.totalConsultingHours > 0;
-      case "handsOn":
-        return workerData.totalHandsOnHours > 0;
-      case "squad":
-        return workerData.totalSquadHours > 0;
-      case "internal":
-        return workerData.totalInternalHours > 0;
-      default:
-        return true;
-    }
-  });
+      switch (selectedStat) {
+        case "total":
+          return workerData.totalHours > 0;
+        case "consulting":
+          return workerData.totalConsultingHours > 0;
+        case "handsOn":
+          return workerData.totalHandsOnHours > 0;
+        case "squad":
+          return workerData.totalSquadHours > 0;
+        case "internal":
+          return workerData.totalInternalHours > 0;
+        default:
+          return true;
+      }
+    });
 
   return (
     <>
@@ -227,6 +235,16 @@ export default function ConsultantsAndEngineers() {
         </div>
       </div>
       <Divider className="my-8" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search workers..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
       <AnimatePresence>
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
@@ -253,6 +271,6 @@ export default function ConsultantsAndEngineers() {
           ))}
         </motion.div>
       </AnimatePresence>
-</>
+    </>
   );
 }

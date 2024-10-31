@@ -11,6 +11,8 @@ import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
 import { print } from "graphql";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const GET_OFFERS_AND_TIMESHEET = gql`
   query GetOffersAndTimesheet {
@@ -53,6 +55,7 @@ export default function ProductsOrServices() {
     ssr: true,
   });
   const [selectedStat, setSelectedStat] = useState<string>("allOffers");
+  const [searchTerm, setSearchTerm] = useState("");
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -161,26 +164,30 @@ export default function ProductsOrServices() {
     );
   };
 
-  const filteredOffers = data.offers.filter((offer: any) => {
-    const offerData = data.timesheet.byOffer.find(
-      (o: any) => o.name === offer.name
-    );
-    if (!offerData) return selectedStat === "allOffers";
-    switch (selectedStat) {
-      case "total":
-        return offerData.totalHours > 0;
-      case "consulting":
-        return offerData.totalConsultingHours > 0;
-      case "handsOn":
-        return offerData.totalHandsOnHours > 0;
-      case "squad":
-        return offerData.totalSquadHours > 0;
-      case "internal":
-        return offerData.totalInternalHours > 0;
-      default:
-        return true;
-    }
-  });
+  const filteredOffers = data.offers
+    .filter((offer: any) =>
+      offer.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((offer: any) => {
+      const offerData = data.timesheet.byOffer.find(
+        (o: any) => o.name === offer.name
+      );
+      if (!offerData) return selectedStat === "allOffers";
+      switch (selectedStat) {
+        case "total":
+          return offerData.totalHours > 0;
+        case "consulting":
+          return offerData.totalConsultingHours > 0;
+        case "handsOn":
+          return offerData.totalHandsOnHours > 0;
+        case "squad":
+          return offerData.totalSquadHours > 0;
+        case "internal":
+          return offerData.totalInternalHours > 0;
+        default:
+          return true;
+      }
+    });
 
   return (
     <>
@@ -282,6 +289,16 @@ export default function ProductsOrServices() {
         </div>
       </div>
       <Divider className="my-8" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search offers..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
       <AnimatePresence>
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
