@@ -11,9 +11,12 @@ import { CaseCard } from "./CaseCard";
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
 import { Option } from "react-tailwindcss-select/dist/components/type";
 import { CasesGallery } from "./CasesGallery";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 export default function Cases() {
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >([]);
@@ -71,26 +74,30 @@ export default function Cases() {
     }`;
   };
 
-  const filteredCases = data.cases.filter((caseItem: any) => {
-    const caseData = data.timesheet.byCase.find(
-      (c: any) => c.title === caseItem.title
-    );
-    if (!caseData) return selectedStat === "allCases";
-    switch (selectedStat) {
-      case "total":
-        return caseData.totalHours > 0;
-      case "consulting":
-        return caseData.totalConsultingHours > 0;
-      case "handsOn":
-        return caseData.totalHandsOnHours > 0;
-      case "squad":
-        return caseData.totalSquadHours > 0;
-      case "internal":
-        return caseData.totalInternalHours > 0;
-      default:
-        return true;
-    }
-  });
+  const filteredCases = data.cases
+    .filter((caseItem: any) => 
+      caseItem.title.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((caseItem: any) => {
+      const caseData = data.timesheet.byCase.find(
+        (c: any) => c.title === caseItem.title
+      );
+      if (!caseData) return selectedStat === "allCases";
+      switch (selectedStat) {
+        case "total":
+          return caseData.totalHours > 0;
+        case "consulting":
+          return caseData.totalConsultingHours > 0;
+        case "handsOn":
+          return caseData.totalHandsOnHours > 0;
+        case "squad":
+          return caseData.totalSquadHours > 0;
+        case "internal":
+          return caseData.totalInternalHours > 0;
+        default:
+          return true;
+      }
+    });
 
   return (
     <>
@@ -199,6 +206,16 @@ export default function Cases() {
         </div>
       </div>
       <Divider className="my-8" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search cases..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
       <CasesGallery 
         filteredCases={filteredCases} 
         timesheetData={data.timesheet} 

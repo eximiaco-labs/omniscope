@@ -10,6 +10,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import clsx from "clsx";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const GET_SPONSORS_AND_TIMESHEET = gql`
   query GetSponsorsAndTimesheet {
@@ -57,6 +59,7 @@ export default function Sponsors() {
     ssr: true,
   });
   const [selectedStat, setSelectedStat] = useState<string>("allSponsors");
+  const [searchTerm, setSearchTerm] = useState("");
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -73,26 +76,32 @@ export default function Sponsors() {
     }`;
   };
 
-  const filteredSponsors = data.sponsors.filter((sponsor: any) => {
-    const sponsorData = data.timesheet.bySponsor.find(
-      (s: any) => s.name === sponsor.name
-    );
-    if (!sponsorData) return selectedStat === "allSponsors";
-    switch (selectedStat) {
-      case "total":
-        return sponsorData.totalHours > 0;
-      case "consulting":
-        return sponsorData.totalConsultingHours > 0;
-      case "handsOn":
-        return sponsorData.totalHandsOnHours > 0;
-      case "squad":
-        return sponsorData.totalSquadHours > 0;
-      case "internal":
-        return sponsorData.totalInternalHours > 0;
-      default:
-        return true;
-    }
-  });
+  const filteredSponsors = data.sponsors
+    .filter((sponsor: any) =>
+      (sponsor.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (sponsor.client?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (sponsor.jobTitle?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+    )
+    .filter((sponsor: any) => {
+      const sponsorData = data.timesheet.bySponsor.find(
+        (s: any) => s.name === sponsor.name
+      );
+      if (!sponsorData) return selectedStat === "allSponsors";
+      switch (selectedStat) {
+        case "total":
+          return sponsorData.totalHours > 0;
+        case "consulting":
+          return sponsorData.totalConsultingHours > 0;
+        case "handsOn":
+          return sponsorData.totalHandsOnHours > 0;
+        case "squad":
+          return sponsorData.totalSquadHours > 0;
+        case "internal":
+          return sponsorData.totalInternalHours > 0;
+        default:
+          return true;
+      }
+    });
 
   const SponsorCard = ({ sponsor }: { sponsor: any }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -290,6 +299,16 @@ export default function Sponsors() {
         </div>
       </div>
       <Divider className="my-8" />
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search sponsors..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
       <AnimatePresence>
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
