@@ -568,6 +568,21 @@ type DatasetsSet {
   timesheet: TimesheetSummary
 }
 
+# Revenue Projection types
+type MonthCaseRevenue {
+  id: String!
+  title: String!
+  totalExpectedWorkHours: [Float!]!
+  preContractedExpectedWorkHours: [Float!]!
+}
+
+type MonthRevenue {
+  dateOfInterest: String!
+  totalExpectedWorkHours: [Float!]!
+  preContractedExpectedWorkHours: [Float!]!
+  byCase: [MonthCaseRevenue!]!
+}
+
 # Week Review types
 type WeekReview {
   hoursPreviousWeeks: Float!
@@ -724,6 +739,7 @@ type Query {
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
   projects: [Project!]!
   approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
+  monthRevenue(date_of_interest: Date!): MonthRevenue!
 }
 
 # Mutation type

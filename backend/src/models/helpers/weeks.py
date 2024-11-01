@@ -1,13 +1,17 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 
 class Weeks:
 
     @staticmethod
-    def get_week_dates(reference_date: datetime) -> (datetime, datetime):
+    def get_week_dates(reference_date: date | datetime) -> (datetime, datetime):
+        if isinstance(reference_date, date):
+            reference_date = datetime.combine(reference_date, datetime.min.time())
+            
         if reference_date.weekday() == 6:
             start_of_week = reference_date
         else:
             start_of_week = reference_date - timedelta(days=reference_date.weekday() + 1)
+
         end_of_week = start_of_week + timedelta(days=6)
         start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_week = end_of_week.replace(hour=23, minute=59, second=59, microsecond=999999)
