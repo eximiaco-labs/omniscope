@@ -569,19 +569,71 @@ type DatasetsSet {
 }
 
 # Revenue Projection types
-type MonthCaseRevenue {
-  id: String!
-  title: String!
-  totalExpectedWorkHours: [Float!]!
-  preContractedExpectedWorkHours: [Float!]!
+type CaseHours {
+  caseId: String!
+  hours: Float!
+  preContracted: Boolean!
 }
 
-type MonthRevenue {
-  dateOfInterest: String!
-  totalExpectedWorkHours: [Float!]!
-  preContractedExpectedWorkHours: [Float!]!
-  byCase: [MonthCaseRevenue!]!
+type WorkingDayHours {
+  date: Date!
+  hours: Float!
+  preContractedWorkHours: Float!
+  notPreContractedWorkHours: Float!
+  byCase: [CaseHours!]!
 }
+
+type OneWeekCaseRevenueSummary {
+  id: String!
+  title: String!
+  sponsor: String!
+  client: String!
+  accountManager: String!
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  isPreContracted: Boolean!
+  possibleUnpaidHours: Float!
+  possibleIdleHours: Float!
+  wastedHours: Float!
+}
+
+type EntityRevenueSummary {
+  name: String!
+  accountManager: String
+  totalApprovedWorkHours: Float!
+  totalActualWorkHours: Float!
+  totalPreContractedApprovedWorkHours: Float!
+  totalNotPreContractedApprovedWorkHours: Float!
+  totalPreContractedActualWorkHours: Float!
+  totalNotPreContractedActualWorkHours: Float!
+  totalWastedHours: Float!
+  totalPossibleUnpaidHours: Float!
+  totalPossibleIdleHours: Float!
+}
+
+type WeekRevenueAnalysis {
+  start: Date!
+  end: Date!
+  cases: [OneWeekCaseRevenueSummary!]!
+  clients: [EntityRevenueSummary!]!
+  sponsors: [EntityRevenueSummary!]!
+  accountManagers: [EntityRevenueSummary!]!
+  totalApprovedWorkHours: Float!
+  totalPreContractedApprovedWorkHours: Float!
+  totalNotPreContractedApprovedWorkHours: Float!
+  totalActualWorkHours: Float!
+  totalPreContractedActualWorkHours: Float!
+  totalNotPreContractedActualWorkHours: Float!
+  actualWorkHours: [WorkingDayHours!]!
+}
+
+type PerformanceAnalysis {
+  start: Date!
+  end: Date!
+  dateOfInterest: Date!
+  weeks: [WeekRevenueAnalysis!]!
+}
+
 
 # Week Review types
 type WeekReview {
@@ -739,7 +791,7 @@ type Query {
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
   projects: [Project!]!
   approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
-  monthRevenue(date_of_interest: Date!): MonthRevenue!
+  performanceAnalysis(date_of_interest: Date!): PerformanceAnalysis!
 }
 
 # Mutation type
