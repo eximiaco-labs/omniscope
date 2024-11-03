@@ -26,16 +26,12 @@ import {
   UsersIcon,
   HandshakeIcon,
   BoxIcon,
-  ChevronUpIcon,
   RefreshCwIcon,
   TrophyIcon,
   CalendarIcon,
-  LogOutIcon,
-  HomeIcon,
   TargetIcon,
-  ChevronUp,
-  User2,
   ChevronsUpDown,
+  ChartLineIcon
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
@@ -60,6 +56,11 @@ export function OmniscopeSidebar() {
   });
 
   const analyticsSidebarItems = [
+    {
+      title: "Performance Analysis", 
+      url: "/analytics/performance-analysis",
+      icon: ChartLineIcon,
+    },
     {
       title: "Week Review",
       url: "/analytics/week-review",
@@ -110,7 +111,7 @@ export function OmniscopeSidebar() {
     },
     {
       title: "Cases",
-      url: "/about-us/cases",
+      url: "/about-us/cases", 
       icon: TrophyIcon,
     },
     {

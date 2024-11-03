@@ -125,7 +125,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         return OneWeekCaseRevenueSummary(
             id=case.id,
             title=case.title,
-            sponsor=case.sponsor,
+            sponsor=case.sponsor if case.sponsor else 'N/A',
             client=client.name if client else 'N/A',
             account_manager=account_manager,
             approved_work_hours=case.weekly_approved_hours if case.weekly_approved_hours else 0,
