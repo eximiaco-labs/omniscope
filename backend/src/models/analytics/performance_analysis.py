@@ -22,7 +22,7 @@ class WorkingDayHours:
     by_case: List[CaseHours]
 
 @dataclass
-class OneWeekRegularCaseRevenueSummary:
+class OneWeekRegularCasePerformanceSummary:
     id: str
     title: str
     sponsor: str
@@ -34,7 +34,7 @@ class OneWeekRegularCaseRevenueSummary:
     wasted_hours: float
 
 @dataclass
-class OneWeekPreContractedCaseRevenueSummary:
+class OneWeekPreContractedCasePerformanceSummary:
     id: str
     title: str
     sponsor: str
@@ -67,20 +67,37 @@ class Totals:
     pre_contracted: TotalsPreContracted
 
 @dataclass
-class EntityRevenueSummary:
+class SponsorPerformanceSummary:
     name: str
-    account_manager: Optional[str] = None
-    totals: Totals = None
+    totals: Totals
+    regular_cases: List[OneWeekRegularCasePerformanceSummary]
+    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    
+@dataclass
+class ClientPerformanceSummary:
+    name: str
+    totals: Totals
+    regular_cases: List[OneWeekRegularCasePerformanceSummary]
+    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    sponsors: List[SponsorPerformanceSummary]
 
 @dataclass
-class WeekRevenueAnalysis:
+class AccountManagerPerformanceSummary:
+    name: str
+    totals: Totals
+    regular_cases: List[OneWeekRegularCasePerformanceSummary]
+    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    clients: List[ClientPerformanceSummary]
+
+@dataclass
+class WeekPerformanceAnalysis:
     start: datetime
     end: datetime
-    regular_cases: List[OneWeekRegularCaseRevenueSummary]
-    pre_contracted_cases: List[OneWeekPreContractedCaseRevenueSummary]
-    clients: List[EntityRevenueSummary]
-    sponsors: List[EntityRevenueSummary]
-    account_managers: List[EntityRevenueSummary]
+    regular_cases: List[OneWeekRegularCasePerformanceSummary]
+    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    clients: List[ClientPerformanceSummary]
+    sponsors: List[SponsorPerformanceSummary]
+    account_managers: List[AccountManagerPerformanceSummary]
     totals: Totals
     actual_work_hours: List[WorkingDayHours]
     
@@ -89,7 +106,7 @@ class PerformanceAnalysis:
     start: date
     end: date
     date_of_interest: date
-    weeks: List[WeekRevenueAnalysis]
+    weeks: List[WeekPerformanceAnalysis]
 
 
 def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAnalysis:
@@ -141,7 +158,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         if case.pre_contracted_value:
             possible_unpaid_hours = max(0, actual_hours - weekly_approved_hours)
             possible_idle_hours = abs(min(0, actual_hours - weekly_approved_hours))
-            return OneWeekPreContractedCaseRevenueSummary(
+            return OneWeekPreContractedCasePerformanceSummary(
                 id=case.id,
                 title=case.title,
                 sponsor=case.sponsor if case.sponsor else 'N/A',
@@ -155,7 +172,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             )
         else:
             wasted_hours = max(0, weekly_approved_hours - actual_hours)
-            return OneWeekRegularCaseRevenueSummary(
+            return OneWeekRegularCasePerformanceSummary(
                 id=case.id,
                 title=case.title,
                 sponsor=case.sponsor if case.sponsor else 'N/A',
@@ -167,38 +184,116 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                 wasted_hours=wasted_hours
             )
 
-    def calculate_entity_summary(regular_cases: List[OneWeekRegularCaseRevenueSummary], 
-                               pre_contracted_cases: List[OneWeekPreContractedCaseRevenueSummary], 
-                               filter_fn) -> List[EntityRevenueSummary]:
-        entities = {filter_fn(case) for case in regular_cases + pre_contracted_cases}
+    def calculate_entity_summary(regular_cases: List[OneWeekRegularCasePerformanceSummary], 
+                               pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary], 
+                               entity_type: str) -> List[ClientPerformanceSummary | SponsorPerformanceSummary | AccountManagerPerformanceSummary]:
         summaries = []
         
-        for entity in entities:
-            reg_cases = [case for case in regular_cases if filter_fn(case) == entity]
-            pre_cases = [case for case in pre_contracted_cases if filter_fn(case) == entity]
-            
-            regular = TotalsRegular(
-                approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
-                actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
-                in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
-                wasted_hours=sum(case.wasted_hours for case in reg_cases)
-            )
-            
-            pre_contracted = TotalsPreContracted(
-                approved_work_hours=sum(case.approved_work_hours for case in pre_cases),
-                actual_work_hours=sum(case.actual_work_hours for case in pre_cases),
-                in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in pre_cases),
-                possible_unpaid_hours=sum(case.possible_unpaid_hours for case in pre_cases),
-                possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
-            )
-            
-            summary = EntityRevenueSummary(
-                name=entity,
-                account_manager=next((case.account_manager for case in (reg_cases + pre_cases)), 'N/A'),
-                totals=Totals(regular=regular, pre_contracted=pre_contracted)
-            )
-            summaries.append(summary)
-            
+        if entity_type == 'client':
+            entities = {case.client for case in regular_cases + pre_contracted_cases}
+            for entity in entities:
+                reg_cases = [case for case in regular_cases if case.client == entity]
+                pre_cases = [case for case in pre_contracted_cases if case.client == entity]
+                
+                regular = TotalsRegular(
+                    approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
+                    actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
+                    in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
+                    wasted_hours=sum(case.wasted_hours for case in reg_cases)
+                )
+                
+                pre_contracted = TotalsPreContracted(
+                    approved_work_hours=sum(case.approved_work_hours for case in pre_cases),
+                    actual_work_hours=sum(case.actual_work_hours for case in pre_cases),
+                    in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in pre_cases),
+                    possible_unpaid_hours=sum(case.possible_unpaid_hours for case in pre_cases),
+                    possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
+                )
+                
+                summary = ClientPerformanceSummary(
+                    name=entity,
+                    totals=Totals(regular=regular, pre_contracted=pre_contracted),
+                    regular_cases=reg_cases,
+                    pre_contracted_cases=pre_cases,
+                    sponsors=[SponsorPerformanceSummary(
+                        name=sponsor,
+                        totals=Totals(regular=regular, pre_contracted=pre_contracted),
+                        regular_cases=[c for c in reg_cases if c.sponsor == sponsor],
+                        pre_contracted_cases=[c for c in pre_cases if c.sponsor == sponsor]
+                    ) for sponsor in set(case.sponsor for case in reg_cases + pre_cases)]
+                )
+                summaries.append(summary)
+                
+        elif entity_type == 'sponsor':
+            entities = {case.sponsor for case in regular_cases + pre_contracted_cases}
+            for entity in entities:
+                reg_cases = [case for case in regular_cases if case.sponsor == entity]
+                pre_cases = [case for case in pre_contracted_cases if case.sponsor == entity]
+                
+                regular = TotalsRegular(
+                    approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
+                    actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
+                    in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
+                    wasted_hours=sum(case.wasted_hours for case in reg_cases)
+                )
+                
+                pre_contracted = TotalsPreContracted(
+                    approved_work_hours=sum(case.approved_work_hours for case in pre_cases),
+                    actual_work_hours=sum(case.actual_work_hours for case in pre_cases),
+                    in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in pre_cases),
+                    possible_unpaid_hours=sum(case.possible_unpaid_hours for case in pre_cases),
+                    possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
+                )
+                
+                summary = SponsorPerformanceSummary(
+                    name=entity,
+                    totals=Totals(regular=regular, pre_contracted=pre_contracted),
+                    regular_cases=reg_cases,
+                    pre_contracted_cases=pre_cases
+                )
+                summaries.append(summary)
+                
+        else:  # account_manager
+            entities = {case.account_manager for case in regular_cases + pre_contracted_cases}
+            for entity in entities:
+                reg_cases = [case for case in regular_cases if case.account_manager == entity]
+                pre_cases = [case for case in pre_contracted_cases if case.account_manager == entity]
+                
+                regular = TotalsRegular(
+                    approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
+                    actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
+                    in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
+                    wasted_hours=sum(case.wasted_hours for case in reg_cases)
+                )
+                
+                pre_contracted = TotalsPreContracted(
+                    approved_work_hours=sum(case.approved_work_hours for case in pre_cases),
+                    actual_work_hours=sum(case.actual_work_hours for case in pre_cases),
+                    in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in pre_cases),
+                    possible_unpaid_hours=sum(case.possible_unpaid_hours for case in pre_cases),
+                    possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
+                )
+                
+                summary = AccountManagerPerformanceSummary(
+                    name=entity,
+                    totals=Totals(regular=regular, pre_contracted=pre_contracted),
+                    regular_cases=reg_cases,
+                    pre_contracted_cases=pre_cases,
+                    clients=[ClientPerformanceSummary(
+                        name=client,
+                        totals=Totals(regular=regular, pre_contracted=pre_contracted),
+                        regular_cases=[c for c in reg_cases if c.client == client],
+                        pre_contracted_cases=[c for c in pre_cases if c.client == client],
+                        sponsors=[SponsorPerformanceSummary(
+                            name=sponsor,
+                            totals=Totals(regular=regular, pre_contracted=pre_contracted),
+                            regular_cases=[c for c in reg_cases if c.client == client and c.sponsor == sponsor],
+                            pre_contracted_cases=[c for c in pre_cases if c.client == client and c.sponsor == sponsor]
+                        ) for sponsor in set(case.sponsor for case in reg_cases + pre_cases if case.client == client)]
+                    ) for client in set(case.client for case in reg_cases + pre_cases)]
+                )
+                summaries.append(summary)
+                
         return summaries
 
     while sw <= end:
@@ -235,12 +330,12 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                          if (case.weekly_approved_hours and case.weekly_approved_hours > 0) or
                             (by_case_hours.get(case.id, 0) > 0)]
         
-        regular_cases = [case for case in case_summaries if isinstance(case, OneWeekRegularCaseRevenueSummary)]
-        pre_contracted_cases = [case for case in case_summaries if isinstance(case, OneWeekPreContractedCaseRevenueSummary)]
+        regular_cases = [case for case in case_summaries if isinstance(case, OneWeekRegularCasePerformanceSummary)]
+        pre_contracted_cases = [case for case in case_summaries if isinstance(case, OneWeekPreContractedCasePerformanceSummary)]
         
-        clients_ = calculate_entity_summary(regular_cases, pre_contracted_cases, lambda x: x.client)
-        account_managers_ = calculate_entity_summary(regular_cases, pre_contracted_cases, lambda x: x.account_manager)
-        sponsors_ = calculate_entity_summary(regular_cases, pre_contracted_cases, lambda x: x.sponsor)
+        clients_ = calculate_entity_summary(regular_cases, pre_contracted_cases, 'client')
+        account_managers_ = calculate_entity_summary(regular_cases, pre_contracted_cases, 'account_manager')
+        sponsors_ = calculate_entity_summary(regular_cases, pre_contracted_cases, 'sponsor')
         
         regular = TotalsRegular(
             approved_work_hours=sum(case.weekly_approved_hours for case in cases if not case.pre_contracted_value and case.weekly_approved_hours),
@@ -257,7 +352,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             possible_idle_hours=sum(case.possible_idle_hours for case in pre_contracted_cases)
         )
         
-        week = WeekRevenueAnalysis(
+        week = WeekPerformanceAnalysis(
             start=s,
             end=e,
             regular_cases=regular_cases,

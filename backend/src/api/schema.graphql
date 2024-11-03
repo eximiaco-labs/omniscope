@@ -568,7 +568,7 @@ type DatasetsSet {
   timesheet: TimesheetSummary
 }
 
-# Revenue Projection types
+# Performance Analysis types
 type CaseHours {
   caseId: String!
   hours: Float!
@@ -583,7 +583,7 @@ type WorkingDayHours {
   byCase: [CaseHours!]!
 }
 
-type OneWeekRegularCaseRevenueSummary {
+type OneWeekRegularCasePerformanceSummary {
   id: String!
   title: String!
   sponsor: String!
@@ -595,7 +595,7 @@ type OneWeekRegularCaseRevenueSummary {
   wastedHours: Float!
 }
 
-type OneWeekPreContractedCaseRevenueSummary {
+type OneWeekPreContractedCasePerformanceSummary {
   id: String!
   title: String!
   sponsor: String!
@@ -628,20 +628,37 @@ type Totals {
   preContracted: TotalsPreContracted!
 }
 
-type EntityRevenueSummary {
+type SponsorPerformanceSummary {
   name: String!
-  accountManager: String
   totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
 }
 
-type WeekRevenueAnalysis {
+type ClientPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+}
+
+type AccountManagerPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+}
+
+type WeekPerformanceAnalysis {
   start: Date!
   end: Date!
-  regularCases: [OneWeekRegularCaseRevenueSummary!]!
-  preContractedCases: [OneWeekPreContractedCaseRevenueSummary!]!
-  clients: [EntityRevenueSummary!]!
-  sponsors: [EntityRevenueSummary!]!
-  accountManagers: [EntityRevenueSummary!]!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+  accountManagers: [AccountManagerPerformanceSummary!]!
   totals: Totals!
   actualWorkHours: [WorkingDayHours!]!
 }
@@ -650,9 +667,8 @@ type PerformanceAnalysis {
   start: Date!
   end: Date!
   dateOfInterest: Date!
-  weeks: [WeekRevenueAnalysis!]!
+  weeks: [WeekPerformanceAnalysis!]!
 }
-
 
 # Week Review types
 type WeekReview {
