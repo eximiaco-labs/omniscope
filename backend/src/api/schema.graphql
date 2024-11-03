@@ -606,18 +606,28 @@ type OneWeekPreContractedCaseRevenueSummary {
   possibleIdleHours: Float!
 }
 
+type TotalsRegular {
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  wastedHours: Float!
+}
+
+type TotalsPreContracted {
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  possibleUnpaidHours: Float!
+  possibleIdleHours: Float!
+}
+
+type Totals {
+  regular: TotalsRegular!
+  preContracted: TotalsPreContracted!
+}
+
 type EntityRevenueSummary {
   name: String!
   accountManager: String
-  totalApprovedWorkHours: Float!
-  totalActualWorkHours: Float!
-  totalPreContractedApprovedWorkHours: Float!
-  totalRegularApprovedWorkHours: Float!
-  totalPreContractedActualWorkHours: Float!
-  totalRegularActualWorkHours: Float!
-  totalWastedHours: Float!
-  totalPossibleUnpaidHours: Float!
-  totalPossibleIdleHours: Float!
+  totals: Totals!
 }
 
 type WeekRevenueAnalysis {
@@ -628,15 +638,7 @@ type WeekRevenueAnalysis {
   clients: [EntityRevenueSummary!]!
   sponsors: [EntityRevenueSummary!]!
   accountManagers: [EntityRevenueSummary!]!
-  totalApprovedWorkHours: Float!
-  totalPreContractedApprovedWorkHours: Float!
-  totalRegularApprovedWorkHours: Float!
-  totalActualWorkHours: Float!
-  totalPreContractedActualWorkHours: Float!
-  totalRegularActualWorkHours: Float!
-  totalPossibleUnpaidHours: Float!
-  totalPossibleIdleHours: Float!
-  totalPossibleWastedHours: Float!
+  totals: Totals!
   actualWorkHours: [WorkingDayHours!]!
 }
 
