@@ -591,6 +591,7 @@ type OneWeekRegularCaseRevenueSummary {
   accountManager: String!
   approvedWorkHours: Float!
   actualWorkHours: Float!
+  inContextActualWorkHours: Float!
   wastedHours: Float!
 }
 
@@ -602,6 +603,7 @@ type OneWeekPreContractedCaseRevenueSummary {
   accountManager: String!
   approvedWorkHours: Float!
   actualWorkHours: Float!
+  inContextActualWorkHours: Float!
   possibleUnpaidHours: Float!
   possibleIdleHours: Float!
 }
@@ -609,12 +611,14 @@ type OneWeekPreContractedCaseRevenueSummary {
 type TotalsRegular {
   approvedWorkHours: Float!
   actualWorkHours: Float!
+  inContextActualWorkHours: Float!
   wastedHours: Float!
 }
 
 type TotalsPreContracted {
   approvedWorkHours: Float!
   actualWorkHours: Float!
+  inContextActualWorkHours: Float!
   possibleUnpaidHours: Float!
   possibleIdleHours: Float!
 }
