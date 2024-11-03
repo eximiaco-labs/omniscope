@@ -579,7 +579,7 @@ type WorkingDayHours {
   date: Date!
   hours: Float!
   preContractedWorkHours: Float!
-  notPreContractedWorkHours: Float!
+  regularWorkHours: Float!
   byCase: [CaseHours!]!
 }
 
@@ -603,9 +603,9 @@ type EntityRevenueSummary {
   totalApprovedWorkHours: Float!
   totalActualWorkHours: Float!
   totalPreContractedApprovedWorkHours: Float!
-  totalNotPreContractedApprovedWorkHours: Float!
+  totalRegularApprovedWorkHours: Float!
   totalPreContractedActualWorkHours: Float!
-  totalNotPreContractedActualWorkHours: Float!
+  totalRegularActualWorkHours: Float!
   totalWastedHours: Float!
   totalPossibleUnpaidHours: Float!
   totalPossibleIdleHours: Float!
@@ -620,10 +620,13 @@ type WeekRevenueAnalysis {
   accountManagers: [EntityRevenueSummary!]!
   totalApprovedWorkHours: Float!
   totalPreContractedApprovedWorkHours: Float!
-  totalNotPreContractedApprovedWorkHours: Float!
+  totalRegularApprovedWorkHours: Float!
   totalActualWorkHours: Float!
   totalPreContractedActualWorkHours: Float!
-  totalNotPreContractedActualWorkHours: Float!
+  totalRegularActualWorkHours: Float!
+  totalPossibleUnpaidHours: Float!
+  totalPossibleIdleHours: Float!
+  totalPossibleWastedHours: Float!
   actualWorkHours: [WorkingDayHours!]!
 }
 

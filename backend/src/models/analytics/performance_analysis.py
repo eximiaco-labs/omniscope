@@ -6,7 +6,6 @@ from dataclasses import dataclass
 import globals
 
 from models.helpers.weeks import Weeks
-from models.analytics.approved_vs_actual import compute_approved_vs_actual
 
 @dataclass
 class CaseHours:
@@ -19,7 +18,7 @@ class WorkingDayHours:
     date: date
     hours: float
     pre_contracted_work_hours: float
-    not_pre_contracted_work_hours: float
+    regular_work_hours: float
     by_case: List[CaseHours]
 
 @dataclass
@@ -43,9 +42,9 @@ class EntityRevenueSummary:
     total_approved_work_hours: float = 0
     total_actual_work_hours: float = 0
     total_pre_contracted_approved_work_hours: float = 0
-    total_not_pre_contracted_approved_work_hours: float = 0
+    total_regular_approved_work_hours: float = 0
     total_pre_contracted_actual_work_hours: float = 0
-    total_not_pre_contracted_actual_work_hours: float = 0
+    total_regular_actual_work_hours: float = 0
     total_wasted_hours: float = 0
     total_possible_unpaid_hours: float = 0
     total_possible_idle_hours: float = 0
@@ -60,10 +59,13 @@ class WeekRevenueAnalysis:
     account_managers: List[EntityRevenueSummary]
     total_approved_work_hours: float
     total_pre_contracted_approved_work_hours: float
-    total_not_pre_contracted_approved_work_hours: float
+    total_regular_approved_work_hours: float
     total_actual_work_hours: float
     total_pre_contracted_actual_work_hours: float
-    total_not_pre_contracted_actual_work_hours: float
+    total_regular_actual_work_hours: float
+    total_possible_unpaid_hours: float
+    total_possible_idle_hours: float
+    total_possible_wasted_hours: float
     actual_work_hours: List[WorkingDayHours]
     
 @dataclass
@@ -83,10 +85,13 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
     end = date_of_interest.replace(day=last_day)
     
     weeks = []
+
+    s, _ = Weeks.get_week_dates(start)
+    _, e = Weeks.get_week_dates(end)
     
-    source_timesheet = globals.omni_datasets.timesheets.get(start, end).data
-    source_timesheet = source_timesheet[source_timesheet['Kind'] == 'Consulting']
-    timesheet = source_timesheet[source_timesheet['Date'] >= start]
+    source_timesheet = globals.omni_datasets.timesheets.get(s, e).data
+    timesheet = source_timesheet[source_timesheet['Kind'] == 'Consulting']
+    # timesheet = source_timesheet[source_timesheet['Date'] >= start]
     
     sw = start
     all_cases = globals.omni_models.cases.get_all().values()
@@ -147,9 +152,9 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                 total_approved_work_hours=sum(case.approved_work_hours for case in entity_cases),
                 total_actual_work_hours=sum(case.actual_work_hours for case in entity_cases),
                 total_pre_contracted_approved_work_hours=sum(case.approved_work_hours for case in entity_cases if case.is_pre_contracted),
-                total_not_pre_contracted_approved_work_hours=sum(case.approved_work_hours for case in entity_cases if not case.is_pre_contracted),
+                total_regular_approved_work_hours=sum(case.approved_work_hours for case in entity_cases if not case.is_pre_contracted),
                 total_pre_contracted_actual_work_hours=sum(case.actual_work_hours for case in entity_cases if case.is_pre_contracted),
-                total_not_pre_contracted_actual_work_hours=sum(case.actual_work_hours for case in entity_cases if not case.is_pre_contracted),
+                total_regular_actual_work_hours=sum(case.actual_work_hours for case in entity_cases if not case.is_pre_contracted),
                 total_wasted_hours=sum(case.wasted_hours for case in entity_cases),
                 total_possible_unpaid_hours=sum(case.possible_unpaid_hours for case in entity_cases),
                 total_possible_idle_hours=sum(case.possible_idle_hours for case in entity_cases)
@@ -175,7 +180,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                 date=current_date,
                 hours=day_timesheet['TimeInHs'].sum(),
                 pre_contracted_work_hours=sum(case.hours for case in by_case if case.pre_contracted),
-                not_pre_contracted_work_hours=sum(case.hours for case in by_case if not case.pre_contracted),
+                regular_work_hours=sum(case.hours for case in by_case if not case.pre_contracted),
                 by_case=by_case
             )
             actual_work_hours.append(day_hours)
@@ -196,10 +201,13 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             account_managers=account_managers_,
             total_approved_work_hours=sum(case.weekly_approved_hours for case in cases if case.weekly_approved_hours),
             total_pre_contracted_approved_work_hours=sum(case.weekly_approved_hours for case in cases if case.pre_contracted_value and case.weekly_approved_hours),
-            total_not_pre_contracted_approved_work_hours=sum(case.weekly_approved_hours for case in cases if not case.pre_contracted_value and case.weekly_approved_hours),
+            total_regular_approved_work_hours=sum(case.weekly_approved_hours for case in cases if not case.pre_contracted_value and case.weekly_approved_hours),
             total_actual_work_hours=sum(day.hours for day in actual_work_hours),
             total_pre_contracted_actual_work_hours=sum(day.pre_contracted_work_hours for day in actual_work_hours),
-            total_not_pre_contracted_actual_work_hours=sum(day.not_pre_contracted_work_hours for day in actual_work_hours),
+            total_regular_actual_work_hours=sum(day.regular_work_hours for day in actual_work_hours),
+            total_possible_unpaid_hours=sum(case.possible_unpaid_hours for case in cases_),
+            total_possible_idle_hours=sum(case.possible_idle_hours for case in cases_),
+            total_possible_wasted_hours=sum(case.wasted_hours for case in cases_),
             actual_work_hours=actual_work_hours
         )
         
