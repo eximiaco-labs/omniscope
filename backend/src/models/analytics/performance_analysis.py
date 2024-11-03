@@ -22,7 +22,7 @@ class WorkingDayHours:
     by_case: List[CaseHours]
 
 @dataclass
-class OneWeekCaseRevenueSummary:
+class OneWeekRegularCaseRevenueSummary:
     id: str
     title: str
     sponsor: str
@@ -30,10 +30,19 @@ class OneWeekCaseRevenueSummary:
     account_manager: str
     approved_work_hours: float
     actual_work_hours: float
-    is_pre_contracted: bool
+    wasted_hours: float
+
+@dataclass
+class OneWeekPreContractedCaseRevenueSummary:
+    id: str
+    title: str
+    sponsor: str
+    client: str
+    account_manager: str
+    approved_work_hours: float
+    actual_work_hours: float
     possible_unpaid_hours: float
     possible_idle_hours: float
-    wasted_hours: float
 
 @dataclass
 class EntityRevenueSummary:
@@ -53,7 +62,8 @@ class EntityRevenueSummary:
 class WeekRevenueAnalysis:
     start: datetime
     end: datetime
-    cases: List[OneWeekCaseRevenueSummary]
+    regular_cases: List[OneWeekRegularCaseRevenueSummary]
+    pre_contracted_cases: List[OneWeekPreContractedCaseRevenueSummary]
     clients: List[EntityRevenueSummary]
     sponsors: List[EntityRevenueSummary]
     account_managers: List[EntityRevenueSummary]
@@ -91,7 +101,6 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
     
     source_timesheet = globals.omni_datasets.timesheets.get(s, e).data
     timesheet = source_timesheet[source_timesheet['Kind'] == 'Consulting']
-    # timesheet = source_timesheet[source_timesheet['Date'] >= start]
     
     sw = start
     all_cases = globals.omni_models.cases.get_all().values()
@@ -118,46 +127,60 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             
         return by_case, by_case_hours
 
-    def calculate_case_metrics(case, actual_hours: float) -> OneWeekCaseRevenueSummary:
+    def calculate_case_metrics(case, actual_hours: float):
         client = globals.omni_models.clients.get_by_id(case.client_id) if case.client_id else None
         account_manager = client.account_manager.name if client and client.account_manager else 'N/A'
-        
         weekly_approved_hours = case.weekly_approved_hours if case.weekly_approved_hours else 0
-        possible_unpaid_hours = max(0, actual_hours - weekly_approved_hours) if case.pre_contracted_value else 0
-        possible_idle_hours = abs(min(0, actual_hours - weekly_approved_hours)) if case.pre_contracted_value else 0
-        wasted_hours = max(0, weekly_approved_hours - actual_hours) if not case.pre_contracted_value else 0
         
-        return OneWeekCaseRevenueSummary(
-            id=case.id,
-            title=case.title,
-            sponsor=case.sponsor if case.sponsor else 'N/A',
-            client=client.name if client else 'N/A',
-            account_manager=account_manager,
-            approved_work_hours=case.weekly_approved_hours if case.weekly_approved_hours else 0,
-            actual_work_hours=actual_hours,
-            is_pre_contracted=case.pre_contracted_value,
-            possible_unpaid_hours=possible_unpaid_hours,
-            possible_idle_hours=possible_idle_hours,
-            wasted_hours=wasted_hours
-        )
+        if case.pre_contracted_value:
+            possible_unpaid_hours = max(0, actual_hours - weekly_approved_hours)
+            possible_idle_hours = abs(min(0, actual_hours - weekly_approved_hours))
+            return OneWeekPreContractedCaseRevenueSummary(
+                id=case.id,
+                title=case.title,
+                sponsor=case.sponsor if case.sponsor else 'N/A',
+                client=client.name if client else 'N/A',
+                account_manager=account_manager,
+                approved_work_hours=weekly_approved_hours,
+                actual_work_hours=actual_hours,
+                possible_unpaid_hours=possible_unpaid_hours,
+                possible_idle_hours=possible_idle_hours
+            )
+        else:
+            wasted_hours = max(0, weekly_approved_hours - actual_hours)
+            return OneWeekRegularCaseRevenueSummary(
+                id=case.id,
+                title=case.title,
+                sponsor=case.sponsor if case.sponsor else 'N/A',
+                client=client.name if client else 'N/A',
+                account_manager=account_manager,
+                approved_work_hours=weekly_approved_hours,
+                actual_work_hours=actual_hours,
+                wasted_hours=wasted_hours
+            )
 
-    def calculate_entity_summary(cases: List[OneWeekCaseRevenueSummary], filter_fn) -> List[EntityRevenueSummary]:
+    def calculate_entity_summary(regular_cases: List[OneWeekRegularCaseRevenueSummary], 
+                               pre_contracted_cases: List[OneWeekPreContractedCaseRevenueSummary], 
+                               filter_fn) -> List[EntityRevenueSummary]:
+        entities = {filter_fn(case) for case in regular_cases + pre_contracted_cases}
         summaries = []
-        for entity in {filter_fn(case) for case in cases}:
-            entity_cases = [case for case in cases if filter_fn(case) == entity]
+        
+        for entity in entities:
+            reg_cases = [case for case in regular_cases if filter_fn(case) == entity]
+            pre_cases = [case for case in pre_contracted_cases if filter_fn(case) == entity]
             
             summary = EntityRevenueSummary(
                 name=entity,
-                account_manager=next((case.account_manager for case in entity_cases), 'N/A'),
-                total_approved_work_hours=sum(case.approved_work_hours for case in entity_cases),
-                total_actual_work_hours=sum(case.actual_work_hours for case in entity_cases),
-                total_pre_contracted_approved_work_hours=sum(case.approved_work_hours for case in entity_cases if case.is_pre_contracted),
-                total_regular_approved_work_hours=sum(case.approved_work_hours for case in entity_cases if not case.is_pre_contracted),
-                total_pre_contracted_actual_work_hours=sum(case.actual_work_hours for case in entity_cases if case.is_pre_contracted),
-                total_regular_actual_work_hours=sum(case.actual_work_hours for case in entity_cases if not case.is_pre_contracted),
-                total_wasted_hours=sum(case.wasted_hours for case in entity_cases),
-                total_possible_unpaid_hours=sum(case.possible_unpaid_hours for case in entity_cases),
-                total_possible_idle_hours=sum(case.possible_idle_hours for case in entity_cases)
+                account_manager=next((case.account_manager for case in (reg_cases + pre_cases)), 'N/A'),
+                total_approved_work_hours=sum(case.approved_work_hours for case in reg_cases + pre_cases),
+                total_actual_work_hours=sum(case.actual_work_hours for case in reg_cases + pre_cases),
+                total_pre_contracted_approved_work_hours=sum(case.approved_work_hours for case in pre_cases),
+                total_regular_approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
+                total_pre_contracted_actual_work_hours=sum(case.actual_work_hours for case in pre_cases),
+                total_regular_actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
+                total_wasted_hours=sum(case.wasted_hours for case in reg_cases),
+                total_possible_unpaid_hours=sum(case.possible_unpaid_hours for case in pre_cases),
+                total_possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
             )
             summaries.append(summary)
             
@@ -186,16 +209,23 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             actual_work_hours.append(day_hours)
             current_date += pd.Timedelta(days=1)
             
-        cases_ = [calculate_case_metrics(case, by_case_hours.get(case.id, 0)) for case in cases]
+        case_summaries = [calculate_case_metrics(case, by_case_hours.get(case.id, 0)) 
+                         for case in cases
+                         if (case.weekly_approved_hours and case.weekly_approved_hours > 0) or
+                            (by_case_hours.get(case.id, 0) > 0)]
         
-        clients_ = calculate_entity_summary(cases_, lambda x: x.client)
-        account_managers_ = calculate_entity_summary(cases_, lambda x: x.account_manager)
-        sponsors_ = calculate_entity_summary(cases_, lambda x: x.sponsor)
+        regular_cases = [case for case in case_summaries if isinstance(case, OneWeekRegularCaseRevenueSummary)]
+        pre_contracted_cases = [case for case in case_summaries if isinstance(case, OneWeekPreContractedCaseRevenueSummary)]
+        
+        clients_ = calculate_entity_summary(regular_cases, pre_contracted_cases, lambda x: x.client)
+        account_managers_ = calculate_entity_summary(regular_cases, pre_contracted_cases, lambda x: x.account_manager)
+        sponsors_ = calculate_entity_summary(regular_cases, pre_contracted_cases, lambda x: x.sponsor)
         
         week = WeekRevenueAnalysis(
             start=s,
             end=e,
-            cases=cases_,
+            regular_cases=regular_cases,
+            pre_contracted_cases=pre_contracted_cases,
             clients=clients_,
             sponsors=sponsors_,
             account_managers=account_managers_,
@@ -205,9 +235,9 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             total_actual_work_hours=sum(day.hours for day in actual_work_hours),
             total_pre_contracted_actual_work_hours=sum(day.pre_contracted_work_hours for day in actual_work_hours),
             total_regular_actual_work_hours=sum(day.regular_work_hours for day in actual_work_hours),
-            total_possible_unpaid_hours=sum(case.possible_unpaid_hours for case in cases_),
-            total_possible_idle_hours=sum(case.possible_idle_hours for case in cases_),
-            total_possible_wasted_hours=sum(case.wasted_hours for case in cases_),
+            total_possible_unpaid_hours=sum(case.possible_unpaid_hours for case in pre_contracted_cases),
+            total_possible_idle_hours=sum(case.possible_idle_hours for case in pre_contracted_cases),
+            total_possible_wasted_hours=sum(case.wasted_hours for case in regular_cases),
             actual_work_hours=actual_work_hours
         )
         
