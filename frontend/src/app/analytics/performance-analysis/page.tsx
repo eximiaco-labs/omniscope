@@ -17,6 +17,7 @@ interface Case {
 interface Week {
   regularCases: Case[];
   preContractedCases: Case[];
+  start: string;
 }
 
 export default function PerformanceAnalysisPage() {
@@ -113,18 +114,25 @@ export default function PerformanceAnalysisPage() {
     )).sort();
   };
 
+  const selectedWeekIndex = data.performanceAnalysis.weeks.findIndex((week: Week) => {
+    const weekStart = new Date(week.start);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    return date >= weekStart && date < weekEnd;
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center">
         <DatePicker date={date} onSelectedDateChange={setDate} />
       </div>
-
       <div className="space-y-8">
         <RegularCasesTable 
           data={data}
           accountManagers={accountManagers}
           expandedRegularManagers={expandedRegularManagers}
           expandedClients={expandedClients}
+          selectedWeekIndex={selectedWeekIndex}
           expandedSponsors={expandedSponsors}
           toggleRegularManager={toggleRegularManager}
           toggleClient={toggleClient}

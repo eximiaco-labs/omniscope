@@ -15,6 +15,7 @@ interface RegularCasesTableProps {
   expandedRegularManagers: Set<string>;
   expandedClients: Set<string>;
   expandedSponsors: Set<string>;
+  selectedWeekIndex: number;
   toggleRegularManager: (manager: string) => void;
   toggleClient: (clientKey: string) => void;
   toggleSponsor: (sponsorKey: string) => void;
@@ -29,6 +30,7 @@ export function RegularCasesTable({
   expandedRegularManagers,
   expandedClients,
   expandedSponsors,
+  selectedWeekIndex,
   toggleRegularManager,
   toggleClient,
   toggleSponsor,
@@ -43,8 +45,11 @@ export function RegularCasesTable({
         <TableHeader>
           <TableRow>
             <TableHead>Account Manager</TableHead>
-            {data.performanceAnalysis.weeks.map((week: any) => (
-              <TableHead key={week.start} className="w-[150px]">
+            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => (
+              <TableHead 
+                key={week.start} 
+                className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+              >
                 {format(new Date(week.start), "MMM d")} - {format(new Date(week.end), "d")}
               </TableHead>
             ))}
@@ -58,17 +63,25 @@ export function RegularCasesTable({
                   {expandedRegularManagers.has(managerName) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {managerName}
                 </TableCell>
-                {data.performanceAnalysis.weeks.map((week: any) => {
+                {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                   const managerCases = week.regularCases.filter(
                     (c: any) => c.accountManager === managerName
                   );
-                  const totalActual = managerCases.reduce((sum: number, c: any) => sum + c.actualWorkHours, 0);
-                  const totalApproved = managerCases.reduce((sum: number, c: any) => sum + c.approvedWorkHours, 0);
-                  const totalWasted = managerCases.reduce((sum: number, c: any) => sum + c.wastedHours, 0);
-                  const totalInContext = managerCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
+                  const totalActual = managerCases.reduce((sum: number, c: any) => 
+                    sum + (typeof c.actualWorkHours === 'number' ? c.actualWorkHours : 0), 0
+                  );
+                  const totalApproved = managerCases.reduce((sum: number, c: any) => 
+                    sum + (typeof c.approvedWorkHours === 'number' ? c.approvedWorkHours : 0), 0
+                  );
+                  const totalWasted = managerCases.reduce((sum: number, c: any) => 
+                    sum + (typeof c.wastedHours === 'number' ? c.wastedHours : 0), 0
+                  );
+                  const totalInContext = managerCases.reduce((sum: number, c: any) => 
+                    sum + (typeof c.inContextActualWorkHours === 'number' ? c.inContextActualWorkHours : 0), 0
+                  );
                   
                   return (
-                    <TableCell key={week.start} className="w-[150px]">
+                    <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                       {managerCases.length > 0 ? (
                         <div>
                           <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
@@ -100,17 +113,25 @@ export function RegularCasesTable({
                         {expandedClients.has(`regular-${managerName}-${clientName}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                         {clientName}
                       </TableCell>
-                      {data.performanceAnalysis.weeks.map((week: any) => {
+                      {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                         const clientCases = week.regularCases.filter(
                           (c: any) => c.accountManager === managerName && c.client === clientName
                         );
-                        const totalActual = clientCases.reduce((sum: number, c: any) => sum + c.actualWorkHours, 0);
-                        const totalApproved = clientCases.reduce((sum: number, c: any) => sum + c.approvedWorkHours, 0);
-                        const totalWasted = clientCases.reduce((sum: number, c: any) => sum + c.wastedHours, 0);
-                        const totalInContext = clientCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
+                        const totalActual = clientCases.reduce((sum: number, c: any) => 
+                          sum + (typeof c.actualWorkHours === 'number' ? c.actualWorkHours : 0), 0
+                        );
+                        const totalApproved = clientCases.reduce((sum: number, c: any) => 
+                          sum + (typeof c.approvedWorkHours === 'number' ? c.approvedWorkHours : 0), 0
+                        );
+                        const totalWasted = clientCases.reduce((sum: number, c: any) => 
+                          sum + (typeof c.wastedHours === 'number' ? c.wastedHours : 0), 0
+                        );
+                        const totalInContext = clientCases.reduce((sum: number, c: any) => 
+                          sum + (typeof c.inContextActualWorkHours === 'number' ? c.inContextActualWorkHours : 0), 0
+                        );
                         
                         return (
-                          <TableCell key={week.start} className="w-[150px]">
+                          <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                             {clientCases.length > 0 ? (
                               <div>
                                 <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
@@ -142,7 +163,7 @@ export function RegularCasesTable({
                               {expandedSponsors.has(`regular-${managerName}-${clientName}-${sponsorName}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                               {sponsorName}
                             </TableCell>
-                            {data.performanceAnalysis.weeks.map((week: any) => {
+                            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                               const sponsorCases = week.regularCases.filter(
                                 (c: any) => c.accountManager === managerName && 
                                           c.client === clientName && 
@@ -154,7 +175,7 @@ export function RegularCasesTable({
                               const totalInContext = sponsorCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
                               
                               return (
-                                <TableCell key={week.start} className="w-[150px]">
+                                <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                                   {sponsorCases.length > 0 ? (
                                     <div>
                                       <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
@@ -190,14 +211,14 @@ export function RegularCasesTable({
                                   ));
                                 })}
                               </TableCell>
-                              {data.performanceAnalysis.weeks.map((week: any) => {
+                              {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                                 const cases = week.regularCases.filter(
                                   (c: any) => c.accountManager === managerName && 
                                             c.client === clientName && 
                                             c.sponsor === sponsorName
                                 );
                                 return (
-                                  <TableCell key={week.start} className="bg-gray-200 w-[150px]">
+                                  <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                                     {cases.map((c: any) => (
                                       <div key={`${week.start}-${c.title}`}>
                                         <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
