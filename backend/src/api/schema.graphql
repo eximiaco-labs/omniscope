@@ -568,6 +568,108 @@ type DatasetsSet {
   timesheet: TimesheetSummary
 }
 
+# Performance Analysis types
+type CaseHours {
+  caseId: String!
+  hours: Float!
+  preContracted: Boolean!
+}
+
+type WorkingDayHours {
+  date: Date!
+  hours: Float!
+  preContractedWorkHours: Float!
+  regularWorkHours: Float!
+  byCase: [CaseHours!]!
+}
+
+type OneWeekRegularCasePerformanceSummary {
+  id: String!
+  title: String!
+  sponsor: String!
+  client: String!
+  accountManager: String!
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  wastedHours: Float!
+}
+
+type OneWeekPreContractedCasePerformanceSummary {
+  id: String!
+  title: String!
+  sponsor: String!
+  client: String!
+  accountManager: String!
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  possibleUnpaidHours: Float!
+  possibleIdleHours: Float!
+}
+
+type TotalsRegular {
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  wastedHours: Float!
+}
+
+type TotalsPreContracted {
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  possibleUnpaidHours: Float!
+  possibleIdleHours: Float!
+}
+
+type Totals {
+  regular: TotalsRegular!
+  preContracted: TotalsPreContracted!
+}
+
+type SponsorPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+}
+
+type ClientPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+}
+
+type AccountManagerPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+}
+
+type WeekPerformanceAnalysis {
+  start: Date!
+  end: Date!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+  accountManagers: [AccountManagerPerformanceSummary!]!
+  totals: Totals!
+  actualWorkHours: [WorkingDayHours!]!
+}
+
+type PerformanceAnalysis {
+  start: Date!
+  end: Date!
+  dateOfInterest: Date!
+  weeks: [WeekPerformanceAnalysis!]!
+}
+
 # Week Review types
 type WeekReview {
   hoursPreviousWeeks: Float!
@@ -724,6 +826,7 @@ type Query {
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
   projects: [Project!]!
   approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
+  performanceAnalysis(date_of_interest: Date!): PerformanceAnalysis!
 }
 
 # Mutation type

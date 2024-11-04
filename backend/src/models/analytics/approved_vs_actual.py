@@ -1,76 +1,112 @@
 from typing import Dict, List, Any
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date
 from models.helpers.weeks import Weeks
 import globals
+from dataclasses import dataclass
 
-def compute_approved_vs_actual(start: str | datetime, end: str | datetime) -> Dict[str, Any]:
+@dataclass
+class WeekData:
+    title: str
+    start: date
+    end: date
+    number_of_days: int
+    approved_hours: float
+    actual_hours: float
+    difference: float
+
+@dataclass 
+class CaseData:
+    id: str
+    title: str
+    start_of_contract: str | None
+    end_of_contract: str | None
+    weekly_approved_hours: float
+    pre_contracted_value: float
+    weeks: List[WeekData]
+    total_approved_hours: float = 0
+    total_actual_hours: float = 0
+    total_difference: float = 0
+
+@dataclass
+class ApprovedVsActualResult:
+    start: str
+    end: str
+    total_approved_hours: float
+    total_actual_hours: float
+    total_difference: float
+    number_of_cases: int
+    cases: List[CaseData]
+
+def compute_approved_vs_actual(start: str | datetime, end: str | datetime) -> ApprovedVsActualResult:
     raw_data = _compute_raw_data(start, end)
     unique_cases = _process_raw_data(raw_data)
     all_cases = _prepare_cases_data(unique_cases)
     
     return _create_result_summary(raw_data, all_cases)
 
-def _process_raw_data(raw_data: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+def _process_raw_data(raw_data: Dict[str, Any]) -> Dict[str, CaseData]:
     unique_cases = {}
     for week in raw_data['weeks']:
         for case in week['data']:
             case_id = case['id']
             if case_id not in unique_cases:
                 unique_cases[case_id] = _initialize_case(case)
-            unique_cases[case_id]['weeks'].append(_create_week_data(week, case))
+            unique_cases[case_id].weeks.append(_create_week_data(week, case))
     return unique_cases
 
-def _initialize_case(case: Dict[str, Any]) -> Dict[str, Any]:
-    return {
-        'id': case['id'],
-        'title': case['title'],
-        'start_of_contract': case['start_of_contract'],
-        'end_of_contract': case['end_of_contract'],
-        'weekly_approved_hours': case['weekly_approved_hours'],
-        'pre_contracted_value': case['pre_contracted_value'],
-        'weeks': []
-    }
+def _initialize_case(case: Dict[str, Any]) -> CaseData:
+    return CaseData(
+        id=case['id'],
+        title=case['title'],
+        start_of_contract=case['start_of_contract'],
+        end_of_contract=case['end_of_contract'],
+        weekly_approved_hours=case['weekly_approved_hours'],
+        pre_contracted_value=case['pre_contracted_value'],
+        weeks=[]
+    )
 
-def _create_week_data(week: Dict[str, Any], case: Dict[str, Any]) -> Dict[str, Any]:
-    return {
-        'title': week['title'],
-        'number_of_days': case['number_of_days'],
-        'approved_hours': case['approved_hours'],
-        'actual_hours': case['actual'],
-        'difference': case['actual'] - case['approved_hours']
-    }
+def _create_week_data(week: Dict[str, Any], case: Dict[str, Any]) -> WeekData:
+    return WeekData(
+        title=week['title'],
+        start=datetime.fromisoformat(week['start']).date(),
+        end=datetime.fromisoformat(week['end']).date(),
+        number_of_days=case['number_of_days'],
+        approved_hours=case['approved_hours'],
+        actual_hours=case['actual'],
+        difference=case['actual'] - case['approved_hours']
+    )
 
-def _prepare_cases_data(unique_cases: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _prepare_cases_data(unique_cases: Dict[str, CaseData]) -> List[CaseData]:
     all_cases = list(unique_cases.values())
     for case in all_cases:
         # Calculate sums for approved_hours, actual, and difference
-        case['total_approved_hours'] = sum(week['approved_hours'] for week in case['weeks'])
-        case['total_actual_hours'] = sum(week['actual_hours'] for week in case['weeks'])
-        case['total_difference'] = sum(week['difference'] for week in case['weeks'])
+        case.total_approved_hours = sum(week.approved_hours for week in case.weeks)
+        case.total_actual_hours = sum(week.actual_hours for week in case.weeks)
+        case.total_difference = sum(week.difference for week in case.weeks)
 
     # Sort the list of cases by total difference in descending order
-    all_cases.sort(key=lambda x: x['total_difference'])
+    all_cases.sort(key=lambda x: x.total_difference)
 
     # Filter out cases that are not active or have no actual hours
     all_cases = [
         case
         for case in all_cases
-        if globals.omni_models.cases.get_by_id(case['id']).is_active or case['total_actual_hours'] > 0
+        if globals.omni_models.cases.get_by_id(case.id).is_active or case.total_actual_hours > 0
     ]
 
     return all_cases
 
-def _create_result_summary(raw_data: Dict[str, Any], all_cases: List[Dict[str, Any]]) -> Dict[str, Any]:
-    return {
-        'start': raw_data['start'],
-        'end': raw_data['end'],
-        'total_approved_hours': sum(case['total_approved_hours'] for case in all_cases),
-        'total_actual_hours': sum(case['total_actual_hours'] for case in all_cases),
-        'total_difference': sum(case['total_difference'] for case in all_cases),
-        'number_of_cases': len(all_cases),
-        'cases': all_cases
-    }
+def _create_result_summary(raw_data: Dict[str, Any], all_cases: List[CaseData]) -> ApprovedVsActualResult:
+    return ApprovedVsActualResult(
+        start=raw_data['start'],
+        end=raw_data['end'],
+        total_approved_hours=sum(case.total_approved_hours for case in all_cases),
+        total_actual_hours=sum(case.total_actual_hours for case in all_cases),
+        total_difference=sum(case.total_difference for case in all_cases),
+        number_of_cases=len(all_cases),
+        cases=all_cases
+    )
 
 def _compute_raw_data(start, end):
     if isinstance(start, str):
