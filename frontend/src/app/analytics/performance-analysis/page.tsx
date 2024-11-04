@@ -147,6 +147,7 @@ export default function PerformanceAnalysisPage() {
           accountManagers={accountManagers}
           expandedPreContractedManagers={expandedPreContractedManagers}
           expandedClients={expandedClients}
+          selectedWeekIndex={selectedWeekIndex}
           expandedSponsors={expandedSponsors}
           togglePreContractedManager={togglePreContractedManager}
           toggleClient={toggleClient}

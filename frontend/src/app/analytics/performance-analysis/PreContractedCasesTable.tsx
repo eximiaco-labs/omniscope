@@ -15,6 +15,7 @@ interface PreContractedCasesTableProps {
   expandedPreContractedManagers: Set<string>;
   expandedClients: Set<string>;
   expandedSponsors: Set<string>;
+  selectedWeekIndex: number;
   togglePreContractedManager: (manager: string) => void;
   toggleClient: (clientKey: string) => void;
   toggleSponsor: (sponsorKey: string) => void;
@@ -29,6 +30,7 @@ export function PreContractedCasesTable({
   expandedPreContractedManagers,
   expandedClients,
   expandedSponsors,
+  selectedWeekIndex,
   togglePreContractedManager,
   toggleClient,
   toggleSponsor,
@@ -43,8 +45,11 @@ export function PreContractedCasesTable({
         <TableHeader>
           <TableRow>
             <TableHead>Account Manager</TableHead>
-            {data.performanceAnalysis.weeks.map((week: any) => (
-              <TableHead key={week.start} className="w-[150px]">
+            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => (
+              <TableHead 
+                key={week.start} 
+                className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+              >
                 {format(new Date(week.start), "MMM d")} - {format(new Date(week.end), "d")}
               </TableHead>
             ))}
@@ -58,7 +63,7 @@ export function PreContractedCasesTable({
                   {expandedPreContractedManagers.has(managerName) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {managerName}
                 </TableCell>
-                {data.performanceAnalysis.weeks.map((week: any) => {
+                {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                   const managerCases = week.preContractedCases.filter(
                     (c: any) => c.accountManager === managerName
                   );
@@ -69,7 +74,7 @@ export function PreContractedCasesTable({
                   const totalInContext = managerCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
                   
                   return (
-                    <TableCell key={week.start} className="w-[150px]">
+                    <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                       {managerCases.length > 0 ? (
                         <div>
                           <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
@@ -106,7 +111,7 @@ export function PreContractedCasesTable({
                         {expandedClients.has(`precontracted-${managerName}-${clientName}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                         {clientName}
                       </TableCell>
-                      {data.performanceAnalysis.weeks.map((week: any) => {
+                      {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                         const clientCases = week.preContractedCases.filter(
                           (c: any) => c.accountManager === managerName && c.client === clientName
                         );
@@ -117,7 +122,7 @@ export function PreContractedCasesTable({
                         const totalInContext = clientCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
                         
                         return (
-                          <TableCell key={week.start} className="w-[150px]">
+                          <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                             {clientCases.length > 0 ? (
                               <div>
                                 <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
@@ -154,7 +159,7 @@ export function PreContractedCasesTable({
                               {expandedSponsors.has(`precontracted-${managerName}-${clientName}-${sponsorName}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                               {sponsorName}
                             </TableCell>
-                            {data.performanceAnalysis.weeks.map((week: any) => {
+                            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                               const sponsorCases = week.preContractedCases.filter(
                                 (c: any) => c.accountManager === managerName && 
                                           c.client === clientName && 
@@ -167,7 +172,7 @@ export function PreContractedCasesTable({
                               const totalInContext = sponsorCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
                               
                               return (
-                                <TableCell key={week.start} className="w-[150px]">
+                                <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                                   {sponsorCases.length > 0 ? (
                                     <div>
                                       <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
@@ -208,14 +213,14 @@ export function PreContractedCasesTable({
                                   ));
                                 })}
                               </TableCell>
-                              {data.performanceAnalysis.weeks.map((week: any) => {
+                              {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                                 const cases = week.preContractedCases.filter(
                                   (c: any) => c.accountManager === managerName && 
                                             c.client === clientName && 
                                             c.sponsor === sponsorName
                                 );
                                 return (
-                                  <TableCell key={week.start} className="bg-gray-200 w-[150px]">
+                                  <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
                                     {cases.map((c: any) => (
                                       <div key={`${week.start}-${c.title}`}>
                                         <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
