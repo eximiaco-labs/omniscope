@@ -27,7 +27,7 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
 
     workers_without_email_or_with_invalid_email = [
         worker for worker in workers.values()
-        if not worker.email or not (worker.email.endswith('@eximia.co') or worker.email.endswith('@elemarjr.com'))
+        if not worker.email or not (worker.email.endswith('@eximia.co') or worker.email.endswith('@elemarjr.com') or worker.email.endswith('@duocom.com.br'))
     ]
     if len(workers_without_email_or_with_invalid_email) > 0:
         result.append(Inconsistency(
