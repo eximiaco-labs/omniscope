@@ -210,17 +210,39 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                     possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
                 )
                 
+                sponsors = []
+                for sponsor in set(case.sponsor for case in reg_cases + pre_cases):
+                    sponsor_reg_cases = [c for c in reg_cases if c.sponsor == sponsor]
+                    sponsor_pre_cases = [c for c in pre_cases if c.sponsor == sponsor]
+                    
+                    sponsor_regular = TotalsRegular(
+                        approved_work_hours=sum(case.approved_work_hours for case in sponsor_reg_cases),
+                        actual_work_hours=sum(case.actual_work_hours for case in sponsor_reg_cases),
+                        in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in sponsor_reg_cases),
+                        wasted_hours=sum(case.wasted_hours for case in sponsor_reg_cases)
+                    )
+                    
+                    sponsor_pre_contracted = TotalsPreContracted(
+                        approved_work_hours=sum(case.approved_work_hours for case in sponsor_pre_cases),
+                        actual_work_hours=sum(case.actual_work_hours for case in sponsor_pre_cases),
+                        in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in sponsor_pre_cases),
+                        possible_unpaid_hours=sum(case.possible_unpaid_hours for case in sponsor_pre_cases),
+                        possible_idle_hours=sum(case.possible_idle_hours for case in sponsor_pre_cases)
+                    )
+                    
+                    sponsors.append(SponsorPerformanceSummary(
+                        name=sponsor,
+                        totals=Totals(regular=sponsor_regular, pre_contracted=sponsor_pre_contracted),
+                        regular_cases=sponsor_reg_cases,
+                        pre_contracted_cases=sponsor_pre_cases
+                    ))
+                
                 summary = ClientPerformanceSummary(
                     name=entity,
                     totals=Totals(regular=regular, pre_contracted=pre_contracted),
                     regular_cases=reg_cases,
                     pre_contracted_cases=pre_cases,
-                    sponsors=[SponsorPerformanceSummary(
-                        name=sponsor,
-                        totals=Totals(regular=regular, pre_contracted=pre_contracted),
-                        regular_cases=[c for c in reg_cases if c.sponsor == sponsor],
-                        pre_contracted_cases=[c for c in pre_cases if c.sponsor == sponsor]
-                    ) for sponsor in set(case.sponsor for case in reg_cases + pre_cases)]
+                    sponsors=sponsors
                 )
                 summaries.append(summary)
                 
@@ -274,28 +296,71 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                     possible_idle_hours=sum(case.possible_idle_hours for case in pre_cases)
                 )
                 
+                clients = []
+                for client in set(case.client for case in reg_cases + pre_cases):
+                    client_reg_cases = [c for c in reg_cases if c.client == client]
+                    client_pre_cases = [c for c in pre_cases if c.client == client]
+                    
+                    client_regular = TotalsRegular(
+                        approved_work_hours=sum(case.approved_work_hours for case in client_reg_cases),
+                        actual_work_hours=sum(case.actual_work_hours for case in client_reg_cases),
+                        in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in client_reg_cases),
+                        wasted_hours=sum(case.wasted_hours for case in client_reg_cases)
+                    )
+                    
+                    client_pre_contracted = TotalsPreContracted(
+                        approved_work_hours=sum(case.approved_work_hours for case in client_pre_cases),
+                        actual_work_hours=sum(case.actual_work_hours for case in client_pre_cases),
+                        in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in client_pre_cases),
+                        possible_unpaid_hours=sum(case.possible_unpaid_hours for case in client_pre_cases),
+                        possible_idle_hours=sum(case.possible_idle_hours for case in client_pre_cases)
+                    )
+                    
+                    client_sponsors = []
+                    for sponsor in set(case.sponsor for case in client_reg_cases + client_pre_cases):
+                        sponsor_reg_cases = [c for c in client_reg_cases if c.sponsor == sponsor]
+                        sponsor_pre_cases = [c for c in client_pre_cases if c.sponsor == sponsor]
+                        
+                        sponsor_regular = TotalsRegular(
+                            approved_work_hours=sum(case.approved_work_hours for case in sponsor_reg_cases),
+                            actual_work_hours=sum(case.actual_work_hours for case in sponsor_reg_cases),
+                            in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in sponsor_reg_cases),
+                            wasted_hours=sum(case.wasted_hours for case in sponsor_reg_cases)
+                        )
+                        
+                        sponsor_pre_contracted = TotalsPreContracted(
+                            approved_work_hours=sum(case.approved_work_hours for case in sponsor_pre_cases),
+                            actual_work_hours=sum(case.actual_work_hours for case in sponsor_pre_cases),
+                            in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in sponsor_pre_cases),
+                            possible_unpaid_hours=sum(case.possible_unpaid_hours for case in sponsor_pre_cases),
+                            possible_idle_hours=sum(case.possible_idle_hours for case in sponsor_pre_cases)
+                        )
+                        
+                        client_sponsors.append(SponsorPerformanceSummary(
+                            name=sponsor,
+                            totals=Totals(regular=sponsor_regular, pre_contracted=sponsor_pre_contracted),
+                            regular_cases=sponsor_reg_cases,
+                            pre_contracted_cases=sponsor_pre_cases
+                        ))
+                    
+                    clients.append(ClientPerformanceSummary(
+                        name=client,
+                        totals=Totals(regular=client_regular, pre_contracted=client_pre_contracted),
+                        regular_cases=client_reg_cases,
+                        pre_contracted_cases=client_pre_cases,
+                        sponsors=client_sponsors
+                    ))
+                
                 summary = AccountManagerPerformanceSummary(
                     name=entity,
                     totals=Totals(regular=regular, pre_contracted=pre_contracted),
                     regular_cases=reg_cases,
                     pre_contracted_cases=pre_cases,
-                    clients=[ClientPerformanceSummary(
-                        name=client,
-                        totals=Totals(regular=regular, pre_contracted=pre_contracted),
-                        regular_cases=[c for c in reg_cases if c.client == client],
-                        pre_contracted_cases=[c for c in pre_cases if c.client == client],
-                        sponsors=[SponsorPerformanceSummary(
-                            name=sponsor,
-                            totals=Totals(regular=regular, pre_contracted=pre_contracted),
-                            regular_cases=[c for c in reg_cases if c.client == client and c.sponsor == sponsor],
-                            pre_contracted_cases=[c for c in pre_cases if c.client == client and c.sponsor == sponsor]
-                        ) for sponsor in set(case.sponsor for case in reg_cases + pre_cases if case.client == client)]
-                    ) for client in set(case.client for case in reg_cases + pre_cases)]
+                    clients=clients
                 )
                 summaries.append(summary)
                 
         return summaries
-
     while sw <= end:
         s, e = Weeks.get_week_dates(sw)
         cases = [case for case in all_cases if is_case_active(case, s, e)]
@@ -308,11 +373,12 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         while current_date <= min(e.date(), end):
             day_timesheet = timesheet[pd.to_datetime(timesheet['Date']).dt.date == current_date]
             by_case, case_hours = get_case_hours_for_day(day_timesheet)
-            by_case_hours.update(case_hours)
+            # by_case_hours[case_hour.case_id] = by_case_hours.get(case_hour.case_id, 0) + case_hour.hours
             
             # Track monthly hours separately
-            if current_date.month == date_of_interest.month:
-                for case_hour in by_case:
+            for case_hour in by_case:
+                by_case_hours[case_hour.case_id] = by_case_hours.get(case_hour.case_id, 0) + case_hour.hours
+                if current_date.month == date_of_interest.month:
                     by_case_month_hours[case_hour.case_id] = by_case_month_hours.get(case_hour.case_id, 0) + case_hour.hours
             
             day_hours = WorkingDayHours(
