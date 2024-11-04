@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 export const PERFORMANCE_ANALYSIS_QUERY = gql`
   query PerformanceAnalysis($date: Date!) {
     performanceAnalysis(date_of_interest: $date) {
@@ -23,74 +23,28 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
             wastedHours
           }
         }
-        accountManagers {
-          name
-          totals {
-            preContracted {
-              approvedWorkHours
-              actualWorkHours
-              inContextActualWorkHours
-              possibleUnpaidHours
-              possibleIdleHours
-            }
-            regular {
-              approvedWorkHours
-              actualWorkHours
-              inContextActualWorkHours
-              wastedHours
-            }
-          }
-          clients {
-            name
-            totals {
-              preContracted {
-                approvedWorkHours
-                actualWorkHours
-                inContextActualWorkHours
-                possibleUnpaidHours
-                possibleIdleHours
-              }
-              regular {
-                approvedWorkHours
-                actualWorkHours
-                inContextActualWorkHours
-                wastedHours
-              }
-            }
-            sponsors {
-              name
-              totals {
-                preContracted {
-                  approvedWorkHours
-                  actualWorkHours
-                  inContextActualWorkHours
-                  possibleUnpaidHours
-                  possibleIdleHours
-                }
-                regular {
-                  approvedWorkHours
-                  actualWorkHours
-                  inContextActualWorkHours
-                  wastedHours
-                }
-              }
-              regularCases {
-                title
-                approvedWorkHours
-                actualWorkHours
-                inContextActualWorkHours
-                wastedHours
-              }
-              preContractedCases {
-                title
-                approvedWorkHours
-                actualWorkHours
-                inContextActualWorkHours
-                possibleIdleHours
-                possibleUnpaidHours
-              }
-            }
-          }
+
+        regularCases {
+          title
+          client
+          accountManager
+          sponsor
+          approvedWorkHours
+          actualWorkHours
+          inContextActualWorkHours
+          wastedHours
+        }
+
+        preContractedCases {
+          title
+          client
+          accountManager
+          sponsor
+          approvedWorkHours
+          actualWorkHours
+          inContextActualWorkHours
+          possibleIdleHours
+          possibleUnpaidHours
         }
       }
     }
