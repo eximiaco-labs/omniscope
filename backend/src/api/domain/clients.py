@@ -1,5 +1,5 @@
-from backend.src.api.datasets.timesheets import compute_timesheet
-from backend.src.api.utils.fields import build_fields_map
+from api.datasets.timesheets import compute_timesheet
+from api.utils.fields import build_fields_map
 import globals
 
 from ariadne import ObjectType
