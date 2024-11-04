@@ -122,6 +122,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
     s, _ = Weeks.get_week_dates(start)
     _, e = Weeks.get_week_dates(end)
     
+    
     source_timesheet = globals.omni_datasets.timesheets.get(s, e).data
     timesheet = source_timesheet[source_timesheet['Kind'] == 'Consulting']
     
@@ -361,7 +362,9 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                 summaries.append(summary)
                 
         return summaries
-    while sw <= end:
+    
+    end_of_analysis = e.date()
+    while sw <= end_of_analysis:
         s, e = Weeks.get_week_dates(sw)
         cases = [case for case in all_cases if is_case_active(case, s, e)]
         
@@ -370,7 +373,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         by_case_month_hours = {}
         current_date = s.date()
         
-        while current_date <= min(e.date(), end):
+        while current_date <= min(e.date(), end_of_analysis):
             day_timesheet = timesheet[pd.to_datetime(timesheet['Date']).dt.date == current_date]
             by_case, case_hours = get_case_hours_for_day(day_timesheet)
             # by_case_hours[case_hour.case_id] = by_case_hours.get(case_hour.case_id, 0) + case_hour.hours
