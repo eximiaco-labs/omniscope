@@ -22,7 +22,10 @@ export default function PerformanceAnalysisPage() {
     setDate(today);
   }, []);
 
-  const defaultDate = format(date.setDate(1), "yyyy-MM-dd");
+  // Create a new Date object to avoid mutating the original date
+  const firstDayOfMonth = new Date(date);
+  firstDayOfMonth.setDate(1);
+  const defaultDate = format(firstDayOfMonth, "yyyy-MM-dd");
 
   const { loading, error, data } = useQuery(PERFORMANCE_ANALYSIS_QUERY, {
     variables: { date: defaultDate },
@@ -84,7 +87,7 @@ export default function PerformanceAnalysisPage() {
                         {week.totals.preContracted.inContextActualWorkHours} in {format(date, 'MMMM')}
                       </div>
                     )}
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex gap-2 mt-2 whitespace-nowrap">
                       {week.totals.preContracted.possibleUnpaidHours > 0 && (
                         <Badge color="orange">
                           {week.totals.preContracted.possibleUnpaidHours}h unpaid
