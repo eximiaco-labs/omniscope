@@ -1,5 +1,5 @@
 from api.utils.fields import build_fields_map
-from api.datasets.timesheets import compute_timesheet
+
 
 import globals
 
@@ -15,7 +15,7 @@ def resolve_cases(_, info, only_actives: bool = False):
     map_ = build_fields_map(info)
 
     return map(
-        lambda x: _make_result_object(map_, x),
+        lambda x: build_case_dictionary(map_, x),
         all_cases
     )
 
@@ -32,11 +32,11 @@ def resolve_case(_, info, id=None, slug=None):
     
     if case is not None:
         map = build_fields_map(info)
-        return _make_result_object(map, case)
+        return build_case_dictionary(map, case)
     
     return None
 
-def _make_result_object(map, case):
+def build_case_dictionary(map, case):
     result = {**case.__dict__}
     
     # Add all properties
@@ -68,6 +68,7 @@ def _make_result_object(map, case):
     if 'timesheets' in map:
         timesheets_map = map['timesheets']
         if 'lastSixWeeks' in timesheets_map:
+            from api.datasets.timesheets import compute_timesheet
             last_six_weeks_map = timesheets_map['lastSixWeeks']
             filters = [
                 {
