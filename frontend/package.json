@@ -26,6 +26,7 @@
     "@react-spring/web": "^9.7.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "1.0.0",
     "date-fns": "^3.6.0",
     "framer-motion": "^11.11.0",
     "graphql": "^16.9.0",
