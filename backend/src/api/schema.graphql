@@ -424,6 +424,7 @@ type CaseSummary implements ISummary {
   caseDetails: Case
   byKind: KindSummary!
   byWeek: [WeekSummary!]!
+  workers: [String!]!
 }
 
 

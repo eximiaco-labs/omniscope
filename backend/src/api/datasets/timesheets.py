@@ -3,6 +3,7 @@ from datetime import datetime
 import pandas as pd
 from typing import Dict, Any, List, Union
 
+
 from graphql import GraphQLResolveInfo
 
 from api.utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
@@ -107,23 +108,19 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
             summary['by_week'] = summarize_by_week(group_df, map['byWeek']) if map and 'byWeek' in map else None
 
         if group_column == 'CaseTitle' and 'caseDetails' in map:
+            from api.domain.cases import build_case_dictionary
+            
             details_obj = globals.omni_models.cases.get_by_title(group_value)
             if details_obj:
-                details = {**details_obj.__dict__}
-
-                # Add all properties
-                for prop in dir(details_obj):
-                    if not prop.startswith('_') and prop not in details:
-                        details[prop] = getattr(details_obj, prop)
-
-                if details['client_id'] and 'client' in map['caseDetails']:
-                    details['client'] = globals.omni_models.clients.get_by_id(details['client_id'])
-                else:
-                    details['client'] = None
+                details = build_case_dictionary(map['caseDetails'], details_obj)
             else:
                 details = {}
 
             summary['case_details'] = details
+        
+        if group_column == 'CaseTitle' and 'workers' in map:
+            workers = df[df['CaseTitle'] == group_value]['WorkerName'].unique().tolist()
+            summary['workers'] = workers
 
         summaries.append(summary)
 

@@ -32,7 +32,7 @@ export function WorkerCard({ worker, workerData }: WorkerCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300 relative`}>
-        {(!worker.isRecognized || !worker.email || (worker.email && !worker.email.endsWith('@elemarjr.com') && !worker.email.endsWith('@eximia.co'))) && (
+        {(!worker.isRecognized || !worker.email || (worker.email && !worker.email.endsWith('@elemarjr.com') && !worker.email.endsWith('@eximia.co') && !worker.email.endsWith('@duocom.com.br'))) && (
           <div className="absolute -top-2 -left-2 z-10">
             <div className="bg-red-500 rounded-full p-1">
               <AlertTriangle className="text-white" size={20} />
@@ -51,7 +51,7 @@ export function WorkerCard({ worker, workerData }: WorkerCardProps) {
               <>
                 <Mail className="mr-1" size={12} />
                 <span className={
-                  worker.email.endsWith('@eximia.co') || worker.email.endsWith('@elemarjr.com')
+                  worker.email.endsWith('@eximia.co') || worker.email.endsWith('@elemarjr.com') || worker.email.endsWith('@duocom.com.br')
                     ? 'text-zinc-700'
                     : 'text-red-500'
                 }>
