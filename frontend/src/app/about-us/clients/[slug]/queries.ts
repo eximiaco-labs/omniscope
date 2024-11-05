@@ -135,6 +135,7 @@ export const GET_CLIENT_TIMESHEET = gql`
         totalHandsOnHours
         totalSquadHours
         totalInternalHours
+        workers
         caseDetails {
           id
           slug
