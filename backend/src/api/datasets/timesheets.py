@@ -117,6 +117,10 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
                 details = {}
 
             summary['case_details'] = details
+        
+        if group_column == 'CaseTitle' and 'workers' in map:
+            workers = df[df['CaseTitle'] == group_value]['WorkerName'].unique().tolist()
+            summary['workers'] = workers
 
         summaries.append(summary)
 
