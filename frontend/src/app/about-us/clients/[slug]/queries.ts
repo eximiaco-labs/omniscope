@@ -18,7 +18,6 @@ export const GET_CLIENT_TIMESHEET = gql`
       title
       isActive
       preContractedValue
-      sponsor
       hasDescription
       everhourProjectsIds
       startOfContract
@@ -32,6 +31,10 @@ export const GET_CLIENT_TIMESHEET = gql`
         author
         status
         observations
+      }
+      tracker {
+        id
+        name
       }
     }
     timesheet(slug: $datasetSlug, filters: [{ field: "ClientName", selectedValues: [$clientName] }]) {
@@ -152,6 +155,10 @@ export const GET_CLIENT_TIMESHEET = gql`
             author
             status
             observations
+          }
+          tracker {
+            id
+            name
           }
         }
         byWeek {

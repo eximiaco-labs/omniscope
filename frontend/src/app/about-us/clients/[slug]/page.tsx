@@ -11,28 +11,39 @@ import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { CasesGallery } from "../../cases/CasesGallery";
+import { CasesTable } from "./CasesTable";
 
 export default function ClientPage() {
   const { slug } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [selectedDataset, setSelectedDataset] = useState<string>("timesheet-last-six-weeks");
+  const [selectedDataset, setSelectedDataset] = useState<string>(
+    "timesheet-last-six-weeks"
+  );
   const [selectedStat, setSelectedStat] = useState("total");
 
-  const { data: clientData, loading: clientLoading, error: clientError } = useQuery(GET_CLIENT_BY_SLUG, {
+  const {
+    data: clientData,
+    loading: clientLoading,
+    error: clientError,
+  } = useQuery(GET_CLIENT_BY_SLUG, {
     variables: { slug },
   });
 
-  const { data: timesheetData, loading: timesheetLoading, error: timesheetError } = useQuery(GET_CLIENT_TIMESHEET, {
-    variables: { 
+  const {
+    data: timesheetData,
+    loading: timesheetLoading,
+    error: timesheetError,
+  } = useQuery(GET_CLIENT_TIMESHEET, {
+    variables: {
       clientName: clientData?.client?.name,
-      datasetSlug: selectedDataset
+      datasetSlug: selectedDataset,
     },
-    skip: !selectedDataset || !clientData?.client?.name
+    skip: !selectedDataset || !clientData?.client?.name,
   });
 
   useEffect(() => {
-    const datasetParam = searchParams.get('dataset');
+    const datasetParam = searchParams.get("dataset");
     if (datasetParam) {
       setSelectedDataset(datasetParam);
     }
@@ -44,13 +55,37 @@ export default function ClientPage() {
   };
 
   const handleStatClick = (statName: string) => {
-    setSelectedStat(statName === selectedStat ? 'total' : statName);
+    setSelectedStat(statName === selectedStat ? "total" : statName);
   };
 
   const getStatClassName = (statName: string) => {
     return `cursor-pointer transition-all duration-300 ${
-      selectedStat === statName ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
+      selectedStat === statName
+        ? "ring-2 ring-black shadow-lg scale-105"
+        : "hover:scale-102"
     }`;
+  };
+
+  const getStatusColor = (status: string): "zinc" | "rose" | "amber" | "lime" => {
+    switch (status) {
+      case "Critical":
+        return "rose";
+      case "Requires attention":
+        return "amber";
+      case "All right":
+        return "lime";
+      default:
+        return "zinc";
+    }
+  };
+
+  const getDaysSinceUpdate = (updateDate: string | null) => {
+    if (!updateDate) return null;
+    const update = new Date(updateDate);
+    const today = new Date();
+    const diffTime = today.getTime() - update.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   if (clientLoading) return <p>Loading client data...</p>;
@@ -58,22 +93,17 @@ export default function ClientPage() {
 
   const timesheet = timesheetData?.timesheet;
 
-  const filteredCases = timesheetData?.cases?.filter((caseItem: any) => {
-    const caseData = timesheet?.byCase?.find(
-      (c: any) => c.title === caseItem.title
-    );
-    if (!caseData) return false;
-    
+  const filteredCases = timesheet?.byCase?.filter((caseData: any) => {
     switch (selectedStat) {
-      case 'consulting':
+      case "consulting":
         return caseData.totalConsultingHours > 0;
-      case 'handsOn':
+      case "handsOn":
         return caseData.totalHandsOnHours > 0;
-      case 'squad':
+      case "squad":
         return caseData.totalSquadHours > 0;
-      case 'internal':
+      case "internal":
         return caseData.totalInternalHours > 0;
-      case 'total':
+      case "total":
         return caseData.totalHours > 0;
       default:
         return true;
@@ -83,7 +113,7 @@ export default function ClientPage() {
   return (
     <div>
       <ClientHeader client={clientData?.client} />
-      
+
       <div className="mt-6 mb-6">
         <DatasetSelector
           selectedDataset={selectedDataset}
@@ -99,8 +129,8 @@ export default function ClientPage() {
         <>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
             <div
-              className={`${getStatClassName('total')} transform`}
-              onClick={() => handleStatClick('total')}
+              className={`${getStatClassName("total")} transform`}
+              onClick={() => handleStatClick("total")}
             >
               <Stat
                 title="Total Hours"
@@ -108,30 +138,34 @@ export default function ClientPage() {
               />
             </div>
             <div
-              className={`${getStatClassName('consulting')} transform`}
-              onClick={() => handleStatClick('consulting')}
+              className={`${getStatClassName("consulting")} transform`}
+              onClick={() => handleStatClick("consulting")}
             >
               <Stat
                 title="Consulting Hours"
-                value={timesheet?.byKind?.consulting?.totalHours?.toString() || "0"}
+                value={
+                  timesheet?.byKind?.consulting?.totalHours?.toString() || "0"
+                }
                 color="#F59E0B"
                 total={timesheet?.totalHours}
               />
             </div>
             <div
-              className={`${getStatClassName('handsOn')} transform`}
-              onClick={() => handleStatClick('handsOn')}
+              className={`${getStatClassName("handsOn")} transform`}
+              onClick={() => handleStatClick("handsOn")}
             >
               <Stat
                 title="Hands-On Hours"
-                value={timesheet?.byKind?.handsOn?.totalHours?.toString() || "0"}
+                value={
+                  timesheet?.byKind?.handsOn?.totalHours?.toString() || "0"
+                }
                 color="#8B5CF6"
                 total={timesheet?.totalHours}
               />
             </div>
             <div
-              className={`${getStatClassName('squad')} transform`}
-              onClick={() => handleStatClick('squad')}
+              className={`${getStatClassName("squad")} transform`}
+              onClick={() => handleStatClick("squad")}
             >
               <Stat
                 title="Squad Hours"
@@ -141,27 +175,33 @@ export default function ClientPage() {
               />
             </div>
             <div
-              className={`${getStatClassName('internal')} transform`}
-              onClick={() => handleStatClick('internal')}
+              className={`${getStatClassName("internal")} transform`}
+              onClick={() => handleStatClick("internal")}
             >
               <Stat
                 title="Internal Hours"
-                value={timesheet?.byKind?.internal?.totalHours?.toString() || "0"}
+                value={
+                  timesheet?.byKind?.internal?.totalHours?.toString() || "0"
+                }
                 color="#10B981"
                 total={timesheet?.totalHours}
               />
             </div>
           </div>
 
+          <div className="mt-6">
+            <CasesTable filteredCases={filteredCases} />
+          </div>
+
           <Divider className="my-6" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <TopWorkers 
+            <TopWorkers
               workerData={timesheet?.byWorker || []}
               selectedStat={selectedStat}
               totalHours={timesheet?.totalHours || 0}
             />
-            <TopSponsors 
+            <TopSponsors
               sponsorData={timesheet?.bySponsor || []}
               selectedStat={selectedStat}
               totalHours={timesheet?.totalHours || 0}
@@ -173,7 +213,9 @@ export default function ClientPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold">Cases</h2>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">{filteredCases.length || 0}</span>
+              <span className="text-lg font-medium">
+                {filteredCases.length || 0}
+              </span>
             </div>
           </div>
 
