@@ -39,6 +39,11 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage } from "@radix-ui/react-avatar";
 import Logo from "./logo";
+import { 
+  analyticsSidebarItems, 
+  aboutUsSidebarItems, 
+  administrativeSidebarItems 
+} from "@/app/config/navigation"
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -54,80 +59,6 @@ export function OmniscopeSidebar() {
     variables: { email: session?.user?.email },
     skip: !session?.user?.email,
   });
-
-  const analyticsSidebarItems = [
-    {
-      title: "Performance Analysis", 
-      url: "/analytics/performance-analysis",
-      icon: ChartLineIcon,
-    },
-    {
-      title: "Week Review",
-      url: "/analytics/week-review",
-      icon: CalendarCheckIcon,
-    },
-    {
-      title: "Side-by-side",
-      url: "/analytics/side-by-side",
-      icon: ColumnsIcon,
-    },
-    {
-      title: "Datasets",
-      url: "/analytics/datasets",
-      icon: DatabaseIcon,
-    },
-    {
-      title: "Approved vs Actual",
-      url: "/analytics/approved-vs-actual",
-      icon: TargetIcon,
-    },
-  ];
-
-  const aboutUsSidebarItems = [
-    {
-      title: "Consultants & Engineers",
-      url: "/about-us/consultants-and-engineers",
-      icon: UserIcon,
-    },
-    {
-      title: "Account Managers",
-      url: "/about-us/account-managers",
-      icon: BriefcaseIcon,
-    },
-    {
-      title: "Clients",
-      url: "/about-us/clients",
-      icon: UsersIcon,
-    },
-    {
-      title: "Sponsors",
-      url: "/about-us/sponsors",
-      icon: HandshakeIcon,
-    },
-    {
-      title: "Products and Services",
-      url: "/about-us/products-or-services",
-      icon: BoxIcon,
-    },
-    {
-      title: "Cases",
-      url: "/about-us/cases", 
-      icon: TrophyIcon,
-    },
-    {
-      title: "Projects",
-      url: "/about-us/projects",
-      icon: CalendarIcon,
-    },
-  ];
-
-  const administrativeSidebarItems = [
-    {
-      title: "Refresh data",
-      url: "/management/hit-refresh",
-      icon: RefreshCwIcon,
-    },
-  ];
 
   return (
     <Sidebar collapsible="icon">
