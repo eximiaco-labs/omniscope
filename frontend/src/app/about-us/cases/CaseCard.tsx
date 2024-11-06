@@ -52,7 +52,7 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Card className={`h-full ${isHovered ? 'shadow-lg scale-105' : 'shadow'} transition-all duration-300 relative`}>
-        {!caseItem.hasDescription && (
+        {!(caseItem.hasDescription || caseItem.caseDetails?.hasDescription) && (
           <div className="absolute -top-2 -left-2 z-10">
             <div className="bg-red-500 rounded-full p-1">
               <AlertTriangle className="text-white" size={20} />
@@ -77,10 +77,10 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem, caseData }) => {
         )}
         <CardContent className="flex flex-col items-center p-4 pt-6">
           <div className="w-full mb-1 text-center">
-            <h3 className="font-bold uppercase">{caseItem.client?.name || 'Unknown Client'}</h3>
-            {caseItem.sponsor && (
+            <h3 className="font-bold uppercase">{caseItem.client?.name || caseItem.caseDetails?.client?.name || 'Unknown Client'}</h3>
+            {(caseItem.sponsor || caseItem.caseDetails?.sponsor) && (
               <div className="text-xs text-gray-600 mt-1">
-                {caseItem.sponsor}
+                {caseItem.sponsor || caseItem.caseDetails?.sponsor}
               </div>
             )}
           </div>
