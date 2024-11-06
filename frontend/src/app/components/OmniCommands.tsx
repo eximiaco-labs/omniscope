@@ -17,6 +17,29 @@ import {
 } from "@/app/config/navigation"
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
+import { useQuery, gql } from "@apollo/client"
+import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon } from "lucide-react"
+
+const GET_CONSULTANTS = gql`
+  query GetConsultants {
+    consultantsAndEngineers {
+      slug
+      name
+    }
+    accountManagers {
+      slug
+      name
+    }
+    clients {
+      slug
+      name
+    }
+    sponsors {
+      slug
+      name
+    }
+  }
+`
 
 export function OmniCommandsButton() {
   const [open, setOpen] = React.useState(false)
@@ -46,6 +69,7 @@ interface OmniCommandsProps {
 
 export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
   const router = useRouter()
+  const { data } = useQuery(GET_CONSULTANTS)
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -101,6 +125,54 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
             >
               <item.icon className="mr-2 h-4 w-4" />
               {item.title}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandGroup heading="Consultants & Engineers">
+          {data?.consultantsAndEngineers.map((person: { slug: string, name: string }) => (
+            <CommandItem
+              key={person.slug}
+              onSelect={() => runCommand(() => router.push(`/home/${person.slug}`))}
+            >
+              <UserIcon className="mr-2 h-4 w-4" />
+              {person.name}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandGroup heading="Account Managers">
+          {data?.accountManagers.map((person: { slug: string, name: string }) => (
+            <CommandItem
+              key={person.slug}
+              onSelect={() => runCommand(() => router.push(`/home/${person.slug}`))}
+            >
+              <BriefcaseIcon className="mr-2 h-4 w-4" />
+              {person.name}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandGroup heading="Clients">
+          {data?.clients.map((client: { slug: string, name: string }) => (
+            <CommandItem
+              key={client.slug}
+              onSelect={() => runCommand(() => router.push(`/about-us/clients/${client.slug}`))}
+            >
+              <UsersIcon className="mr-2 h-4 w-4" />
+              {client.name}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandGroup heading="Sponsors">
+          {data?.sponsors.map((sponsor: { slug: string, name: string }) => (
+            <CommandItem
+              key={sponsor.slug}
+              onSelect={() => runCommand(() => router.push(`/about-us/sponsors/${sponsor.slug}`))}
+            >
+              <HandshakeIcon className="mr-2 h-4 w-4" />
+              {sponsor.name}
             </CommandItem>
           ))}
         </CommandGroup>
