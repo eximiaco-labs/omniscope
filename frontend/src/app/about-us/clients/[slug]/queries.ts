@@ -169,6 +169,10 @@ export const GET_CLIENT_TIMESHEET = gql`
           totalSquadHours
           totalInternalHours
         }
+        workersByTrackingProject {
+          projectId
+          workers
+        }
       }
       filterableFields {
         field

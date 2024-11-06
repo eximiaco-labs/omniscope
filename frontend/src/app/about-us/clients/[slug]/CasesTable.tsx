@@ -68,8 +68,7 @@ export function CasesTable({ filteredCases }: CasesTableProps) {
           <TableHead className="font-semibold text-left w-[360px]">Case</TableHead>
           <TableHead className="font-semibold text-left">Sponsor</TableHead>
           <TableHead className="font-semibold text-left">Contract Period</TableHead>
-          <TableHead className="font-semibold text-left">Tracking Projects</TableHead>
-          <TableHead className="font-semibold text-left">Team Members</TableHead>
+          <TableHead className="font-semibold text-left">Projects & Team Members</TableHead>
           <TableHead className="font-semibold text-left">CWH</TableHead>
         </TableRow>
       </TableHeader>
@@ -143,28 +142,35 @@ export function CasesTable({ filteredCases }: CasesTableProps) {
               </TableCell>
               <TableCell>
                 {caseData.caseDetails.tracker && caseData.caseDetails.tracker.length > 0 ? (
-                  <div className="flex flex-col gap-1">
-                    {caseData.caseDetails.tracker.map((track: { id: string; name: string }) => (
-                      <span key={track.id} className="text-xs text-gray-600">
-                        {track.name}
-                      </span>
-                    ))}
-                  </div>
+                  <table className="w-full text-xs border-collapse">
+                    <tbody>
+                      {caseData.caseDetails.tracker.map((track: { id: string; name: string }) => {
+                        const projectWorkers = caseData.workersByTrackingProject?.find(
+                          (project: { projectId: string }) => project.projectId === track.id
+                        )?.workers || [];
+                        
+                        return (
+                          <>
+                            {projectWorkers.length > 0 ? (
+                              projectWorkers.map((worker: string) => (
+                                <tr key={`${track.id}-${worker}`} className="border-b border-gray-200">
+                                  <td className="text-gray-800 pr-2 w-[210px] break-words border-r border-gray-200">{track.name}</td>
+                                  <td className="text-gray-600 pl-2">{worker}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr key={track.id} className="border-b border-gray-200">
+                                <td className="text-gray-800 pr-2 w-[210px] break-words border-r border-gray-200">{track.name}</td>
+                                <td className="text-gray-400 pl-2">No team members</td>
+                              </tr>
+                            )}
+                          </>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 ) : (
                   <span className="text-xs text-gray-400">No tracking projects</span>
-                )}
-              </TableCell>
-              <TableCell>
-                {caseData.workers && caseData.workers.length > 0 ? (
-                  <div className="flex flex-col gap-1">
-                    {caseData.workers.map((worker: string) => (
-                      <span key={worker} className="text-xs text-gray-600">
-                        {worker}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-xs text-gray-400">No team members</span>
                 )}
               </TableCell>
               <TableCell>
