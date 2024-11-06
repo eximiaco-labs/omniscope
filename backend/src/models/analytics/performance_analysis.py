@@ -396,7 +396,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             
         case_summaries = [calculate_case_metrics(case, by_case_hours.get(case.id, 0), by_case_month_hours.get(case.id, 0)) 
                          for case in cases
-                         if (case.weekly_approved_hours and case.weekly_approved_hours > 0) or
+                         if (case.is_active and case.weekly_approved_hours and case.weekly_approved_hours > 0) or
                             (by_case_hours.get(case.id, 0) > 0)]
         
         regular_cases = [case for case in case_summaries if isinstance(case, OneWeekRegularCasePerformanceSummary)]

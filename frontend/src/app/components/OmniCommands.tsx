@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
 import { useQuery, gql } from "@apollo/client"
-import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon } from "lucide-react"
+import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon, TrophyIcon } from "lucide-react"
 
 const GET_CONSULTANTS = gql`
   query GetConsultants {
@@ -37,6 +37,13 @@ const GET_CONSULTANTS = gql`
     sponsors {
       slug
       name
+    }
+    cases(onlyActives: true) {
+      slug
+      title
+      tracker {
+        name
+      }
     }
   }
 `
@@ -174,6 +181,28 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
               <HandshakeIcon className="mr-2 h-4 w-4" />
               {sponsor.name}
             </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandGroup heading="Cases">
+          {data?.cases.map((caseItem: { slug: string, title: string, tracker: { name: string }[] }) => (
+            <React.Fragment key={caseItem.slug}>
+              <CommandItem
+                onSelect={() => runCommand(() => router.push(`/about-us/cases/${caseItem.slug}`))}
+              >
+                <TrophyIcon className="mr-2 h-4 w-4" />
+                {caseItem.title}
+              </CommandItem>
+              {caseItem.tracker?.map((tracker, index) => (
+                <CommandItem
+                  key={`${caseItem.slug}-${index}`}
+                  onSelect={() => runCommand(() => router.push(`/about-us/cases/${caseItem.slug}`))}
+                >
+                  <TrophyIcon className="mr-2 h-4 w-4" />
+                  {tracker.name}
+                </CommandItem>
+              ))}
+            </React.Fragment>
           ))}
         </CommandGroup>
       </CommandList>
