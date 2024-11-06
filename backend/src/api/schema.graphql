@@ -425,6 +425,12 @@ type CaseSummary implements ISummary {
   byKind: KindSummary!
   byWeek: [WeekSummary!]!
   workers: [String!]!
+  workersByTrackingProject: [TrackingProjectSummary!]! 
+}
+
+type TrackingProjectSummary {
+  projectId: String!
+  workers: [String!]!
 }
 
 
