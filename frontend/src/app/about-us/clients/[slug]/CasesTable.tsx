@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/catalyst/badge";
 
 interface CasesTableProps {
   filteredCases: any[];
@@ -93,9 +94,14 @@ export function CasesTable({ filteredCases }: CasesTableProps) {
                         className={`w-2 h-2 rounded-full ${caseData.caseDetails.lastUpdate ? getStatusColor(caseData.caseDetails.lastUpdate.status) : 'bg-zinc-500'}`} 
                         title={caseData.caseDetails.lastUpdate?.status || 'No status'}
                       />
-                      <p className="w-[325px] text-xs whitespace-normal break-words leading-tight">
-                        {caseData.caseDetails.title}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        {caseData.caseDetails.preContractedValue === "PRE" && (
+                          <Badge color="blue">PRE</Badge>
+                        )}
+                        <p className="w-[325px] text-xs whitespace-normal break-words leading-tight">
+                          {caseData.caseDetails.title}
+                        </p>
+                      </div>
                     </div>
                     <div className="text-xs pl-4">
                       {caseData.caseDetails.lastUpdate ? (
