@@ -15,32 +15,33 @@ We have organized our models into the following layers:
 2. **Semantic Layer**: Provides meaning and context to the syntactic data, implementing business logic.
 3. **Domain Layer**: Represents core business entities and their relationships.
 4. **Datasets Layer**: Manages collections of data and provides methods for data access and manipulation.
-5. **Analytics Layer**: Implements complex calculations and data analysis.
+5. **Analytics Layer**: Implements complex calculations and data analysis using dataclasses for structured data representation.
 
-### Separation of Concerns
-We have decided to move all data processing and computations from the API layer to the appropriate model layers. The API layer should only be responsible for:
+### Decorator Patterns
+We've implemented several decorators to enhance functionality:
+- `@cache`: For performance optimization through caching
+- `@c4_external_system`: For documenting and managing external system integrations
 
-1. Receiving requests
-2. Calling appropriate methods in the model layers
-3. Formatting and returning responses
-
-## Alternatives Considered
-We considered keeping computations in the API layer for faster development, but this approach would lead to less maintainable and harder to test code in the long run.
+### Data Validation
+Pydantic is used extensively across different layers:
+- Model validation at the domain layer
+- Input validation at the API layer
+- Data transformation and serialization between layers
 
 ## Consequences
 ### Positive:
 - **Improved Maintainability**: Clear separation of concerns makes the codebase easier to understand and maintain.
 - **Better Testability**: Business logic in model layers is easier to unit test.
 - **Enhanced Scalability**: The layered approach allows for easier refactoring and extension of functionality.
-- **Cleaner API Layer**: The API layer becomes more focused on its core responsibilities.
+- **Type Safety**: Pydantic provides robust type checking and validation.
+- **Performance Optimization**: Cache decorators improve response times for frequently accessed data.
 
 ### Negative:
 - **Initial Development Overhead**: Implementing this structure requires more upfront planning and development time.
-- **Potential for Over-engineering**: Care must be taken not to create unnecessary abstractions.
+- **Learning Curve**: Developers need to understand the various layers and patterns.
 
 ## Implementation
-- Refactor existing code to fit into the new layered model structure.
-- Move all computations and data processing from API resolvers to appropriate model layers.
-- Update API resolvers to only call methods from model layers and format responses.
-- Create clear interfaces between layers to ensure proper separation of concerns.
-- Document the purpose and responsibilities of each layer for future development reference.
+- Model layers are strictly separated with clear interfaces
+- Decorators are used consistently for cross-cutting concerns
+- Pydantic models define the contract between layers
+- Analytics models use dataclasses for efficient data structures
