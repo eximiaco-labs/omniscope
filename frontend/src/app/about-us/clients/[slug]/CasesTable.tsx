@@ -12,9 +12,10 @@ import { Badge } from "@/components/catalyst/badge";
 
 interface CasesTableProps {
   filteredCases: any[];
+  showSponsorColumn?: boolean;
 }
 
-export function CasesTable({ filteredCases }: CasesTableProps) {
+export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTableProps) {
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "Critical":
@@ -66,7 +67,9 @@ export function CasesTable({ filteredCases }: CasesTableProps) {
       <TableHeader>
         <TableRow className="bg-gray-100">
           <TableHead className="font-semibold text-left w-[360px]">Case</TableHead>
-          <TableHead className="font-semibold text-left">Sponsor</TableHead>
+          {showSponsorColumn && (
+            <TableHead className="font-semibold text-left">Sponsor</TableHead>
+          )}
           <TableHead className="font-semibold text-left">Contract Period</TableHead>
           <TableHead className="font-semibold text-left">Projects & Team Members</TableHead>
           <TableHead className="font-semibold text-left">CWH</TableHead>
@@ -120,11 +123,13 @@ export function CasesTable({ filteredCases }: CasesTableProps) {
                   </div>
                 </Link>
               </TableCell>
-              <TableCell>
-                <span className="text-xs text-gray-600">
-                  {caseData.caseDetails.sponsor || "No sponsor"}
-                </span>
-              </TableCell>
+              {showSponsorColumn && (
+                <TableCell>
+                  <span className="text-xs text-gray-600">
+                    {caseData.caseDetails.sponsor || "No sponsor"}
+                  </span>
+                </TableCell>
+              )}
               <TableCell>
                 <div className="flex flex-col">
                   <span className="text-xs text-green-600">
@@ -184,4 +189,4 @@ export function CasesTable({ filteredCases }: CasesTableProps) {
       </TableBody>
     </Table>
   );
-} 
+}
