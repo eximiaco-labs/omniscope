@@ -2,6 +2,21 @@ import { gql } from "@apollo/client";
 
 export const GET_HOME_DATA = gql`
   query GetClientStats($accountManagerName: String, $filters: [FilterInput]) {
+    activeDeals(accountManagerName: $accountManagerName) {
+      id
+      title
+      stageId
+      stageName
+      stageOrderNr
+      clientName
+      accountManager {
+        name
+        slug
+      }
+      addTime
+      updateTime
+      daysSinceLastUpdate
+    }
     clients(accountManagerName: $accountManagerName) {
       id
     }

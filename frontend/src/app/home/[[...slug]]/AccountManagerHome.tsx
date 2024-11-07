@@ -14,6 +14,9 @@ import CasesUpdates from "../../components/panels/CasesUpdates";
 import TimelinessPanel from "@/app/analytics/week-review/TimelinessPanel";
 import { motion } from "framer-motion";
 import { animated, useSpring } from "@react-spring/web";
+import { TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Table } from "lucide-react";
+import ActiveDealsTable from "@/app/components/panels/ActiveDealsTable";
 
 interface AccountManagerHomeProps {
   user: {
@@ -65,7 +68,7 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
               ]
             : []),
         ],
-        dateOfInterest: new Date().toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
+        dateOfInterest: new Date().toISOString().split("T")[0],
       },
       skip: !user?.name,
     }
@@ -197,7 +200,12 @@ const AccountManagerHome: React.FC<AccountManagerHomeProps> = ({ user }) => {
           selectedStat={selectedStat}
           onStatClick={handleStatClick}
         />
-        
+
+        <ActiveDealsTable 
+          // @ts-ignore
+          deals={rawClientStatsData?.activeDeals || []} 
+        />
+
         <div className="grid grid-cols-3 gap-4 mt-4">
           <Stat
             title="Unique Cases"
