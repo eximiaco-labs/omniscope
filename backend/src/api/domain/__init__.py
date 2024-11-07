@@ -8,6 +8,7 @@ from .sponsors import resolve_sponsors, resolve_sponsor
 from .cases import resolve_cases, resolve_case
 from .offers import resolve_offers, resolve_offer
 from .projects import resolve_projects
+from .active_deals import resolve_active_deals, resolve_active_deal
 
 def setup_query_for_domain(query: QueryType):
     query.set_field("accountManagers", resolve_account_managers)
@@ -24,6 +25,8 @@ def setup_query_for_domain(query: QueryType):
     query.set_field("offer", resolve_offer)
     query.set_field("projects", resolve_projects)
     query.set_field("user", resolve_user)
+    query.set_field("activeDeals", resolve_active_deals)
+    query.set_field("activeDeal", resolve_active_deal) 
 
     client_type = ObjectType('Client')
     client_type.set_field('timesheet', resolve_client_timesheet)

@@ -1,3 +1,4 @@
+from models.domain.active_deals import ActiveDealsRepository
 from models.semantic import Insights, Ontology, TimeTracker, TasksManager, SalesFunnelB2B, CRM
 from models.domain import (
     WorkersRepository,
@@ -32,6 +33,7 @@ class OmniModels:
         self.projects = ProjectsRepository(self.tasksmanager)
         self.sponsors = SponsorsRepository(self.cases, self.crm)
         self.products_or_services = OffersRepository(self.ontology)
+        self.active_deals = ActiveDealsRepository(self.salesfunnel)
 
     def get_tasks_for_worker_df(self, worker_id) -> list:
         worker = self.workers.get_by_id(worker_id)
