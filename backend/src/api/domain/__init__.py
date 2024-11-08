@@ -1,7 +1,7 @@
 from ariadne import QueryType, ObjectType
 
 from .user import resolve_user
-from .account_managers import resolve_account_managers, resolve_account_manager
+from .account_managers import resolve_account_manager_timesheet, resolve_account_managers, resolve_account_manager
 from .consultants_engineers import resolve_consultants_and_engineers, resolve_consultant_or_engineer
 from .clients import resolve_client_timesheet, resolve_clients, resolve_client
 from .sponsors import resolve_sponsors, resolve_sponsor
@@ -30,5 +30,8 @@ def setup_query_for_domain(query: QueryType):
 
     client_type = ObjectType('Client')
     client_type.set_field('timesheet', resolve_client_timesheet)
+    
+    account_manager_type = ObjectType('Worker')
+    account_manager_type.set_field('timesheet', resolve_account_manager_timesheet)
 
-    return [client_type]
+    return [client_type, account_manager_type]

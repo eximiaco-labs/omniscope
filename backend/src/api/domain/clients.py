@@ -6,10 +6,12 @@ from ariadne import ObjectType
 
 client_type = ObjectType('Client')
 
-def resolve_clients(_, info, account_manager_name=None):
+def resolve_clients(_, info, account_manager_name=None, account_manager_slug=None):
     all_clients = sorted(globals.omni_models.clients.get_all().values(), key=lambda client: client.name)
     if account_manager_name:
         all_clients = [client for client in all_clients if client.account_manager and client.account_manager.name == account_manager_name]
+    elif account_manager_slug:
+        all_clients = [client for client in all_clients if client.account_manager and client.account_manager.slug == account_manager_slug]
     
     map_ = build_fields_map(info)
     return map(

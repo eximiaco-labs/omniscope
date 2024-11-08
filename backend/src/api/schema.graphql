@@ -70,6 +70,8 @@ type Worker {
   isInsightsAuthor: Boolean!
   isTimeTrackerWorker: Boolean!
   isSpecialProjectsWorker: Boolean!
+
+  timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
 }
 
 type Client {
@@ -827,7 +829,7 @@ type Query {
 
   accountManagers: [Worker!]!
   consultantsAndEngineers: [Worker!]!
-  clients(accountManagerName: String): [Client!]!
+  clients(accountManagerName: String, accountManagerSlug: String): [Client!]!
   sponsors: [Sponsor!]!
   cases(onlyActives: Boolean): [Case!]!
   offers: [Offer!]!
