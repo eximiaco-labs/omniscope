@@ -37,20 +37,30 @@ function TimesheetSummarySection({
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
+  const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
 
   const formatHours = (hours: number) => {
     const roundedHours = Math.round(hours * 10) / 10;
     return `${roundedHours}h`;
   };
 
-  const processClientData = (cases: any[], hoursField: string) => {
+  const processClientData = (cases: AccountManager["timesheet"]["byCase"], hoursField: keyof AccountManager["timesheet"]["byCase"][0]["byWorker"]) => {
     return cases
-      .filter(c => c[hoursField] > 0)
+      .filter(c => c.byWorker.some(w => w[hoursField] > 0))
       .reduce((acc, c) => {
-        const existingClient = acc.find((client: { name: string; }) => client.name === c.caseDetails.client.name);
+        const totalCaseHours = c.byWorker.reduce((sum, w) => sum + (w[hoursField] || 0), 0);
+        if (totalCaseHours === 0) return acc;
+
+        const existingClient = acc.find(client => client.name === c.caseDetails.client.name);
         if (existingClient) {
-          existingClient.totalHours += c[hoursField];
+          existingClient.totalHours += totalCaseHours;
           existingClient.uniqueCases += 1;
+          
+          // Add workers with hours > 0 to the client's worker set
+          c.byWorker
+            .filter(w => w[hoursField] > 0)
+            .forEach(w => existingClient.workers.add(w.name));
+
           if (!existingClient.sponsors.has(c.caseDetails.sponsor)) {
             existingClient.sponsors.add(c.caseDetails.sponsor);
             existingClient.uniqueSponsors += 1;
@@ -58,21 +68,41 @@ function TimesheetSummarySection({
           
           const sponsorData = existingClient.sponsorDetails.get(c.caseDetails.sponsor) || {
             totalHours: 0,
-            cases: []
+            cases: [],
+            workers: new Set()
           };
-          sponsorData.totalHours += c[hoursField];
+          sponsorData.totalHours += totalCaseHours;
+          
+          // Add workers with hours > 0 to the sponsor's worker set
+          c.byWorker
+            .filter(w => w[hoursField] > 0)
+            .forEach(w => sponsorData.workers.add(w.name));
+
           sponsorData.cases.push({
             title: c.title,
-            hours: c[hoursField]
+            hours: totalCaseHours,
+            workers: c.byWorker
+              .filter(w => w[hoursField] > 0)
+              .map(w => ({
+                name: w.name,
+                hours: w[hoursField] || 0
+              }))
           });
           existingClient.sponsorDetails.set(c.caseDetails.sponsor, sponsorData);
         } else {
           const sponsorDetails = new Map();
+          const workersWithHours = c.byWorker.filter(w => w[hoursField] > 0);
+          
           sponsorDetails.set(c.caseDetails.sponsor, {
-            totalHours: c[hoursField],
+            totalHours: totalCaseHours,
+            workers: new Set(workersWithHours.map(w => w.name)),
             cases: [{
               title: c.title,
-              hours: c[hoursField]
+              hours: totalCaseHours,
+              workers: workersWithHours.map(w => ({
+                name: w.name,
+                hours: w[hoursField] || 0
+              }))
             }]
           });
           
@@ -80,8 +110,9 @@ function TimesheetSummarySection({
             name: c.caseDetails.client.name,
             uniqueSponsors: 1,
             uniqueCases: 1,
-            totalHours: c[hoursField],
+            totalHours: totalCaseHours,
             sponsors: new Set([c.caseDetails.sponsor]),
+            workers: new Set(workersWithHours.map(w => w.name)),
             sponsorDetails
           });
         }
@@ -92,11 +123,17 @@ function TimesheetSummarySection({
         uniqueCases: number;
         totalHours: number;
         sponsors: Set<string>;
+        workers: Set<string>;
         sponsorDetails: Map<string, {
           totalHours: number;
+          workers: Set<string>;
           cases: Array<{
             title: string;
             hours: number;
+            workers: Array<{
+              name: string;
+              hours: number;
+            }>;
           }>;
         }>;
       }>);
@@ -135,14 +172,13 @@ function TimesheetSummarySection({
 
   const selectedCategory = categories.find(cat => cat.title === selectedCard);
   const sortedClientData = selectedCategory?.clientData
-    .filter((client: { totalHours: number; }) => client.totalHours > 0)
-    .sort((a: { totalHours: number; }, b: { totalHours: number; }) => b.totalHours - a.totalHours);
+    .filter(client => client.totalHours > 0)
+    .sort((a, b) => b.totalHours - a.totalHours);
 
   const toggleClient = (clientName: string) => {
     const newExpanded = new Set(expandedClients);
     if (newExpanded.has(clientName)) {
       newExpanded.delete(clientName);
-      // When collapsing a client, also collapse all its sponsors
       expandedSponsors.forEach(sponsorKey => {
         if (sponsorKey.startsWith(`${clientName}-`)) {
           expandedSponsors.delete(sponsorKey);
@@ -165,6 +201,16 @@ function TimesheetSummarySection({
     setExpandedSponsors(newExpanded);
   };
 
+  const toggleCase = (caseKey: string) => {
+    const newExpanded = new Set(expandedCases);
+    if (newExpanded.has(caseKey)) {
+      newExpanded.delete(caseKey);
+    } else {
+      newExpanded.add(caseKey);
+    }
+    setExpandedCases(newExpanded);
+  };
+
   return (
     <>
       <div className="mb-4">
@@ -179,29 +225,31 @@ function TimesheetSummarySection({
           <Card
             key={title}
             className={`text-white transition-all duration-200 h-[140px] ${
-              data.totalHours === 0 ? "opacity-50" : "cursor-pointer"
+              data?.totalHours === 0 ? "opacity-50" : "cursor-pointer"
             } ${
-              selectedCard === title && data.totalHours > 0
+              selectedCard === title && data?.totalHours > 0
                 ? "ring-2 ring-offset-2 ring-black scale-105"
-                : data.totalHours > 0
+                : data?.totalHours > 0
                 ? "hover:scale-102"
                 : ""
             }`}
             style={{ backgroundColor: color }}
             onClick={() => {
-              if (data.totalHours > 0) {
+              if (data?.totalHours > 0) {
                 setSelectedCard(selectedCard === title ? null : title);
                 setExpandedClients(new Set());
                 setExpandedSponsors(new Set());
+                setExpandedCases(new Set());
               }
             }}
-            role={data.totalHours > 0 ? "button" : "presentation"}
-            tabIndex={data.totalHours > 0 ? 0 : -1}
+            role={data?.totalHours > 0 ? "button" : "presentation"}
+            tabIndex={data?.totalHours > 0 ? 0 : -1}
             onKeyDown={(e) => {
-              if (data.totalHours > 0 && (e.key === "Enter" || e.key === " ")) {
+              if (data?.totalHours > 0 && (e.key === "Enter" || e.key === " ")) {
                 setSelectedCard(selectedCard === title ? null : title);
                 setExpandedClients(new Set());
                 setExpandedSponsors(new Set());
+                setExpandedCases(new Set());
               }
             }}
           >
@@ -209,16 +257,16 @@ function TimesheetSummarySection({
               <CardTitle>{title}</CardTitle>
             </CardHeader>
             <CardContent className="pb-2">
-              <div className="text-3xl font-bold">{formatHours(data.totalHours)}</div>
+              <div className="text-3xl font-bold">{formatHours(data?.totalHours || 0)}</div>
             </CardContent>
             <CardFooter>
               <div className="text-[10px] text-left">
                 <div className="font-medium">
-                  {data.uniqueClients} client{data.uniqueClients !== 1 ? "s" : ""}{" "}
-                  • {data.uniqueSponsors} sponsor
-                  {data.uniqueSponsors !== 1 ? "s" : ""} • {data.uniqueCases} case
-                  {data.uniqueCases !== 1 ? "s" : ""} • {data.uniqueWorkers}{" "}
-                  worker{data.uniqueWorkers !== 1 ? "s" : ""}
+                  {data?.uniqueClients} client{data?.uniqueClients !== 1 ? "s" : ""}{" "}
+                  • {data?.uniqueSponsors} sponsor
+                  {data?.uniqueSponsors !== 1 ? "s" : ""} • {data?.uniqueCases} case
+                  {data?.uniqueCases !== 1 ? "s" : ""} • {data?.uniqueWorkers}{" "}
+                  worker{data?.uniqueWorkers !== 1 ? "s" : ""}
                 </div>
               </div>
             </CardFooter>
@@ -235,15 +283,15 @@ function TimesheetSummarySection({
                 <TableHead>Client</TableHead>
                 <TableHead className="text-right w-[100px]">Sponsors</TableHead>
                 <TableHead className="text-right w-[100px]">Cases</TableHead>
+                <TableHead className="text-right w-[100px]">Workers</TableHead>
                 <TableHead className="text-right w-[100px]">Hours</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedClientData.map((client: { name: string; uniqueSponsors: number; uniqueCases: number; totalHours: number; sponsorDetails: any[]; }) => {
+              {sortedClientData.map((client) => {
                 const isClientExpanded = expandedClients.has(client.name);
                 const rows = [];
 
-                // Add client row
                 rows.push(
                   <TableRow 
                     key={client.name}
@@ -256,11 +304,11 @@ function TimesheetSummarySection({
                     <TableCell className="font-medium">{client.name}</TableCell>
                     <TableCell className="text-right w-[100px]">{client.uniqueSponsors}</TableCell>
                     <TableCell className="text-right w-[100px]">{client.uniqueCases}</TableCell>
+                    <TableCell className="text-right w-[100px]">{client.workers.size}</TableCell>
                     <TableCell className="text-right w-[100px]">{formatHours(client.totalHours)}</TableCell>
                   </TableRow>
                 );
 
-                // Add sponsor rows if client is expanded
                 if (isClientExpanded) {
                   Array.from(client.sponsorDetails.entries())
                     .sort(([,a], [,b]) => b.totalHours - a.totalHours)
@@ -286,28 +334,60 @@ function TimesheetSummarySection({
                           </TableCell>
                           <TableCell className="text-right w-[100px]">-</TableCell>
                           <TableCell className="text-right w-[100px]">{data.cases.length}</TableCell>
+                          <TableCell className="text-right w-[100px]">{data.workers.size}</TableCell>
                           <TableCell className="text-right w-[100px]">{formatHours(data.totalHours)}</TableCell>
                         </TableRow>
                       );
 
-                      // Add case rows if sponsor is expanded
                       if (isSponsorExpanded) {
                         data.cases
-                          .sort((a: { hours: number; }, b: { hours: number; }) => b.hours - a.hours)
-                          .forEach((caseData: { title: string; hours: number; }) => {
+                          .sort((a, b) => b.hours - a.hours)
+                          .forEach((caseData) => {
+                            const caseKey = `${sponsorKey}-${caseData.title}`;
+                            const isCaseExpanded = expandedCases.has(caseKey);
+
                             rows.push(
                               <TableRow 
-                                key={`${sponsorKey}-${caseData.title}`}
-                                className="bg-gray-200"
-                                onClick={(e) => e.stopPropagation()}
+                                key={caseKey}
+                                className="bg-gray-200 cursor-pointer hover:bg-gray-300"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleCase(caseKey);
+                                }}
                               >
                                 <TableCell className="w-4"></TableCell>
-                                <TableCell className="pl-12">{caseData.title}</TableCell>
+                                <TableCell className="pl-12">
+                                  <div className="flex items-center gap-1">
+                                    {isCaseExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                    <span>{caseData.title}</span>
+                                  </div>
+                                </TableCell>
                                 <TableCell className="text-right w-[100px]">-</TableCell>
                                 <TableCell className="text-right w-[100px]">-</TableCell>
+                                <TableCell className="text-right w-[100px]">{caseData.workers.length}</TableCell>
                                 <TableCell className="text-right w-[100px]">{formatHours(caseData.hours)}</TableCell>
                               </TableRow>
                             );
+
+                            if (isCaseExpanded) {
+                              caseData.workers
+                                .sort((a, b) => b.hours - a.hours)
+                                .forEach((worker) => {
+                                  rows.push(
+                                    <TableRow 
+                                      key={`${caseKey}-${worker.name}`}
+                                      className="bg-gray-300"
+                                    >
+                                      <TableCell className="w-4"></TableCell>
+                                      <TableCell className="pl-16">{worker.name}</TableCell>
+                                      <TableCell className="text-right w-[100px]">-</TableCell>
+                                      <TableCell className="text-right w-[100px]">-</TableCell>
+                                      <TableCell className="text-right w-[100px]">-</TableCell>
+                                      <TableCell className="text-right w-[100px]">{formatHours(worker.hours)}</TableCell>
+                                    </TableRow>
+                                  );
+                                });
+                            }
                           });
                       }
                     });
@@ -333,7 +413,7 @@ export default function AccountManagerPage() {
     {
       variables: { 
         slug,
-        dataset: selectedDataset.replace('timesheet-', '') // Remove o prefixo 'timesheet-'
+        dataset: selectedDataset.replace('timesheet-', '')
       },
     }
   );

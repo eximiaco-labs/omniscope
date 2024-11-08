@@ -49,10 +49,13 @@ export const GET_ACCOUNT_MANAGER = gql`
             }
             sponsor
           }
-          totalConsultingHours
-          totalHandsOnHours
-          totalSquadHours
-          totalInternalHours
+          byWorker {
+            name
+            totalConsultingHours
+            totalHandsOnHours
+            totalSquadHours
+            totalInternalHours
+          }
         }
       }
     }
@@ -100,10 +103,13 @@ export interface AccountManager {
         client: { name: string };
         sponsor: string;
       };
-      totalConsultingHours: number;
-      totalHandsOnHours: number;
-      totalSquadHours: number;
-      totalInternalHours: number;
+      byWorker: {
+        name: string;
+        totalConsultingHours: number;
+        totalHandsOnHours: number;
+        totalSquadHours: number;
+        totalInternalHours: number;
+      };
     }>;
   };
 }
