@@ -131,7 +131,9 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
                     'workers': row['WorkerName']
                 } for _, row in workersByTrackingProject.iterrows()
             ]
-
+            
+        if group_column == 'CaseTitle' and 'byWorker' in map:
+            summary['by_worker'] = summarize_by_worker(group_df, map['byWorker'])
 
         summaries.append(summary)
 

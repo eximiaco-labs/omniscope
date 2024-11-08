@@ -443,6 +443,7 @@ type CaseSummary implements ISummary {
   caseDetails: Case
   byKind: KindSummary!
   byWeek: [WeekSummary!]!
+  byWorker: [NamedSummary!]!
   workers: [String!]!
   workersByTrackingProject: [TrackingProjectSummary!]! 
 }
