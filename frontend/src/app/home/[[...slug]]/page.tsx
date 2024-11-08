@@ -4,7 +4,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
-import AccountManagerHome from "./AccountManagerHome";
+import AccountManagerHome from "../../about-us/account-managers/[slug]/page";
 import ConsultantOrEngineerHome from "./ConsultantOrEngineerHome";
 import Header from "./Header";
 
