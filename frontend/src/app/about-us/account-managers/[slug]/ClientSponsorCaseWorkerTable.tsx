@@ -36,6 +36,8 @@ type ClientData = {
   sponsorDetails: Map<string, SponsorData>;
 };
 
+type SortColumn = 'hours' | 'sponsors' | 'cases' | 'workers';
+
 interface ClientSponsorCaseWorkerTableProps {
   clientData: ClientData[];
 }
@@ -44,6 +46,7 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<SortColumn>('hours');
 
   const formatHours = (hours: number) => {
     const roundedHours = Math.round(hours * 10) / 10;
@@ -86,20 +89,59 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
     setExpandedCases(newExpanded);
   };
 
+  const handleSort = (column: SortColumn) => {
+    setSortColumn(column);
+  };
+
+  const sortedClientData = [...clientData].sort((a, b) => {
+    switch (sortColumn) {
+      case 'hours':
+        return b.totalHours - a.totalHours;
+      case 'sponsors':
+        return b.uniqueSponsors - a.uniqueSponsors;
+      case 'cases':
+        return b.uniqueCases - a.uniqueCases;
+      case 'workers':
+        return b.workers.size - a.workers.size;
+      default:
+        return 0;
+    }
+  });
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="w-4"></TableHead>
           <TableHead>Client</TableHead>
-          <TableHead className="text-right w-[100px]">Sponsors</TableHead>
-          <TableHead className="text-right w-[100px]">Cases</TableHead>
-          <TableHead className="text-right w-[100px]">Workers</TableHead>
-          <TableHead className="text-right w-[100px]">Hours</TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('sponsors')}
+          >
+            Sponsors {sortColumn === 'sponsors' && '↓'}
+          </TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('cases')}
+          >
+            Cases {sortColumn === 'cases' && '↓'}
+          </TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('workers')}
+          >
+            Workers {sortColumn === 'workers' && '↓'}
+          </TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('hours')}
+          >
+            Hours {sortColumn === 'hours' && '↓'}
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {clientData.map((client, index) => {
+        {sortedClientData.map((client, index) => {
           const isClientExpanded = expandedClients.has(client.name);
           const rows = [];
 
