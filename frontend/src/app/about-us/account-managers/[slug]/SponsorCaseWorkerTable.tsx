@@ -34,6 +34,8 @@ type ClientData = {
   }>;
 };
 
+type SortColumn = 'hours' | 'cases' | 'workers';
+
 interface SponsorCaseWorkerTableProps {
   clientData: ClientData[];
 }
@@ -41,6 +43,7 @@ interface SponsorCaseWorkerTableProps {
 export function SponsorCaseWorkerTable({ clientData }: SponsorCaseWorkerTableProps) {
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<SortColumn>('hours');
 
   const formatHours = (hours: number) => {
     const roundedHours = Math.round(hours * 10) / 10;
@@ -54,7 +57,7 @@ export function SponsorCaseWorkerTable({ clientData }: SponsorCaseWorkerTablePro
       if (existingSponsor) {
         existingSponsor.totalHours += data.totalHours;
         existingSponsor.clients.add(client.name);
-        existingSponsor.workers = new Set([...existingSponsor.workers, ...data.workers]);
+        existingSponsor.workers = new Set(Array.from(existingSponsor.workers).concat(Array.from(data.workers)));
         existingSponsor.cases.push(...data.cases.map(c => ({
           ...c,
           clientName: client.name
@@ -79,7 +82,18 @@ export function SponsorCaseWorkerTable({ clientData }: SponsorCaseWorkerTablePro
     clients: Set<string>;
     workers: Set<string>;
     cases: Array<Case & { clientName: string }>;
-  }>).sort((a, b) => b.totalHours - a.totalHours);
+  }>).sort((a, b) => {
+    switch (sortColumn) {
+      case 'hours':
+        return b.totalHours - a.totalHours;
+      case 'cases':
+        return b.cases.length - a.cases.length;
+      case 'workers':
+        return b.workers.size - a.workers.size;
+      default:
+        return 0;
+    }
+  });
 
   const toggleSponsor = (sponsorName: string) => {
     const newExpanded = new Set(expandedSponsors);
@@ -101,15 +115,34 @@ export function SponsorCaseWorkerTable({ clientData }: SponsorCaseWorkerTablePro
     setExpandedCases(newExpanded);
   };
 
+  const handleSort = (column: SortColumn) => {
+    setSortColumn(column);
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="w-4"></TableHead>
           <TableHead>Sponsor</TableHead>
-          <TableHead className="text-right w-[100px]">Cases</TableHead>
-          <TableHead className="text-right w-[100px]">Workers</TableHead>
-          <TableHead className="text-right w-[100px]">Hours</TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('cases')}
+          >
+            Cases {sortColumn === 'cases' && '↓'}
+          </TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('workers')}
+          >
+            Workers {sortColumn === 'workers' && '↓'}
+          </TableHead>
+          <TableHead 
+            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSort('hours')}
+          >
+            Hours {sortColumn === 'hours' && '↓'}
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
