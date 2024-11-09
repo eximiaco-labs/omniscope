@@ -17,6 +17,7 @@ import { useState } from "react";
 import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
 import { ClientSponsorCaseWorkerTable } from "./ClientSponsorCaseWorkerTable";
 import { SponsorCaseWorkerTable, SponsorRankingTable } from "./SponsorCaseWorkerTable";
+import { WorkerClientSponsorCaseTable } from "./WorkerClientSponsorCase";
 
 function TimesheetSummarySection({
   timesheet,
@@ -232,6 +233,11 @@ function TimesheetSummarySection({
           <div>
             <h2 className="text-xl font-semibold mb-4">By Sponsor</h2>
             <SponsorCaseWorkerTable clientData={sortedClientData} />
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-4">By Worker</h2>
+            <WorkerClientSponsorCaseTable clientData={sortedClientData} />
           </div>
         </div>
       )}
