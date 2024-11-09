@@ -103,13 +103,13 @@ export interface AccountManager {
         client: { name: string };
         sponsor: string;
       };
-      byWorker: {
+      byWorker: Array<{
         name: string;
         totalConsultingHours: number;
         totalHandsOnHours: number;
         totalSquadHours: number;
         totalInternalHours: number;
-      };
+      }>;
     }>;
   };
 }

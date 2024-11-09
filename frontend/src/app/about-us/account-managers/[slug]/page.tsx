@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@apollo/client";
 import { GET_ACCOUNT_MANAGER, AccountManager } from "./queries";
-import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { STAT_COLORS } from "@/app/constants/colors";
 import {
@@ -16,8 +15,10 @@ import {
 import { useState } from "react";
 import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
 import { ClientSponsorCaseWorkerTable } from "./ClientSponsorCaseWorkerTable";
-import { SponsorCaseWorkerTable, SponsorRankingTable } from "./SponsorCaseWorkerTable";
+import { SponsorCaseWorkerTable } from "./SponsorCaseWorkerTable";
 import { WorkerClientSponsorCaseTable } from "./WorkerClientSponsorCase";
+import SectionHeader from "@/components/SectionHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function TimesheetSummarySection({
   timesheet,
@@ -31,15 +32,26 @@ function TimesheetSummarySection({
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   const formatHours = (hours: number) => {
-    const roundedHours = Math.round(hours * 10) / 10;
-    return `${roundedHours}h`;
+    return `${Math.round(hours * 10) / 10}h`;
   };
 
-  const processClientData = (cases: AccountManager["timesheet"]["byCase"], hoursField: keyof AccountManager["timesheet"]["byCase"][0]["byWorker"]) => {
+  const processClientData = (cases: AccountManager["timesheet"]["byCase"], hoursField: string) => {
     return cases
-      .filter(c => c.byWorker.some(w => w[hoursField] > 0))
-      .reduce((acc, c) => {
-        const totalCaseHours = c.byWorker.reduce((sum, w) => sum + (w[hoursField] || 0), 0);
+      .filter(c => Array.isArray(c.byWorker) && c.byWorker.some(w => w[hoursField] > 0))
+      .reduce<Array<{
+        name: string;
+        totalHours: number;
+        uniqueCases: number;
+        uniqueSponsors: number;
+        workers: Set<string>;
+        sponsors: Set<string>;
+        sponsorDetails: Map<string, {
+          totalHours: number;
+          cases: Array<{title: string; hours: number; workers: Array<{name: string; hours: number}>}>;
+          workers: Set<string>;
+        }>;
+      }>>((acc, c) => {
+        const totalCaseHours = Array.isArray(c.byWorker) ? c.byWorker.reduce((sum, w) => sum + (w[hoursField] || 0), 0) : 0;
         if (totalCaseHours === 0) return acc;
 
         const existingClient = acc.find(client => client.name === c.caseDetails.client.name);
@@ -47,9 +59,8 @@ function TimesheetSummarySection({
           existingClient.totalHours += totalCaseHours;
           existingClient.uniqueCases += 1;
           
-          // Add workers with hours > 0 to the client's worker set
           c.byWorker
-            .filter(w => w[hoursField] > 0)
+            .filter((w: { [key: string]: number } & { name: string }) => w[hoursField] > 0)
             .forEach(w => existingClient.workers.add(w.name));
 
           if (!existingClient.sponsors.has(c.caseDetails.sponsor)) {
@@ -64,10 +75,9 @@ function TimesheetSummarySection({
           };
           sponsorData.totalHours += totalCaseHours;
           
-          // Add workers with hours > 0 to the sponsor's worker set
           c.byWorker
-            .filter(w => w[hoursField] > 0)
-            .forEach(w => sponsorData.workers.add(w.name));
+            .filter((w: { [key: string]: number }) => w[hoursField] > 0)
+            .forEach((w: { name: string }) => sponsorData.workers.add(w.name));
 
           sponsorData.cases.push({
             title: c.title,
@@ -82,15 +92,15 @@ function TimesheetSummarySection({
           existingClient.sponsorDetails.set(c.caseDetails.sponsor, sponsorData);
         } else {
           const sponsorDetails = new Map();
-          const workersWithHours = c.byWorker.filter(w => w[hoursField] > 0);
+          const workersWithHours = c.byWorker.filter((w: { [key: string]: number }) => w[hoursField] > 0);
           
           sponsorDetails.set(c.caseDetails.sponsor, {
             totalHours: totalCaseHours,
-            workers: new Set(workersWithHours.map(w => w.name)),
+            workers: new Set(workersWithHours.map((w: { name: string }) => w.name)),
             cases: [{
               title: c.title,
               hours: totalCaseHours,
-              workers: workersWithHours.map(w => ({
+              workers: workersWithHours.map((w: { name: string }) => ({
                 name: w.name,
                 hours: w[hoursField] || 0
               }))
@@ -103,31 +113,12 @@ function TimesheetSummarySection({
             uniqueCases: 1,
             totalHours: totalCaseHours,
             sponsors: new Set([c.caseDetails.sponsor]),
-            workers: new Set(workersWithHours.map(w => w.name)),
+            workers: new Set(workersWithHours.map((w: { name: string }) => w.name)),
             sponsorDetails
           });
         }
         return acc;
-      }, [] as Array<{
-        name: string;
-        uniqueSponsors: number;
-        uniqueCases: number;
-        totalHours: number;
-        sponsors: Set<string>;
-        workers: Set<string>;
-        sponsorDetails: Map<string, {
-          totalHours: number;
-          workers: Set<string>;
-          cases: Array<{
-            title: string;
-            hours: number;
-            workers: Array<{
-              name: string;
-              hours: number;
-            }>;
-          }>;
-        }>;
-      }>);
+      }, []);
   };
 
   const categories = [
@@ -138,7 +129,7 @@ function TimesheetSummarySection({
       clientData: processClientData(timesheet.byCase, 'totalConsultingHours')
     },
     {
-      title: "Hands On",
+      title: "Hands On", 
       color: STAT_COLORS.handsOn,
       data: timesheet.byKind.handsOn,
       clientData: processClientData(timesheet.byCase, 'totalHandsOnHours')
@@ -154,12 +145,8 @@ function TimesheetSummarySection({
       color: STAT_COLORS.internal,
       data: timesheet.byKind.internal,
       clientData: processClientData(timesheet.byCase, 'totalInternalHours')
-    },
+    }
   ];
-
-  const handleDatasetSelect = (value: string) => {
-    onDatasetSelect(value);
-  };
 
   const selectedCategory = categories.find(cat => cat.title === selectedCard);
   const sortedClientData = selectedCategory?.clientData
@@ -168,10 +155,11 @@ function TimesheetSummarySection({
 
   return (
     <>
+      <SectionHeader title="Timesheet Summary" subtitle="" />
       <div className="mb-4">
         <DatasetSelector
           selectedDataset={selectedDataset}
-          onDatasetSelect={handleDatasetSelect}
+          onDatasetSelect={onDatasetSelect}
         />
       </div>
 
@@ -224,21 +212,23 @@ function TimesheetSummarySection({
       </div>
 
       {selectedCard && sortedClientData && (
-        <div className="space-y-8 mt-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">By Client</h2>
-            <ClientSponsorCaseWorkerTable clientData={sortedClientData} />
-          </div>
-          
-          <div>
-            <h2 className="text-xl font-semibold mb-4">By Sponsor</h2>
-            <SponsorCaseWorkerTable clientData={sortedClientData} />
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">By Worker</h2>
-            <WorkerClientSponsorCaseTable clientData={sortedClientData} />
-          </div>
+        <div className="mt-8">
+          <Tabs defaultValue="client">
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="client">By Client</TabsTrigger>
+              <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
+              <TabsTrigger value="worker">By Worker</TabsTrigger>
+            </TabsList>
+            <TabsContent value="client">
+              <ClientSponsorCaseWorkerTable clientData={sortedClientData} />
+            </TabsContent>
+            <TabsContent value="sponsor">
+              <SponsorCaseWorkerTable clientData={sortedClientData} />
+            </TabsContent>
+            <TabsContent value="worker">
+              <WorkerClientSponsorCaseTable clientData={sortedClientData} />
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </>
@@ -248,7 +238,7 @@ function TimesheetSummarySection({
 export default function AccountManagerPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [selectedDataset, setSelectedDataset] = useState<string>("timesheet-last-six-weeks");
+  const [selectedDataset, setSelectedDataset] = useState("timesheet-last-six-weeks");
 
   const { data, loading, error } = useQuery<{ accountManager: AccountManager }>(
     GET_ACCOUNT_MANAGER,
@@ -256,7 +246,7 @@ export default function AccountManagerPage() {
       variables: { 
         slug,
         dataset: selectedDataset.replace('timesheet-', '')
-      },
+      }
     }
   );
 
@@ -280,7 +270,7 @@ export default function AccountManagerPage() {
       </header>
 
       <TimesheetSummarySection 
-        timesheet={data.accountManager.timesheet} 
+        timesheet={data.accountManager.timesheet}
         selectedDataset={selectedDataset}
         onDatasetSelect={setSelectedDataset}
       />
