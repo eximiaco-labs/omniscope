@@ -5,6 +5,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { AccountManager } from "./queries";
 import SectionHeader from "@/components/SectionHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "react-day-picker";
+import { Badge } from "@/components/catalyst/badge";
 
 interface CasesSummaryProps {
   cases: AccountManager['cases'];
@@ -67,11 +70,11 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
       description: "Cases with issues or concerns", 
       count: cases.filter(c => {
         if (!c.lastUpdate) return true;
-        return !(c.lastUpdate.status === "All Right");
+        return !(c.lastUpdate.status === "All right");
       }).length,
       items: cases.filter(c => {
         if (!c.lastUpdate) return true;
-        return !(c.lastUpdate.status === "All Right");
+        return !(c.lastUpdate.status === "All right");
       })
     }
   ];
@@ -123,17 +126,78 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[150px]">Client</TableHead>
                 <TableHead>Case</TableHead>
-                <TableHead>Client</TableHead>
+                <TableHead className="w-[150px] whitespace-nowrap">Ending</TableHead>
+                <TableHead className="w-[150px] whitespace-nowrap">Last Update</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {summaryCards.find(card => card.title === selectedCard)?.items.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{item.title}</TableCell>
-                  <TableCell>{item.client.name}</TableCell>
-                </TableRow>
-              ))}
+              {summaryCards
+                .find(card => card.title === selectedCard)
+                ?.items.map((item) => (
+                  <TableRow key={`${item.client.name}-${item.title}`}>
+                    <TableCell className="font-medium w-[150px]">
+                      {item.client.name}
+                    </TableCell>
+                    <TableCell>
+                      <span>
+                        {item.title}{" "}
+                        {(!item.lastUpdate?.status || item.lastUpdate.status !== "All right") && (
+                          <Badge
+                            color={
+                              !item.lastUpdate?.status ? "zinc" :
+                              item.lastUpdate.status === "Requires attention" ? "yellow" :
+                              item.lastUpdate.status === "Critical" ? "red" : "zinc"
+                            }
+                          >
+                            {item.lastUpdate?.status || "No updates"}
+                          </Badge>
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {item.endOfContract ? 
+                        new Date(item.endOfContract).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {item.lastUpdated ? 
+                        new Date(item.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      {item.lastUpdate?.observations ? (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                              </svg>
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Observations</DialogTitle>
+                              <div className="text-sm text-gray-500">
+                                by {item.lastUpdate.author} on {item.lastUpdate.date ? new Date(item.lastUpdate.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
+                              </div>
+                            </DialogHeader>
+                            <div className="mt-4 whitespace-pre-wrap">
+                              <div dangerouslySetInnerHTML={{ __html: item.lastUpdate.observations }} />
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        ''
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

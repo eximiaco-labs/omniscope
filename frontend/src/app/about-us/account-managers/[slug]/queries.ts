@@ -6,6 +6,20 @@ export const GET_ACCOUNT_MANAGER = gql`
       photoUrl
       name
       position
+      cases(onlyActives: true) {
+        title
+        startOfContract
+        endOfContract
+        lastUpdated
+        hasDescription
+        lastUpdate {
+          status
+          date
+          author
+          observations
+        }
+        client { name }
+      }
       timesheet(slug: $dataset) {
         byKind {
           consulting {
@@ -66,6 +80,22 @@ export interface AccountManager {
   photoUrl: string;
   name: string;
   position: string;
+
+  cases: Array<{
+    title: string;
+    startOfContract: string;
+    endOfContract: string;
+    lastUpdated: string;
+    hasDescription: boolean;
+    lastUpdate: {
+      status: string;
+      date: Date;
+      author: string;
+      observations: string;
+    };
+    client: { name: string };
+  }>;
+
   timesheet: {
     byKind: {
       consulting: {
