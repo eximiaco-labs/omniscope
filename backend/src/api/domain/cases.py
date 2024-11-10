@@ -1,18 +1,18 @@
 from api.utils.fields import build_fields_map
-
-
 import globals
 
 
 def resolve_cases(_, info, only_actives: bool = False):
     all_cases = globals.omni_models.cases.get_all().values()
+    map_ = build_fields_map(info)
 
+    return compute_cases(all_cases, map_, only_actives)
+    
+def compute_cases(all_cases, map_, only_actives: bool = False):
     if only_actives:
         all_cases = filter(lambda case: case.is_active, all_cases)
 
     all_cases = sorted(all_cases, key=lambda case: case.title)
-
-    map_ = build_fields_map(info)
 
     return map(
         lambda x: build_case_dictionary(map_, x),

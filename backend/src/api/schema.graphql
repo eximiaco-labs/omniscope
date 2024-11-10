@@ -72,6 +72,7 @@ type Worker {
   isSpecialProjectsWorker: Boolean!
 
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
+  cases(onlyActives: Boolean): [Case!]!
 }
 
 type Client {
