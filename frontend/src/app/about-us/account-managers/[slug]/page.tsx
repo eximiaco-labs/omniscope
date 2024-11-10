@@ -6,6 +6,8 @@ import { GET_ACCOUNT_MANAGER, AccountManager } from "./queries";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { TimesheetSummary } from "./TimesheetSummary";
+import SectionHeader from "@/components/SectionHeader";
+import { CasesSummary } from "./CasesSummary";
 
 export default function AccountManagerPage() {
   const params = useParams();
@@ -46,6 +48,8 @@ export default function AccountManagerPage() {
         selectedDataset={selectedDataset}
         onDatasetSelect={setSelectedDataset}
       />
+
+      <CasesSummary cases={data.accountManager.cases} />
     </div>
   );
 }
