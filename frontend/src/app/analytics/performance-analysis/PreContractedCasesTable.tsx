@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import SectionHeader from "@/components/SectionHeader";
 
 interface PreContractedCasesTableProps {
   data: any;
@@ -40,8 +41,8 @@ export function PreContractedCasesTable({
 }: PreContractedCasesTableProps) {
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Pre-Contracted Cases</h2>
-      <Table>
+      <SectionHeader title="Pre-Contracted" subtitle="" />
+      <Table className="ml-2 mr-2">
         <TableHeader>
           <TableRow>
             <TableHead>Account Manager</TableHead>

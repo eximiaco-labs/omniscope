@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import SectionHeader from "@/components/SectionHeader";
 
 interface RegularCasesTableProps {
   data: any;
@@ -40,8 +41,8 @@ export function RegularCasesTable({
 }: RegularCasesTableProps) {
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Regular Cases</h2>
-      <Table>
+      <SectionHeader title="Regular" subtitle="" />
+      <Table className="ml-2 mr-2">
         <TableHeader>
           <TableRow>
             <TableHead>Account Manager</TableHead>
