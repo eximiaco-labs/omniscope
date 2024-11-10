@@ -13,8 +13,57 @@ interface CasesSummaryProps {
   cases: AccountManager['cases'];
 }
 
+type SortConfig = {
+  key: string;
+  direction: 'asc' | 'desc';
+};
+
 export function CasesSummary({ cases }: CasesSummaryProps) {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: '', direction: 'asc' });
+
+  const getDefaultSortKey = (cardTitle: string) => {
+    switch (cardTitle) {
+      case "Ending Soon":
+        return "endOfContract";
+      case "Stale Updates":
+        return "lastUpdated";
+      default:
+        return "client.name";
+    }
+  };
+
+  const sortData = (items: any[], sortKey: string, direction: 'asc' | 'desc') => {
+    const sortedItems = [...items].sort((a, b) => {
+      let aValue = sortKey.includes('.') 
+        ? sortKey.split('.').reduce((obj, key) => obj?.[key], a)
+        : a[sortKey];
+      let bValue = sortKey.includes('.')
+        ? sortKey.split('.').reduce((obj, key) => obj?.[key], b)
+        : b[sortKey];
+
+      if (sortKey === 'endOfContract' || sortKey === 'lastUpdated') {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      }
+
+      if (aValue === bValue) return 0;
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+      
+      return direction === 'asc' 
+        ? aValue < bValue ? -1 : 1
+        : aValue > bValue ? -1 : 1;
+    });
+    return sortedItems;
+  };
+
+  const handleSort = (key: string) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   const summaryCards = [
     {
@@ -100,6 +149,12 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
             onClick={() => {
               if (card.count > 0) {
                 setSelectedCard(selectedCard === card.title ? null : card.title);
+                if (card.title !== selectedCard) {
+                  setSortConfig({
+                    key: getDefaultSortKey(card.title),
+                    direction: 'asc'
+                  });
+                }
               }
             }}
             role={card.count > 0 ? "button" : "presentation"}
@@ -107,6 +162,12 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
             onKeyDown={(e) => {
               if (card.count > 0 && (e.key === "Enter" || e.key === " ")) {
                 setSelectedCard(selectedCard === card.title ? null : card.title);
+                if (card.title !== selectedCard) {
+                  setSortConfig({
+                    key: getDefaultSortKey(card.title),
+                    direction: 'asc'
+                  });
+                }
               }
             }}
           >
@@ -126,17 +187,39 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[150px]">Client</TableHead>
-                <TableHead>Case</TableHead>
-                <TableHead className="w-[150px] whitespace-nowrap">Ending</TableHead>
-                <TableHead className="w-[150px] whitespace-nowrap">Last Update</TableHead>
+                <TableHead 
+                  className="w-[150px] cursor-pointer"
+                  onClick={() => handleSort('client.name')}
+                >
+                  Client {sortConfig.key === 'client.name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer"
+                  onClick={() => handleSort('title')}
+                >
+                  Case {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead 
+                  className="w-[150px] whitespace-nowrap cursor-pointer"
+                  onClick={() => handleSort('endOfContract')}
+                >
+                  Ending {sortConfig.key === 'endOfContract' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead 
+                  className="w-[150px] whitespace-nowrap cursor-pointer"
+                  onClick={() => handleSort('lastUpdated')}
+                >
+                  Last Update {sortConfig.key === 'lastUpdated' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {summaryCards
-                .find(card => card.title === selectedCard)
-                ?.items.map((item) => (
+              {sortData(
+                summaryCards.find(card => card.title === selectedCard)?.items || [],
+                sortConfig.key || getDefaultSortKey(selectedCard),
+                sortConfig.direction
+              ).map((item) => (
                   <TableRow key={`${item.client.name}-${item.title}`}>
                     <TableCell className="font-medium w-[150px]">
                       {item.client.name}
