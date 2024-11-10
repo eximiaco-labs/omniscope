@@ -45,7 +45,7 @@ export function TimesheetSummary({
 
   const processClientData = (cases: AccountManager["timesheet"]["byCase"], hoursField: string) => {
     return cases
-      .filter(c => Array.isArray(c.byWorker) && c.byWorker.some(w => (w as Worker)[hoursField] > 0))
+      .filter(c => Array.isArray(c.byWorker) && c.byWorker.some(w => Number((w as Worker)[hoursField]) > 0))
       .reduce<Array<{
         name: string;
         totalHours: number;
@@ -60,7 +60,7 @@ export function TimesheetSummary({
         }>;
       }>>((acc, c) => {
         const totalCaseHours = Array.isArray(c.byWorker) 
-          ? c.byWorker.reduce((sum, w) => sum + ((w as Worker)[hoursField] || 0), 0) 
+          ? c.byWorker.reduce((sum, w) => sum + Number((w as Worker)[hoursField] || 0), 0)
           : 0;
           
         if (totalCaseHours === 0) return acc;
@@ -69,9 +69,8 @@ export function TimesheetSummary({
         if (existingClient) {
           existingClient.totalHours += totalCaseHours;
           existingClient.uniqueCases += 1;
-          
           c.byWorker
-            .filter((w) => (w as Worker)[hoursField] > 0)
+            .filter((w) => Number((w as Worker)[hoursField]) > 0)
             .forEach(w => existingClient.workers.add(w.name));
 
           if (!existingClient.sponsors.has(c.caseDetails.sponsor)) {
@@ -87,23 +86,23 @@ export function TimesheetSummary({
           sponsorData.totalHours += totalCaseHours;
           
           c.byWorker
-            .filter((w) => (w as Worker)[hoursField] > 0)
+            .filter((w) => Number((w as Worker)[hoursField]) > 0)
             .forEach((w) => sponsorData.workers.add(w.name));
 
           sponsorData.cases.push({
             title: c.title,
             hours: totalCaseHours,
             workers: c.byWorker
-              .filter(w => (w as Worker)[hoursField] > 0)
+              .filter(w => Number((w as Worker)[hoursField]) > 0)
               .map(w => ({
                 name: w.name,
-                hours: (w as Worker)[hoursField] || 0
+                hours: Number((w as Worker)[hoursField] || 0)
               }))
           });
           existingClient.sponsorDetails.set(c.caseDetails.sponsor, sponsorData);
         } else {
           const sponsorDetails = new Map();
-          const workersWithHours = c.byWorker.filter((w) => (w as Worker)[hoursField] > 0);
+          const workersWithHours = c.byWorker.filter((w) => Number((w as Worker)[hoursField]) > 0);
           
           sponsorDetails.set(c.caseDetails.sponsor, {
             totalHours: totalCaseHours,
