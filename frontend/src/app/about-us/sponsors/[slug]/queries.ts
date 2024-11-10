@@ -1,11 +1,23 @@
 import { gql } from "@apollo/client";
 
-export const GET_HOME_DATA = gql`
-  query GetClientStats($accountManagerName: String, $filters: [FilterInput]) {
-    clients(accountManagerName: $accountManagerName) {
-      id
+export const GET_SPONSOR_BY_SLUG = gql`
+  query GetSponsorBySlug($slug: String!) {
+    sponsor(slug: $slug) {
+      name
+      photoUrl
+      jobTitle
+      linkedinUrl
+      client {
+        id
+        name
+      }
     }
-    timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
+  }
+`;
+
+export const GET_SPONSOR_TIMESHEET = gql`
+  query GetSponsorTimesheet($sponsorName: String!, $datasetSlug: String!) {
+    timesheet(slug: $datasetSlug, filters: [{ field: "Sponsor", selectedValues: [$sponsorName] }]) {
       uniqueClients
       uniqueCases
       uniqueWorkers
@@ -39,39 +51,6 @@ export const GET_HOME_DATA = gql`
       }
 
       byClient {
-        name
-        uniqueCases
-        uniqueWorkers
-        totalHours
-        byKind {
-          consulting {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          handsOn {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          squad {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-          internal {
-            uniqueClients
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-        }
-      }
-
-      bySponsor {
         name
         uniqueCases
         uniqueWorkers
@@ -136,80 +115,34 @@ export const GET_HOME_DATA = gql`
         totalHandsOnHours
         totalSquadHours
         totalInternalHours
+        workers
         caseDetails {
+          id
           slug
+          title
+          isActive
+          preContractedValue
+          sponsor
+          hasDescription
           startOfContract
           endOfContract
           weeklyApprovedHours
-          client {
-            name
-          }
           lastUpdate {
             date
+            author
             status
+            observations
           }
+          tracker {
+            id
+            name
+          }
+        }
+        workersByTrackingProject {
+          projectId
+          workers
         }
       }
     }
   }
-`;
-
-export const GET_ANALYTICS = gql`
-  query GetAnalytics($filters: [FilterInput], $dateOfInterest: Date!) {
-    weekReview(date_of_interest: $dateOfInterest, filters: $filters) {
-      hoursPreviousWeeks
-      hoursPreviousWeeksUntilThisDate
-      hoursThisWeek
-
-      monthSummary {
-        hoursThisMonth
-        hoursPreviousMonth
-        hoursPreviousMonthUntilThisDate
-        limitDate
-      }
-    }
-
-    timelinessReview(date_of_interest: $dateOfInterest, filters: $filters) {
-      totalRows
-
-      earlyRows
-      earlyTimeInHours
-
-      okRows
-      okTimeInHours
-
-      acceptableRows
-      acceptableTimeInHours
-
-      lateRows
-      lateTimeInHours
-
-      earlyWorkers {
-        worker
-        entries
-        timeInHours
-      }
-
-      okWorkers {
-        worker
-        entries
-        timeInHours
-      }
-
-      acceptableWorkers {
-        worker
-        entries
-        timeInHours
-      }
-
-      lateWorkers {
-        worker
-        entries
-        timeInHours
-      }
-
-      minDate
-      maxDate
-    }
-  }
-`;
+`; 

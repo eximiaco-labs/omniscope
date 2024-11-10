@@ -1,3 +1,8 @@
+from api.datasets.timesheets import compute_timesheet
+from api.domain.cases import compute_cases
+
+from api.utils.fields import build_fields_map
+
 from models.domain import WorkerKind
 import globals
 
@@ -16,3 +21,30 @@ def resolve_account_manager(_, info, id=None, slug=None):
     elif slug is not None:
         return globals.omni_models.workers.get_by_slug(slug)
     return None
+
+def resolve_account_manager_timesheet(account_manager, info, slug, filters=None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'AccountManagerName',
+            'selected_values': [account_manager.name]
+        }
+    ] + filters
+    
+    map_ = build_fields_map(info)
+    return compute_timesheet(map_, slug, filters=client_filters)
+
+def resolve_account_manager_cases(account_manager, info, only_actives: bool = False):
+    all_cases = globals.omni_models.cases.get_all().values()
+    
+    filtered_cases = [
+        case for case in all_cases
+        if case.client_id and (
+            client := globals.omni_models.clients.get_by_id(case.client_id)
+        ) and client.account_manager and client.account_manager.slug == account_manager.slug
+    ]
+
+    map_ = build_fields_map(info)
+    return compute_cases(filtered_cases, map_, only_actives)

@@ -70,6 +70,9 @@ type Worker {
   isInsightsAuthor: Boolean!
   isTimeTrackerWorker: Boolean!
   isSpecialProjectsWorker: Boolean!
+
+  timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
+  cases(onlyActives: Boolean): [Case!]!
 }
 
 type Client {
@@ -256,6 +259,23 @@ type User {
 }
 
 
+# Active Deals types
+type ActiveDeal {
+  id: Int!
+  title: String!
+  stageId: Int!
+  stageName: String!
+  stageOrderNr: Int!
+  clientName: String!
+  accountManager: Worker
+  addTime: String
+  updateTime: String
+  daysSinceLastUpdate: Int
+}
+
+
+
+
 # Admin
 
 type Inconsistency {
@@ -424,6 +444,13 @@ type CaseSummary implements ISummary {
   caseDetails: Case
   byKind: KindSummary!
   byWeek: [WeekSummary!]!
+  byWorker: [NamedSummary!]!
+  workers: [String!]!
+  workersByTrackingProject: [TrackingProjectSummary!]! 
+}
+
+type TrackingProjectSummary {
+  projectId: String!
   workers: [String!]!
 }
 
@@ -804,7 +831,7 @@ type Query {
 
   accountManagers: [Worker!]!
   consultantsAndEngineers: [Worker!]!
-  clients(accountManagerName: String): [Client!]!
+  clients(accountManagerName: String, accountManagerSlug: String): [Client!]!
   sponsors: [Sponsor!]!
   cases(onlyActives: Boolean): [Case!]!
   offers: [Offer!]!
@@ -828,6 +855,9 @@ type Query {
   projects: [Project!]!
   approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
   performanceAnalysis(date_of_interest: Date!): PerformanceAnalysis!
+  
+  activeDeals(accountManagerSlug: String, accountManagerName: String): [ActiveDeal!]!
+  activeDeal(id: Int): ActiveDeal
 }
 
 # Mutation type

@@ -1,10 +1,12 @@
 "use client";
 
+import { redirect } from "next/navigation";
+
 import React from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
-import AccountManagerHome from "./AccountManagerHome";
+import AccountManagerHome from "../../about-us/account-managers/[slug]/page";
 import ConsultantOrEngineerHome from "./ConsultantOrEngineerHome";
 import Header from "./Header";
 
@@ -16,6 +18,7 @@ const GET_USER = gql`
       email
       position
       kind
+      slug
     }
   }
 `;
@@ -43,12 +46,14 @@ export default function HomePage() {
     );
   }
 
+  if (user?.kind === "ACCOUNT_MANAGER") {
+    redirect(`/about-us/account-managers/${user.slug}`);
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Header user={user} />
-      {user && user.kind === "ACCOUNT_MANAGER" && <AccountManagerHome user={user} />}
       {user && user.kind === "CONSULTANT" && <ConsultantOrEngineerHome user={user} />}
     </div>
   );
 }
-

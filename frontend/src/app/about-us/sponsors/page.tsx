@@ -126,9 +126,7 @@ export default function Sponsors() {
 
     return (
       <Link
-        href={`/analytics/datasets/timesheet-this-month?Sponsor=${encodeURIComponent(
-          sponsor.name
-        )}`}
+        href={`/about-us/sponsors/${sponsor.slug}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

@@ -122,6 +122,19 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
             workers = df[df['CaseTitle'] == group_value]['WorkerName'].unique().tolist()
             summary['workers'] = workers
 
+        if group_column == 'CaseTitle' and 'workersByTrackingProject' in map:
+            wdf = df[df['CaseTitle'] == group_value]
+            workersByTrackingProject = wdf.groupby('ProjectId')['WorkerName'].apply(lambda x: x.unique().tolist()).reset_index()
+            summary['workers_by_tracking_project'] = [
+                {
+                    'project_id': row['ProjectId'],
+                    'workers': row['WorkerName']
+                } for _, row in workersByTrackingProject.iterrows()
+            ]
+            
+        if group_column == 'CaseTitle' and 'byWorker' in map:
+            summary['by_worker'] = summarize_by_worker(group_df, map['byWorker'])
+
         summaries.append(summary)
 
     summaries = sorted(summaries, key=lambda x: x["total_hours"], reverse=True)
