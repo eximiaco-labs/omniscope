@@ -41,7 +41,7 @@ export function PreContractedCasesTable({
 }: PreContractedCasesTableProps) {
   return (
     <div>
-      <SectionHeader title="Pre-Contracted" subtitle="" />
+      <SectionHeader title="Pre-Contracted Cases by Account Manager" subtitle="" />
       <Table className="ml-2 mr-2">
         <TableHeader>
           <TableRow>
