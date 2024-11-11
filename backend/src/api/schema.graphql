@@ -73,6 +73,7 @@ type Worker {
 
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
   cases(onlyActives: Boolean): [Case!]!
+  activeDeals: [ActiveDeal!]!
 }
 
 type Client {
