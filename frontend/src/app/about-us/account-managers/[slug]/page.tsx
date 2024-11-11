@@ -8,6 +8,7 @@ import { useState } from "react";
 import { TimesheetSummary } from "./TimesheetSummary";
 import SectionHeader from "@/components/SectionHeader";
 import { CasesSummary } from "./CasesSummary";
+import { ActiveDealsSummary } from "./ActiveDealsSummary";
 
 export default function AccountManagerPage() {
   const params = useParams();
@@ -51,6 +52,8 @@ export default function AccountManagerPage() {
 
       <CasesSummary cases={data.accountManager.cases} />
 
+      <ActiveDealsSummary activeDeals={data.accountManager.activeDeals} />
+      
       {/* <div className="mb-4">
         <SectionHeader
           title="Consulting Performance Analysis"
