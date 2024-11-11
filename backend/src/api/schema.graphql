@@ -621,6 +621,7 @@ type OneWeekRegularCasePerformanceSummary {
   actualWorkHours: Float!
   inContextActualWorkHours: Float!
   wastedHours: Float!
+  overApprovedHours: Float!
 }
 
 type OneWeekPreContractedCasePerformanceSummary {
@@ -641,6 +642,7 @@ type TotalsRegular {
   actualWorkHours: Float!
   inContextActualWorkHours: Float!
   wastedHours: Float!
+  overApprovedHours: Float!
 }
 
 type TotalsPreContracted {

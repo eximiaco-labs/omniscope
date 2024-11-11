@@ -32,6 +32,7 @@ class OneWeekRegularCasePerformanceSummary:
     actual_work_hours: float
     in_context_actual_work_hours: float
     wasted_hours: float
+    over_approved_hours: float
 
 @dataclass
 class OneWeekPreContractedCasePerformanceSummary:
@@ -52,6 +53,7 @@ class TotalsRegular:
     actual_work_hours: float
     in_context_actual_work_hours: float
     wasted_hours: float
+    over_approved_hours: float
     
 @dataclass
 class TotalsPreContracted:
@@ -173,6 +175,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             )
         else:
             wasted_hours = max(0, weekly_approved_hours - actual_hours)
+            over_approved_hours = max(0, actual_hours - weekly_approved_hours)
             return OneWeekRegularCasePerformanceSummary(
                 id=case.id,
                 title=case.title,
@@ -182,7 +185,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                 approved_work_hours=weekly_approved_hours,
                 actual_work_hours=actual_hours,
                 in_context_actual_work_hours=this_month_hours,
-                wasted_hours=wasted_hours
+                wasted_hours=wasted_hours,
+                over_approved_hours=over_approved_hours
             )
 
     def calculate_entity_summary(regular_cases: List[OneWeekRegularCasePerformanceSummary], 
@@ -200,7 +204,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                     approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
                     actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
                     in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
-                    wasted_hours=sum(case.wasted_hours for case in reg_cases)
+                    wasted_hours=sum(case.wasted_hours for case in reg_cases),
+                    over_approved_hours=sum(case.over_approved_hours for case in reg_cases)
                 )
                 
                 pre_contracted = TotalsPreContracted(
@@ -220,7 +225,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                         approved_work_hours=sum(case.approved_work_hours for case in sponsor_reg_cases),
                         actual_work_hours=sum(case.actual_work_hours for case in sponsor_reg_cases),
                         in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in sponsor_reg_cases),
-                        wasted_hours=sum(case.wasted_hours for case in sponsor_reg_cases)
+                        wasted_hours=sum(case.wasted_hours for case in sponsor_reg_cases),
+                        over_approved_hours=sum(case.over_approved_hours for case in sponsor_reg_cases)
                     )
                     
                     sponsor_pre_contracted = TotalsPreContracted(
@@ -257,7 +263,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                     approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
                     actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
                     in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
-                    wasted_hours=sum(case.wasted_hours for case in reg_cases)
+                    wasted_hours=sum(case.wasted_hours for case in reg_cases),
+                    over_approved_hours=sum(case.over_approved_hours for case in reg_cases)
                 )
                 
                 pre_contracted = TotalsPreContracted(
@@ -286,7 +293,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                     approved_work_hours=sum(case.approved_work_hours for case in reg_cases),
                     actual_work_hours=sum(case.actual_work_hours for case in reg_cases),
                     in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in reg_cases),
-                    wasted_hours=sum(case.wasted_hours for case in reg_cases)
+                    wasted_hours=sum(case.wasted_hours for case in reg_cases),
+                    over_approved_hours=sum(case.over_approved_hours for case in reg_cases)
                 )
                 
                 pre_contracted = TotalsPreContracted(
@@ -306,7 +314,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                         approved_work_hours=sum(case.approved_work_hours for case in client_reg_cases),
                         actual_work_hours=sum(case.actual_work_hours for case in client_reg_cases),
                         in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in client_reg_cases),
-                        wasted_hours=sum(case.wasted_hours for case in client_reg_cases)
+                        wasted_hours=sum(case.wasted_hours for case in client_reg_cases),
+                        over_approved_hours=sum(case.over_approved_hours for case in client_reg_cases)
                     )
                     
                     client_pre_contracted = TotalsPreContracted(
@@ -326,7 +335,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
                             approved_work_hours=sum(case.approved_work_hours for case in sponsor_reg_cases),
                             actual_work_hours=sum(case.actual_work_hours for case in sponsor_reg_cases),
                             in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in sponsor_reg_cases),
-                            wasted_hours=sum(case.wasted_hours for case in sponsor_reg_cases)
+                            wasted_hours=sum(case.wasted_hours for case in sponsor_reg_cases),
+                            over_approved_hours=sum(case.over_approved_hours for case in sponsor_reg_cases)
                         )
                         
                         sponsor_pre_contracted = TotalsPreContracted(
