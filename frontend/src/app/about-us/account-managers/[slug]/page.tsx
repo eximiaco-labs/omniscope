@@ -50,6 +50,17 @@ export default function AccountManagerPage() {
       />
 
       <CasesSummary cases={data.accountManager.cases} />
+
+      {/* <div className="mb-4">
+        <SectionHeader
+          title="Consulting Performance Analysis"
+          subtitle={new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        />
+      </div> */}
     </div>
   );
 }

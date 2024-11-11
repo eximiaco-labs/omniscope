@@ -32,6 +32,7 @@ class Case(BaseModel):
     sponsor: Optional[str] = None
     offers_ids: Optional[List[int]] = []
 
+
     def find_client_name(self, clients_repository: ClientsRepository):
         if self.client_id:
             client = clients_repository.get_by_id(self.client_id)
@@ -69,6 +70,24 @@ class Case(BaseModel):
             return 0
 
         return (datetime.now() - self.ontology_info.last_update_gmt).days
+
+    @property
+    def is_stale(self) -> bool:
+        if not self.is_active:
+            return False
+
+        if not self.has_description:
+            return True
+
+        if self.number_of_days_with_no_updates < 30:
+            return False
+
+        if not self.last_update:
+            return True
+
+        diff = (datetime.now() - self.last_updated).days
+
+        return diff > 30
 
     @property
     def has_updated_description(self) -> bool:

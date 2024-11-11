@@ -19,6 +19,7 @@ export const GET_ACCOUNT_MANAGER = gql`
           observations
         }
         client { name }
+        isStale
       }
       timesheet(slug: $dataset) {
         byKind {
@@ -94,6 +95,7 @@ export interface AccountManager {
       observations: string;
     };
     client: { name: string };
+    isStale: boolean;
   }>;
 
   timesheet: {
