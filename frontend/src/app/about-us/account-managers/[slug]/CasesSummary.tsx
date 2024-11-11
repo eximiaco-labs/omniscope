@@ -81,20 +81,8 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
     {
       title: "Stale Updates",
       description: "Cases that haven't been updated in over 30 days",
-      count: cases.filter(c => {
-        if (!c.lastUpdate) return true;
-        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-        const lastUpdateDate = new Date(c.lastUpdate.date);
-        const now = new Date();
-        return now.getTime() - lastUpdateDate.getTime() > thirtyDaysInMs;
-      }).length,
-      items: cases.filter(c => {
-        if (!c.lastUpdate) return true;
-        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-        const lastUpdateDate = new Date(c.lastUpdate.date);
-        const now = new Date();
-        return now.getTime() - lastUpdateDate.getTime() > thirtyDaysInMs;
-      })
+      count: cases.filter(c => c.isStale).length,
+      items: cases.filter(c => c.isStale)
     },
     {
       title: "Ending Soon",
@@ -118,11 +106,13 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
       title: "Needs Attention",
       description: "Cases with issues or concerns", 
       count: cases.filter(c => {
-        if (!c.lastUpdate) return true;
+        if (c.isStale) return true;
+        if (!c.lastUpdate) return false;
         return !(c.lastUpdate.status === "All right");
       }).length,
       items: cases.filter(c => {
-        if (!c.lastUpdate) return true;
+        if (c.isStale) return true;
+        if (!c.lastUpdate) return false;
         return !(c.lastUpdate.status === "All right");
       })
     }
