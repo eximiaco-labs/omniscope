@@ -25,10 +25,13 @@ class Case(BaseModel):
     end_of_contract: Optional[date] = None
     weekly_approved_hours: Optional[float] = None
 
+    fixed_fee: Optional[float] = None
+
     status: Optional[str] = None
     last_updated: Optional[datetime] = None
     sponsor: Optional[str] = None
     offers_ids: Optional[List[int]] = []
+
 
     def find_client_name(self, clients_repository: ClientsRepository):
         if self.client_id:
@@ -67,6 +70,24 @@ class Case(BaseModel):
             return 0
 
         return (datetime.now() - self.ontology_info.last_update_gmt).days
+
+    @property
+    def is_stale(self) -> bool:
+        if not self.is_active:
+            return False
+
+        if not self.has_description:
+            return True
+
+        if self.number_of_days_with_no_updates < 30:
+            return False
+
+        if not self.last_update:
+            return True
+
+        diff = (datetime.now() - self.last_updated).days
+
+        return diff > 30
 
     @property
     def has_updated_description(self) -> bool:
@@ -223,5 +244,17 @@ class CasesRepository:
                 new_case.client_id = client.id if client else None
 
                 cases_dict[f'tp-{tp.id}'] = new_case
+
+        # ----
+
+        for case in cases_dict.values():
+            case.fixed_fee = 0
+            for tracker_project in case.tracker_info:
+                if (
+                    tracker_project.billing and
+                    tracker_project.billing.type == 'fixed_fee' and
+                    tracker_project.billing.fee
+                ):
+                    case.fixed_fee += (tracker_project.billing.fee / 100)
 
         self.__data = cases_dict

@@ -25,6 +25,7 @@ export const GET_CASES_AND_TIMESHEET = gql`
         status
         observations
       }
+      isStale
     }
     timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
       uniqueClients

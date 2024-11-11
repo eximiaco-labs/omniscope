@@ -49,6 +49,17 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             'Everhour projects with hours recorded without "case"',
             f'{len(projects_with_hours_recorded_without_case)} Everhour projects had hours listed but did not have a formal description in a "case"'
         ))
+        
+    stale_cases = [
+        case 
+        for case in cases
+        if case.is_active and case.is_stale
+    ]
+    if len(stale_cases) > 0:
+        result.append(Inconsistency(
+            'Stale cases',
+            f'{len(stale_cases)} case(s) have not been updated in over 30 days.'
+        ))
 
     projects = globals.omni_models.projects.get_all().values()
     

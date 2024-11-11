@@ -153,49 +153,57 @@ export function PreContractedCasesByClientTable({
                       })}
                     </TableRow>
                     {expandedSponsors.has(`precontracted-client-${clientName}-${sponsorName}`) && (
-                      <TableRow key={`precontracted-${clientName}-${sponsorName}-cases`}>
-                        <TableCell className="pl-12 text-sm text-gray-500">
-                          {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                            const cases = week.preContractedCases.filter(
-                              (c: any) => c.client === clientName && c.sponsor === sponsorName
-                            );
-                            return cases.map((c: any) => (
-                              <div key={`${week.start}-${c.title}`}>
-                                {weekIndex === 0 && c.title}
-                              </div>
-                            ));
-                          })}
-                        </TableCell>
-                        {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                          const cases = week.preContractedCases.filter(
-                            (c: any) => c.client === clientName && c.sponsor === sponsorName
-                          );
-                          return (
-                            <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                              {cases.map((c: any) => (
-                                <div key={`${week.start}-${c.title}`}>
-                                  <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
-                                  {c.possibleUnpaidHours > 0 && (
-                                    <div className="text-orange-500 text-sm">
-                                      {formatHours(c.possibleUnpaidHours)} unpaid
-                                    </div>
-                                  )}
-                                  {c.possibleIdleHours > 0 && (
-                                    <div className="text-yellow-500 text-sm">
-                                      {formatHours(c.possibleIdleHours)} idle
-                                    </div>
-                                  )}
-                                  {c.inContextActualWorkHours !== c.actualWorkHours && c.inContextActualWorkHours > 0 && (
-                                    <div className="text-blue-500 text-sm">
-                                      {formatHours(c.inContextActualWorkHours)} this month
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
+                      <>
+                        {data.performanceAnalysis.weeks[0].preContractedCases
+                          .filter((c: any) => c.client === clientName && c.sponsor === sponsorName)
+                          .map((baseCase: any) => (
+                            <TableRow key={`${clientName}-${sponsorName}-${baseCase.title}`} className="bg-gray-200">
+                              <TableCell className="pl-12 text-sm text-gray-500">
+                                {baseCase.title}
+                              </TableCell>
+                              {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
+                                const currentCase = week.preContractedCases.find(
+                                  (c: any) => 
+                                    c.client === clientName && 
+                                    c.sponsor === sponsorName && 
+                                    c.title === baseCase.title
+                                );
+                                
+                                return (
+                                  <TableCell 
+                                    key={week.start} 
+                                    className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                                  >
+                                    {currentCase ? (
+                                      <div>
+                                        <div>
+                                          {formatHours(currentCase.actualWorkHours)} / {formatHours(currentCase.approvedWorkHours)}
+                                        </div>
+                                        {currentCase.possibleUnpaidHours > 0 && (
+                                          <div className="text-orange-500 text-sm">
+                                            {formatHours(currentCase.possibleUnpaidHours)} unpaid
+                                          </div>
+                                        )}
+                                        {currentCase.possibleIdleHours > 0 && (
+                                          <div className="text-yellow-500 text-sm">
+                                            {formatHours(currentCase.possibleIdleHours)} idle
+                                          </div>
+                                        )}
+                                        {currentCase.inContextActualWorkHours !== currentCase.actualWorkHours && 
+                                         currentCase.inContextActualWorkHours > 0 && (
+                                          <div className="text-blue-500 text-sm">
+                                            {formatHours(currentCase.inContextActualWorkHours)} this month
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : "-"}
+                                  </TableCell>
+                                );
+                              })}
+                            </TableRow>
+                          ))
+                        }
+                      </>
                     )}
                   </React.Fragment>
                 ))}
