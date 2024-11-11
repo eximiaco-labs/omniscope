@@ -14,10 +14,12 @@ interface CaseHeaderProps {
     weeklyApprovedHours?: number;
     preContractedValue?: boolean;
     isActive: boolean;
-    tracker?: { // Adicionando o tipo para tracker
+    tracker?: {
       id: string;
       name: string;
     }[];
+    name: string;
+    ontologyUrl?: string;
   };
 }
 
@@ -35,7 +37,21 @@ export function CaseHeader({ caseItem }: CaseHeaderProps) {
       )}
       <div className="flex flex-col flex-grow space-y-2">
         <div>
-          <Heading className="mt-1">{caseItem.title}</Heading>
+          <div className="flex flex-col">
+            <Heading className="mt-1">{caseItem.title}</Heading>
+            {caseItem.ontologyUrl && (
+              <span className="text-xs mt-1">
+                <a
+                  href={caseItem.ontologyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  [View Ontology]
+                </a>
+              </span>
+            )}
+          </div>
           {caseItem.tracker && caseItem.tracker.length > 0 && (
             <div className="flex flex-wrap items-center mt-2">
               {caseItem.tracker.map((track, index) => (
