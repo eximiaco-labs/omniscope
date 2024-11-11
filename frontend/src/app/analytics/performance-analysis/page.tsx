@@ -9,6 +9,7 @@ import { RegularCasesTable } from "./RegularCasesTable";
 import { PreContractedCasesTable } from "./PreContractedCasesTable";
 import { RegularCasesByClientTable } from "./RegularCasesByClientTable";
 import { PreContractedCasesByClientTable } from "./PreContractedCasesByClientTable";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Case {
   accountManager: string;
@@ -24,6 +25,7 @@ interface Week {
 
 export default function PerformanceAnalysisPage() {
   const [date, setDate] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<"managers" | "clients">("managers");
   const [expandedRegularManagers, setExpandedRegularManagers] = useState<
     Set<string>
   >(new Set());
@@ -193,60 +195,74 @@ export default function PerformanceAnalysisPage() {
         <DatePicker date={date} onSelectedDateChange={setDate} />
         <div className="flex-grow h-px bg-gray-200 ml-2"></div>
       </div>
+      
+      <Tabs defaultValue="managers" className="ml-2 mr-2" onValueChange={(value) => setViewMode(value as "managers" | "clients")}>
+        <TabsList>
+          <TabsTrigger value="managers">By Account Managers</TabsTrigger>
+          <TabsTrigger value="clients">By Clients</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="space-y-8 ml-2 mr-2">
-        <RegularCasesTable
-          data={data}
-          accountManagers={accountManagers}
-          expandedRegularManagers={expandedRegularManagers}
-          expandedClients={expandedClients}
-          selectedWeekIndex={selectedWeekIndex}
-          expandedSponsors={expandedSponsors}
-          toggleRegularManager={toggleRegularManager}
-          toggleClient={toggleClient}
-          toggleSponsor={toggleSponsor}
-          getClientsForManager={getClientsForManager}
-          getSponsorsForClient={getSponsorsForClientWithManager}
-          formatHours={formatHours}
-        />
+        {viewMode === "managers" ? (
+          <>
+            <RegularCasesTable
+              data={data}
+              accountManagers={accountManagers}
+              expandedRegularManagers={expandedRegularManagers}
+              expandedClients={expandedClients}
+              selectedWeekIndex={selectedWeekIndex}
+              expandedSponsors={expandedSponsors}
+              toggleRegularManager={toggleRegularManager}
+              toggleClient={toggleClient}
+              toggleSponsor={toggleSponsor}
+              getClientsForManager={getClientsForManager}
+              getSponsorsForClient={getSponsorsForClientWithManager}
+              formatHours={formatHours}
+            />
 
-        <RegularCasesByClientTable
-          data={data}
-          clients={clients}
-          expandedClients={expandedClients}
-          expandedSponsors={expandedSponsors}
-          selectedWeekIndex={selectedWeekIndex}
-          toggleClient={toggleClient}
-          toggleSponsor={toggleSponsor}
-          getSponsorsForClient={getSponsorsForClientSimple}
-          formatHours={formatHours}
-        />
+            <PreContractedCasesTable
+              data={data}
+              accountManagers={accountManagers}
+              expandedPreContractedManagers={expandedPreContractedManagers}
+              expandedClients={expandedClients}
+              selectedWeekIndex={selectedWeekIndex}
+              expandedSponsors={expandedSponsors}
+              togglePreContractedManager={togglePreContractedManager}
+              toggleClient={toggleClient}
+              toggleSponsor={toggleSponsor}
+              getClientsForManager={getClientsForManager}
+              getSponsorsForClient={getSponsorsForClientWithManager}
+              formatHours={formatHours}
+            />
+          </>
+        ) : (
+          <>
+            <RegularCasesByClientTable
+              data={data}
+              clients={clients}
+              expandedClients={expandedClients}
+              expandedSponsors={expandedSponsors}
+              selectedWeekIndex={selectedWeekIndex}
+              toggleClient={toggleClient}
+              toggleSponsor={toggleSponsor}
+              getSponsorsForClient={getSponsorsForClientSimple}
+              formatHours={formatHours}
+            />
 
-        <PreContractedCasesTable
-          data={data}
-          accountManagers={accountManagers}
-          expandedPreContractedManagers={expandedPreContractedManagers}
-          expandedClients={expandedClients}
-          selectedWeekIndex={selectedWeekIndex}
-          expandedSponsors={expandedSponsors}
-          togglePreContractedManager={togglePreContractedManager}
-          toggleClient={toggleClient}
-          toggleSponsor={toggleSponsor}
-          getClientsForManager={getClientsForManager}
-          getSponsorsForClient={getSponsorsForClientWithManager}
-          formatHours={formatHours}
-        />
-
-        <PreContractedCasesByClientTable
-          data={data}
-          clients={preContractedClients}
-          expandedClients={expandedClients}
-          expandedSponsors={expandedSponsors}
-          selectedWeekIndex={selectedWeekIndex}
-          toggleClient={toggleClient}
-          toggleSponsor={toggleSponsor}
-          getSponsorsForClient={getSponsorsForClientSimple}
-          formatHours={formatHours}
-        />
+            <PreContractedCasesByClientTable
+              data={data}
+              clients={preContractedClients}
+              expandedClients={expandedClients}
+              expandedSponsors={expandedSponsors}
+              selectedWeekIndex={selectedWeekIndex}
+              toggleClient={toggleClient}
+              toggleSponsor={toggleSponsor}
+              getSponsorsForClient={getSponsorsForClientSimple}
+              formatHours={formatHours}
+            />
+          </>
+        )}
       </div>
     </div>
   );
