@@ -25,6 +25,8 @@ class Case(BaseModel):
     end_of_contract: Optional[date] = None
     weekly_approved_hours: Optional[float] = None
 
+    fixed_fee: Optional[float] = None
+
     status: Optional[str] = None
     last_updated: Optional[datetime] = None
     sponsor: Optional[str] = None
@@ -223,5 +225,17 @@ class CasesRepository:
                 new_case.client_id = client.id if client else None
 
                 cases_dict[f'tp-{tp.id}'] = new_case
+
+        # ----
+
+        for case in cases_dict.values():
+            case.fixed_fee = 0
+            for tracker_project in case.tracker_info:
+                if (
+                    tracker_project.billing and
+                    tracker_project.billing.type == 'fixed_fee' and
+                    tracker_project.billing.fee
+                ):
+                    case.fixed_fee += (tracker_project.billing.fee / 100)
 
         self.__data = cases_dict
