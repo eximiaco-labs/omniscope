@@ -420,7 +420,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             approved_work_hours=sum(case.weekly_approved_hours for case in cases if not case.pre_contracted_value and case.weekly_approved_hours),
             actual_work_hours=sum(case.actual_work_hours for case in regular_cases),
             in_context_actual_work_hours=sum(case.in_context_actual_work_hours for case in regular_cases),
-            wasted_hours=sum(case.wasted_hours for case in regular_cases)
+            wasted_hours=sum(case.wasted_hours for case in regular_cases),
+            over_approved_hours=sum(case.over_approved_hours for case in regular_cases),
         )
         
         pre_contracted = TotalsPreContracted(
