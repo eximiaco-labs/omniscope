@@ -41,7 +41,7 @@ export function RegularCasesTable({
 }: RegularCasesTableProps) {
   return (
     <div>
-      <SectionHeader title="Regular" subtitle="" />
+      <SectionHeader title="Regular Cases by Account Manager" subtitle="" />
       <Table className="ml-2 mr-2">
         <TableHeader>
           <TableRow>
