@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 
 from models.semantic import SalesFunnelB2B
-from models.domain import Worker
+from models.domain import Worker, Client
 
 class ActiveDeal(BaseModel):
     id: int
@@ -11,7 +11,8 @@ class ActiveDeal(BaseModel):
     stage_id: int 
     stage_name: str
     stage_order_nr: int
-    client_name: str
+    client_or_prospect_name: str
+    client: Optional[Client] = None
     account_manager: Optional[Worker] = None
     add_time: Optional[datetime]
     update_time: Optional[datetime]
@@ -19,7 +20,9 @@ class ActiveDeal(BaseModel):
 
 
 class ActiveDealsRepository:
-    def __init__(self, salesfunnel: SalesFunnelB2B):
+    def __init__(self, salesfunnel: SalesFunnelB2B, clients_repository, workers_repository):
+        self.clients_repository = clients_repository
+        self.workers_repository = workers_repository
         self.salesfunnel = salesfunnel
         self.__data = None
 
@@ -36,9 +39,6 @@ class ActiveDealsRepository:
         return next((deal for deal in self.__data if deal.id == id), None)
 
     def __build_data(self):
-        from models.domain.workers import WorkersRepository
-        workers_repository = WorkersRepository()
-
         self.__data = [
             ActiveDeal(
                 id=deal.id,
@@ -46,8 +46,9 @@ class ActiveDealsRepository:
                 stage_id=deal.stage_id,
                 stage_name=deal.stage_name,
                 stage_order_nr=deal.stage_order_nr,
-                client_name=deal.client_name,
-                account_manager=workers_repository.get_by_name(deal.account_manager_name),
+                client_or_prospect_name=deal.client_name,
+                client=self.clients_repository.get_by_name(deal.client_name),
+                account_manager=self.workers_repository.get_by_name(deal.account_manager_name),
                 add_time=deal.add_time,
                 update_time=deal.update_time,
                 days_since_last_update=deal.days_since_last_update

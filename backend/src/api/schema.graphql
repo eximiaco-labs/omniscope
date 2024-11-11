@@ -268,7 +268,8 @@ type ActiveDeal {
   stageId: Int!
   stageName: String!
   stageOrderNr: Int!
-  clientName: String!
+  clientOrProspectName: String!
+  client: Client
   accountManager: Worker
   addTime: String
   updateTime: String

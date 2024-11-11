@@ -70,6 +70,10 @@ class ClientsRepository:
     def get_by_slug(self, slug: str) -> Client:
         o_client = next((client for client in self.get_all().values() if client.slug == slug), None)
         return o_client
+    
+    def get_by_name(self, name: str) -> Client:
+        o_client = next((client for client in self.get_all().values() if client.name == name), None)
+        return o_client
 
     def get_by_everhour_id(self, everhour_id: int) -> Client:
 

@@ -33,7 +33,7 @@ class OmniModels:
         self.projects = ProjectsRepository(self.tasksmanager)
         self.sponsors = SponsorsRepository(self.cases, self.crm)
         self.products_or_services = OffersRepository(self.ontology)
-        self.active_deals = ActiveDealsRepository(self.salesfunnel)
+        self.active_deals = ActiveDealsRepository(self.salesfunnel, self.clients, self.workers)
 
     def get_tasks_for_worker_df(self, worker_id) -> list:
         worker = self.workers.get_by_id(worker_id)
