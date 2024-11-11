@@ -129,9 +129,9 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
   ];
 
   return (
-    <>
+    <div className="mb-4">
       <SectionHeader title="Cases summary" subtitle="" />
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-8 ml-2 mr-2">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 ml-2 mr-2">
         {summaryCards.map((card, index) => (
           <Card 
             key={card.title} 
@@ -285,6 +285,6 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
           </Table>
         </div>
       )}
-    </>
+    </div>
   );
 }
