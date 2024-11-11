@@ -21,6 +21,7 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
             actualWorkHours
             inContextActualWorkHours
             wastedHours
+            overApprovedHours
           }
         }
 
@@ -33,6 +34,7 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
           actualWorkHours
           inContextActualWorkHours
           wastedHours
+          overApprovedHours
         }
 
         preContractedCases {

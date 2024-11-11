@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import SectionHeader from "@/components/SectionHeader";
 
 interface RegularCasesTableProps {
   data: any;
@@ -40,8 +41,8 @@ export function RegularCasesTable({
 }: RegularCasesTableProps) {
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Regular Cases</h2>
-      <Table>
+      <SectionHeader title="Regular" subtitle="" />
+      <Table className="ml-2 mr-2">
         <TableHeader>
           <TableRow>
             <TableHead>Account Manager</TableHead>
@@ -76,6 +77,9 @@ export function RegularCasesTable({
                   const totalWasted = managerCases.reduce((sum: number, c: any) => 
                     sum + (typeof c.wastedHours === 'number' ? c.wastedHours : 0), 0
                   );
+                  const totalOverApproved = managerCases.reduce((sum: number, c: any) => 
+                    sum + (typeof c.overApprovedHours === 'number' ? c.overApprovedHours : 0), 0
+                  );
                   const totalInContext = managerCases.reduce((sum: number, c: any) => 
                     sum + (typeof c.inContextActualWorkHours === 'number' ? c.inContextActualWorkHours : 0), 0
                   );
@@ -88,6 +92,11 @@ export function RegularCasesTable({
                           {totalWasted > 0 && (
                             <div className="text-red-500 text-sm">
                               {formatHours(totalWasted)} wasted
+                            </div>
+                          )}
+                          {totalOverApproved > 0 && (
+                            <div className="text-orange-500 text-sm">
+                              {formatHours(totalOverApproved)} over
                             </div>
                           )}
                           {totalInContext !== totalActual && totalInContext > 0 && (
@@ -126,6 +135,9 @@ export function RegularCasesTable({
                         const totalWasted = clientCases.reduce((sum: number, c: any) => 
                           sum + (typeof c.wastedHours === 'number' ? c.wastedHours : 0), 0
                         );
+                        const totalOverApproved = clientCases.reduce((sum: number, c: any) => 
+                          sum + (typeof c.overApprovedHours === 'number' ? c.overApprovedHours : 0), 0
+                        );
                         const totalInContext = clientCases.reduce((sum: number, c: any) => 
                           sum + (typeof c.inContextActualWorkHours === 'number' ? c.inContextActualWorkHours : 0), 0
                         );
@@ -138,6 +150,11 @@ export function RegularCasesTable({
                                 {totalWasted > 0 && (
                                   <div className="text-red-500 text-sm">
                                     {formatHours(totalWasted)} wasted
+                                  </div>
+                                )}
+                                {totalOverApproved > 0 && (
+                                  <div className="text-orange-500 text-sm">
+                                    {formatHours(totalOverApproved)} over
                                   </div>
                                 )}
                                 {totalInContext !== totalActual && totalInContext > 0 && (
@@ -172,6 +189,7 @@ export function RegularCasesTable({
                               const totalActual = sponsorCases.reduce((sum: number, c: any) => sum + c.actualWorkHours, 0);
                               const totalApproved = sponsorCases.reduce((sum: number, c: any) => sum + c.approvedWorkHours, 0);
                               const totalWasted = sponsorCases.reduce((sum: number, c: any) => sum + c.wastedHours, 0);
+                              const totalOverApproved = sponsorCases.reduce((sum: number, c: any) => sum + c.overApprovedHours, 0);
                               const totalInContext = sponsorCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
                               
                               return (
@@ -182,6 +200,11 @@ export function RegularCasesTable({
                                       {totalWasted > 0 && (
                                         <div className="text-red-500 text-sm">
                                           {formatHours(totalWasted)} wasted
+                                        </div>
+                                      )}
+                                      {totalOverApproved > 0 && (
+                                        <div className="text-orange-500 text-sm">
+                                          {formatHours(totalOverApproved)} over
                                         </div>
                                       )}
                                       {totalInContext !== totalActual && totalInContext > 0 && (
@@ -225,6 +248,11 @@ export function RegularCasesTable({
                                         {c.wastedHours > 0 && (
                                           <div className="text-red-500 text-sm">
                                             {formatHours(c.wastedHours)} wasted
+                                          </div>
+                                        )}
+                                        {c.overApprovedHours > 0 && (
+                                          <div className="text-orange-500 text-sm">
+                                            {formatHours(c.overApprovedHours)} over
                                           </div>
                                         )}
                                         {c.inContextActualWorkHours !== c.actualWorkHours && c.inContextActualWorkHours > 0 && (

@@ -125,8 +125,9 @@ export default function PerformanceAnalysisPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center">
         <DatePicker date={date} onSelectedDateChange={setDate} />
+        <div className="flex-grow h-px bg-gray-200 ml-2"></div>
       </div>
-      <div className="space-y-8">
+      <div className="space-y-8 ml-2 mr-2">
         <RegularCasesTable 
           data={data}
           accountManagers={accountManagers}
