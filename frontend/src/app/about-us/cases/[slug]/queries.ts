@@ -29,6 +29,12 @@ export const GET_CASE_BY_SLUG = gql`
         status
         observations
       }
+      updates {
+        author
+        date
+        status
+        observations
+      }
       timesheets {
         lastSixWeeks {
           byKind {
