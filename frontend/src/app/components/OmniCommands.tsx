@@ -11,14 +11,15 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { 
-  analyticsSidebarItems, 
-  aboutUsSidebarItems, 
-  administrativeSidebarItems 
-} from "@/app/config/navigation"
+  AnalyticsSidebarItems, 
+  AboutUsSidebarItems, 
+  AdministrativeSidebarItems 
+} from "@/app/navigation"
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
 import { useQuery, gql } from "@apollo/client"
 import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon, TrophyIcon } from "lucide-react"
+import { getFlag } from '../flags';
 
 const GET_CONSULTANTS = gql`
   query GetConsultants {
@@ -77,6 +78,22 @@ interface OmniCommandsProps {
 export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
   const router = useRouter()
   const { data } = useQuery(GET_CONSULTANTS)
+  const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+  const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+  const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+
+  React.useEffect(() => {
+    async function loadItems() {
+      const analytics = await AnalyticsSidebarItems()
+      const aboutUs = await AboutUsSidebarItems()
+      const admin = await AdministrativeSidebarItems()
+      
+      setAnalyticsItems(analytics)
+      setAboutUsItems(aboutUs)
+      setAdminItems(admin)
+    }
+    loadItems()
+  }, [])
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -101,7 +118,7 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
         <CommandEmpty>No results found.</CommandEmpty>
         
         <CommandGroup heading="Analytics">
-          {analyticsSidebarItems.map((item) => (
+          {analyticsItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
@@ -113,7 +130,7 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
         </CommandGroup>
 
         <CommandGroup heading="About Us">
-          {aboutUsSidebarItems.map((item) => (
+          {aboutUsItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
@@ -125,7 +142,7 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
         </CommandGroup>
 
         <CommandGroup heading="Administrative">
-          {administrativeSidebarItems.map((item) => (
+          {adminItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
@@ -208,4 +225,4 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
       </CommandList>
     </CommandDialog>
   )
-} 
+}

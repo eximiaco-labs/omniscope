@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "scripts": {
         "dev:frontend": "npm run dev --prefix frontend",
-        "dev:backend": "cd backend && nodemon --watch . --ext py --exec python app.py --verbose",
+        "dev:backend": "cd backend/src && nodemon --watch . --ext py --exec python app.py --verbose",
         "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
     },
     "devDependencies": {
