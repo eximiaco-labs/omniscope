@@ -62,7 +62,7 @@ export default function CasePage() {
               <TableBody>
                 {caseItem.tracker.map((track: { id: string; name: string }) => {
                   const projectWorkers =
-                    caseItem.timesheets.lastSixWeeks.byCase[0].workersByTrackingProject?.find(
+                    caseItem.timesheets.lastSixWeeks.byCase?.[0]?.workersByTrackingProject?.find(
                       (project: { projectId: string }) =>
                         project.projectId === track.id
                     )?.workers || [];
