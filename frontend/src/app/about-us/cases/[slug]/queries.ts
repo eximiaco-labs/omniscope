@@ -35,8 +35,15 @@ export const GET_CASE_BY_SLUG = gql`
         status
         observations
       }
+
       timesheets {
         lastSixWeeks {
+          byCase {
+            workersByTrackingProject {
+              projectId
+              workers
+            }
+          }
           byKind {
             consulting {
               totalHours

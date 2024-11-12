@@ -52,20 +52,6 @@ export function CaseHeader({ caseItem }: CaseHeaderProps) {
               </span>
             )}
           </div>
-          {caseItem.tracker && caseItem.tracker.length > 0 && (
-            <div className="flex flex-wrap items-center mt-2">
-              {caseItem.tracker.map((track, index) => (
-                <React.Fragment key={track.id}>
-                  <span className="text-xs text-gray-500">
-                    {track.name}
-                  </span>
-                  {index < (caseItem.tracker?.length ?? 0) - 1 && (
-                    <span className="mx-2 text-gray-300">•</span>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          )}
         </div>
         <p className="text-sm font-medium text-gray-700">{caseItem.sponsor}</p>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-600">
