@@ -65,7 +65,6 @@ export const useAnalytics = () => {
           user_data: {
             email: session?.user?.email,
             name: session?.user?.name,
-            role: session?.user?.role
           },
           client_data: getClientData(),
           performance_data: getPerformanceData(),
