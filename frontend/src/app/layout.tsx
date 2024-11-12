@@ -23,6 +23,7 @@ import { OmniBreadcrumb } from "./components/OmniBreadcrumb";
 import { SessionComponent } from "./components/SessionComponent";
 import { InconsistencyAlerts } from "./components/InconsistencyAlerts";
 import { OmniCommandsButton } from "./components/OmniCommands";
+import { Analytics } from "@/components/Analytics";
 
 function createApolloClient(session: any) {
   const httpLink = createHttpLink({
@@ -88,32 +89,35 @@ export default function RootLayout({
           <SessionComponent>
             {(session) =>
               session ? (
-                <ApolloProvider client={createApolloClient(session)}>
-                  <SidebarProvider>
-                    <OmniscopeSidebar />
-                    <SidebarInset>
-                      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                        <div className="flex items-center gap-2 px-4 flex-1">
-                          <SidebarTrigger className="-ml-1" />
-                          <Separator
-                            orientation="vertical"
-                            className="mr-2 h-4"
-                          />
-                          <OmniBreadcrumb currentPage="Data Fetching" />
-                          <div className="ml-auto">
-                            <OmniCommandsButton />
+                <>
+                  <Analytics />
+                  <ApolloProvider client={createApolloClient(session)}>
+                    <SidebarProvider>
+                      <OmniscopeSidebar />
+                      <SidebarInset>
+                        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                          <div className="flex items-center gap-2 px-4 flex-1">
+                            <SidebarTrigger className="-ml-1" />
+                            <Separator
+                              orientation="vertical"
+                              className="mr-2 h-4"
+                            />
+                            <OmniBreadcrumb currentPage="Data Fetching" />
+                            <div className="ml-auto">
+                              <OmniCommandsButton />
+                            </div>
                           </div>
-                        </div>
-                      </header>
-                      <main>
-                        <div className="container mx-auto px-4 py-4">
-                          <InconsistencyAlerts />
-                          {children}
-                        </div>
-                      </main>
-                    </SidebarInset>
-                  </SidebarProvider>
-                </ApolloProvider>
+                        </header>
+                        <main>
+                          <div className="container mx-auto px-4 py-4">
+                            <InconsistencyAlerts />
+                            {children}
+                          </div>
+                        </main>
+                      </SidebarInset>
+                    </SidebarProvider>
+                  </ApolloProvider>
+                </>
               ) : null
             }
           </SessionComponent>
