@@ -17,7 +17,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { OmniscopeSidebar } from "./components/OmniscopeSidebar";
+import { OmniSidebar } from "./components/OmniSidebar";
 import { Separator } from "@/components/ui/separator";
 import { OmniBreadcrumb } from "./components/OmniBreadcrumb";
 import { SessionComponent } from "./components/SessionComponent";
@@ -93,7 +93,7 @@ export default function RootLayout({
                   <Analytics />
                   <ApolloProvider client={createApolloClient(session)}>
                     <SidebarProvider>
-                      <OmniscopeSidebar />
+                      <OmniSidebar />
                       <SidebarInset>
                         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
                           <div className="flex items-center gap-2 px-4 flex-1">

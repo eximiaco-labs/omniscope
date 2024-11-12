@@ -18,20 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import {
-  CalendarCheckIcon,
-  ColumnsIcon,
-  DatabaseIcon,
-  UserIcon,
-  BriefcaseIcon,
-  UsersIcon,
-  HandshakeIcon,
-  BoxIcon,
-  RefreshCwIcon,
-  TrophyIcon,
-  CalendarIcon,
-  TargetIcon,
   ChevronsUpDown,
-  ChartLineIcon
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
@@ -39,11 +26,14 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage } from "@radix-ui/react-avatar";
 import Logo from "./logo";
-import { 
-  analyticsSidebarItems, 
-  aboutUsSidebarItems, 
-  administrativeSidebarItems 
-} from "@/app/config/navigation"
+
+import {
+  AnalyticsSidebarItems,
+  AboutUsSidebarItems,
+  AdministrativeSidebarItems,
+} from "@/app/navigation"
+
+import React from "react";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -53,12 +43,29 @@ const GET_USER_PHOTO = gql`
   }
 `;
 
-export function OmniscopeSidebar() {
+export function OmniSidebar() {
   const { data: session } = useSession();
   const { data: userData } = useQuery(GET_USER_PHOTO, {
     variables: { email: session?.user?.email },
     skip: !session?.user?.email,
   });
+
+  const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([]);
+  const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([]);
+  const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([]);
+
+  React.useEffect(() => {
+    async function loadItems() {
+      const analytics = await AnalyticsSidebarItems();
+      const aboutUs = await AboutUsSidebarItems();
+      const admin = await AdministrativeSidebarItems();
+      
+      setAnalyticsItems(analytics);
+      setAboutUsItems(aboutUs);
+      setAdminItems(admin);
+    }
+    loadItems();
+  }, []);
 
   return (
     <Sidebar collapsible="icon">
@@ -83,11 +90,11 @@ export function OmniscopeSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <OmniSidebarGroup title="Analytics" items={analyticsSidebarItems} />
-        <OmniSidebarGroup title="About Us" items={aboutUsSidebarItems} />
+        <OmniSidebarGroup title="Analytics" items={analyticsItems} />
+        <OmniSidebarGroup title="About Us" items={aboutUsItems} />
         <OmniSidebarGroup
           title="Administrative"
-          items={administrativeSidebarItems}
+          items={adminItems}
         />
       </SidebarContent>
       <SidebarFooter>
