@@ -7,6 +7,7 @@ interface AnalyticsEvent {
   event_label?: string;
   event_value?: number;
   page_path?: string;
+  environment?: 'development' | 'production';
   user_data?: {
     email?: string;
     name?: string;

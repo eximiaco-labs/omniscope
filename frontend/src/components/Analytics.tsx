@@ -14,13 +14,17 @@ export function Analytics() {
     if (pathname && pathname !== lastPathRef.current) {
       lastPathRef.current = pathname;
       
+      const isLocalhost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      
       trackEvent({
         event_name: 'page_view',
         event_category: 'navigation',
         event_action: 'view',
         event_label: pathname,
         page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
-        event_value: 1
+        event_value: 1,
+        environment: isLocalhost ? 'development' : 'production'
       });
     }
   }, [pathname, searchParams, trackEvent]);
