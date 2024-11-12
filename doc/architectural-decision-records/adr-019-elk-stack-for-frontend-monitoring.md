@@ -42,9 +42,6 @@ We have decided to implement the **ELK Stack** (Elasticsearch, Logstash, Kibana)
 
 ### Negative:
 - **Implementation Overhead**: Required setup of logging middleware and configurations
-- **Data Volume**: Need to manage large amounts of logging data
-- **Performance Impact**: Minor impact from logging operations
-- **Maintenance**: Need to maintain ELK infrastructure and configurations
 
 ## Implementation
 - Custom middleware for structured logging
@@ -52,5 +49,3 @@ We have decided to implement the **ELK Stack** (Elasticsearch, Logstash, Kibana)
 - Error boundary implementation for React error catching
 - Performance monitoring through Web Vitals API
 - Custom Kibana dashboards for different monitoring aspects
-
-### Code Example 
