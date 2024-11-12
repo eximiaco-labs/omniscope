@@ -58,3 +58,18 @@ envVars:
       secretKeyRef:
         name: omniscope-backend-secrets
         key: YOUTUBE_API_KEY 
+  - name: ELK_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-fronend-secrets
+        key: ELK_API_KEY
+  - name: ELK_CLOUD_ID
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-fronend-secrets
+        key: ELK_CLOUD_ID
+  - name: ELK_ENDPOINT_URL
+    valueFrom:
+      secretKeyRef:
+        name: omniscope-fronend-secrets
+        key: ELK_ENDPOINT_URL
