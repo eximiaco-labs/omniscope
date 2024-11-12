@@ -191,7 +191,7 @@ export function TimesheetSummary({
     .sort((a, b) => b.totalHours - a.totalHours);
 
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <SectionHeader title="Timesheet Summary" subtitle="" />
       <div className="mr-2 ml-2">
         <div className="mb-2">

@@ -5,8 +5,9 @@ import { useQuery } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { GET_CASE_BY_SLUG } from "./queries";
 import { CaseHeader } from "./CaseHeader";
-import { CaseUpdate } from "./CaseUpdate";
+import { CaseTimeline } from "./CaseTimeline";
 import { WeeklyHoursTable } from "./WeeklyHoursTable";
+import SectionHeader from "@/components/SectionHeader";
 
 export default function CasePage() {
   const { slug } = useParams();
@@ -36,34 +37,49 @@ export default function CasePage() {
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
-      {caseItem.lastUpdate && <CaseUpdate lastUpdate={caseItem.lastUpdate} />}
+      {caseItem.updates && caseItem.updates.length > 0 && (
+        <div className="mt-8">
+          <SectionHeader title="Case Updates" subtitle="" />
+          <div className="ml-4 mr-4">
+          <CaseTimeline updates={caseItem.updates} />
+          </div>
+        </div>
+      )}
       
       {byKind.consulting?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Consulting Hours</h3>
-          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.consulting.byWorker} />
-        </>
+        <div className="mt-8">
+          <SectionHeader title="Consulting Hours" subtitle="" />
+          <div className="ml-4 mr-4">
+            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.consulting.byWorker} />
+          </div>
+        </div>
       )}
 
       {byKind.handsOn?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Hands-on Hours</h3>
-          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.handsOn.byWorker} />
-        </>
+        <div className="mt-8">
+          <SectionHeader title="Hands-on Hours" subtitle="" />
+          <div className="ml-4 mr-4">
+            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.handsOn.byWorker} />
+          </div>
+        </div>
       )}
 
       {byKind.squad?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Squad Hours</h3>
-          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.squad.byWorker} />
-        </>
+        <div className="mt-8">
+          <SectionHeader title="Squad Hours" subtitle="" />
+          <div className="ml-4 mr-4">
+            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.squad.byWorker} />
+          </div>
+        </div>
       )}
 
       {byKind.internal?.byWorker?.length > 0 && (
-        <>
-          <h3 className="mt-8 mb-4 text-lg font-semibold">Internal Hours</h3>
-          <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.internal.byWorker} />
-        </>
+        <div className="mt-8">
+          <SectionHeader title="Internal Hours" subtitle="" />
+          <div className="ml-4 mr-4">
+            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.internal.byWorker} />
+          </div>
+        </div>
       )}
     </div>
   );

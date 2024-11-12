@@ -14,6 +14,7 @@ export const GET_CASE_BY_SLUG = gql`
       startOfContract
       endOfContract
       weeklyApprovedHours
+      ontologyUrl
       tracker {
         id
         name
@@ -25,6 +26,12 @@ export const GET_CASE_BY_SLUG = gql`
       lastUpdate {
         date
         author
+        status
+        observations
+      }
+      updates {
+        author
+        date
         status
         observations
       }

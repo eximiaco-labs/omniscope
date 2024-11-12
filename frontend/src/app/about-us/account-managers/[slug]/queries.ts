@@ -6,6 +6,18 @@ export const GET_ACCOUNT_MANAGER = gql`
       photoUrl
       name
       position
+  
+      activeDeals {
+        title
+        clientOrProspectName
+        client {
+          id
+        }
+        stageName
+        stageOrderNr
+        daysSinceLastUpdate
+      }
+  
       cases(onlyActives: true) {
         title
         startOfContract
@@ -81,6 +93,15 @@ export interface AccountManager {
   photoUrl: string;
   name: string;
   position: string;
+
+  activeDeals: Array<{
+    title: string;
+    clientOrProspectName: string;
+    client: { id: number };
+    stageName: string;
+    stageOrderNr: number;
+    daysSinceLastUpdate: number;
+  }>;
 
   cases: Array<{
     title: string;

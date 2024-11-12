@@ -1,5 +1,6 @@
 from api.datasets.timesheets import compute_timesheet
 from api.domain.cases import compute_cases
+from api.domain.active_deals import compute_active_deals
 
 from api.utils.fields import build_fields_map
 
@@ -48,3 +49,6 @@ def resolve_account_manager_cases(account_manager, info, only_actives: bool = Fa
 
     map_ = build_fields_map(info)
     return compute_cases(filtered_cases, map_, only_actives)
+
+def resolve_account_manager_active_deals(account_manager, info):
+    return compute_active_deals(account_manager.slug)

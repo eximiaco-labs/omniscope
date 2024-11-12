@@ -92,6 +92,12 @@ class Case(BaseModel):
     @property
     def has_updated_description(self) -> bool:
         return self.is_active and self.has_description and self.number_of_days_with_no_updates < 30
+    
+    @property
+    def ontology_url(self) -> str:
+        if not self.ontology_info:
+            return None
+        return self.ontology_info.link
 
     @property
     def omni_url(self) -> str:

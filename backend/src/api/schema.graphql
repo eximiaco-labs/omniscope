@@ -73,6 +73,7 @@ type Worker {
 
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
   cases(onlyActives: Boolean): [Case!]!
+  activeDeals: [ActiveDeal!]!
 }
 
 type Client {
@@ -129,6 +130,7 @@ type Case {
   tracker: [TrackerProject]
   timesheets: Timesheets
   isStale: Boolean!
+  ontologyUrl: String
 }
 
 type TrackerProject {
@@ -267,7 +269,8 @@ type ActiveDeal {
   stageId: Int!
   stageName: String!
   stageOrderNr: Int!
-  clientName: String!
+  clientOrProspectName: String!
+  client: Client
   accountManager: Worker
   addTime: String
   updateTime: String

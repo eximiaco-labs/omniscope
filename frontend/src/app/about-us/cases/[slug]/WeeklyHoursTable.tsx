@@ -1,3 +1,4 @@
+import { Table, TableRow, TableHeader, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import React from "react";
 
 interface Week {
@@ -30,56 +31,51 @@ export function WeeklyHoursTable({ weeks, consultingWorkers }: WeeklyHoursTableP
   });
 
   return (
-    <div className="overflow-x-auto rounded-lg shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b w-48">
-              Worker
-            </th>
-            {weeks.map((week) => (
-              <th 
-                key={`${week.start}-${week.end}`}
-                scope="col"
-                className="py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-b w-32"
-              >
-                {week.start} - {week.end}
-              </th>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-48">Worker</TableHead>
+          {weeks.map((week) => (
+            <TableHead 
+              key={`${week.start}-${week.end}`}
+              className="w-32 text-center"
+            >
+              {week.start} - {week.end}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {consultingWorkers.map((worker) => {
+          return (
+            <TableRow key={worker.name}>
+              <TableCell className="font-medium">
+                {worker.name}
+              </TableCell>
+              {weeks.map((week) => {
+                const hours = worker.weeklyHours.find(wh => wh.week === `${week.start} - ${week.end}`)?.hours || 0;
+                return (
+                  <TableCell key={`${week.start}-${week.end}`} className="text-center">
+                    {hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
+        {consultingWorkers.length > 1 && (
+          <TableRow>
+            <TableCell className="font-medium">
+              Total
+            </TableCell>
+            {weeklyTotals.map((total, index) => (
+              <TableCell key={index} className="text-center font-medium">
+                {total % 1 === 0 ? total.toFixed(0) : total.toFixed(1)}
+              </TableCell>
             ))}
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {consultingWorkers.map((worker) => {
-            return (
-              <tr key={worker.name} className="hover:bg-gray-50 transition-colors duration-150">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                  {worker.name}
-                </td>
-                {weeks.map((week) => {
-                  const hours = worker.weeklyHours.find(wh => wh.week === `${week.start} - ${week.end}`)?.hours || 0;
-                  return (
-                    <td key={`${week.start}-${week.end}`} className="py-4 whitespace-nowrap text-sm text-gray-600 text-center">
-                      {hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-          {consultingWorkers.length > 1 && (
-            <tr className="bg-gray-50 font-semibold">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                Total
-              </td>
-              {weeklyTotals.map((total, index) => (
-                <td key={index} className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 text-center">
-                  {total % 1 === 0 ? total.toFixed(0) : total.toFixed(1)}
-                </td>
-              ))}
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
