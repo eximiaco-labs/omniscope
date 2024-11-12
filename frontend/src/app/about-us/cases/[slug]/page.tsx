@@ -8,6 +8,7 @@ import { CaseHeader } from "./CaseHeader";
 import { CaseTimeline } from "./CaseTimeline";
 import { WeeklyHoursTable } from "./WeeklyHoursTable";
 import SectionHeader from "@/components/SectionHeader";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 export default function CasePage() {
   const { slug } = useParams();
@@ -20,7 +21,7 @@ export default function CasePage() {
 
   const caseItem = data.case;
   const byKind = caseItem.timesheets?.lastSixWeeks?.byKind || {};
-  
+
   // Generate last 6 weeks dates with start and end dates
   const weeks = Array.from({ length: 6 }, (_, i) => {
     const date = new Date();
@@ -29,28 +30,89 @@ export default function CasePage() {
     const endDate = new Date(date);
     endDate.setDate(endDate.getDate() + 6);
     return {
-      start: startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      end: endDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+      start: startDate.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      end: endDate.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
     };
   });
 
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
+
       {caseItem.updates && caseItem.updates.length > 0 && (
         <div className="mt-8">
           <SectionHeader title="Case Updates" subtitle="" />
           <div className="ml-4 mr-4">
-          <CaseTimeline updates={caseItem.updates} />
+            <CaseTimeline updates={caseItem.updates} />
           </div>
         </div>
       )}
-      
+
+      {caseItem.tracker && caseItem.tracker.length > 0 && (
+        <div className="mt-8">
+          <SectionHeader title="Tracking Projects" subtitle="" />
+          <div className="ml-4 mr-4">
+            <Table>
+              <TableBody>
+                {caseItem.tracker.map((track: { id: string; name: string }) => {
+                  const projectWorkers =
+                    caseItem.timesheets.lastSixWeeks.byCase[0].workersByTrackingProject?.find(
+                      (project: { projectId: string }) =>
+                        project.projectId === track.id
+                    )?.workers || [];
+
+                  return (
+                    <React.Fragment key={track.id}>
+                      {projectWorkers.length > 0 ? (
+                        <>
+                          <TableRow>
+                            <TableCell
+                              rowSpan={projectWorkers.length}
+                              className="w-1/2 break-words border-r"
+                            >
+                              {track.name}
+                            </TableCell>
+                            <TableCell className="w-1/2">{projectWorkers[0]}</TableCell>
+                          </TableRow>
+                          {projectWorkers.slice(1).map((worker: string) => (
+                            <TableRow key={`${track.id}-${worker}`}>
+                              <TableCell className="w-1/2">{worker}</TableCell>
+                            </TableRow>
+                          ))}
+                        </>
+                      ) : (
+                        <TableRow>
+                          <TableCell className="w-1/2 break-words border-r">
+                            {track.name}
+                          </TableCell>
+                          <TableCell className="w-1/2 text-muted-foreground">
+                            No team members
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
       {byKind.consulting?.byWorker?.length > 0 && (
         <div className="mt-8">
           <SectionHeader title="Consulting Hours" subtitle="" />
           <div className="ml-4 mr-4">
-            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.consulting.byWorker} />
+            <WeeklyHoursTable
+              weeks={weeks}
+              consultingWorkers={byKind.consulting.byWorker}
+            />
           </div>
         </div>
       )}
@@ -59,7 +121,10 @@ export default function CasePage() {
         <div className="mt-8">
           <SectionHeader title="Hands-on Hours" subtitle="" />
           <div className="ml-4 mr-4">
-            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.handsOn.byWorker} />
+            <WeeklyHoursTable
+              weeks={weeks}
+              consultingWorkers={byKind.handsOn.byWorker}
+            />
           </div>
         </div>
       )}
@@ -68,7 +133,10 @@ export default function CasePage() {
         <div className="mt-8">
           <SectionHeader title="Squad Hours" subtitle="" />
           <div className="ml-4 mr-4">
-            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.squad.byWorker} />
+            <WeeklyHoursTable
+              weeks={weeks}
+              consultingWorkers={byKind.squad.byWorker}
+            />
           </div>
         </div>
       )}
@@ -77,7 +145,10 @@ export default function CasePage() {
         <div className="mt-8">
           <SectionHeader title="Internal Hours" subtitle="" />
           <div className="ml-4 mr-4">
-            <WeeklyHoursTable weeks={weeks} consultingWorkers={byKind.internal.byWorker} />
+            <WeeklyHoursTable
+              weeks={weeks}
+              consultingWorkers={byKind.internal.byWorker}
+            />
           </div>
         </div>
       )}
