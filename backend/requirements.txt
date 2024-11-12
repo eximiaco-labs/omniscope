@@ -3,6 +3,7 @@ Flask
 Flask-CORS
 flask_httpauth
 ariadne
+elasticsearch
 
 google-auth
 pytest

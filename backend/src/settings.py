@@ -22,6 +22,12 @@ api_settings = {
     "wordpress_pass": os.environ.get("WORDPRESS_PASS")
 }
 
+elk_settings = {
+    "endpoint_url": os.environ.get("ELK_ENDPOINT_URL"),
+    "cloud_id": os.environ.get("ELK_CLOUD_ID"),
+    "api_key": os.environ.get("ELK_API_KEY")
+}
+
 graphql_settings = {
     "require_auth": os.environ.get("GRAPHQL_REQUIRE_AUTH", "True").lower() == "true"
 }
