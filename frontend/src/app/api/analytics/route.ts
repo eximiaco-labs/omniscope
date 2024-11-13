@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
 import { Client } from '@elastic/elasticsearch';
 
-const client = new Client({
-  node: process.env.ELK_ENDPOINT_URL,
-  cloud: {
-    id: process.env.ELK_CLOUD_ID!
-  },
-  auth: {
-    apiKey: process.env.ELK_API_KEY!
-  }
-});
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    
+    const client = new Client({
+      node: process.env.ELK_ENDPOINT_URL,
+      cloud: {
+        id: process.env.ELK_CLOUD_ID!
+      },
+      auth: {
+        apiKey: process.env.ELK_API_KEY!
+      }
+    });
+
+
+    const body = await request.json();    
     await client.index({
       index: 'omniscope-frontend-events',
       document: {
