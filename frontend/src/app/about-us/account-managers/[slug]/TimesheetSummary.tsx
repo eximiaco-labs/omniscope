@@ -21,6 +21,7 @@ interface TimesheetSummaryProps {
   timesheet: AccountManager["timesheet"];
   selectedDataset: string;
   onDatasetSelect: (dataset: string) => void;
+  showWorkersInfo?: boolean;
 }
 
 interface Worker {
@@ -36,6 +37,7 @@ export function TimesheetSummary({
   timesheet,
   selectedDataset,
   onDatasetSelect,
+  showWorkersInfo = true,
 }: TimesheetSummaryProps) {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
@@ -90,9 +92,11 @@ export function TimesheetSummary({
         if (existingClient) {
           existingClient.totalHours += totalCaseHours;
           existingClient.uniqueCases += 1;
-          c.byWorker
-            .filter((w) => Number((w as Worker)[hoursField]) > 0)
-            .forEach((w) => existingClient.workers.add(w.name));
+          if (showWorkersInfo) {
+            c.byWorker
+              .filter((w) => Number((w as Worker)[hoursField]) > 0)
+              .forEach((w) => existingClient.workers.add(w.name));
+          }
 
           if (!existingClient.sponsors.has(c.caseDetails.sponsor)) {
             existingClient.sponsors.add(c.caseDetails.sponsor);
@@ -108,19 +112,21 @@ export function TimesheetSummary({
           };
           sponsorData.totalHours += totalCaseHours;
 
-          c.byWorker
-            .filter((w) => Number((w as Worker)[hoursField]) > 0)
-            .forEach((w) => sponsorData.workers.add(w.name));
+          if (showWorkersInfo) {
+            c.byWorker
+              .filter((w) => Number((w as Worker)[hoursField]) > 0)
+              .forEach((w) => sponsorData.workers.add(w.name));
+          }
 
           sponsorData.cases.push({
             title: c.title,
             hours: totalCaseHours,
-            workers: c.byWorker
+            workers: showWorkersInfo ? c.byWorker
               .filter((w) => Number((w as Worker)[hoursField]) > 0)
               .map((w) => ({
                 name: w.name,
                 hours: Number((w as Worker)[hoursField] || 0),
-              })),
+              })) : [],
           });
           existingClient.sponsorDetails.set(c.caseDetails.sponsor, sponsorData);
         } else {
@@ -131,15 +137,15 @@ export function TimesheetSummary({
 
           sponsorDetails.set(c.caseDetails.sponsor, {
             totalHours: totalCaseHours,
-            workers: new Set(workersWithHours.map((w) => w.name)),
+            workers: showWorkersInfo ? new Set(workersWithHours.map((w) => w.name)) : new Set(),
             cases: [
               {
                 title: c.title,
                 hours: totalCaseHours,
-                workers: workersWithHours.map((w) => ({
+                workers: showWorkersInfo ? workersWithHours.map((w) => ({
                   name: w.name,
                   hours: (w as Worker)[hoursField] || 0,
-                })),
+                })) : [],
               },
             ],
           });
@@ -150,7 +156,7 @@ export function TimesheetSummary({
             uniqueCases: 1,
             totalHours: totalCaseHours,
             sponsors: new Set([c.caseDetails.sponsor]),
-            workers: new Set(workersWithHours.map((w) => w.name)),
+            workers: showWorkersInfo ? new Set(workersWithHours.map((w) => w.name)) : new Set(),
             sponsorDetails,
           });
         }
@@ -247,8 +253,13 @@ export function TimesheetSummary({
                     {data?.uniqueSponsors} sponsor
                     {data?.uniqueSponsors !== 1 ? "s" : ""} •{" "}
                     {data?.uniqueCases} case
-                    {data?.uniqueCases !== 1 ? "s" : ""} • {data?.uniqueWorkers}{" "}
-                    worker{data?.uniqueWorkers !== 1 ? "s" : ""}
+                    {data?.uniqueCases !== 1 ? "s" : ""}
+                    {showWorkersInfo && (
+                      <>
+                        {" "}• {data?.uniqueWorkers}{" "}
+                        worker{data?.uniqueWorkers !== 1 ? "s" : ""}
+                      </>
+                    )}
                   </div>
                 </div>
               </CardFooter>
@@ -262,17 +273,27 @@ export function TimesheetSummary({
               <TabsList className="w-full justify-start">
                 <TabsTrigger value="client">By Client</TabsTrigger>
                 <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
-                <TabsTrigger value="worker">By Worker</TabsTrigger>
+                {showWorkersInfo && (
+                  <TabsTrigger value="worker">By Worker</TabsTrigger>
+                )}
               </TabsList>
               <TabsContent value="client">
-                <ClientSponsorCaseWorkerTable clientData={sortedClientData} />
+                <ClientSponsorCaseWorkerTable 
+                  clientData={sortedClientData} 
+                  showWorkersInfo={showWorkersInfo}
+                />
               </TabsContent>
               <TabsContent value="sponsor">
-                <SponsorCaseWorkerTable clientData={sortedClientData} />
+                <SponsorCaseWorkerTable 
+                  clientData={sortedClientData}
+                  showWorkersInfo={showWorkersInfo}
+                />
               </TabsContent>
-              <TabsContent value="worker">
-                <WorkerClientSponsorCaseTable clientData={sortedClientData} />
-              </TabsContent>
+              {showWorkersInfo && (
+                <TabsContent value="worker">
+                  <WorkerClientSponsorCaseTable clientData={sortedClientData} />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         )}
