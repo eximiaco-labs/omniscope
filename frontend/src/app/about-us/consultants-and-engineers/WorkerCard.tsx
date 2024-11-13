@@ -26,7 +26,7 @@ export function WorkerCard({ worker, workerData }: WorkerCardProps) {
 
   return (
     <Link 
-      href={`/home/${encodeURIComponent(worker.slug)}`}
+      href={`/about-us/consultants-and-engineers/${encodeURIComponent(worker.slug)}`}
       className="block transition-all duration-300 ease-in-out"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
