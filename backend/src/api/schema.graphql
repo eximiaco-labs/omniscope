@@ -50,7 +50,7 @@ interface ISummary {
 }
 
 # Domain types
-type Worker {
+type AccountManager {
   id: Int!
   slug: String!
   name: String!
@@ -76,12 +76,38 @@ type Worker {
   activeDeals: [ActiveDeal!]!
 }
 
+type Worker {
+  id: Int!
+  slug: String!
+  name: String!
+  email: String
+  kind: WorkerKind!
+  errors: [String]
+  position: String!
+  ontologyUserId: Int
+  insightsUserId: Int
+  todoistUserId: Int
+  pipedriveUserId: Int
+  isRecognized: Boolean!
+  omniUrl: String!
+  photoUrl: String
+
+  isOntologyAuthor: Boolean!
+  isInsightsAuthor: Boolean!
+  isTimeTrackerWorker: Boolean!
+  isSpecialProjectsWorker: Boolean!
+
+  timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
+  cases(onlyActives: Boolean): [Case!]!
+
+}
+
 type Client {
   id: Int!
   slug: String!
   name: String!
   isStrategic: Boolean!
-  accountManager: Worker
+  accountManager: AccountManager
   isRecognized: Boolean!
   omniUrl: String!
   logoUrl: String!
@@ -271,7 +297,7 @@ type ActiveDeal {
   stageOrderNr: Int!
   clientOrProspectName: String!
   client: Client
-  accountManager: Worker
+  accountManager: AccountManager
   addTime: String
   updateTime: String
   daysSinceLastUpdate: Int
@@ -835,14 +861,14 @@ type ApprovedVsActualWeek {
 type Query {
   inconsistencies: [Inconsistency]!
 
-  accountManagers: [Worker!]!
+  accountManagers: [AccountManager!]!
   consultantsAndEngineers: [Worker!]!
   clients(accountManagerName: String, accountManagerSlug: String): [Client!]!
   sponsors: [Sponsor!]!
   cases(onlyActives: Boolean): [Case!]!
   offers: [Offer!]!
 
-  accountManager(id: Int, slug: String): Worker @atLeastOne
+  accountManager(id: Int, slug: String): AccountManager @atLeastOne
   consultantOrEngineer(id: Int, slug: String): Worker @atLeastOne
   client(id: Int, slug: String): Client @atLeastOne
   sponsor(slug: String!): Sponsor
