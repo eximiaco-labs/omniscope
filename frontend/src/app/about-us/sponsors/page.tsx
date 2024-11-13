@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle } from "lucide-react";
 
 const GET_SPONSORS_AND_TIMESHEET = gql`
   query GetSponsorsAndTimesheet {
@@ -22,6 +22,7 @@ const GET_SPONSORS_AND_TIMESHEET = gql`
       jobTitle
       linkedinUrl
       omniUrl
+      crmId
       client {
         name
       }
@@ -134,8 +135,15 @@ export default function Sponsors() {
         <Card
           className={`h-full ${
             isHovered ? "shadow-lg scale-105" : "shadow"
-          } transition-all duration-300`}
+          } transition-all duration-300 relative`}
         >
+          {!sponsor.crmId && (
+            <div className="absolute -top-2 -left-2 z-10">
+              <div className="bg-red-500 rounded-full p-1">
+                <AlertTriangle className="text-white" size={20} />
+              </div>
+            </div>
+          )}
           <CardContent className="flex flex-col items-center p-4">
             <span className="rounded-full *:rounded-full">
               <img

@@ -1,38 +1,12 @@
 import { gql } from "@apollo/client";
 
-export const GET_ACCOUNT_MANAGER = gql`
-  query GetAccountManager($slug: String!, $dataset: String!) {
-    accountManager(slug: $slug) {
+export const GET_CONSULTANT = gql`
+  query GetConsultant($slug: String!, $dataset: String!) {
+    consultantOrEngineer(slug: $slug) {
       photoUrl
       name
       position
-  
-      activeDeals {
-        title
-        clientOrProspectName
-        client {
-          id
-        }
-        stageName
-        stageOrderNr
-        daysSinceLastUpdate
-      }
-  
-      cases(onlyActives: true) {
-        title
-        startOfContract
-        endOfContract
-        lastUpdated
-        hasDescription
-        lastUpdate {
-          status
-          date
-          author
-          observations
-        }
-        client { name }
-        isStale
-      }
+
       timesheet(slug: $dataset) {
         byKind {
           consulting {
@@ -92,35 +66,10 @@ export const GET_ACCOUNT_MANAGER = gql`
   }
 `;
 
-export interface AccountManager {
+export interface Consultant {
   photoUrl: string;
   name: string;
   position: string;
-
-  activeDeals: Array<{
-    title: string;
-    clientOrProspectName: string;
-    client: { id: number };
-    stageName: string;
-    stageOrderNr: number;
-    daysSinceLastUpdate: number;
-  }>;
-
-  cases: Array<{
-    title: string;
-    startOfContract: string;
-    endOfContract: string;
-    lastUpdated: string;
-    hasDescription: boolean;
-    lastUpdate: {
-      status: string;
-      date: Date;
-      author: string;
-      observations: string;
-    };
-    client: { name: string; accountManager: { name: string } };
-    isStale: boolean;
-  }>;
 
   timesheet: {
     byKind: {
@@ -156,16 +105,16 @@ export interface AccountManager {
     byCase: Array<{
       title: string;
       caseDetails: {
-        client: { name: string, accountManager: { name: string } };
+        client: { name: string; accountManager: { name: string } };
         sponsor: string;
       };
-      byWorker: Array<{
+      byWorker: {
         name: string;
         totalConsultingHours: number;
         totalHandsOnHours: number;
         totalSquadHours: number;
         totalInternalHours: number;
-      }>;
+      }[];
     }>;
   };
 }

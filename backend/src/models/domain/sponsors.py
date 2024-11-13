@@ -9,7 +9,7 @@ import models.helpers.slug as sl
 class Sponsor(BaseModel):
     slug: str
     name: str
-    photo_url: Optional[str] = '/assets/who_is_it.jpeg'
+    photo_url: Optional[str] = '/images/who_is_it.jpeg'
     client_id: Optional[int] = None
 
     crm_id: Optional[str] = None
@@ -65,6 +65,6 @@ class SponsorsRepository:
         self.__data = {
             sl.generate(sponsor): instantiate(sponsor, case.client_id)
             for case in all_cases
-            if case.sponsor is not None
+            if case.sponsor is not None and case.sponsor != 'N/A'
             for sponsor in case.sponsor.split(';')
         }

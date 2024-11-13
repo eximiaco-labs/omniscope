@@ -40,9 +40,10 @@ type SortColumn = 'hours' | 'sponsors' | 'cases' | 'workers';
 
 interface ClientSponsorCaseWorkerTableProps {
   clientData: ClientData[];
+  showWorkersInfo?: boolean;
 }
 
-export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWorkerTableProps) {
+export function ClientSponsorCaseWorkerTable({ clientData, showWorkersInfo = true }: ClientSponsorCaseWorkerTableProps) {
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
@@ -102,7 +103,7 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
       case 'cases':
         return b.uniqueCases - a.uniqueCases;
       case 'workers':
-        return b.workers.size - a.workers.size;
+        return showWorkersInfo ? b.workers.size - a.workers.size : 0;
       default:
         return 0;
     }
@@ -126,12 +127,14 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
           >
             Cases {sortColumn === 'cases' && '↓'}
           </TableHead>
-          <TableHead 
-            className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
-            onClick={() => handleSort('workers')}
-          >
-            Workers {sortColumn === 'workers' && '↓'}
-          </TableHead>
+          {showWorkersInfo && (
+            <TableHead 
+              className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
+              onClick={() => handleSort('workers')}
+            >
+              Workers {sortColumn === 'workers' && '↓'}
+            </TableHead>
+          )}
           <TableHead 
             className="text-right w-[100px] cursor-pointer hover:bg-gray-100"
             onClick={() => handleSort('hours')}
@@ -160,7 +163,9 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
               <TableCell className="font-medium">{client.name}</TableCell>
               <TableCell className="text-right w-[100px]">{client.uniqueSponsors}</TableCell>
               <TableCell className="text-right w-[100px]">{client.uniqueCases}</TableCell>
-              <TableCell className="text-right w-[100px]">{client.workers.size}</TableCell>
+              {showWorkersInfo && (
+                <TableCell className="text-right w-[100px]">{client.workers.size}</TableCell>
+              )}
               <TableCell className="text-right w-[100px]">{formatHours(client.totalHours)}</TableCell>
             </TableRow>
           );
@@ -190,7 +195,9 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
                     </TableCell>
                     <TableCell className="text-right w-[100px]">-</TableCell>
                     <TableCell className="text-right w-[100px]">{data.cases.length}</TableCell>
-                    <TableCell className="text-right w-[100px]">{data.workers.size}</TableCell>
+                    {showWorkersInfo && (
+                      <TableCell className="text-right w-[100px]">{data.workers.size}</TableCell>
+                    )}
                     <TableCell className="text-right w-[100px]">{formatHours(data.totalHours)}</TableCell>
                   </TableRow>
                 );
@@ -205,27 +212,31 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
                       rows.push(
                         <TableRow 
                           key={caseKey}
-                          className="bg-gray-200 cursor-pointer hover:bg-gray-300"
+                          className={`bg-gray-200 ${showWorkersInfo ? 'cursor-pointer hover:bg-gray-300' : ''}`}
                           onClick={(e) => {
-                            e.stopPropagation();
-                            toggleCase(caseKey);
+                            if (showWorkersInfo) {
+                              e.stopPropagation();
+                              toggleCase(caseKey);
+                            }
                           }}
                         >
                           <TableCell className="w-4"></TableCell>
                           <TableCell className="pl-12">
                             <div className="flex items-center gap-1">
-                              {isCaseExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                              {showWorkersInfo && (isCaseExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
                               <span>{caseData.title}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right w-[100px]">-</TableCell>
                           <TableCell className="text-right w-[100px]">-</TableCell>
-                          <TableCell className="text-right w-[100px]">{caseData.workers.length}</TableCell>
+                          {showWorkersInfo && (
+                            <TableCell className="text-right w-[100px]">{caseData.workers.length}</TableCell>
+                          )}
                           <TableCell className="text-right w-[100px]">{formatHours(caseData.hours)}</TableCell>
                         </TableRow>
                       );
 
-                      if (isCaseExpanded) {
+                      if (showWorkersInfo && isCaseExpanded) {
                         caseData.workers
                           .sort((a, b) => b.hours - a.hours)
                           .forEach((worker) => {
@@ -238,7 +249,9 @@ export function ClientSponsorCaseWorkerTable({ clientData }: ClientSponsorCaseWo
                                 <TableCell className="pl-16">{worker.name}</TableCell>
                                 <TableCell className="text-right w-[100px]">-</TableCell>
                                 <TableCell className="text-right w-[100px]">-</TableCell>
-                                <TableCell className="text-right w-[100px]">-</TableCell>
+                                {showWorkersInfo && (
+                                  <TableCell className="text-right w-[100px]">-</TableCell>
+                                )}
                                 <TableCell className="text-right w-[100px]">{formatHours(worker.hours)}</TableCell>
                               </TableRow>
                             );

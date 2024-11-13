@@ -98,8 +98,8 @@ export default function SponsorPage() {
             jobTitle: sponsorData.sponsor.jobTitle,
             linkedinUrl: sponsorData.sponsor.linkedinUrl,
             client: {
-              id: sponsorData.sponsor.client.id,
-              name: sponsorData.sponsor.client.name
+              id: sponsorData.sponsor.client?.id,
+              name: sponsorData.sponsor.client?.name
             }
           }}
         />

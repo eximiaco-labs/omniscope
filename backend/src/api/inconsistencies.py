@@ -92,6 +92,16 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             'Projects without due dates',
             f'{len(projects_without_due_dates)} project(s) have no expected due date set.'
         ))
-
+        
+    sponsors = globals.omni_models.sponsors.get_all().values()
+    sponsors_without_crm_id = [
+        sponsor for sponsor in sponsors
+        if not sponsor.crm_id
+    ]
+    if sponsors_without_crm_id:
+        result.append(Inconsistency(
+            'Sponsors not found in CRM',
+            f'{len(sponsors_without_crm_id)} sponsor(s) were not found in the CRM system.'
+        ))
 
     return result

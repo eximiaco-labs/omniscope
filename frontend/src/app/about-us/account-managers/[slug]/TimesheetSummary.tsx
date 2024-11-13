@@ -14,6 +14,7 @@ import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
 import { ClientSponsorCaseWorkerTable } from "./ClientSponsorCaseWorkerTable";
 import { SponsorCaseWorkerTable } from "./SponsorCaseWorkerTable";
 import { WorkerClientSponsorCaseTable } from "./WorkerClientSponsorCase";
+import { AccountManagerClientSponsorCaseTable } from "./AccountManagerClientSponsorCaseTable";
 import SectionHeader from "@/components/SectionHeader";
 import { AccountManager } from "./queries";
 
@@ -21,6 +22,7 @@ interface TimesheetSummaryProps {
   timesheet: AccountManager["timesheet"];
   selectedDataset: string;
   onDatasetSelect: (dataset: string) => void;
+  showWorkersInfo?: boolean;
 }
 
 interface Worker {
@@ -36,11 +38,115 @@ export function TimesheetSummary({
   timesheet,
   selectedDataset,
   onDatasetSelect,
+  showWorkersInfo = true,
 }: TimesheetSummaryProps) {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   const formatHours = (hours: number) => {
     return `${Math.round(hours * 10) / 10}h`;
+  };
+
+  const processAccountManagerData = (
+    cases: AccountManager["timesheet"]["byCase"],
+    hoursField: string
+  ) => {
+    return cases
+      .filter(
+        (c) =>
+          Array.isArray(c.byWorker) &&
+          c.byWorker.some((w) => Number((w as Worker)[hoursField]) > 0)
+      )
+      .reduce<
+        Array<{
+          name: string;
+          totalHours: number;
+          uniqueClients: number;
+          uniqueCases: number;
+          uniqueSponsors: number;
+          clientData: Array<{
+            name: string;
+            totalHours: number;
+            uniqueCases: number;
+            uniqueSponsors: number;
+            workers: Set<string>;
+            sponsors: Set<string>;
+            sponsorDetails: Map<
+              string,
+              {
+                totalHours: number;
+                cases: Array<{
+                  title: string;
+                  hours: number;
+                  workers: Array<{ name: string; hours: number }>;
+                }>;
+                workers: Set<string>;
+              }
+            >;
+          }>;
+        }>
+      >((acc, c) => {
+        const totalCaseHours = Array.isArray(c.byWorker)
+          ? c.byWorker.reduce(
+              (sum, w) => sum + Number((w as Worker)[hoursField] || 0),
+              0
+            )
+          : 0;
+
+        if (totalCaseHours === 0) return acc;
+
+        const accountManagerName = c.caseDetails?.client?.accountManager?.name || "Unknown";
+        const existingManager = acc.find(
+          (manager) => manager.name === accountManagerName
+        );
+
+        if (existingManager) {
+          existingManager.totalHours += totalCaseHours;
+          existingManager.uniqueCases += 1;
+          
+          // Update client data
+          const existingClient = existingManager.clientData.find(
+            client => client.name === c.caseDetails.client.name
+          );
+
+          if (existingClient) {
+            existingClient.totalHours += totalCaseHours;
+            existingClient.uniqueCases += 1;
+            existingClient.sponsors.add(c.caseDetails.sponsor);
+            c.byWorker.forEach(w => existingClient.workers.add(w.name));
+          } else {
+            existingManager.uniqueClients += 1;
+            existingManager.clientData.push({
+              name: c.caseDetails.client.name,
+              totalHours: totalCaseHours,
+              uniqueCases: 1,
+              uniqueSponsors: 1,
+              workers: new Set(c.byWorker.map(w => w.name)),
+              sponsors: new Set([c.caseDetails.sponsor]),
+              sponsorDetails: new Map()
+            });
+          }
+        } else {
+          acc.push({
+            name: accountManagerName,
+            totalHours: totalCaseHours,
+            uniqueClients: 1,
+            uniqueCases: 1,
+            uniqueSponsors: 1,
+            clientData: [{
+              name: c.caseDetails.client.name,
+              totalHours: totalCaseHours,
+              uniqueCases: 1,
+              uniqueSponsors: 1,
+              workers: new Set(c.byWorker.map(w => w.name)),
+              sponsors: new Set([c.caseDetails.sponsor]),
+              sponsorDetails: new Map()
+            }]
+          });
+        }
+
+        return acc;
+      }, [])
+      .sort((a, b) => b.totalHours - a.totalHours);
   };
 
   const processClientData = (
@@ -90,9 +196,11 @@ export function TimesheetSummary({
         if (existingClient) {
           existingClient.totalHours += totalCaseHours;
           existingClient.uniqueCases += 1;
-          c.byWorker
-            .filter((w) => Number((w as Worker)[hoursField]) > 0)
-            .forEach((w) => existingClient.workers.add(w.name));
+          if (showWorkersInfo) {
+            c.byWorker
+              .filter((w) => Number((w as Worker)[hoursField]) > 0)
+              .forEach((w) => existingClient.workers.add(w.name));
+          }
 
           if (!existingClient.sponsors.has(c.caseDetails.sponsor)) {
             existingClient.sponsors.add(c.caseDetails.sponsor);
@@ -108,19 +216,21 @@ export function TimesheetSummary({
           };
           sponsorData.totalHours += totalCaseHours;
 
-          c.byWorker
-            .filter((w) => Number((w as Worker)[hoursField]) > 0)
-            .forEach((w) => sponsorData.workers.add(w.name));
+          if (showWorkersInfo) {
+            c.byWorker
+              .filter((w) => Number((w as Worker)[hoursField]) > 0)
+              .forEach((w) => sponsorData.workers.add(w.name));
+          }
 
           sponsorData.cases.push({
             title: c.title,
             hours: totalCaseHours,
-            workers: c.byWorker
+            workers: showWorkersInfo ? c.byWorker
               .filter((w) => Number((w as Worker)[hoursField]) > 0)
               .map((w) => ({
                 name: w.name,
                 hours: Number((w as Worker)[hoursField] || 0),
-              })),
+              })) : [],
           });
           existingClient.sponsorDetails.set(c.caseDetails.sponsor, sponsorData);
         } else {
@@ -131,15 +241,15 @@ export function TimesheetSummary({
 
           sponsorDetails.set(c.caseDetails.sponsor, {
             totalHours: totalCaseHours,
-            workers: new Set(workersWithHours.map((w) => w.name)),
+            workers: showWorkersInfo ? new Set(workersWithHours.map((w) => w.name)) : new Set(),
             cases: [
               {
                 title: c.title,
                 hours: totalCaseHours,
-                workers: workersWithHours.map((w) => ({
+                workers: showWorkersInfo ? workersWithHours.map((w) => ({
                   name: w.name,
                   hours: (w as Worker)[hoursField] || 0,
-                })),
+                })) : [],
               },
             ],
           });
@@ -150,7 +260,7 @@ export function TimesheetSummary({
             uniqueCases: 1,
             totalHours: totalCaseHours,
             sponsors: new Set([c.caseDetails.sponsor]),
-            workers: new Set(workersWithHours.map((w) => w.name)),
+            workers: showWorkersInfo ? new Set(workersWithHours.map((w) => w.name)) : new Set(),
             sponsorDetails,
           });
         }
@@ -247,8 +357,13 @@ export function TimesheetSummary({
                     {data?.uniqueSponsors} sponsor
                     {data?.uniqueSponsors !== 1 ? "s" : ""} •{" "}
                     {data?.uniqueCases} case
-                    {data?.uniqueCases !== 1 ? "s" : ""} • {data?.uniqueWorkers}{" "}
-                    worker{data?.uniqueWorkers !== 1 ? "s" : ""}
+                    {data?.uniqueCases !== 1 ? "s" : ""}
+                    {showWorkersInfo && (
+                      <>
+                        {" "}• {data?.uniqueWorkers}{" "}
+                        worker{data?.uniqueWorkers !== 1 ? "s" : ""}
+                      </>
+                    )}
                   </div>
                 </div>
               </CardFooter>
@@ -260,19 +375,35 @@ export function TimesheetSummary({
           <div className="mt-4">
             <Tabs defaultValue="client">
               <TabsList className="w-full justify-start">
+                {!showWorkersInfo && <TabsTrigger value="manager">By Account Manager</TabsTrigger>}
                 <TabsTrigger value="client">By Client</TabsTrigger>
                 <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
-                <TabsTrigger value="worker">By Worker</TabsTrigger>
+                {showWorkersInfo && <TabsTrigger value="worker">By Worker</TabsTrigger>}
               </TabsList>
+              {!showWorkersInfo && (
+                <TabsContent value="manager">
+                  <AccountManagerClientSponsorCaseTable 
+                    accountManagerData={processAccountManagerData(timesheet.byCase, "totalConsultingHours")}
+                  />
+                </TabsContent>
+              )}
               <TabsContent value="client">
-                <ClientSponsorCaseWorkerTable clientData={sortedClientData} />
+                <ClientSponsorCaseWorkerTable 
+                  clientData={sortedClientData} 
+                  showWorkersInfo={showWorkersInfo}
+                />
               </TabsContent>
               <TabsContent value="sponsor">
-                <SponsorCaseWorkerTable clientData={sortedClientData} />
+                <SponsorCaseWorkerTable 
+                  clientData={sortedClientData}
+                  showWorkersInfo={showWorkersInfo}
+                />
               </TabsContent>
-              <TabsContent value="worker">
-                <WorkerClientSponsorCaseTable clientData={sortedClientData} />
-              </TabsContent>
+              {showWorkersInfo && (
+                <TabsContent value="worker">
+                  <WorkerClientSponsorCaseTable clientData={sortedClientData} />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         )}
