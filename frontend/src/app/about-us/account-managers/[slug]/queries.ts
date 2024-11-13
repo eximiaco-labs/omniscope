@@ -73,6 +73,9 @@ export const GET_ACCOUNT_MANAGER = gql`
           caseDetails {
             client {
               name
+              accountManager {
+                name
+              }
             }
             sponsor
           }
@@ -115,7 +118,7 @@ export interface AccountManager {
       author: string;
       observations: string;
     };
-    client: { name: string };
+    client: { name: string; accountManager: { name: string } };
     isStale: boolean;
   }>;
 
@@ -153,7 +156,7 @@ export interface AccountManager {
     byCase: Array<{
       title: string;
       caseDetails: {
-        client: { name: string };
+        client: { name: string, accountManager: { name: string } };
         sponsor: string;
       };
       byWorker: Array<{

@@ -47,6 +47,9 @@ export const GET_CONSULTANT = gql`
           caseDetails {
             client {
               name
+              accountManager {
+                name
+              }
             }
             sponsor
           }
@@ -102,7 +105,7 @@ export interface Consultant {
     byCase: Array<{
       title: string;
       caseDetails: {
-        client: { name: string };
+        client: { name: string; accountManager: { name: string } };
         sponsor: string;
       };
       byWorker: {
