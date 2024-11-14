@@ -6,26 +6,18 @@ from ariadne.explorer import ExplorerGraphiQL
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from functools import wraps
-from settings import auth_settings  # Import your auth settings
+from settings import auth_settings 
 from settings import graphql_settings
-from settings import elk_settings
 
-from api.queries import query_types
+from api.queries import query_types, type_defs
 from api.mutations import mutation
 import logging
 import argparse
 import sys
 from api.execution_stats import ExecutionStatsExtension
-from middleware.elk_logging import ElkLogger
 
 import globals
 
-
-# elk_logger = ElkLogger(
-#     endpoint_url=elk_settings["endpoint_url"],
-#     cloud_id=elk_settings["cloud_id"],
-#     api_key=elk_settings["api_key"]
-# )
 
 def verify_token(token):
     try:
@@ -67,7 +59,6 @@ def token_required(f):
 app = Flask(__name__)
 CORS(app)
 
-type_defs = load_schema_from_path("api/schema.graphql")
 schema = make_executable_schema(
     type_defs, 
     query_types,
