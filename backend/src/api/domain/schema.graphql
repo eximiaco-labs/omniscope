@@ -106,9 +106,15 @@ type Case {
   ontologyUrl: String
 }
 
+type TrackerProjectBudget {
+  hours: Float
+  period: String
+}
+
 type TrackerProject {
   id: String!
   name: String!
+  budget: TrackerProjectBudget
 }
 
 type CaseUpdate {
