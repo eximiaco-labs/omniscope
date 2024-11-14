@@ -80,52 +80,52 @@ class TimesheetDataset(OmniDataset):
 
         # Função para enriquecer as linhas
         def enrich_row(row):
-            try:
-                billing = get_billing_information(row['project_id'])
-                row['billing_type'] = billing.type if billing else None
-                row['billing_fee'] = billing.fee if billing else None
+            # try:
+            billing = get_billing_information(row['project_id'])
+            row['billing_type'] = billing.type if billing else None
+            row['billing_fee'] = billing.fee if billing else None
 
-                # Enriquecer com dados do trabalhador
-                worker = get_worker(row['user_id'])
-                if worker:
-                    row['worker_name'] = worker.name
-                    row['worker_slug'] = worker.slug
-                    row['worker_omni_url'] = worker.omni_url
-                    row['worker'] = f"<a href='{worker.omni_url}'>{worker.name}</a>"
+            # Enriquecer com dados do trabalhador
+            worker = get_worker(row['user_id'])
+            if worker:
+                row['worker_name'] = worker.name
+                row['worker_slug'] = worker.slug
+                row['worker_omni_url'] = worker.omni_url
+                row['worker'] = f"<a href='{worker.omni_url}'>{worker.name}</a>"
+            else:
+                row['worker_name'] = row['worker_slug'] = row['worker_omni_url'] = row['worker'] = None
+
+            # Enriquecer com dados do caso
+            case = get_case(row['project_id'])
+            if case:
+                row['case_id'] = case.id
+                row['case_title'] = case.title
+                row['sponsor'] = case.sponsor
+                row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
+
+                # Obter produtos ou serviços associados
+                products_or_services = [get_offer_name(offer) for offer in case.offers_ids]
+                row['products_or_services'] = ';'.join(filter(None, products_or_services))
+
+                # Enriquecer com dados do cliente
+                client = get_client(case.client_id)
+                if client:
+                    row['client_id'] = client.id
+                    row['client_name'] = client.name
+                    row['client_omni_url'] = client.omni_url
+                    row['client'] = f"<a href='{client.omni_url}'>{client.name}</a>"
+                    row['account_manager_name'] = client.account_manager.name if client.account_manager else "N/A"
+                    row['account_manager_slug'] = client.account_manager.slug if client.account_manager else "N/A"
                 else:
-                    row['worker_name'] = row['worker_slug'] = row['worker_omni_url'] = row['worker'] = None
-
-                # Enriquecer com dados do caso
-                case = get_case(row['project_id'])
-                if case:
-                    row['case_id'] = case.id
-                    row['case_title'] = case.title
-                    row['sponsor'] = case.sponsor
-                    row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
-
-                    # Obter produtos ou serviços associados
-                    products_or_services = [get_offer_name(offer) for offer in case.offers_ids]
-                    row['products_or_services'] = ';'.join(filter(None, products_or_services))
-
-                    # Enriquecer com dados do cliente
-                    client = get_client(case.client_id)
-                    if client:
-                        row['client_id'] = client.id
-                        row['client_name'] = client.name
-                        row['client_omni_url'] = client.omni_url
-                        row['client'] = f"<a href='{client.omni_url}'>{client.name}</a>"
-                        row['account_manager_name'] = client.account_manager.name if client.account_manager else "N/A"
-                        row['account_manager_slug'] = client.account_manager.slug if client.account_manager else "N/A"
-                    else:
-                        row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = "N/A"
-                        row['account_manager_name'] = row['account_manager_slug'] = "N/A"
-                else:
-                    row['case_id'] = row['case_title'] = row['sponsor'] = row['case'] = "N/A"
-                    row['products_or_services'] = "N/A"
                     row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = "N/A"
                     row['account_manager_name'] = row['account_manager_slug'] = "N/A"
-            except Exception as e:
-                self.logger.error(f'Failed to enrich row for timesheet.')
+            else:
+                row['case_id'] = row['case_title'] = row['sponsor'] = row['case'] = "N/A"
+                row['products_or_services'] = "N/A"
+                row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = "N/A"
+                row['account_manager_name'] = row['account_manager_slug'] = "N/A"
+            #except Exception as e:
+            #    self.logger.error(f'Failed to enrich row for timesheet. ({e})')
 
             return row
 

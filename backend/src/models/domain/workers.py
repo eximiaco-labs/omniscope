@@ -221,10 +221,18 @@ class WorkersRepository:
             if tracker_worker.name in workers_dict:
                 workers_dict[tracker_worker.name].tracker_info = tracker_worker
             else:
+
+                if not tracker_worker.name:
+                    name = 'NO-NAME'
+                    slug = 'no-name'
+                else:
+                    name = tracker_worker.name
+                    slug = tracker_worker.slug
+
                 workers_dict[tracker_worker.name] = Worker(
                     id=neg_id,
-                    name=tracker_worker.name,
-                    slug=tracker_worker.slug,
+                    name=name,
+                    slug=slug,
                     kind=WorkerKind.CONSULTANT,
                     tracker_info=tracker_worker,
                     position=''

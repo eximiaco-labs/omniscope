@@ -255,7 +255,6 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
     return result
 
 def resolve_timesheet(_, info, slug: str, kind: str = "ALL", filters = None):
-    requested_fields = get_requested_fields_from(info)
     map = build_fields_map(info)
     result = compute_timesheet(map, slug, kind, filters)
     return result
