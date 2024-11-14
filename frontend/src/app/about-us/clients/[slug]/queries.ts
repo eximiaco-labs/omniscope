@@ -35,6 +35,10 @@ export const GET_CLIENT_TIMESHEET = gql`
       tracker {
         id
         name
+        budget {
+          hours
+          period
+        }
       }
     }
     timesheet(slug: $datasetSlug, filters: [{ field: "ClientName", selectedValues: [$clientName] }]) {
@@ -160,6 +164,10 @@ export const GET_CLIENT_TIMESHEET = gql`
           tracker {
             id
             name
+            budget {
+              hours
+              period
+            }
           }
         }
         byWeek {
