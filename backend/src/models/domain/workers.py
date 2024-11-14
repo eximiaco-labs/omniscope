@@ -221,23 +221,16 @@ class WorkersRepository:
             if tracker_worker.name in workers_dict:
                 workers_dict[tracker_worker.name].tracker_info = tracker_worker
             else:
-
-                if not tracker_worker.name:
-                    name = 'NO-NAME'
-                    slug = 'no-name'
-                else:
-                    name = tracker_worker.name
-                    slug = tracker_worker.slug
-
-                workers_dict[tracker_worker.name] = Worker(
-                    id=neg_id,
-                    name=name,
-                    slug=slug,
-                    kind=WorkerKind.CONSULTANT,
-                    tracker_info=tracker_worker,
-                    position=''
-                )
-                neg_id = neg_id - 1
+                if tracker_worker.name:
+                    workers_dict[tracker_worker.name] = Worker(
+                        id=neg_id,
+                        name=name,
+                        slug=slug,
+                        kind=WorkerKind.CONSULTANT,
+                        tracker_info=tracker_worker,
+                        position=''
+                    )
+                    neg_id = neg_id - 1
 
         onto_users = self.ontology.authors.values()
         for user in onto_users:
