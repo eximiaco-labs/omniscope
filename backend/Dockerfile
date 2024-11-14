@@ -11,7 +11,7 @@ COPY ./src/api/schema.graphql ./api/schema.graphql
 COPY ./src/api/schema/common.graphql ./api/schema/common.graphql
 COPY ./src/api/domain/schema.graphql ./api/domain/schema.graphql
 COPY ./src/api/datasets/schema.graphql ./api/datasets/schema.graphql
-COPY ./src/api/analytics/schema.graphql ./api/api/analytics/schema.graphql
+COPY ./src/api/analytics/schema.graphql ./api/analytics/schema.graphql
 
 EXPOSE 5001
 
