@@ -1,0 +1,347 @@
+type Dataset {
+  slug: String
+  kind: String
+  name: String
+}
+
+type DatasetsSet {
+  timesheet: TimesheetSummary
+}
+
+type Timesheets {
+  lastSixWeeks: TimesheetSummary
+}
+
+type WeeklyHours {
+  week: String!
+  hours: Float!
+}
+
+type FilterableField {
+  field: String!
+  options: [String]!
+  selectedValues: [String]!
+}
+
+# Ontology types
+type Ontology {
+  totalEntries: Int!
+  uniqueClasses: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+
+  byClass: [OntologyClassSummary!]!
+  byAuthor: [OntologyAuthorSummary!]!
+
+  filterableFields: [OntologyFilterableField!]!
+}
+
+type OntologyClassSummary {
+  name: String!
+  totalEntries: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+  authors: [OntologyNamedSummary!]!
+}
+
+type OntologyAuthorSummary {
+  name: String!
+  totalEntries: Int!
+  uniqueClasses: Int!
+  averageEntriesPerClass: Float!
+  stdDevEntriesPerClass: Float!
+  classes: [OntologyNamedSummary!]!
+}
+
+type OntologyNamedSummary {
+  name: String!
+  entries: Int!
+}
+
+type OntologyFilterableField {
+  field: String!
+  selectedValues: [String!]!
+  options: [String!]!
+}
+
+# Insights types
+type Insights {
+  totalEntries: Int!
+  uniqueAuthors: Int!
+  averageEntriesPerAuthor: Float!
+  stdDevEntriesPerAuthor: Float!
+
+  byAuthor: [InsightAuthorSummary!]!
+
+  filterableFields: [InsightFilterableField!]!
+}
+
+type InsightAuthorSummary {
+  name: String!
+  entries: Int!
+}
+
+type InsightFilterableField {
+  field: String!
+  selectedValues: [String!]!
+  options: [String!]!
+}
+
+# Timesheet types
+type TimesheetSummary implements ISummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  # Additional fields
+  byKind: KindSummary
+  byWorker: [NamedSummary!]!
+  byClient: [NamedSummary!]!
+  byCase: [CaseSummary!]!
+  bySponsor: [NamedSummary!]!
+  byAccountManager: [NamedSummary!]!
+  byDate: [DateSummary!]!
+  byWeek: [WeekSummary!]!
+  byOffer: [NamedSummary!]!
+
+  filterableFields: [FilterableField]!
+}
+
+type KindSummary {
+  internal: OneKindSummary
+  consulting: OneKindSummary
+  squad: OneKindSummary
+  handsOn: OneKindSummary
+}
+
+type OneKindSummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  byWorker: [NamedSummary]
+}
+
+type NamedSummary implements ISummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  # Additional fields
+  name: String!
+  byKind: KindSummary!
+  byWeek: [WeekSummary!]!
+}
+
+type CaseSummary implements ISummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  # Additional fields
+  title: String!
+  caseDetails: Case
+  byKind: KindSummary!
+  byWeek: [WeekSummary!]!
+  byWorker: [NamedSummary!]!
+  workers: [String!]!
+  workersByTrackingProject: [TrackingProjectSummary!]! 
+}
+
+type TrackingProjectSummary {
+  projectId: String!
+  workers: [String!]!
+}
+
+type DateSummary implements ISummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  # Additional fields
+  date: String!
+  byKind: KindSummary!
+  byWeek: [WeekSummary!]!
+}
+
+type WeekSummary implements ISummary {
+  # Fields from ISummary interface
+  totalEntries: Int!
+  totalHours: Float!
+  uniqueClients: Int!
+  uniqueWorkers: Int!
+  uniqueCases: Int!
+  uniqueWorkingDays: Int!
+  uniqueSponsors: Int!
+  uniqueAccountManagers: Int!
+  uniqueWeeks: Int!
+  averageHoursPerEntry: Float!
+  stdDevHoursPerEntry: Float!
+  averageHoursPerDay: Float!
+  stdDevHoursPerDay: Float!
+  averageHoursPerWorker: Float!
+  stdDevHoursPerWorker: Float!
+  averageHoursPerClient: Float!
+  stdDevHoursPerClient: Float!
+  averageHoursPerCase: Float!
+  stdDevHoursPerCase: Float!
+  averageHoursPerSponsor: Float!
+  stdDevHoursPerSponsor: Float!
+  averageHoursPerAccountManager: Float!
+  stdDevHoursPerAccountManager: Float!
+  averageHoursPerWeek: Float!
+  stdDevHoursPerWeek: Float!
+  totalSquadHours: Float!
+  totalConsultingHours: Float!
+  totalInternalHours: Float!
+  totalHandsOnHours: Float!
+  weeklyHours: [WeeklyHours!]!
+
+  # Additional fields
+  week: String!
+  byKind: KindSummary!
+} 

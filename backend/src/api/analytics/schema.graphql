@@ -1,0 +1,230 @@
+# Performance Analysis types
+type CaseHours {
+  caseId: String!
+  hours: Float!
+  preContracted: Boolean!
+}
+
+type WorkingDayHours {
+  date: Date!
+  hours: Float!
+  preContractedWorkHours: Float!
+  regularWorkHours: Float!
+  byCase: [CaseHours!]!
+}
+
+type OneWeekRegularCasePerformanceSummary {
+  id: String!
+  title: String!
+  sponsor: String!
+  client: String!
+  accountManager: String!
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  wastedHours: Float!
+  overApprovedHours: Float!
+}
+
+type OneWeekPreContractedCasePerformanceSummary {
+  id: String!
+  title: String!
+  sponsor: String!
+  client: String!
+  accountManager: String!
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  possibleUnpaidHours: Float!
+  possibleIdleHours: Float!
+}
+
+type TotalsRegular {
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  wastedHours: Float!
+  overApprovedHours: Float!
+}
+
+type TotalsPreContracted {
+  approvedWorkHours: Float!
+  actualWorkHours: Float!
+  inContextActualWorkHours: Float!
+  possibleUnpaidHours: Float!
+  possibleIdleHours: Float!
+}
+
+type Totals {
+  regular: TotalsRegular!
+  preContracted: TotalsPreContracted!
+}
+
+type SponsorPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+}
+
+type ClientPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+}
+
+type AccountManagerPerformanceSummary {
+  name: String!
+  totals: Totals!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+}
+
+type WeekPerformanceAnalysis {
+  start: Date!
+  end: Date!
+  regularCases: [OneWeekRegularCasePerformanceSummary!]!
+  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+  accountManagers: [AccountManagerPerformanceSummary!]!
+  totals: Totals!
+  actualWorkHours: [WorkingDayHours!]!
+}
+
+type PerformanceAnalysis {
+  start: Date!
+  end: Date!
+  dateOfInterest: Date!
+  weeks: [WeekPerformanceAnalysis!]!
+}
+
+# Week Review types
+type WeekReview {
+  hoursPreviousWeeks: Float!
+  hoursPreviousWeeksUntilThisDate: Float!
+  hoursThisWeek: Float!
+
+  sunday: TimesheetDateAnalysis
+  monday: TimesheetDateAnalysis
+  tuesday: TimesheetDateAnalysis
+  wednesday: TimesheetDateAnalysis
+  thursday: TimesheetDateAnalysis
+  friday: TimesheetDateAnalysis
+  saturday: TimesheetDateAnalysis
+
+  monthSummary: MonthSummary
+  filterableFields: [FilterableField]!
+
+  allocationAnalysisByWorker: [WorkerAllocationAnalysisEntry!]!
+  allocationAnalysisByClient: [ClientAllocationAnalysisEntry!]!
+}
+
+type MonthSummary {
+  hoursThisMonth: Float!
+  hoursPreviousMonth: Float!
+  hoursPreviousMonthUntilThisDate: Float!
+  limitDate: Date!
+}
+
+type TimesheetDateAnalysis {
+  dailySummary: [DailySummaryEntry!]!
+  totalHours: Float!
+  bestDay: Date
+  bestDayHours: Float!
+  worstDay: Date
+  worstDayHours: Float!
+  averageHours: Float!
+}
+
+type DailySummaryEntry {
+  date: Date!
+  consulting: Float!
+  handsOn: Float!
+  squad: Float!
+  internal: Float!
+}
+
+type WorkerAllocationAnalysisEntry {
+  status: Int!
+  worker: String!
+  mean: Float!
+  current: Float!
+}
+
+type ClientAllocationAnalysisEntry {
+  status: Int!
+  client: String!
+  mean: Float!
+  current: Float!
+}
+
+# Timeliness Review types
+type TimelinessReview {
+  totalRows: Int!
+  totalTimeInHours: Float!
+  
+  earlyRows: Int!
+  earlyTimeInHours: Float!
+  earlyPercentage: Float!
+  earlyWorkers: [WorkerSummary!]!
+  
+  okRows: Int!
+  okTimeInHours: Float!
+  okPercentage: Float!
+  okWorkers: [WorkerSummary!]!
+  
+  acceptableRows: Int!
+  acceptableTimeInHours: Float!
+  acceptablePercentage: Float!
+  acceptableWorkers: [WorkerSummary!]!
+  
+  lateRows: Int!
+  lateTimeInHours: Float!
+  latePercentage: Float!
+  lateWorkers: [WorkerSummary!]!
+
+  minDate: Date!
+  maxDate: Date!
+}
+
+type WorkerSummary {
+  worker: String!
+  entries: Int!
+  timeInHours: Float!
+}
+
+# Planned vs Actual types
+type ApprovedVsActual {
+  start: Date!
+  end: Date!
+  totalApprovedHours: Float!
+  totalActualHours: Float!
+  totalDifference: Float!
+  numberOfCases: Int!
+  cases: [ApprovedVsActualCase!]!
+}
+
+type ApprovedVsActualCase {
+  id: Int!
+  title: String!
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float!
+  totalApprovedHours: Float!
+  totalActualHours: Float!
+  totalDifference: Float!
+  preContractedValue: Boolean!
+  weeks: [ApprovedVsActualWeek!]!
+}
+
+type ApprovedVsActualWeek {
+  title: String!
+  numberOfDays: Int!
+  approvedHours: Float!
+  actualHours: Float!
+  difference: Float!
+} 
