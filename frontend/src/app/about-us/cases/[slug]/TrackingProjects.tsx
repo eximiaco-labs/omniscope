@@ -1,11 +1,13 @@
 import React from "react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
+import { STAT_COLORS } from "@/app/constants/colors";
 
 interface TrackingProjectsProps {
   tracker: Array<{
     id: string;
     name: string;
+    kind: string;
     everhourProjectsIds?: string[];
     weeklyApprovedHours?: number;
     startOfContract?: string;
@@ -39,6 +41,8 @@ export function TrackingProjects({
                   (project) => project.projectId === track.id
                 )?.workers || [];
 
+              const textColor = STAT_COLORS[track.kind as keyof typeof STAT_COLORS];
+
               return (
                 <React.Fragment key={track.id}>
                   {projectWorkers.length > 0 ? (
@@ -47,6 +51,7 @@ export function TrackingProjects({
                         <TableCell
                           rowSpan={projectWorkers.length}
                           className="w-1/3 break-words border-r"
+                          style={{ color: textColor }}
                         >
                           {track.name}
                           <div className="text-xs text-muted-foreground">
@@ -68,7 +73,10 @@ export function TrackingProjects({
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell className="w-1/3 break-words border-r">
+                      <TableCell 
+                        className="w-1/3 break-words border-r"
+                        style={{ color: textColor }}
+                      >
                         {track.name}
                         <div className="text-xs text-muted-foreground">
                           {track.everhourProjectsIds?.join(", ")}
@@ -92,4 +100,4 @@ export function TrackingProjects({
       </div>
     </div>
   );
-} 
+}

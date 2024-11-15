@@ -9,6 +9,7 @@ export const GET_CASE_BY_SLUG = gql`
       tracker {
         id
         name
+        kind
         budget {
           hours
           period
