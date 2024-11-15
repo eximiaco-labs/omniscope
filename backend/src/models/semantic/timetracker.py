@@ -24,6 +24,17 @@ class Project(e.Project):
     is_squad: Optional[bool] = False
     is_eximiaco: Optional[bool] = False
     is_handson: Optional[bool] = False
+    
+    @property
+    def kind(self):
+        if self.is_handson:
+            return 'handsOn'
+        if self.is_squad:
+            return 'squad'
+        if self.is_eximiaco:
+            return 'internal'
+        
+        return 'consulting'
 
     @classmethod
     def from_base_instance(cls, base_instance: e.Project, client: Client):

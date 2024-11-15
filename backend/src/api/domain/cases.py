@@ -58,6 +58,7 @@ def build_case_dictionary(map, case):
                 {
                     'id': project.id,
                     'name': project.name,
+                    'kind': project.kind,
                     'budget': {
                         'period': project.budget.period,
                         'hours': project.budget.hours

@@ -114,6 +114,7 @@ type TrackerProjectBudget {
 type TrackerProject {
   id: String!
   name: String!
+  kind: String!
   budget: TrackerProjectBudget
 }
 
