@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/catalyst/badge";
+import { STAT_COLORS } from "@/app/constants/colors";
 
 interface CasesTableProps {
   filteredCases: any[];
@@ -18,6 +19,7 @@ interface CasesTableProps {
 interface TrackingProject {
   id: string;
   name: string;
+  kind: string;
   budget?: {
     hours: number;
     period: string;
@@ -163,15 +165,15 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                           (project: { projectId: string }) => project.projectId === track.id
                         )?.workers || [];
                         
-                        console.log('Track budget:', track.budget);
+                        const textColor = STAT_COLORS[track.kind as keyof typeof STAT_COLORS];
                         
                         return (
                           <React.Fragment key={track.id}>
                             {projectWorkers.length > 0 ? (
                               projectWorkers.map((worker: string) => (
                                 <tr key={`${track.id}-${worker}`} className="border-b border-gray-200">
-                                  <td className="text-gray-800 pr-2 w-[210px] break-words border-r border-gray-200">
-                                    <div>
+                                  <td className="pr-2 w-[210px] break-words border-r border-gray-200">
+                                    <div style={{ color: textColor }}>
                                       {track.name}
                                       {track.budget && (
                                         <div className="text-gray-500 mt-1">
@@ -187,8 +189,8 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                               ))
                             ) : (
                               <tr key={track.id} className="border-b border-gray-200">
-                                <td className="text-gray-800 pr-2 w-[210px] break-words border-r border-gray-200">
-                                  <div>
+                                <td className="pr-2 w-[210px] break-words border-r border-gray-200">
+                                  <div style={{ color: textColor }}>
                                     {track.name}
                                     {track.budget && (
                                       <div className="text-gray-500 mt-1">

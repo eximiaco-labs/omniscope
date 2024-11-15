@@ -35,6 +35,7 @@ export const GET_CLIENT_TIMESHEET = gql`
       tracker {
         id
         name
+        kind
         budget {
           hours
           period
@@ -164,6 +165,7 @@ export const GET_CLIENT_TIMESHEET = gql`
           tracker {
             id
             name
+            kind
             budget {
               hours
               period
