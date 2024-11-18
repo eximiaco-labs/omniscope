@@ -224,8 +224,8 @@ class WorkersRepository:
                 if tracker_worker.name:
                     workers_dict[tracker_worker.name] = Worker(
                         id=neg_id,
-                        name=name,
-                        slug=slug,
+                        name=tracker_worker.name,
+                        slug=tracker_worker.slug,
                         kind=WorkerKind.CONSULTANT,
                         tracker_info=tracker_worker,
                         position=''
