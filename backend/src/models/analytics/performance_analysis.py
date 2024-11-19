@@ -263,7 +263,7 @@ class SponsorPerformanceSummary:
         
     @staticmethod
     def compute_list_from_cases(regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> List['SponsorPerformanceSummary']:
-        sponsors = set(case.sponsor for case in regular_cases + pre_contracted_cases)
+        sponsors = sorted(set(case.sponsor for case in regular_cases + pre_contracted_cases))
 
         return [
             SponsorPerformanceSummary.compute_from_cases(sponsor, regular_cases, pre_contracted_cases)
@@ -296,7 +296,7 @@ class ClientPerformanceSummary:
     
     @staticmethod
     def compute_list_from_cases(regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> List['ClientPerformanceSummary']:
-        clients = set(case.client for case in regular_cases + pre_contracted_cases)
+        clients = sorted(set(case.client for case in regular_cases + pre_contracted_cases))
         return [
             ClientPerformanceSummary.compute_from_cases(client, regular_cases, pre_contracted_cases)
             for client in clients
@@ -329,7 +329,7 @@ class AccountManagerPerformanceSummary:
     
     @staticmethod
     def compute_list_from_cases(regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> List['AccountManagerPerformanceSummary']:
-        account_managers = set(case.account_manager for case in regular_cases + pre_contracted_cases)
+        account_managers = sorted(set(case.account_manager for case in regular_cases + pre_contracted_cases))
         return [
             AccountManagerPerformanceSummary.compute_from_cases(account_manager, regular_cases, pre_contracted_cases)
             for account_manager in account_managers
