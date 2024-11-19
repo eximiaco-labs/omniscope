@@ -3,7 +3,7 @@ import pandas as pd
 import calendar
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-
+from enum import Enum
 from models.domain.cases import Case
 
 import globals
@@ -337,8 +337,9 @@ class AccountManagerPerformanceSummary:
 
 @dataclass
 class WeekPerformanceAnalysis:
-    start: datetime
-    end: datetime
+    start: date
+    end: date
+    period_type: str
     regular_cases: List[OneWeekRegularCasePerformanceSummary]
     pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
     clients: List[ClientPerformanceSummary]
@@ -405,9 +406,16 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         regular = TotalsRegular.compute_from_cases(regular_cases_summaries)
         pre_contracted = TotalsPreContracted.compute_from_cases(pre_contracted_cases_summaries)
 
+        period_type = (
+            "future" if start_of_week.date() > date_of_interest
+            else "past" if end_of_week.date() < date_of_interest
+            else "current"
+        )
+        
         week = WeekPerformanceAnalysis(
             start=start_of_week,
             end=end_of_week,
+            period_type=period_type,
             regular_cases=regular_cases_summaries,
             pre_contracted_cases=pre_contracted_cases_summaries,
             clients=ClientPerformanceSummary.compute_list_from_cases(
