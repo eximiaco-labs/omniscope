@@ -13,7 +13,7 @@ type WorkingDayHours {
   byCase: [CaseHours!]!
 }
 
-type OneWeekRegularCasePerformanceSummary {
+type RegularCasePerformanceSummary {
   id: String!
   title: String!
   sponsor: String!
@@ -26,7 +26,7 @@ type OneWeekRegularCasePerformanceSummary {
   overApprovedHours: Float!
 }
 
-type OneWeekPreContractedCasePerformanceSummary {
+type PreContractedCasePerformanceSummary {
   id: String!
   title: String!
   sponsor: String!
@@ -63,33 +63,32 @@ type Totals {
 type SponsorPerformanceSummary {
   name: String!
   totals: Totals!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
 }
 
 type ClientPerformanceSummary {
   name: String!
   totals: Totals!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
   sponsors: [SponsorPerformanceSummary!]!
 }
 
 type AccountManagerPerformanceSummary {
   name: String!
   totals: Totals!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
   clients: [ClientPerformanceSummary!]!
 }
-
 
 type WeekPerformanceAnalysis {
   start: Date!
   end: Date!
   periodType: String!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
   clients: [ClientPerformanceSummary!]!
   sponsors: [SponsorPerformanceSummary!]!
   accountManagers: [AccountManagerPerformanceSummary!]!
@@ -97,11 +96,21 @@ type WeekPerformanceAnalysis {
   actualWorkHours: [WorkingDayHours!]!
 }
 
+type PastPerformanceAnalysis {
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+  accountManagers: [AccountManagerPerformanceSummary!]!
+  totals: Totals!
+}
+
 type PerformanceAnalysis {
   start: Date!
   end: Date!
   dateOfInterest: Date!
   weeks: [WeekPerformanceAnalysis!]!
+  past: PastPerformanceAnalysis!
 }
 
 # Week Review types

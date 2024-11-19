@@ -94,7 +94,7 @@ class WeekWorkingHours:
         return WeekWorkingHours(start, end, working_days)
     
 @dataclass
-class OneWeekRegularCasePerformanceSummary:
+class RegularCasePerformanceSummary:
     id: str
     title: str
     sponsor: str
@@ -105,9 +105,39 @@ class OneWeekRegularCasePerformanceSummary:
     in_context_actual_work_hours: float
     wasted_hours: float
     over_approved_hours: float
-
+    
+    def clone(self) -> 'RegularCasePerformanceSummary':
+        return RegularCasePerformanceSummary(
+            id=self.id,
+            title=self.title,
+            sponsor=self.sponsor,
+            client=self.client,
+            account_manager=self.account_manager,
+            approved_work_hours=self.approved_work_hours,
+            actual_work_hours=self.actual_work_hours,
+            in_context_actual_work_hours=self.in_context_actual_work_hours,
+            wasted_hours=self.wasted_hours,
+            over_approved_hours=self.over_approved_hours
+        )
+    
+    def include_in_summary(self, other: 'RegularCasePerformanceSummary'):
+        self.approved_work_hours += other.approved_work_hours
+        self.actual_work_hours += other.actual_work_hours
+        self.in_context_actual_work_hours += other.in_context_actual_work_hours
+        self.wasted_hours += other.wasted_hours
+        self.over_approved_hours += other.over_approved_hours
+        
+        balance = self.over_approved_hours - self.wasted_hours
+        if balance > 0:
+            self.over_approved_hours = balance
+            self.wasted_hours = 0
+        else:
+            self.wasted_hours = -balance
+            self.over_approved_hours = 0
+            
+        
 @dataclass
-class OneWeekPreContractedCasePerformanceSummary:
+class PreContractedCasePerformanceSummary:
     id: str
     title: str
     sponsor: str
@@ -118,6 +148,36 @@ class OneWeekPreContractedCasePerformanceSummary:
     in_context_actual_work_hours: float
     possible_unpaid_hours: float
     possible_idle_hours: float
+    
+    def clone(self) -> 'PreContractedCasePerformanceSummary':
+        return PreContractedCasePerformanceSummary(
+            id=self.id,
+            title=self.title,
+            sponsor=self.sponsor,
+            client=self.client,
+            account_manager=self.account_manager,
+            approved_work_hours=self.approved_work_hours,
+            actual_work_hours=self.actual_work_hours,
+            in_context_actual_work_hours=self.in_context_actual_work_hours,
+            possible_unpaid_hours=self.possible_unpaid_hours,
+            possible_idle_hours=self.possible_idle_hours
+        )   
+    
+    def include_in_summary(self, other: 'PreContractedCasePerformanceSummary'):
+        self.approved_work_hours += other.approved_work_hours
+        self.actual_work_hours += other.actual_work_hours
+        self.in_context_actual_work_hours += other.in_context_actual_work_hours
+        self.possible_unpaid_hours += other.possible_unpaid_hours
+        self.possible_idle_hours += other.possible_idle_hours
+        
+        balance = self.possible_unpaid_hours - self.possible_idle_hours
+        if balance > 0:
+            self.possible_unpaid_hours = balance
+            self.possible_idle_hours = 0
+        else:
+            self.possible_idle_hours = -balance
+            self.possible_unpaid_hours = 0
+                
     
 class OneWeekPerformanceSummary:
     def __init__(self, week: WeekWorkingHours):
@@ -148,7 +208,7 @@ class OneWeekPerformanceSummary:
             if is_eligible_case(case)
         ]
     
-    def build_case_summary(self, case: Case, this_month: int) -> OneWeekRegularCasePerformanceSummary | OneWeekPreContractedCasePerformanceSummary:
+    def build_case_summary(self, case: Case, this_month: int) -> RegularCasePerformanceSummary | PreContractedCasePerformanceSummary:
         client = globals.omni_models.clients.get_by_id(case.client_id) if case.client_id else None
         
         actual_hours = self.week.by_case.get(case.id, 0)
@@ -164,7 +224,7 @@ class OneWeekPerformanceSummary:
         if case.pre_contracted_value:
             possible_unpaid_hours = max(0, actual_hours - weekly_approved_hours)
             possible_idle_hours = abs(min(0, actual_hours - weekly_approved_hours))
-            return OneWeekPreContractedCasePerformanceSummary(
+            return PreContractedCasePerformanceSummary(
                 id=id,
                 title=title,
                 sponsor=sponsor_name,
@@ -179,7 +239,7 @@ class OneWeekPerformanceSummary:
         else:
             wasted_hours = max(0, weekly_approved_hours - actual_hours)
             over_approved_hours = max(0, actual_hours - weekly_approved_hours)
-            return OneWeekRegularCasePerformanceSummary(
+            return RegularCasePerformanceSummary(
                 id=id,
                 title=title,
                 sponsor=sponsor_name,
@@ -192,7 +252,7 @@ class OneWeekPerformanceSummary:
                 over_approved_hours=over_approved_hours
             )
         
-    def build_cases_summaries(self, cases: List[Case], this_month: int) -> List[OneWeekRegularCasePerformanceSummary | OneWeekPreContractedCasePerformanceSummary]:
+    def build_cases_summaries(self, cases: List[Case], this_month: int) -> List[RegularCasePerformanceSummary | PreContractedCasePerformanceSummary]:
         return [
             self.build_case_summary(case, this_month)
             for case in self.filter_cases(cases)
@@ -207,7 +267,7 @@ class TotalsRegular:
     over_approved_hours: float
     
     @staticmethod
-    def compute_from_cases(cases: List[OneWeekRegularCasePerformanceSummary]) -> 'TotalsRegular':
+    def compute_from_cases(cases: List[RegularCasePerformanceSummary]) -> 'TotalsRegular':
         return TotalsRegular(
             approved_work_hours=sum(case.approved_work_hours for case in cases),
             actual_work_hours=sum(case.actual_work_hours for case in cases),
@@ -225,7 +285,7 @@ class TotalsPreContracted:
     possible_idle_hours: float
     
     @staticmethod
-    def compute_from_cases(cases: List[OneWeekPreContractedCasePerformanceSummary]) -> 'TotalsPreContracted':
+    def compute_from_cases(cases: List[PreContractedCasePerformanceSummary]) -> 'TotalsPreContracted':
         return TotalsPreContracted(
             approved_work_hours=sum(case.approved_work_hours for case in cases),
             actual_work_hours=sum(case.actual_work_hours for case in cases),
@@ -243,11 +303,11 @@ class Totals:
 class SponsorPerformanceSummary:
     name: str
     totals: Totals
-    regular_cases: List[OneWeekRegularCasePerformanceSummary]
-    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    regular_cases: List[RegularCasePerformanceSummary]
+    pre_contracted_cases: List[PreContractedCasePerformanceSummary]
     
     @staticmethod
-    def compute_from_cases(name: str, regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> 'SponsorPerformanceSummary':
+    def compute_from_cases(name: str, regular_cases: List[RegularCasePerformanceSummary], pre_contracted_cases: List[PreContractedCasePerformanceSummary]) -> 'SponsorPerformanceSummary':
         filtered_regular_cases = [case for case in regular_cases if case.sponsor == name]
         filtered_pre_contracted_cases = [case for case in pre_contracted_cases if case.sponsor == name]
         
@@ -262,7 +322,7 @@ class SponsorPerformanceSummary:
         )
         
     @staticmethod
-    def compute_list_from_cases(regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> List['SponsorPerformanceSummary']:
+    def compute_list_from_cases(regular_cases: List[RegularCasePerformanceSummary], pre_contracted_cases: List[PreContractedCasePerformanceSummary]) -> List['SponsorPerformanceSummary']:
         sponsors = sorted(set(case.sponsor for case in regular_cases + pre_contracted_cases))
 
         return [
@@ -274,12 +334,12 @@ class SponsorPerformanceSummary:
 class ClientPerformanceSummary:
     name: str
     totals: Totals
-    regular_cases: List[OneWeekRegularCasePerformanceSummary]
-    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    regular_cases: List[RegularCasePerformanceSummary]
+    pre_contracted_cases: List[PreContractedCasePerformanceSummary]
     sponsors: List[SponsorPerformanceSummary]
     
     @staticmethod
-    def compute_from_cases(name: str, regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> 'ClientPerformanceSummary':
+    def compute_from_cases(name: str, regular_cases: List[RegularCasePerformanceSummary], pre_contracted_cases: List[PreContractedCasePerformanceSummary]) -> 'ClientPerformanceSummary':
         filtered_regular_cases = [case for case in regular_cases if case.client == name]
         filtered_pre_contracted_cases = [case for case in pre_contracted_cases if case.client == name]
         
@@ -295,7 +355,7 @@ class ClientPerformanceSummary:
         )
     
     @staticmethod
-    def compute_list_from_cases(regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> List['ClientPerformanceSummary']:
+    def compute_list_from_cases(regular_cases: List[RegularCasePerformanceSummary], pre_contracted_cases: List[PreContractedCasePerformanceSummary]) -> List['ClientPerformanceSummary']:
         clients = sorted(set(case.client for case in regular_cases + pre_contracted_cases))
         return [
             ClientPerformanceSummary.compute_from_cases(client, regular_cases, pre_contracted_cases)
@@ -307,12 +367,12 @@ class ClientPerformanceSummary:
 class AccountManagerPerformanceSummary:
     name: str
     totals: Totals
-    regular_cases: List[OneWeekRegularCasePerformanceSummary]
-    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    regular_cases: List[RegularCasePerformanceSummary]
+    pre_contracted_cases: List[PreContractedCasePerformanceSummary]
     clients: List[ClientPerformanceSummary]
     
     @staticmethod
-    def compute_from_cases(name: str, regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> 'AccountManagerPerformanceSummary':
+    def compute_from_cases(name: str, regular_cases: List[RegularCasePerformanceSummary], pre_contracted_cases: List[PreContractedCasePerformanceSummary]) -> 'AccountManagerPerformanceSummary':
         filtered_regular_cases = [case for case in regular_cases if case.account_manager == name]
         filtered_pre_contracted_cases = [case for case in pre_contracted_cases if case.account_manager == name]
 
@@ -328,7 +388,7 @@ class AccountManagerPerformanceSummary:
         )
     
     @staticmethod
-    def compute_list_from_cases(regular_cases: List[OneWeekRegularCasePerformanceSummary], pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]) -> List['AccountManagerPerformanceSummary']:
+    def compute_list_from_cases(regular_cases: List[RegularCasePerformanceSummary], pre_contracted_cases: List[PreContractedCasePerformanceSummary]) -> List['AccountManagerPerformanceSummary']:
         account_managers = sorted(set(case.account_manager for case in regular_cases + pre_contracted_cases))
         return [
             AccountManagerPerformanceSummary.compute_from_cases(account_manager, regular_cases, pre_contracted_cases)
@@ -340,8 +400,8 @@ class WeekPerformanceAnalysis:
     start: date
     end: date
     period_type: str
-    regular_cases: List[OneWeekRegularCasePerformanceSummary]
-    pre_contracted_cases: List[OneWeekPreContractedCasePerformanceSummary]
+    regular_cases: List[RegularCasePerformanceSummary]
+    pre_contracted_cases: List[PreContractedCasePerformanceSummary]
     clients: List[ClientPerformanceSummary]
     sponsors: List[SponsorPerformanceSummary]
     account_managers: List[AccountManagerPerformanceSummary]
@@ -349,11 +409,21 @@ class WeekPerformanceAnalysis:
     actual_work_hours: List[WorkingDayHours]
     
 @dataclass
+class PastPerformanceAnalysis:
+    regular_cases: List[RegularCasePerformanceSummary]
+    pre_contracted_cases: List[PreContractedCasePerformanceSummary]
+    clients: List[ClientPerformanceSummary]
+    sponsors: List[SponsorPerformanceSummary]
+    account_managers: List[AccountManagerPerformanceSummary]
+    totals: Totals
+    
+@dataclass
 class PerformanceAnalysis:
     start: date
     end: date
     date_of_interest: date
     weeks: List[WeekPerformanceAnalysis]
+    past: PastPerformanceAnalysis
 
 def _get_month_dates(date_of_interest: date) -> tuple[date, date]:
     start = date_of_interest.replace(day=1)
@@ -392,6 +462,9 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
     start_of_week = s
     end_of_analysis = e
     
+    past_regular_cases_summaries = {}
+    past_pre_contracted_cases_summaries = {}
+    
     while start_of_week <= end_of_analysis:
         _, end_of_week = Weeks.get_week_dates(start_of_week)
         cases = _filter_cases_by_period(all_cases, start_of_week, end_of_week)
@@ -401,17 +474,39 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
 
         cases_summaries = week_performance_summary.build_cases_summaries(cases, date_of_interest.month)
         
-        regular_cases_summaries = [case for case in cases_summaries if isinstance(case, OneWeekRegularCasePerformanceSummary)]
-        pre_contracted_cases_summaries = [case for case in cases_summaries if isinstance(case, OneWeekPreContractedCasePerformanceSummary)]
+        regular_cases_summaries = [
+            case 
+            for case in cases_summaries 
+            if isinstance(case, RegularCasePerformanceSummary)
+            ]
         
-        regular = TotalsRegular.compute_from_cases(regular_cases_summaries)
-        pre_contracted = TotalsPreContracted.compute_from_cases(pre_contracted_cases_summaries)
-
+        pre_contracted_cases_summaries = [
+            case 
+            for case in cases_summaries 
+            if isinstance(case, PreContractedCasePerformanceSummary)
+            ]
+        
         period_type = (
             "future" if start_of_week.date() > date_of_interest
             else "past" if end_of_week.date() < date_of_interest
             else "current"
         )
+        
+        if period_type == "past":
+            for regular_case_summary in regular_cases_summaries:
+                if (past_regular_cases_summaries.get(regular_case_summary.id, None) is None):
+                    past_regular_cases_summaries[regular_case_summary.id] = regular_case_summary.clone()
+                else:
+                    past_regular_cases_summaries[regular_case_summary.id].include_in_summary(regular_case_summary)
+            
+            for pre_contracted_case_summary in pre_contracted_cases_summaries:
+                if (past_pre_contracted_cases_summaries.get(pre_contracted_case_summary.id, None) is None):
+                    past_pre_contracted_cases_summaries[pre_contracted_case_summary.id] = pre_contracted_case_summary.clone()
+                else:
+                    past_pre_contracted_cases_summaries[pre_contracted_case_summary.id].include_in_summary(pre_contracted_case_summary)
+        
+        regular = TotalsRegular.compute_from_cases(regular_cases_summaries)
+        pre_contracted = TotalsPreContracted.compute_from_cases(pre_contracted_cases_summaries)
         
         week = WeekPerformanceAnalysis(
             start=start_of_week,
@@ -437,10 +532,32 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         
         weeks.append(week)
         start_of_week += pd.Timedelta(days=7)
+        
+    past_regular_cases_summaries = list(past_regular_cases_summaries.values())
+    past_pre_contracted_cases_summaries = list(past_pre_contracted_cases_summaries.values())
+    
+    past = PastPerformanceAnalysis(
+        regular_cases=past_regular_cases_summaries,
+        pre_contracted_cases=past_pre_contracted_cases_summaries,
+        clients=ClientPerformanceSummary.compute_list_from_cases(
+            past_regular_cases_summaries,
+            past_pre_contracted_cases_summaries
+        ),
+        sponsors=SponsorPerformanceSummary.compute_list_from_cases(
+            past_regular_cases_summaries,
+            past_pre_contracted_cases_summaries
+        ),
+        account_managers=AccountManagerPerformanceSummary.compute_list_from_cases(
+            past_regular_cases_summaries,
+            past_pre_contracted_cases_summaries
+        ),
+        totals=Totals(regular=regular, pre_contracted=pre_contracted)
+    )
             
     return PerformanceAnalysis(
         start=start,
         end=end,
         date_of_interest=date_of_interest,
-        weeks=weeks
+        weeks=weeks,
+        past=past
     )
