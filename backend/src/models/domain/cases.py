@@ -102,7 +102,18 @@ class Case(BaseModel):
     @property
     def omni_url(self) -> str:
         return f'/cases/{self.slug}'
-
+    
+    def has_contract_in_period(self, start: date, end: date) -> bool:
+        if not self.start_of_contract and not self.end_of_contract:
+            return self.is_active
+        
+        start = start.date() if isinstance(start, datetime) else start
+        end = end.date() if isinstance(end, datetime) else end
+        
+        return (
+            ((not self.start_of_contract) or self.start_of_contract <= end) and 
+            ((not self.end_of_contract) or self.end_of_contract >= start)
+        )
 
 class CasesRepository:
     def __init__(self,
