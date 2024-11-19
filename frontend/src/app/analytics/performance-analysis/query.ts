@@ -37,7 +37,7 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
   }
 
   query PerformanceAnalysis($date: Date!) {
-    performanceAnalysis(date_of_interest: $date) {
+    performanceAnalysis(dateOfInterest: $date) {
       dateOfInterest
       start
       end

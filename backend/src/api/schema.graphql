@@ -37,7 +37,7 @@ type Query {
   timelinessReview(date_of_interest: Date!, filters: [FilterInput]): TimelinessReview!
   projects: [Project!]!
   approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
-  performanceAnalysis(date_of_interest: Date!): PerformanceAnalysis!
+  performanceAnalysis(dateOfInterest: Date!): PerformanceAnalysis!
   
   activeDeals(accountManagerSlug: String, accountManagerName: String): [ActiveDeal!]!
   activeDeal(id: Int): ActiveDeal
