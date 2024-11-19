@@ -18,7 +18,7 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
     }
   }
 
-  fragment RegularCaseFragment on OneWeekRegularCasePerformanceSummary {
+  fragment RegularCaseFragment on RegularCasePerformanceSummary {
     title
     actualWorkHours
     approvedWorkHours
@@ -27,7 +27,7 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
     wastedHours
   }
 
-  fragment PreContractedCaseFragment on OneWeekPreContractedCasePerformanceSummary {
+  fragment PreContractedCaseFragment on PreContractedCasePerformanceSummary {
     title
     actualWorkHours
     approvedWorkHours
@@ -45,6 +45,51 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
         start
         end
         periodType
+        accountManagers {
+          name
+          totals {
+            ...TotalsFragment
+          }
+          clients {
+            name
+            totals {
+              ...TotalsFragment
+            }
+            sponsors {
+              name
+              totals {
+                ...TotalsFragment
+              }
+              regularCases {
+                ...RegularCaseFragment
+              }
+              preContractedCases {
+                ...PreContractedCaseFragment
+              }
+            }
+          }
+        }
+        clients {
+          name
+          totals {
+            ...TotalsFragment
+          }
+          sponsors {
+            name
+            totals {
+              ...TotalsFragment
+            }
+            regularCases {
+              ...RegularCaseFragment
+            }
+            preContractedCases {
+              ...PreContractedCaseFragment
+            }
+          }
+        }
+      }
+
+      past {
         accountManagers {
           name
           totals {
