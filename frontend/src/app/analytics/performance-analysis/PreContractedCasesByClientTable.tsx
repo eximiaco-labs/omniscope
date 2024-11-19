@@ -149,48 +149,46 @@ export function PreContractedCasesByClientTable({
                       );
                     })}
                   </TableRow>
-                  {expandedSponsors.has(sponsor.name) && (
-                    <TableRow key={`${client.name}-${sponsor.name}-cases`}>
+                  {expandedSponsors.has(sponsor.name) && sponsor.preContractedCases
+                    .filter((c: any) => c.actualWorkHours > 0 || c.approvedWorkHours > 0)
+                    .map((preContractedCase: any) => (
+                    <TableRow key={`${client.name}-${sponsor.name}-${preContractedCase.title}`}>
                       <TableCell className="pl-16 text-sm text-gray-500">
-                        {sponsor.preContractedCases
-                          .filter((c: any) => c.actualWorkHours > 0 || c.approvedWorkHours > 0)
-                          .map((c: any) => (
-                          <div key={c.title}>{c.title}</div>
-                        ))}
+                        {preContractedCase.title}
                       </TableCell>
                       {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                         const weekClient = week.clients.find((c: any) => c.name === client.name);
                         const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                        const cases = (weekSponsor?.preContractedCases || [])
-                          .filter((c: any) => c.actualWorkHours > 0 || c.approvedWorkHours > 0);
+                        const weekCase = (weekSponsor?.preContractedCases || [])
+                          .find((c: any) => c.title === preContractedCase.title);
                         
                         return (
                           <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                            {cases.map((c: any) => (
-                              <div key={c.title}>
-                                <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
-                                {c.possibleUnpaidHours > 0 && (
+                            {weekCase && (
+                              <div>
+                                <div>{formatHours(weekCase.actualWorkHours)} / {formatHours(weekCase.approvedWorkHours)}</div>
+                                {weekCase.possibleUnpaidHours > 0 && (
                                   <div className="text-orange-500 text-sm">
-                                    {formatHours(c.possibleUnpaidHours)} unpaid
+                                    {formatHours(weekCase.possibleUnpaidHours)} unpaid
                                   </div>
                                 )}
-                                {c.possibleIdleHours > 0 && (
+                                {weekCase.possibleIdleHours > 0 && (
                                   <div className="text-yellow-500 text-sm">
-                                    {formatHours(c.possibleIdleHours)} idle
+                                    {formatHours(weekCase.possibleIdleHours)} idle
                                   </div>
                                 )}
-                                {c.inContextActualWorkHours !== c.actualWorkHours && c.inContextActualWorkHours > 0 && (
+                                {weekCase.inContextActualWorkHours !== weekCase.actualWorkHours && weekCase.inContextActualWorkHours > 0 && (
                                   <div className="text-blue-500 text-sm">
-                                    {formatHours(c.inContextActualWorkHours)} this month
+                                    {formatHours(weekCase.inContextActualWorkHours)} this month
                                   </div>
                                 )}
                               </div>
-                            ))}
+                            )}
                           </TableCell>
                         );
                       })}
                     </TableRow>
-                  )}
+                  ))}
                 </React.Fragment>
               ))}
             </React.Fragment>

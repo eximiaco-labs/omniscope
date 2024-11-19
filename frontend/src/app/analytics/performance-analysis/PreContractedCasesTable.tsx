@@ -203,49 +203,48 @@ export function PreContractedCasesTable({
                           );
                         })}
                       </TableRow>
-                      {expandedSponsors.has(sponsor.name) && (
-                        <TableRow key={`${manager.name}-${client.name}-${sponsor.name}-cases`}>
-                          <TableCell className="pl-16 text-sm text-gray-500">
-                            {sponsor.preContractedCases
-                              .filter((c: { actualWorkHours: any; approvedWorkHours: any; }) => (c.actualWorkHours || 0) > 0 || (c.approvedWorkHours || 0) > 0)
-                              .map((c: any) => (
-                                <div key={c.title}>{c.title}</div>
-                              ))}
-                          </TableCell>
-                          {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                            const weekManager = week.accountManagers.find((m: any) => m.name === manager.name);
-                            const weekClient = weekManager?.clients.find((c: any) => c.name === client.name);
-                            const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                            const cases = (weekSponsor?.preContractedCases || [])
-                              .filter((c: { actualWorkHours: any; approvedWorkHours: any; }) => (c.actualWorkHours || 0) > 0 || (c.approvedWorkHours || 0) > 0);
-                            
-                            return (
-                              <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                                {cases.map((c: any) => (
-                                  <div key={c.title}>
-                                    <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
-                                    {c.possibleUnpaidHours > 0 && (
-                                      <div className="text-orange-500 text-sm">
-                                        {formatHours(c.possibleUnpaidHours)} unpaid
-                                      </div>
-                                    )}
-                                    {c.possibleIdleHours > 0 && (
-                                      <div className="text-yellow-500 text-sm">
-                                        {formatHours(c.possibleIdleHours)} idle
-                                      </div>
-                                    )}
-                                    {c.inContextActualWorkHours !== c.actualWorkHours && c.inContextActualWorkHours > 0 && (
-                                      <div className="text-blue-500 text-sm">
-                                        {formatHours(c.inContextActualWorkHours)} this month
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      )}
+                      {expandedSponsors.has(sponsor.name) && sponsor.preContractedCases
+                        .filter((c: { actualWorkHours: any; approvedWorkHours: any; }) => 
+                          (c.actualWorkHours || 0) > 0 || (c.approvedWorkHours || 0) > 0)
+                        .map((c: any) => (
+                          <TableRow key={`${manager.name}-${client.name}-${sponsor.name}-${c.title}`}>
+                            <TableCell className="pl-16 text-sm text-gray-500">
+                              {c.title}
+                            </TableCell>
+                            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
+                              const weekManager = week.accountManagers.find((m: any) => m.name === manager.name);
+                              const weekClient = weekManager?.clients.find((c2: any) => c2.name === client.name);
+                              const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
+                              const weekCase = (weekSponsor?.preContractedCases || [])
+                                .find((c2: any) => c2.title === c.title);
+                              
+                              return (
+                                <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
+                                  {weekCase && (weekCase.actualWorkHours > 0 || weekCase.approvedWorkHours > 0) ? (
+                                    <div>
+                                      <div>{formatHours(weekCase.actualWorkHours)} / {formatHours(weekCase.approvedWorkHours)}</div>
+                                      {weekCase.possibleUnpaidHours > 0 && (
+                                        <div className="text-orange-500 text-sm">
+                                          {formatHours(weekCase.possibleUnpaidHours)} unpaid
+                                        </div>
+                                      )}
+                                      {weekCase.possibleIdleHours > 0 && (
+                                        <div className="text-yellow-500 text-sm">
+                                          {formatHours(weekCase.possibleIdleHours)} idle
+                                        </div>
+                                      )}
+                                      {weekCase.inContextActualWorkHours !== weekCase.actualWorkHours && weekCase.inContextActualWorkHours > 0 && (
+                                        <div className="text-blue-500 text-sm">
+                                          {formatHours(weekCase.inContextActualWorkHours)} this month
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : "-"}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        ))}
                     </React.Fragment>
                   ))}
                 </React.Fragment>
