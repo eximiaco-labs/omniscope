@@ -13,25 +13,21 @@ import React from "react";
 
 interface RegularCasesByClientTableProps {
   data: any;
-  clients: string[];
   expandedClients: Set<string>;
   expandedSponsors: Set<string>;
   selectedWeekIndex: number;
   toggleClient: (clientKey: string) => void;
   toggleSponsor: (sponsorKey: string) => void;
-  getSponsorsForClient: (week: any, clientName: string, isRegular: boolean) => string[];
   formatHours: (hours: number) => string;
 }
 
 export function RegularCasesByClientTable({
   data,
-  clients,
   expandedClients,
   expandedSponsors,
   selectedWeekIndex,
   toggleClient,
   toggleSponsor,
-  getSponsorsForClient,
   formatHours,
 }: RegularCasesByClientTableProps) {
   return (
@@ -52,51 +48,35 @@ export function RegularCasesByClientTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {clients.map((clientName) => (
-            <React.Fragment key={clientName}>
-              <TableRow className="cursor-pointer hover:bg-gray-50" onClick={() => toggleClient(clientName)}>
+          {data.performanceAnalysis.weeks[selectedWeekIndex].clients.map((client: any) => (
+            <React.Fragment key={client.name}>
+              <TableRow className="cursor-pointer hover:bg-gray-50" onClick={() => toggleClient(client.name)}>
                 <TableCell className="font-medium flex items-center gap-2">
-                  {expandedClients.has(clientName) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                  {clientName}
+                  {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  {client.name}
                 </TableCell>
                 {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                  const clientCases = week.regularCases.filter(
-                    (c: any) => c.client === clientName
-                  );
-                  const totalActual = clientCases.reduce((sum: number, c: any) => 
-                    sum + (typeof c.actualWorkHours === 'number' ? c.actualWorkHours : 0), 0
-                  );
-                  const totalApproved = clientCases.reduce((sum: number, c: any) => 
-                    sum + (typeof c.approvedWorkHours === 'number' ? c.approvedWorkHours : 0), 0
-                  );
-                  const totalWasted = clientCases.reduce((sum: number, c: any) => 
-                    sum + (typeof c.wastedHours === 'number' ? c.wastedHours : 0), 0
-                  );
-                  const totalOverApproved = clientCases.reduce((sum: number, c: any) => 
-                    sum + (typeof c.overApprovedHours === 'number' ? c.overApprovedHours : 0), 0
-                  );
-                  const totalInContext = clientCases.reduce((sum: number, c: any) => 
-                    sum + (typeof c.inContextActualWorkHours === 'number' ? c.inContextActualWorkHours : 0), 0
-                  );
+                  const weekClient = week.clients.find((c: any) => c.name === client.name);
+                  const totals = weekClient?.totals?.regular || {};
                   
                   return (
                     <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                      {clientCases.length > 0 ? (
+                      {weekClient ? (
                         <div>
-                          <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
-                          {totalWasted > 0 && (
+                          <div>{formatHours(totals.actualWorkHours || 0)} / {formatHours(totals.approvedWorkHours || 0)}</div>
+                          {totals.wastedHours > 0 && (
                             <div className="text-red-500 text-sm">
-                              {formatHours(totalWasted)} wasted
+                              {formatHours(totals.wastedHours)} wasted
                             </div>
                           )}
-                          {totalOverApproved > 0 && (
+                          {totals.overApprovedHours > 0 && (
                             <div className="text-orange-500 text-sm">
-                              {formatHours(totalOverApproved)} over
+                              {formatHours(totals.overApprovedHours)} over
                             </div>
                           )}
-                          {totalInContext !== totalActual && totalInContext > 0 && (
+                          {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
                             <div className="text-blue-500 text-sm">
-                              {formatHours(totalInContext)} this month
+                              {formatHours(totals.inContextActualWorkHours)} this month
                             </div>
                           )}
                         </div>
@@ -105,100 +85,88 @@ export function RegularCasesByClientTable({
                   );
                 })}
               </TableRow>
-              {expandedClients.has(clientName) && data.performanceAnalysis.weeks.length > 0 && 
-                getSponsorsForClient(data.performanceAnalysis.weeks[0], clientName, true).map((sponsorName) => (
-                  <React.Fragment key={`${clientName}-${sponsorName}`}>
-                    <TableRow 
-                      className="bg-gray-100 cursor-pointer hover:bg-gray-200"
-                      onClick={() => toggleSponsor(`${clientName}-${sponsorName}`)}
-                    >
-                      <TableCell className="pl-8 text-sm text-gray-500 flex items-center gap-2">
-                        {expandedSponsors.has(`${clientName}-${sponsorName}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                        {sponsorName}
+              {expandedClients.has(client.name) && client.sponsors.map((sponsor: any) => (
+                <React.Fragment key={`${client.name}-${sponsor.name}`}>
+                  <TableRow 
+                    className="bg-gray-100 cursor-pointer hover:bg-gray-200"
+                    onClick={() => toggleSponsor(`${client.name}-${sponsor.name}`)}
+                  >
+                    <TableCell className="pl-8 text-sm text-gray-500 flex items-center gap-2">
+                      {expandedSponsors.has(`${client.name}-${sponsor.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      {sponsor.name}
+                    </TableCell>
+                    {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
+                      const weekClient = week.clients.find((c: any) => c.name === client.name);
+                      const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
+                      const totals = weekSponsor?.totals?.regular || {};
+
+                      return (
+                        <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
+                          {weekSponsor ? (
+                            <div>
+                              <div>{formatHours(totals.actualWorkHours || 0)} / {formatHours(totals.approvedWorkHours || 0)}</div>
+                              {totals.wastedHours > 0 && (
+                                <div className="text-red-500 text-sm">
+                                  {formatHours(totals.wastedHours)} wasted
+                                </div>
+                              )}
+                              {totals.overApprovedHours > 0 && (
+                                <div className="text-orange-500 text-sm">
+                                  {formatHours(totals.overApprovedHours)} over
+                                </div>
+                              )}
+                              {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
+                                <div className="text-blue-500 text-sm">
+                                  {formatHours(totals.inContextActualWorkHours)} this month
+                                </div>
+                              )}
+                            </div>
+                          ) : "-"}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                  {expandedSponsors.has(`${client.name}-${sponsor.name}`) && (
+                    <TableRow key={`${client.name}-${sponsor.name}-cases`}>
+                      <TableCell className="pl-12 text-sm text-gray-500">
+                        {sponsor.regularCases.map((c: any) => (
+                          <div key={c.title}>{c.title}</div>
+                        ))}
                       </TableCell>
                       {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                        const sponsorCases = week.regularCases.filter(
-                          (c: any) => c.client === clientName && c.sponsor === sponsorName
-                        );
-                        const totalActual = sponsorCases.reduce((sum: number, c: any) => sum + c.actualWorkHours, 0);
-                        const totalApproved = sponsorCases.reduce((sum: number, c: any) => sum + c.approvedWorkHours, 0);
-                        const totalWasted = sponsorCases.reduce((sum: number, c: any) => sum + c.wastedHours, 0);
-                        const totalOverApproved = sponsorCases.reduce((sum: number, c: any) => sum + c.overApprovedHours, 0);
-                        const totalInContext = sponsorCases.reduce((sum: number, c: any) => sum + c.inContextActualWorkHours, 0);
-                        
+                        const weekClient = week.clients.find((c: any) => c.name === client.name);
+                        const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
+                        const cases = weekSponsor?.regularCases || [];
+
                         return (
-                          <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                            {sponsorCases.length > 0 ? (
-                              <div>
-                                <div>{formatHours(totalActual)} / {formatHours(totalApproved)}</div>
-                                {totalWasted > 0 && (
+                          <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
+                            {cases.map((c: any) => (
+                              <div key={c.title}>
+                                <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
+                                {c.wastedHours > 0 && (
                                   <div className="text-red-500 text-sm">
-                                    {formatHours(totalWasted)} wasted
+                                    {formatHours(c.wastedHours)} wasted
                                   </div>
                                 )}
-                                {totalOverApproved > 0 && (
+                                {c.overApprovedHours > 0 && (
                                   <div className="text-orange-500 text-sm">
-                                    {formatHours(totalOverApproved)} over
+                                    {formatHours(c.overApprovedHours)} over
                                   </div>
                                 )}
-                                {totalInContext !== totalActual && totalInContext > 0 && (
+                                {c.inContextActualWorkHours !== c.actualWorkHours && c.inContextActualWorkHours > 0 && (
                                   <div className="text-blue-500 text-sm">
-                                    {formatHours(totalInContext)} this month
+                                    {formatHours(c.inContextActualWorkHours)} this month
                                   </div>
                                 )}
                               </div>
-                            ) : "-"}
+                            ))}
                           </TableCell>
                         );
                       })}
                     </TableRow>
-                    {expandedSponsors.has(`${clientName}-${sponsorName}`) && (
-                      <TableRow key={`${clientName}-${sponsorName}-cases`}>
-                        <TableCell className="pl-12 text-sm text-gray-500">
-                          {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                            const cases = week.regularCases.filter(
-                              (c: any) => c.client === clientName && c.sponsor === sponsorName
-                            );
-                            return cases.map((c: any) => (
-                              <div key={`${week.start}-${c.title}`}>
-                                {weekIndex === 0 && c.title}
-                              </div>
-                            ));
-                          })}
-                        </TableCell>
-                        {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                          const cases = week.regularCases.filter(
-                            (c: any) => c.client === clientName && c.sponsor === sponsorName
-                          );
-                          return (
-                            <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                              {cases.map((c: any) => (
-                                <div key={`${week.start}-${c.title}`}>
-                                  <div>{formatHours(c.actualWorkHours)} / {formatHours(c.approvedWorkHours)}</div>
-                                  {c.wastedHours > 0 && (
-                                    <div className="text-red-500 text-sm">
-                                      {formatHours(c.wastedHours)} wasted
-                                    </div>
-                                  )}
-                                  {c.overApprovedHours > 0 && (
-                                    <div className="text-orange-500 text-sm">
-                                      {formatHours(c.overApprovedHours)} over
-                                    </div>
-                                  )}
-                                  {c.inContextActualWorkHours !== c.actualWorkHours && c.inContextActualWorkHours > 0 && (
-                                    <div className="text-blue-500 text-sm">
-                                      {formatHours(c.inContextActualWorkHours)} this month
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))}
+                  )}
+                </React.Fragment>
+              ))}
             </React.Fragment>
           ))}
         </TableBody>
