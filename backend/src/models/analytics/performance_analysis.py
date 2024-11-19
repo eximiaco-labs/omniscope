@@ -400,6 +400,7 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
         week_performance_summary = OneWeekPerformanceSummary(week_working_hours)
 
         cases_summaries = week_performance_summary.build_cases_summaries(cases, date_of_interest.month)
+        
         regular_cases_summaries = [case for case in cases_summaries if isinstance(case, OneWeekRegularCasePerformanceSummary)]
         pre_contracted_cases_summaries = [case for case in cases_summaries if isinstance(case, OneWeekPreContractedCasePerformanceSummary)]
         

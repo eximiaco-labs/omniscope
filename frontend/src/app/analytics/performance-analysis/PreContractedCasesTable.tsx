@@ -34,19 +34,39 @@ export function PreContractedCasesTable({
   toggleSponsor,
   formatHours,
 }: PreContractedCasesTableProps) {
-  const hasNonZeroHours = (weeks: any[], entityFinder: (week: any) => any) => {
-    return weeks.some(week => {
-      const entity = entityFinder(week);
-      const totals = entity?.totals?.preContracted || {};
-      return (totals.actualWorkHours || 0) > 0 || (totals.approvedWorkHours || 0) > 0;
+  // Helper function to check if manager has any non-zero hours
+  const hasNonZeroHours = (manager: any) => {
+    return data.performanceAnalysis.weeks.some((week: any) => {
+      const managerData = week.accountManagers.find((m: any) => m.name === manager.name);
+      const totals = managerData?.totals?.preContracted;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
     });
   };
 
-  const hasNonZeroCaseHours = (weeks: any[], caseFinder: (week: any) => any[]) => {
-    return weeks.some(week => {
-      const cases = caseFinder(week) || [];
-      return cases.some(c => (c.actualWorkHours || 0) > 0 || (c.approvedWorkHours || 0) > 0);
+  // Helper function to check if client has any non-zero hours
+  const hasNonZeroClientHours = (manager: string, client: any) => {
+    return data.performanceAnalysis.weeks.some((week: any) => {
+      const managerData = week.accountManagers.find((m: any) => m.name === manager);
+      const clientData = managerData?.clients.find((c: any) => c.name === client.name);
+      const totals = clientData?.totals?.preContracted;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
     });
+  };
+
+  // Helper function to check if sponsor has any non-zero hours
+  const hasNonZeroSponsorHours = (manager: string, client: string, sponsor: any) => {
+    return data.performanceAnalysis.weeks.some((week: any) => {
+      const managerData = week.accountManagers.find((m: any) => m.name === manager);
+      const clientData = managerData?.clients.find((c: any) => c.name === client);
+      const sponsorData = clientData?.sponsors.find((s: any) => s.name === sponsor.name);
+      const totals = sponsorData?.totals?.preContracted;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
+    });
+  };
+
+  // Helper function to check if case has any non-zero hours
+  const hasNonZeroCaseHours = (preContractedCase: any) => {
+    return preContractedCase.actualWorkHours > 0 || preContractedCase.approvedWorkHours > 0;
   };
 
   return (
@@ -67,9 +87,8 @@ export function PreContractedCasesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.performanceAnalysis.weeks[selectedWeekIndex].accountManagers
-            .filter((manager: { name: any; }) => hasNonZeroHours(data.performanceAnalysis.weeks, 
-              week => week.accountManagers.find((m: any) => m.name === manager.name)))
+          {data.performanceAnalysis.weeks[0].accountManagers
+            .filter((manager: any) => hasNonZeroHours(manager))
             .map((manager: any) => (
             <React.Fragment key={manager.name}>
               <TableRow className="cursor-pointer hover:bg-gray-50" onClick={() => togglePreContractedManager(manager.name)}>
@@ -107,20 +126,18 @@ export function PreContractedCasesTable({
                   );
                 })}
               </TableRow>
-              {expandedPreContractedManagers.has(manager.name) && manager.clients
-                .filter((client: { name: any; }) => hasNonZeroHours(data.performanceAnalysis.weeks, 
-                  week => {
-                    const weekManager = week.accountManagers.find((m: any) => m.name === manager.name);
-                    return weekManager?.clients.find((c: any) => c.name === client.name);
-                  }))
+              {expandedPreContractedManagers.has(manager.name) && data.performanceAnalysis.weeks[0].accountManagers
+                .find((m: any) => m.name === manager.name)
+                ?.clients
+                .filter((client: any) => hasNonZeroClientHours(manager.name, client))
                 .map((client: any) => (
                 <React.Fragment key={`${manager.name}-${client.name}`}>
                   <TableRow 
                     className="bg-gray-50 cursor-pointer hover:bg-gray-100"
-                    onClick={() => toggleClient(client.name)}
+                    onClick={() => toggleClient(`precontracted-${manager.name}-${client.name}`)}
                   >
                     <TableCell className="pl-8 text-sm text-gray-600 flex items-center gap-2">
-                      {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      {expandedClients.has(`precontracted-${manager.name}-${client.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       {client.name}
                     </TableCell>
                     {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
@@ -154,21 +171,19 @@ export function PreContractedCasesTable({
                       );
                     })}
                   </TableRow>
-                  {expandedClients.has(client.name) && client.sponsors
-                    .filter((sponsor: { name: any; }) => hasNonZeroHours(data.performanceAnalysis.weeks, 
-                      week => {
-                        const weekManager = week.accountManagers.find((m: any) => m.name === manager.name);
-                        const weekClient = weekManager?.clients.find((c: any) => c.name === client.name);
-                        return weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                      }))
+                  {expandedClients.has(`precontracted-${manager.name}-${client.name}`) && data.performanceAnalysis.weeks[0].accountManagers
+                    .find((m: any) => m.name === manager.name)
+                    ?.clients.find((c: any) => c.name === client.name)
+                    ?.sponsors
+                    .filter((sponsor: any) => hasNonZeroSponsorHours(manager.name, client.name, sponsor))
                     .map((sponsor: any) => (
                     <React.Fragment key={`${manager.name}-${client.name}-${sponsor.name}`}>
                       <TableRow 
                         className="bg-gray-100 cursor-pointer hover:bg-gray-200"
-                        onClick={() => toggleSponsor(sponsor.name)}
+                        onClick={() => toggleSponsor(`precontracted-${manager.name}-${client.name}-${sponsor.name}`)}
                       >
                         <TableCell className="pl-12 text-sm text-gray-500 flex items-center gap-2">
-                          {expandedSponsors.has(sponsor.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          {expandedSponsors.has(`precontracted-${manager.name}-${client.name}-${sponsor.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                           {sponsor.name}
                         </TableCell>
                         {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
@@ -203,24 +218,26 @@ export function PreContractedCasesTable({
                           );
                         })}
                       </TableRow>
-                      {expandedSponsors.has(sponsor.name) && sponsor.preContractedCases
-                        .filter((c: { actualWorkHours: any; approvedWorkHours: any; }) => 
-                          (c.actualWorkHours || 0) > 0 || (c.approvedWorkHours || 0) > 0)
-                        .map((c: any) => (
-                          <TableRow key={`${manager.name}-${client.name}-${sponsor.name}-${c.title}`}>
+                      {expandedSponsors.has(`precontracted-${manager.name}-${client.name}-${sponsor.name}`) && data.performanceAnalysis.weeks[0].accountManagers
+                        .find((m: any) => m.name === manager.name)
+                        ?.clients.find((c: any) => c.name === client.name)
+                        ?.sponsors.find((s: any) => s.name === sponsor.name)
+                        ?.preContractedCases
+                        .filter(hasNonZeroCaseHours)
+                        .map((preContractedCase: any) => (
+                          <TableRow key={`${manager.name}-${client.name}-${sponsor.name}-${preContractedCase.title}`}>
                             <TableCell className="pl-16 text-sm text-gray-500">
-                              {c.title}
+                              {preContractedCase.title}
                             </TableCell>
                             {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                               const weekManager = week.accountManagers.find((m: any) => m.name === manager.name);
                               const weekClient = weekManager?.clients.find((c2: any) => c2.name === client.name);
                               const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                              const weekCase = (weekSponsor?.preContractedCases || [])
-                                .find((c2: any) => c2.title === c.title);
+                              const weekCase = weekSponsor?.preContractedCases?.find((c2: any) => c2.title === preContractedCase.title);
                               
                               return (
                                 <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                                  {weekCase && (weekCase.actualWorkHours > 0 || weekCase.approvedWorkHours > 0) ? (
+                                  {weekCase ? (
                                     <div>
                                       <div>{formatHours(weekCase.actualWorkHours)} / {formatHours(weekCase.approvedWorkHours)}</div>
                                       {weekCase.possibleUnpaidHours > 0 && (

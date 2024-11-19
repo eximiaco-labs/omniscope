@@ -34,8 +34,8 @@ export function PreContractedCasesByClientTable({
   const hasNonZeroHours = (client: any) => {
     return data.performanceAnalysis.weeks.some((week: any) => {
       const weekClient = week.clients.find((c: any) => c.name === client.name);
-      const totals = weekClient?.totals?.preContracted || {};
-      return totals.actualWorkHours > 0 || totals.approvedWorkHours > 0;
+      const totals = weekClient?.totals?.preContracted;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
     });
   };
 
@@ -44,8 +44,8 @@ export function PreContractedCasesByClientTable({
     return data.performanceAnalysis.weeks.some((week: any) => {
       const weekClient = week.clients.find((c: any) => c.name === client.name);
       const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-      const totals = weekSponsor?.totals?.preContracted || {};
-      return totals.actualWorkHours > 0 || totals.approvedWorkHours > 0;
+      const totals = weekSponsor?.totals?.preContracted;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
     });
   };
 
@@ -78,13 +78,13 @@ export function PreContractedCasesByClientTable({
                 </TableCell>
                 {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                   const weekClient = week.clients.find((c: any) => c.name === client.name);
-                  const totals = weekClient?.totals?.preContracted || {};
+                  const totals = weekClient?.totals?.preContracted;
                   
                   return (
                     <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                      {weekClient ? (
+                      {totals ? (
                         <div>
-                          <div>{formatHours(totals.actualWorkHours || 0)} / {formatHours(totals.approvedWorkHours || 0)}</div>
+                          <div>{formatHours(totals.actualWorkHours)} / {formatHours(totals.approvedWorkHours)}</div>
                           {totals.possibleUnpaidHours > 0 && (
                             <div className="text-orange-500 text-sm">
                               {formatHours(totals.possibleUnpaidHours)} unpaid
@@ -106,7 +106,9 @@ export function PreContractedCasesByClientTable({
                   );
                 })}
               </TableRow>
-              {expandedClients.has(client.name) && client.sponsors
+              {expandedClients.has(client.name) && data.performanceAnalysis.weeks[selectedWeekIndex].clients
+                .find((c: any) => c.name === client.name)
+                ?.sponsors
                 .filter((sponsor: any) => hasNonZeroSponsorHours(client, sponsor))
                 .map((sponsor: any) => (
                 <React.Fragment key={`${client.name}-${sponsor.name}`}>
@@ -121,13 +123,13 @@ export function PreContractedCasesByClientTable({
                     {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                       const weekClient = week.clients.find((c: any) => c.name === client.name);
                       const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                      const totals = weekSponsor?.totals?.preContracted || {};
+                      const totals = weekSponsor?.totals?.preContracted;
 
                       return (
                         <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                          {weekSponsor ? (
+                          {totals ? (
                             <div>
-                              <div>{formatHours(totals.actualWorkHours || 0)} / {formatHours(totals.approvedWorkHours || 0)}</div>
+                              <div>{formatHours(totals.actualWorkHours)} / {formatHours(totals.approvedWorkHours)}</div>
                               {totals.possibleUnpaidHours > 0 && (
                                 <div className="text-orange-500 text-sm">
                                   {formatHours(totals.possibleUnpaidHours)} unpaid
@@ -149,8 +151,10 @@ export function PreContractedCasesByClientTable({
                       );
                     })}
                   </TableRow>
-                  {expandedSponsors.has(sponsor.name) && sponsor.preContractedCases
-                    .filter((c: any) => c.actualWorkHours > 0 || c.approvedWorkHours > 0)
+                  {expandedSponsors.has(sponsor.name) && data.performanceAnalysis.weeks[selectedWeekIndex].clients
+                    .find((c: any) => c.name === client.name)
+                    ?.sponsors.find((s: any) => s.name === sponsor.name)
+                    ?.preContractedCases
                     .map((preContractedCase: any) => (
                     <TableRow key={`${client.name}-${sponsor.name}-${preContractedCase.title}`}>
                       <TableCell className="pl-16 text-sm text-gray-500">
@@ -159,7 +163,7 @@ export function PreContractedCasesByClientTable({
                       {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
                         const weekClient = week.clients.find((c: any) => c.name === client.name);
                         const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                        const weekCase = (weekSponsor?.preContractedCases || [])
+                        const weekCase = weekSponsor?.preContractedCases
                           .find((c: any) => c.title === preContractedCase.title);
                         
                         return (
