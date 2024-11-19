@@ -28,6 +28,7 @@ export const PERFORMANCE_ANALYSIS_QUERY = gql`
   }
 
   fragment PreContractedCaseFragment on OneWeekPreContractedCasePerformanceSummary {
+    title
     actualWorkHours
     approvedWorkHours
     inContextActualWorkHours

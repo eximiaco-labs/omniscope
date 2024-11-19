@@ -33,6 +33,43 @@ export function RegularCasesTable({
   toggleSponsor,
   formatHours,
 }: RegularCasesTableProps) {
+  // Helper function to check if manager has any non-zero hours
+  const hasNonZeroHours = (manager: any) => {
+    return data.performanceAnalysis.weeks.some((week: any) => {
+      const managerData = week.accountManagers.find((m: any) => m.name === manager.name);
+      const totals = managerData?.totals.regular;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
+    });
+  };
+
+  // Helper function to check if client has any non-zero hours
+  const hasNonZeroClientHours = (manager: string, client: any) => {
+    return data.performanceAnalysis.weeks.some((week: any) => {
+      const clientData = week.accountManagers
+        .find((m: any) => m.name === manager)
+        ?.clients.find((c: any) => c.name === client.name);
+      const totals = clientData?.totals.regular;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
+    });
+  };
+
+  // Helper function to check if sponsor has any non-zero hours
+  const hasNonZeroSponsorHours = (manager: string, client: string, sponsor: any) => {
+    return data.performanceAnalysis.weeks.some((week: any) => {
+      const sponsorData = week.accountManagers
+        .find((m: any) => m.name === manager)
+        ?.clients.find((c: any) => c.name === client)
+        ?.sponsors.find((s: any) => s.name === sponsor.name);
+      const totals = sponsorData?.totals.regular;
+      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
+    });
+  };
+
+  // Helper function to check if case has any non-zero hours
+  const hasNonZeroCaseHours = (c: any) => {
+    return c.actualWorkHours > 0 || c.approvedWorkHours > 0;
+  };
+
   return (
     <div>
       <SectionHeader title="Regular Cases by Account Manager" subtitle="" />
@@ -51,7 +88,9 @@ export function RegularCasesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.performanceAnalysis.weeks[selectedWeekIndex].accountManagers.map((manager: any) => (
+          {data.performanceAnalysis.weeks[selectedWeekIndex].accountManagers
+            .filter(hasNonZeroHours)
+            .map((manager: any) => (
             <>
               <TableRow key={manager.name} className="cursor-pointer hover:bg-gray-50" onClick={() => toggleRegularManager(manager.name)}>
                 <TableCell className="font-medium flex items-center gap-2">
@@ -88,7 +127,9 @@ export function RegularCasesTable({
                   );
                 })}
               </TableRow>
-              {expandedRegularManagers.has(manager.name) && manager.clients.map((client: any) => (
+              {expandedRegularManagers.has(manager.name) && manager.clients
+                .filter((client: any) => hasNonZeroClientHours(manager.name, client))
+                .map((client: any) => (
                 <>
                   <TableRow 
                     key={`${manager.name}-${client.name}`} 
@@ -131,7 +172,9 @@ export function RegularCasesTable({
                       );
                     })}
                   </TableRow>
-                  {expandedClients.has(`regular-${manager.name}-${client.name}`) && client.sponsors.map((sponsor: any) => (
+                  {expandedClients.has(`regular-${manager.name}-${client.name}`) && client.sponsors
+                    .filter((sponsor: any) => hasNonZeroSponsorHours(manager.name, client.name, sponsor))
+                    .map((sponsor: any) => (
                     <>
                       <TableRow 
                         key={`${manager.name}-${client.name}-${sponsor.name}`} 
@@ -178,7 +221,9 @@ export function RegularCasesTable({
                       {expandedSponsors.has(`regular-${manager.name}-${client.name}-${sponsor.name}`) && (
                         <TableRow key={`${manager.name}-${client.name}-${sponsor.name}-cases`}>
                           <TableCell className="pl-16 text-sm text-gray-500">
-                            {sponsor.regularCases.map((c: any) => (
+                            {sponsor.regularCases
+                              .filter(hasNonZeroCaseHours)
+                              .map((c: any) => (
                               <div key={c.title}>{c.title}</div>
                             ))}
                           </TableCell>
@@ -187,7 +232,7 @@ export function RegularCasesTable({
                               .find((m: any) => m.name === manager.name)
                               ?.clients.find((c: any) => c.name === client.name)
                               ?.sponsors.find((s: any) => s.name === sponsor.name)
-                              ?.regularCases || [];
+                              ?.regularCases.filter(hasNonZeroCaseHours) || [];
                             
                             return (
                               <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
