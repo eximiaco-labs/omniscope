@@ -28,11 +28,17 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
                         "totals": am.totals.regular,
                     })
                     break
-            
+ 
+        past = None
+        for am in performance_analysis.past.account_managers:
+            if am.name == account_manager_name:
+                past = am.totals.regular
+                break
             
         by_account_manager.append({
             "name": account_manager_name,
-            "weeks": weekly_totals
+            "weeks": weekly_totals,
+            "past": past,
         })
 
     return {

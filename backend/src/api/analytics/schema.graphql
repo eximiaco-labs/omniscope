@@ -116,6 +116,7 @@ type PerformanceAnalysisPivotedRegular {
 type PerformanceAnalysisPivotedRegularByAccountManager {
   name: String!
   weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+  past: TotalsRegular
 }
 
 type PerformanceAnalysisPivotedRegularWeek {
