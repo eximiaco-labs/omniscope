@@ -267,7 +267,10 @@ class TotalsRegular:
     over_approved_hours: float
     
     @staticmethod
-    def compute_from_cases(cases: List[RegularCasePerformanceSummary]) -> 'TotalsRegular':
+    def compute_from_cases(cases: List[RegularCasePerformanceSummary]):
+        if len(cases) == 0:
+            return None
+
         return TotalsRegular(
             approved_work_hours=sum(case.approved_work_hours for case in cases),
             actual_work_hours=sum(case.actual_work_hours for case in cases),
@@ -285,7 +288,10 @@ class TotalsPreContracted:
     possible_idle_hours: float
     
     @staticmethod
-    def compute_from_cases(cases: List[PreContractedCasePerformanceSummary]) -> 'TotalsPreContracted':
+    def compute_from_cases(cases: List[PreContractedCasePerformanceSummary]):
+        if len(cases) == 0:
+            return None
+
         return TotalsPreContracted(
             approved_work_hours=sum(case.approved_work_hours for case in cases),
             actual_work_hours=sum(case.actual_work_hours for case in cases),
@@ -491,6 +497,8 @@ def compute_performance_analysis(date_of_interest: str | date) -> PerformanceAna
             else "past" if end_of_week.date() < date_of_interest
             else "current"
         )
+
+        print(f'{start_of_week} - {end_of_week} -- {date_of_interest} => {period_type} ')
         
         if period_type == "past":
             for regular_case_summary in regular_cases_summaries:

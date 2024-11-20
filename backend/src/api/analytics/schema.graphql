@@ -56,8 +56,8 @@ type TotalsPreContracted {
 }
 
 type Totals {
-  regular: TotalsRegular!
-  preContracted: TotalsPreContracted!
+  regular: TotalsRegular
+  preContracted: TotalsPreContracted
 }
 
 type SponsorPerformanceSummary {
