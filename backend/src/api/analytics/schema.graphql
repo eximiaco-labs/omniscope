@@ -105,12 +105,33 @@ type PastPerformanceAnalysis {
   totals: Totals!
 }
 
+type PerformanceAnalysisPivoted {
+  regular: PerformanceAnalysisPivotedRegular!
+}
+
+type PerformanceAnalysisPivotedRegular {
+  byAccountManager: [PerformanceAnalysisPivotedRegularByAccountManager!]!
+}
+
+type PerformanceAnalysisPivotedRegularByAccountManager {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+}
+
+type PerformanceAnalysisPivotedRegularWeek {
+  start: Date!
+  end: Date!
+  periodType: String!
+  totals: TotalsRegular!
+}
+
 type PerformanceAnalysis {
   start: Date!
   end: Date!
   dateOfInterest: Date!
   weeks: [WeekPerformanceAnalysis!]!
   past: PastPerformanceAnalysis!
+  pivoted: PerformanceAnalysisPivoted!
 }
 
 # Week Review types
