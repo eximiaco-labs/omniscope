@@ -57,7 +57,12 @@ def build_case_dictionary(map, case):
             result['tracker'] = [
                 {
                     'id': project.id,
-                    'name': project.name
+                    'name': project.name,
+                    'kind': project.kind,
+                    'budget': {
+                        'period': project.budget.period,
+                        'hours': project.budget.hours
+                    } if project.budget else None
                 }
                 for project in case.tracker_info
             ]

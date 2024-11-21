@@ -13,7 +13,7 @@ type WorkingDayHours {
   byCase: [CaseHours!]!
 }
 
-type OneWeekRegularCasePerformanceSummary {
+type RegularCasePerformanceSummary {
   id: String!
   title: String!
   sponsor: String!
@@ -26,7 +26,7 @@ type OneWeekRegularCasePerformanceSummary {
   overApprovedHours: Float!
 }
 
-type OneWeekPreContractedCasePerformanceSummary {
+type PreContractedCasePerformanceSummary {
   id: String!
   title: String!
   sponsor: String!
@@ -56,38 +56,39 @@ type TotalsPreContracted {
 }
 
 type Totals {
-  regular: TotalsRegular!
-  preContracted: TotalsPreContracted!
+  regular: TotalsRegular
+  preContracted: TotalsPreContracted
 }
 
 type SponsorPerformanceSummary {
   name: String!
   totals: Totals!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
 }
 
 type ClientPerformanceSummary {
   name: String!
   totals: Totals!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
   sponsors: [SponsorPerformanceSummary!]!
 }
 
 type AccountManagerPerformanceSummary {
   name: String!
   totals: Totals!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
   clients: [ClientPerformanceSummary!]!
 }
 
 type WeekPerformanceAnalysis {
   start: Date!
   end: Date!
-  regularCases: [OneWeekRegularCasePerformanceSummary!]!
-  preContractedCases: [OneWeekPreContractedCasePerformanceSummary!]!
+  periodType: String!
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
   clients: [ClientPerformanceSummary!]!
   sponsors: [SponsorPerformanceSummary!]!
   accountManagers: [AccountManagerPerformanceSummary!]!
@@ -95,11 +96,103 @@ type WeekPerformanceAnalysis {
   actualWorkHours: [WorkingDayHours!]!
 }
 
+type PastPerformanceAnalysis {
+  regularCases: [RegularCasePerformanceSummary!]!
+  preContractedCases: [PreContractedCasePerformanceSummary!]!
+  clients: [ClientPerformanceSummary!]!
+  sponsors: [SponsorPerformanceSummary!]!
+  accountManagers: [AccountManagerPerformanceSummary!]!
+  totals: Totals!
+}
+
+type PerformanceAnalysisPivoted {
+  regular: PerformanceAnalysisPivotedRegular!
+  preContracted: PerformanceAnalysisPivotedPreContracted!
+}
+
+type PerformanceAnalysisPivotedRegular {
+  byAccountManager: [PerformanceAnalysisPivotedRegularByAccountManager!]!
+}
+
+type PerformanceAnalysisPivotedPreContracted {
+  byAccountManager: [PerformanceAnalysisPivotedPreContractedByAccountManager!]!
+}
+
+type PerformanceAnalysisPivotedRegularByAccountManager {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+  past: TotalsRegular
+  byClient: [PerformanceAnalysisPivotedRegularByClient!]!
+}
+
+type PerformanceAnalysisPivotedPreContractedByAccountManager {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+  byClient: [PerformanceAnalysisPivotedPreContractedByClient!]!
+}
+
+type PerformanceAnalysisPivotedRegularByClient {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+  past: TotalsRegular
+  bySponsor: [PerformanceAnalysisPivotedRegularBySponsor!]!
+}
+
+type PerformanceAnalysisPivotedPreContractedByClient {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+  bySponsor: [PerformanceAnalysisPivotedPreContractedBySponsor!]!
+}
+
+type PerformanceAnalysisPivotedRegularBySponsor {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+  past: TotalsRegular
+  byCase: [PerformanceAnalysisPivotedRegularByCase!]!
+} 
+
+type PerformanceAnalysisPivotedPreContractedBySponsor {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+  byCase: [PerformanceAnalysisPivotedPreContractedByCase!]!
+} 
+
+type PerformanceAnalysisPivotedRegularByCase {
+  title: String!
+  weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+  past: TotalsRegular
+}
+
+type PerformanceAnalysisPivotedPreContractedByCase {
+  title: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+} 
+
+type PerformanceAnalysisPivotedRegularWeek {
+  start: Date!
+  end: Date!
+  periodType: String!
+  totals: TotalsRegular!
+}
+
+type PerformanceAnalysisPivotedPreContractedWeek {
+  start: Date!
+  end: Date!
+  periodType: String!
+  totals: TotalsPreContracted!
+}
+
 type PerformanceAnalysis {
   start: Date!
   end: Date!
   dateOfInterest: Date!
   weeks: [WeekPerformanceAnalysis!]!
+  past: PastPerformanceAnalysis!
+  pivoted: PerformanceAnalysisPivoted!
 }
 
 # Week Review types

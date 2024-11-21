@@ -6,28 +6,14 @@ export const GET_CASE_BY_SLUG = gql`
       id
       slug
       title
-      isActive
-      preContractedValue
-      sponsor
-      hasDescription
-      everhourProjectsIds
-      startOfContract
-      endOfContract
-      weeklyApprovedHours
-      ontologyUrl
       tracker {
         id
         name
-      }
-      client {
-        name
-        logoUrl
-      }
-      lastUpdate {
-        date
-        author
-        status
-        observations
+        kind
+        budget {
+          hours
+          period
+        }
       }
       updates {
         author
@@ -35,15 +21,8 @@ export const GET_CASE_BY_SLUG = gql`
         status
         observations
       }
-
       timesheets {
         lastSixWeeks {
-          byCase {
-            workersByTrackingProject {
-              projectId
-              workers
-            }
-          }
           byKind {
             consulting {
               totalHours
@@ -84,6 +63,12 @@ export const GET_CASE_BY_SLUG = gql`
                   hours
                 }
               }
+            }
+          }
+          byCase {
+            workersByTrackingProject {
+              projectId
+              workers
             }
           }
         }

@@ -16,11 +16,25 @@ from settings import api_settings
 
 import pytz
 
+class TimeBudget:
+    hours: float
+    period: str
 
 class Project(e.Project):
     is_squad: Optional[bool] = False
     is_eximiaco: Optional[bool] = False
     is_handson: Optional[bool] = False
+    
+    @property
+    def kind(self):
+        if self.is_handson:
+            return 'handsOn'
+        if self.is_squad:
+            return 'squad'
+        if self.is_eximiaco:
+            return 'internal'
+        
+        return 'consulting'
 
     @classmethod
     def from_base_instance(cls, base_instance: e.Project, client: Client):
@@ -28,6 +42,7 @@ class Project(e.Project):
         base_dict['is_squad'] = client.is_squad if client else False
         base_dict['is_eximiaco'] = client.is_eximiaco if client else True
         base_dict['is_handson'] = client.is_handson if client else False
+
         if base_instance.name.lower().endswith('- se'):
             base_dict['is_handson'] = True
 

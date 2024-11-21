@@ -9,10 +9,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/catalyst/badge";
+import { STAT_COLORS } from "@/app/constants/colors";
 
 interface CasesTableProps {
   filteredCases: any[];
   showSponsorColumn?: boolean;
+}
+
+interface TrackingProject {
+  id: string;
+  name: string;
+  kind: string;
+  budget?: {
+    hours: number;
+    period: string;
+  };
 }
 
 export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTableProps) {
@@ -149,27 +160,51 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                 {caseData.caseDetails.tracker && caseData.caseDetails.tracker.length > 0 ? (
                   <table className="w-full text-xs border-collapse">
                     <tbody>
-                      {caseData.caseDetails.tracker.map((track: { id: string; name: string }) => {
+                      {caseData.caseDetails.tracker.map((track: TrackingProject) => {
                         const projectWorkers = caseData.workersByTrackingProject?.find(
                           (project: { projectId: string }) => project.projectId === track.id
                         )?.workers || [];
                         
+                        const textColor = STAT_COLORS[track.kind as keyof typeof STAT_COLORS];
+                        
                         return (
-                          <>
+                          <React.Fragment key={track.id}>
                             {projectWorkers.length > 0 ? (
                               projectWorkers.map((worker: string) => (
                                 <tr key={`${track.id}-${worker}`} className="border-b border-gray-200">
-                                  <td className="text-gray-800 pr-2 w-[210px] break-words border-r border-gray-200">{track.name}</td>
+                                  <td className="pr-2 w-[210px] break-words border-r border-gray-200">
+                                    <div style={{ color: textColor }}>
+                                      {track.name}
+                                      {track.budget && (
+                                        <div className="text-gray-500 mt-1">
+                                          <span className="inline-block bg-gray-100 px-1 rounded">
+                                            {track.budget.hours}h/{track.budget.period}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
                                   <td className="text-gray-600 pl-2">{worker}</td>
                                 </tr>
                               ))
                             ) : (
                               <tr key={track.id} className="border-b border-gray-200">
-                                <td className="text-gray-800 pr-2 w-[210px] break-words border-r border-gray-200">{track.name}</td>
+                                <td className="pr-2 w-[210px] break-words border-r border-gray-200">
+                                  <div style={{ color: textColor }}>
+                                    {track.name}
+                                    {track.budget && (
+                                      <div className="text-gray-500 mt-1">
+                                        <span className="inline-block bg-gray-100 px-1 rounded">
+                                          {track.budget.hours}h/{track.budget.period}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="text-gray-400 pl-2">No team members</td>
                               </tr>
                             )}
-                          </>
+                          </React.Fragment>
                         );
                       })}
                     </tbody>

@@ -9,6 +9,7 @@ import { CaseTimeline } from "./CaseTimeline";
 import { WeeklyHoursTable } from "./WeeklyHoursTable";
 import SectionHeader from "@/components/SectionHeader";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { TrackingProjects } from "./TrackingProjects";
 
 export default function CasePage() {
   const { slug } = useParams();
@@ -54,56 +55,12 @@ export default function CasePage() {
         </div>
       )}
 
-      {caseItem.tracker && caseItem.tracker.length > 0 && (
-        <div className="mt-8">
-          <SectionHeader title="Tracking Projects" subtitle="" />
-          <div className="ml-4 mr-4">
-            <Table>
-              <TableBody>
-                {caseItem.tracker.map((track: { id: string; name: string }) => {
-                  const projectWorkers =
-                    caseItem.timesheets.lastSixWeeks.byCase?.[0]?.workersByTrackingProject?.find(
-                      (project: { projectId: string }) =>
-                        project.projectId === track.id
-                    )?.workers || [];
-
-                  return (
-                    <React.Fragment key={track.id}>
-                      {projectWorkers.length > 0 ? (
-                        <>
-                          <TableRow>
-                            <TableCell
-                              rowSpan={projectWorkers.length}
-                              className="w-1/2 break-words border-r"
-                            >
-                              {track.name}
-                            </TableCell>
-                            <TableCell className="w-1/2">{projectWorkers[0]}</TableCell>
-                          </TableRow>
-                          {projectWorkers.slice(1).map((worker: string) => (
-                            <TableRow key={`${track.id}-${worker}`}>
-                              <TableCell className="w-1/2">{worker}</TableCell>
-                            </TableRow>
-                          ))}
-                        </>
-                      ) : (
-                        <TableRow>
-                          <TableCell className="w-1/2 break-words border-r">
-                            {track.name}
-                          </TableCell>
-                          <TableCell className="w-1/2 text-muted-foreground">
-                            No team members
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      )}
+      <TrackingProjects
+        tracker={caseItem.tracker}
+        workersByTrackingProject={
+          caseItem.timesheets.lastSixWeeks.byCase?.[0]?.workersByTrackingProject || []
+        }
+      />
 
       {byKind.consulting?.byWorker?.length > 0 && (
         <div className="mt-8">

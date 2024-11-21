@@ -1,6 +1,7 @@
 import requests
 from typing import Any, Dict, Optional, Literal, List
 
+from bokeh.resources import BaseMode
 from pydantic import BaseModel, conint, validator, Field
 from datetime import datetime
 
@@ -24,6 +25,17 @@ class Billing(BaseModel):
     type: Optional[str] = None
     fee: Optional[float] = None
 
+class Budget(BaseModel):
+    type: Optional[str]=None
+    budget: Optional[int]=None
+    period: Optional[str]='general'
+
+    @property
+    def hours(self) -> float:
+        if self.type != "time":
+            return None
+        return self.budget / 60 / 60
+
 class Project(BaseModel):
     id: str
     platform: str
@@ -32,6 +44,7 @@ class Project(BaseModel):
     status: str
     billing: Optional[Billing] = None
     client_id: Optional[int] = Field(None, alias='client')
+    budget: Optional[Budget] = None
 
 
     @property

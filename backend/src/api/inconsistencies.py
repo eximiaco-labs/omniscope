@@ -103,5 +103,34 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             'Sponsors not found in CRM',
             f'{len(sponsors_without_crm_id)} sponsor(s) were not found in the CRM system.'
         ))
+        
+    # Build mapping of everhour project IDs to cases
+    everhour_id_to_cases = {}
+    for case in cases:
+        if case.is_active and case.everhour_projects_ids:
+            for everhour_id in case.everhour_projects_ids:
+                if everhour_id not in everhour_id_to_cases:
+                    everhour_id_to_cases[everhour_id] = []
+                everhour_id_to_cases[everhour_id].append(case)
+
+    # Find duplicate everhour project IDs
+    duplicate_everhour_ids = {
+        everhour_id: cases_list 
+        for everhour_id, cases_list in everhour_id_to_cases.items()
+        if len(cases_list) > 1
+    }
+
+    if duplicate_everhour_ids:
+        details = []
+        for everhour_id, cases_list in duplicate_everhour_ids.items():
+            case_names = [case.title for case in cases_list]
+            details.append(f"Everhour project ID {everhour_id} is used in cases: {', '.join(case_names)}")
+            
+        result.append(Inconsistency(
+            'Duplicate Everhour Project IDs',
+            f'{len(duplicate_everhour_ids)} Everhour project ID(s) are used in multiple cases:\n' + '\n'.join(details)
+        ))
+            
+        
 
     return result

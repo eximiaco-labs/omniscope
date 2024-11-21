@@ -1,52 +1,116 @@
 import { gql } from "@apollo/client";
+
 export const PERFORMANCE_ANALYSIS_QUERY = gql`
+  fragment TotalsRegularFragment on TotalsRegular {
+    approvedWorkHours
+    actualWorkHours
+    inContextActualWorkHours
+    wastedHours
+    overApprovedHours
+  }
+
+  fragment TotalsPreContractedFragment on TotalsPreContracted {
+    approvedWorkHours
+    actualWorkHours
+    inContextActualWorkHours
+    possibleIdleHours
+    possibleUnpaidHours
+  }
+
+  fragment WeeksRegularFragment on PerformanceAnalysisPivotedRegularWeek {
+    start
+    end
+    totals {
+      ...TotalsRegularFragment
+    }
+  }
+
+  fragment WeeksPreContractedFragment on PerformanceAnalysisPivotedPreContractedWeek {
+    start
+    end
+    totals {
+      ...TotalsPreContractedFragment
+    }
+  }
+
   query PerformanceAnalysis($date: Date!) {
-    performanceAnalysis(date_of_interest: $date) {
-      dateOfInterest
-      start
-      end
-      weeks {
-        start
-        end
-        totals {
-          preContracted {
-            approvedWorkHours
-            actualWorkHours
-            inContextActualWorkHours
-            possibleUnpaidHours
-            possibleIdleHours
-          }
-          regular {
-            approvedWorkHours
-            actualWorkHours
-            inContextActualWorkHours
-            wastedHours
-            overApprovedHours
+    performanceAnalysis(dateOfInterest: $date) {
+      pivoted {
+        preContracted {
+          byAccountManager {
+            name
+            past {
+              ...TotalsPreContractedFragment
+            }
+            weeks {
+              ...WeeksPreContractedFragment
+            }
+            byClient {
+              name
+              past {
+                ...TotalsPreContractedFragment
+              }
+              weeks {
+                ...WeeksPreContractedFragment
+              }
+              bySponsor {
+                name
+                past {
+                  ...TotalsPreContractedFragment
+                }
+                weeks {
+                  ...WeeksPreContractedFragment
+                }
+                byCase {
+                  title
+                  past {
+                    ...TotalsPreContractedFragment
+                  }
+                  weeks {
+                    ...WeeksPreContractedFragment
+                  }
+                }
+              }
+            }
           }
         }
-
-        regularCases {
-          title
-          client
-          accountManager
-          sponsor
-          approvedWorkHours
-          actualWorkHours
-          inContextActualWorkHours
-          wastedHours
-          overApprovedHours
-        }
-
-        preContractedCases {
-          title
-          client
-          accountManager
-          sponsor
-          approvedWorkHours
-          actualWorkHours
-          inContextActualWorkHours
-          possibleIdleHours
-          possibleUnpaidHours
+        regular {
+          byAccountManager {
+            name
+            past {
+              ...TotalsRegularFragment
+            }
+            weeks {
+              ...WeeksRegularFragment
+            }
+            byClient {
+              name
+              past {
+                ...TotalsRegularFragment
+              }
+              weeks {
+                ...WeeksRegularFragment
+              }
+              bySponsor {
+                name
+                past {
+                  ...TotalsRegularFragment
+                }
+                weeks {
+                  ...WeeksRegularFragment
+                }
+                byCase {
+                  title
+                  past {
+                    ...TotalsRegularFragment
+                  }
+                  weeks {
+                    ...WeeksRegularFragment
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

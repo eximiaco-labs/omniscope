@@ -23,12 +23,12 @@ def load_schema():
 
 query = QueryType()
 
-additional_types = setup_query_for_domain(query)
+additional_types_for_domain = setup_query_for_domain(query)
 setup_query_for_datasets(query)
-setup_query_for_analytics(query)
+additional_types_for_analytics = setup_query_for_analytics(query)
 
 query.set_field('inconsistencies', resolve_inconsistencies)
-query_types = [query] + additional_types
+query_types = [query] + additional_types_for_domain + additional_types_for_analytics
 type_defs = load_schema()
 
 __all__ = ['schema', 'type_defs']
