@@ -1,6 +1,6 @@
 from datetime import datetime
 import models.analytics.performance_analysis
-from models.analytics.performance_analysis import PerformanceAnalysis
+from models.analytics.performance_analysis import PerformanceAnalysis, TotalsRegular
 
 def resolve_performance_analysis(_, info, date_of_interest: str | datetime):
     return models.analytics.performance_analysis.compute_performance_analysis(date_of_interest)
@@ -44,6 +44,24 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
         client: sorted(sponsors)
         for client, sponsors in sponsor_names_by_client.items()
     }
+
+    # Build mapping of sponsors to their cases
+    case_titles_by_sponsor = {}
+    for week in performance_analysis.weeks:
+        for am in week.account_managers:
+            for client in am.clients:
+                for sponsor in client.sponsors:
+                    if sponsor.name not in case_titles_by_sponsor:
+                        case_titles_by_sponsor[sponsor.name] = set()
+                    case_titles_by_sponsor[sponsor.name].update(
+                        case.title for case in sponsor.regular_cases
+                    )
+
+    # Sort case titles for each sponsor
+    case_titles_by_sponsor = {
+        sponsor: sorted(cases)
+        for sponsor, cases in case_titles_by_sponsor.items()
+    }
     
     by_account_manager = []
     for am_name in account_managers_names:
@@ -51,13 +69,22 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
         clients = []
         for client_name in client_names_by_account_manager[am_name]:
             # Initialize sponsor entries for this client
-            sponsors = [
-                {
+            sponsors = []
+            for sponsor_name in sponsor_names_by_client.get(client_name, []):
+                # Initialize case entries for this sponsor
+                cases = [
+                    {
+                        "title": case_title,
+                        "weeks": []
+                    }
+                    for case_title in case_titles_by_sponsor.get(sponsor_name, [])
+                ]
+                
+                sponsors.append({
                     "name": sponsor_name,
-                    "weeks": []
-                }
-                for sponsor_name in sponsor_names_by_client.get(client_name, [])
-            ]
+                    "weeks": [],
+                    "by_case": cases
+                })
             
             clients.append({
                 "name": client_name,
@@ -113,9 +140,38 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
                                     "totals": sponsor.totals.regular,
                                 })
 
-        # Filter out sponsors with no data
+                                # Add case weekly data
+                                for case in sponsor.regular_cases:
+                                    matching_case = next(
+                                        (c for c in matching_sponsor["by_case"] if c["title"] == case.title),
+                                        None
+                                    )
+                                    if matching_case:
+                                        matching_case["weeks"].append({
+                                            "start": week.start,
+                                            "end": week.end,
+                                            "period_type": week.period_type,
+                                            "totals": TotalsRegular(
+                                                approved_work_hours=case.approved_work_hours,
+                                                actual_work_hours=case.actual_work_hours,
+                                                in_context_actual_work_hours=case.in_context_actual_work_hours,
+                                                wasted_hours=case.wasted_hours,
+                                                over_approved_hours=case.over_approved_hours
+                                            ),
+                                            "actual_work_hours": case.actual_work_hours,
+                                            "in_context_actual_work_hours": case.in_context_actual_work_hours,
+                                            "wasted_hours": case.wasted_hours,
+                                            "over_approved_hours": case.over_approved_hours
+                                        })
+
+        # Filter out cases with no data
         for client in clients:
-            client["by_sponsor"] = [sponsor for sponsor in client["by_sponsor"] if sponsor["weeks"]]
+            for sponsor in client["by_sponsor"]:
+                sponsor["by_case"] = [case for case in sponsor["by_case"] if case["weeks"]]
+
+        # Filter out sponsors with no data and no cases
+        for client in clients:
+            client["by_sponsor"] = [sponsor for sponsor in client["by_sponsor"] if sponsor["weeks"] or sponsor["by_case"]]
             
         # Filter out clients with no data and no sponsors
         clients = [client for client in clients if client["weeks"] or client["by_sponsor"]]
@@ -134,11 +190,26 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
                 if past_client.name == client["name"]:
                     client["past"] = past_client.totals.regular
                     
-                    # Add past data for sponsors
+                    # Add past data for sponsors and their cases
                     for sponsor in client["by_sponsor"]:
                         for past_sponsor in past_client.sponsors:
                             if past_sponsor.name == sponsor["name"]:
                                 sponsor["past"] = past_sponsor.totals.regular
+                                
+                                # Add past data for cases
+                                for case in sponsor["by_case"]:
+                                    past_case = next(
+                                        (c for c in past_sponsor.regular_cases if c.title == case["title"]),
+                                        None
+                                    )
+                                    if past_case:
+                                        case["past"] = TotalsRegular(
+                                            approved_work_hours=past_case.approved_work_hours,
+                                            actual_work_hours=past_case.actual_work_hours,
+                                            in_context_actual_work_hours=past_case.in_context_actual_work_hours,
+                                            wasted_hours=past_case.wasted_hours,
+                                            over_approved_hours=past_case.over_approved_hours
+                                        )
                                 break
                     break
             

@@ -131,6 +131,13 @@ type PerformanceAnalysisPivotedRegularBySponsor {
   name: String!
   weeks: [PerformanceAnalysisPivotedRegularWeek!]!
   past: TotalsRegular
+  byCase: [PerformanceAnalysisPivotedRegularByCase!]!
+}
+
+type PerformanceAnalysisPivotedRegularByCase {
+  title: String!
+  weeks: [PerformanceAnalysisPivotedRegularWeek!]!
+  past: TotalsRegular
 }
 
 type PerformanceAnalysisPivotedRegularWeek {
