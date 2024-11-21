@@ -11,7 +11,6 @@ import { RegularCasesByClientTable } from "./RegularCasesByClientTable";
 import { PreContractedCasesByClientTable } from "./PreContractedCasesByClientTable";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RegularCasesCTA } from "./RegularCasesCTA";
-import { SectionHeader } from "@/components/SectionHeader";
 import {
   Table,
   TableBody,
