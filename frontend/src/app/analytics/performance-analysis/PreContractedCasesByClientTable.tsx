@@ -66,6 +66,15 @@ export function PreContractedCasesByClientTable({
     index === self.findIndex((c: any) => c.name === client.name)
   );
 
+  const getPastColumnDates = () => {
+    const firstWeek = pivotedData.byAccountManager[0]?.weeks[0];
+    const lastWeek = pivotedData.byAccountManager[0]?.weeks[selectedWeekIndex - 1];
+    
+    if (!firstWeek || !lastWeek) return "Past";
+    
+    return `${format(new Date(firstWeek.start), "MMM d")} - ${format(new Date(lastWeek.end), "MMM d")}`;
+  };
+
   return (
     <div>
       <SectionHeader title="Pre-Contracted Cases by Client" subtitle="" />
@@ -73,7 +82,7 @@ export function PreContractedCasesByClientTable({
         <TableHeader>
           <TableRow>
             <TableHead>Client</TableHead>
-            <TableHead className="w-[150px]">Past</TableHead>
+            <TableHead className="w-[150px] bg-yellow-50">{getPastColumnDates()}</TableHead>
             {pivotedData.byAccountManager[0]?.weeks.map((week: any, weekIndex: number) => {
               const endDate = new Date(week.end);
               endDate.setDate(endDate.getDate() - 1);
@@ -99,7 +108,7 @@ export function PreContractedCasesByClientTable({
                   {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {client.name}
                 </TableCell>
-                <TableCell className="w-[150px]">
+                <TableCell className="w-[150px] bg-yellow-50">
                   {renderTotals(client.past)}
                 </TableCell>
                 {client.weeks.map((week: any, weekIndex: number) => (
@@ -122,7 +131,7 @@ export function PreContractedCasesByClientTable({
                       {expandedSponsors.has(sponsor.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       {sponsor.name}
                     </TableCell>
-                    <TableCell className="w-[150px]">
+                    <TableCell className="w-[150px] bg-yellow-50">
                       {renderTotals(sponsor.past)}
                     </TableCell>
                     {sponsor.weeks.map((week: any, weekIndex: number) => (
@@ -140,7 +149,7 @@ export function PreContractedCasesByClientTable({
                       <TableCell className="pl-16 text-sm text-gray-500">
                         {preContractedCase.title}
                       </TableCell>
-                      <TableCell className="w-[150px]">
+                      <TableCell className="w-[150px] bg-yellow-50">
                         {renderTotals(preContractedCase.past)}
                       </TableCell>
                       {preContractedCase.weeks.map((week: any, weekIndex: number) => (

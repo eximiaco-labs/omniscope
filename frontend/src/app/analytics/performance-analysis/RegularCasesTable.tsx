@@ -59,6 +59,15 @@ export function RegularCasesTable({
     );
   };
 
+  const getPastColumnDates = () => {
+    const firstWeek = pivotedData.byAccountManager[0]?.weeks[0];
+    const lastWeek = pivotedData.byAccountManager[0]?.weeks[selectedWeekIndex - 1];
+    
+    if (!firstWeek || !lastWeek) return "Past";
+    
+    return `${format(new Date(firstWeek.start), "MMM d")} - ${format(new Date(lastWeek.end), "MMM d")}`;
+  };
+
   return (
     <div>
       <SectionHeader title="Regular Cases by Account Manager" subtitle="" />
@@ -66,7 +75,7 @@ export function RegularCasesTable({
         <TableHeader>
           <TableRow>
             <TableHead>Account Manager</TableHead>
-            <TableHead className="w-[150px]">Past</TableHead>
+            <TableHead className="w-[150px] bg-yellow-50">{getPastColumnDates()}</TableHead>
             {pivotedData.byAccountManager[0]?.weeks.map((week: any, weekIndex: number) => {
               const endDate = new Date(week.end);
               endDate.setDate(endDate.getDate() - 1);
@@ -93,7 +102,7 @@ export function RegularCasesTable({
                   {expandedRegularManagers.has(manager.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {manager.name}
                 </TableCell>
-                <TableCell className="w-[150px]">
+                <TableCell className="w-[150px] bg-yellow-50">
                   {renderTotals(manager.past)}
                 </TableCell>
                 {manager.weeks.map((week: any, weekIndex: number) => (
@@ -117,7 +126,7 @@ export function RegularCasesTable({
                       {expandedClients.has(`regular-${manager.name}-${client.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       {client.name}
                     </TableCell>
-                    <TableCell className="w-[150px]">
+                    <TableCell className="w-[150px] bg-yellow-50">
                       {renderTotals(client.past)}
                     </TableCell>
                     {client.weeks.map((week: any, weekIndex: number) => (
@@ -141,7 +150,7 @@ export function RegularCasesTable({
                           {expandedSponsors.has(`regular-${manager.name}-${client.name}-${sponsor.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                           {sponsor.name}
                         </TableCell>
-                        <TableCell className="w-[150px]">
+                        <TableCell className="w-[150px] bg-yellow-50">
                           {renderTotals(sponsor.past)}
                         </TableCell>
                         {sponsor.weeks.map((week: any, weekIndex: number) => (
@@ -162,7 +171,7 @@ export function RegularCasesTable({
                           <TableCell className="pl-16 text-sm text-gray-600">
                             {regularCase.title}
                           </TableCell>
-                          <TableCell className="w-[150px]">
+                          <TableCell className="w-[150px] bg-yellow-50">
                             {renderTotals(regularCase.past)}
                           </TableCell>
                           {regularCase.weeks.map((week: any, weekIndex: number) => (

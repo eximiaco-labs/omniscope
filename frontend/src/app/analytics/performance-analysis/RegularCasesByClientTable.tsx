@@ -66,6 +66,15 @@ export function RegularCasesByClientTable({
     index === self.findIndex((c: any) => c.name === client.name)
   );
 
+  const getPastColumnDates = () => {
+    const firstWeek = pivotedData.byAccountManager[0]?.byClient[0]?.weeks[0];
+    const lastWeek = pivotedData.byAccountManager[0]?.byClient[0]?.weeks[selectedWeekIndex - 1];
+    
+    if (!firstWeek || !lastWeek) return "Past";
+    
+    return `${format(new Date(firstWeek.start), "MMM d")} - ${format(new Date(lastWeek.end), "MMM d")}`;
+  };
+
   return (
     <div>
       <SectionHeader title="Regular Cases by Client" subtitle="" />
@@ -73,7 +82,7 @@ export function RegularCasesByClientTable({
         <TableHeader>
           <TableRow>
             <TableHead>Client</TableHead>
-            <TableHead className="w-[150px]">Past</TableHead>
+            <TableHead className="w-[150px] bg-yellow-50">{getPastColumnDates()}</TableHead>
             {pivotedData.byAccountManager[0]?.byClient[0]?.weeks.map((week: any, weekIndex: number) => (
               <TableHead 
                 key={week.start} 
@@ -92,7 +101,7 @@ export function RegularCasesByClientTable({
                   {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {client.name}
                 </TableCell>
-                <TableCell className="w-[150px]">
+                <TableCell className="w-[150px] bg-yellow-50">
                   {renderTotals(client.past)}
                 </TableCell>
                 {client.weeks.map((week: any, weekIndex: number) => (
@@ -115,7 +124,7 @@ export function RegularCasesByClientTable({
                       {expandedSponsors.has(`${client.name}-${sponsor.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       {sponsor.name}
                     </TableCell>
-                    <TableCell className="w-[150px]">
+                    <TableCell className="w-[150px] bg-yellow-50">
                       {renderTotals(sponsor.past)}
                     </TableCell>
                     {sponsor.weeks.map((week: any, weekIndex: number) => (
@@ -133,7 +142,7 @@ export function RegularCasesByClientTable({
                       <TableCell className="pl-16 text-sm text-gray-500">
                         {regularCase.title}
                       </TableCell>
-                      <TableCell className="w-[150px]">
+                      <TableCell className="w-[150px] bg-yellow-50">
                         {renderTotals(regularCase.past)}
                       </TableCell>
                       {regularCase.weeks.map((week: any, weekIndex: number) => (
