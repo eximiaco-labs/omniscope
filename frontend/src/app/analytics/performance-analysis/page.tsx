@@ -79,11 +79,10 @@ export default function PerformanceAnalysisPage() {
     setExpandedSponsors(newExpanded);
   };
 
-  const selectedWeekIndex = data.performanceAnalysis.weeks.findIndex(
+  const selectedWeekIndex = data.performanceAnalysis.pivoted.regular.byAccountManager[0].weeks.findIndex(
     (week: any) => {
       const weekStart = new Date(week.start);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
+      const weekEnd = new Date(week.end);
       return date >= weekStart && date < weekEnd;
     }
   );

@@ -30,24 +30,41 @@ export function PreContractedCasesByClientTable({
   toggleSponsor,
   formatHours,
 }: PreContractedCasesByClientTableProps) {
-  // Helper function to check if client has any non-zero hours
-  const hasNonZeroHours = (client: any) => {
-    return data.performanceAnalysis.weeks.some((week: any) => {
-      const weekClient = week.clients.find((c: any) => c.name === client.name);
-      const totals = weekClient?.totals?.preContracted;
-      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
-    });
+  const pivotedData = data.performanceAnalysis.pivoted.preContracted;
+
+  const renderTotals = (totals: any) => {
+    if (!totals) return "-";
+    return (
+      <div>
+        <div>{formatHours(totals.actualWorkHours)} / {formatHours(totals.approvedWorkHours)}</div>
+        {totals.possibleUnpaidHours > 0 && (
+          <div className="text-orange-500 text-sm">
+            {formatHours(totals.possibleUnpaidHours)} unpaid
+          </div>
+        )}
+        {totals.possibleIdleHours > 0 && (
+          <div className="text-yellow-500 text-sm">
+            {formatHours(totals.possibleIdleHours)} idle
+          </div>
+        )}
+        {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
+          <div className="text-blue-500 text-sm">
+            {formatHours(totals.inContextActualWorkHours)} this month
+          </div>
+        )}
+      </div>
+    );
   };
 
-  // Helper function to check if sponsor has any non-zero hours
-  const hasNonZeroSponsorHours = (client: any, sponsor: any) => {
-    return data.performanceAnalysis.weeks.some((week: any) => {
-      const weekClient = week.clients.find((c: any) => c.name === client.name);
-      const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-      const totals = weekSponsor?.totals?.preContracted;
-      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0;
-    });
-  };
+  // Get all unique clients across account managers and sort them
+  const allClients = pivotedData.byAccountManager
+    .flatMap((manager: { byClient: any; }) => manager.byClient)
+    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+  // Remove duplicates by client name
+  const uniqueClients = allClients.filter((client: any, index: number, self: any[]) =>
+    index === self.findIndex((c: any) => c.name === client.name)
+  );
 
   return (
     <div>
@@ -56,61 +73,46 @@ export function PreContractedCasesByClientTable({
         <TableHeader>
           <TableRow>
             <TableHead>Client</TableHead>
-            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => (
-              <TableHead 
-                key={week.start} 
-                className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
-              >
-                {format(new Date(week.start), "MMM d")} - {format(new Date(week.end), "d")}
-              </TableHead>
-            ))}
+            <TableHead className="w-[150px]">Past</TableHead>
+            {pivotedData.byAccountManager[0]?.weeks.map((week: any, weekIndex: number) => {
+              const endDate = new Date(week.end);
+              endDate.setDate(endDate.getDate() - 1);
+              return (
+                <TableHead 
+                  key={week.start} 
+                  className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                >
+                  {format(new Date(week.start), "MMM d")} - {format(endDate, "d")}
+                </TableHead>
+              );
+            })}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.performanceAnalysis.weeks[selectedWeekIndex].clients
-            .filter(hasNonZeroHours)
-            .map((client: any) => (
+          {uniqueClients.map((client: any) => (
             <React.Fragment key={client.name}>
-              <TableRow className="cursor-pointer hover:bg-gray-50" onClick={() => toggleClient(client.name)}>
+              <TableRow 
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => toggleClient(client.name)}
+              >
                 <TableCell className="font-medium flex items-center gap-2">
                   {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {client.name}
                 </TableCell>
-                {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                  const weekClient = week.clients.find((c: any) => c.name === client.name);
-                  const totals = weekClient?.totals?.preContracted;
-                  
-                  return (
-                    <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                      {totals ? (
-                        <div>
-                          <div>{formatHours(totals.actualWorkHours)} / {formatHours(totals.approvedWorkHours)}</div>
-                          {totals.possibleUnpaidHours > 0 && (
-                            <div className="text-orange-500 text-sm">
-                              {formatHours(totals.possibleUnpaidHours)} unpaid
-                            </div>
-                          )}
-                          {totals.possibleIdleHours > 0 && (
-                            <div className="text-yellow-500 text-sm">
-                              {formatHours(totals.possibleIdleHours)} idle
-                            </div>
-                          )}
-                          {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
-                            <div className="text-blue-500 text-sm">
-                              {formatHours(totals.inContextActualWorkHours)} this month
-                            </div>
-                          )}
-                        </div>
-                      ) : "-"}
-                    </TableCell>
-                  );
-                })}
+                <TableCell className="w-[150px]">
+                  {renderTotals(client.past)}
+                </TableCell>
+                {client.weeks.map((week: any, weekIndex: number) => (
+                  <TableCell 
+                    key={week.start}
+                    className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                  >
+                    {renderTotals(week.totals)}
+                  </TableCell>
+                ))}
               </TableRow>
-              {expandedClients.has(client.name) && data.performanceAnalysis.weeks[selectedWeekIndex].clients
-                .find((c: any) => c.name === client.name)
-                ?.sponsors
-                .filter((sponsor: any) => hasNonZeroSponsorHours(client, sponsor))
-                .map((sponsor: any) => (
+
+              {expandedClients.has(client.name) && client.bySponsor.map((sponsor: any) => (
                 <React.Fragment key={`${client.name}-${sponsor.name}`}>
                   <TableRow 
                     className="bg-gray-100 cursor-pointer hover:bg-gray-200"
@@ -120,77 +122,35 @@ export function PreContractedCasesByClientTable({
                       {expandedSponsors.has(sponsor.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       {sponsor.name}
                     </TableCell>
-                    {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                      const weekClient = week.clients.find((c: any) => c.name === client.name);
-                      const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                      const totals = weekSponsor?.totals?.preContracted;
-
-                      return (
-                        <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                          {totals ? (
-                            <div>
-                              <div>{formatHours(totals.actualWorkHours)} / {formatHours(totals.approvedWorkHours)}</div>
-                              {totals.possibleUnpaidHours > 0 && (
-                                <div className="text-orange-500 text-sm">
-                                  {formatHours(totals.possibleUnpaidHours)} unpaid
-                                </div>
-                              )}
-                              {totals.possibleIdleHours > 0 && (
-                                <div className="text-yellow-500 text-sm">
-                                  {formatHours(totals.possibleIdleHours)} idle
-                                </div>
-                              )}
-                              {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
-                                <div className="text-blue-500 text-sm">
-                                  {formatHours(totals.inContextActualWorkHours)} this month
-                                </div>
-                              )}
-                            </div>
-                          ) : "-"}
-                        </TableCell>
-                      );
-                    })}
+                    <TableCell className="w-[150px]">
+                      {renderTotals(sponsor.past)}
+                    </TableCell>
+                    {sponsor.weeks.map((week: any, weekIndex: number) => (
+                      <TableCell 
+                        key={week.start}
+                        className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                      >
+                        {renderTotals(week.totals)}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                  {expandedSponsors.has(sponsor.name) && data.performanceAnalysis.weeks[selectedWeekIndex].clients
-                    .find((c: any) => c.name === client.name)
-                    ?.sponsors.find((s: any) => s.name === sponsor.name)
-                    ?.preContractedCases
-                    .map((preContractedCase: any) => (
+
+                  {expandedSponsors.has(sponsor.name) && sponsor.byCase.map((preContractedCase: any) => (
                     <TableRow key={`${client.name}-${sponsor.name}-${preContractedCase.title}`}>
                       <TableCell className="pl-16 text-sm text-gray-500">
                         {preContractedCase.title}
                       </TableCell>
-                      {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                        const weekClient = week.clients.find((c: any) => c.name === client.name);
-                        const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                        const weekCase = weekSponsor?.preContractedCases
-                          .find((c: any) => c.title === preContractedCase.title);
-                        
-                        return (
-                          <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                            {weekCase && (
-                              <div>
-                                <div>{formatHours(weekCase.actualWorkHours)} / {formatHours(weekCase.approvedWorkHours)}</div>
-                                {weekCase.possibleUnpaidHours > 0 && (
-                                  <div className="text-orange-500 text-sm">
-                                    {formatHours(weekCase.possibleUnpaidHours)} unpaid
-                                  </div>
-                                )}
-                                {weekCase.possibleIdleHours > 0 && (
-                                  <div className="text-yellow-500 text-sm">
-                                    {formatHours(weekCase.possibleIdleHours)} idle
-                                  </div>
-                                )}
-                                {weekCase.inContextActualWorkHours !== weekCase.actualWorkHours && weekCase.inContextActualWorkHours > 0 && (
-                                  <div className="text-blue-500 text-sm">
-                                    {formatHours(weekCase.inContextActualWorkHours)} this month
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                        );
-                      })}
+                      <TableCell className="w-[150px]">
+                        {renderTotals(preContractedCase.past)}
+                      </TableCell>
+                      {preContractedCase.weeks.map((week: any, weekIndex: number) => (
+                        <TableCell 
+                          key={week.start}
+                          className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                        >
+                          {renderTotals(week.totals)}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))}
                 </React.Fragment>

@@ -30,34 +30,41 @@ export function RegularCasesByClientTable({
   toggleSponsor,
   formatHours,
 }: RegularCasesByClientTableProps) {
-  // Helper function to check if client has any non-zero hours
-  const hasNonZeroHours = (client: any) => {
-    return data.performanceAnalysis.weeks.some((week: any) => {
-      const weekClient = week.clients.find((c: any) => c.name === client.name);
-      const totals = weekClient?.totals?.regular;
-      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0 || 
-             weekClient?.sponsors?.some((sponsor: any) => {
-               const sponsorTotals = sponsor?.totals?.regular;
-               return sponsorTotals?.actualWorkHours > 0 || sponsorTotals?.approvedWorkHours > 0;
-             });
-    });
+  const pivotedData = data.performanceAnalysis.pivoted.regular;
+
+  const renderTotals = (totals: any) => {
+    if (!totals) return "-";
+    return (
+      <div>
+        <div>{formatHours(totals.actualWorkHours)} / {formatHours(totals.approvedWorkHours)}</div>
+        {totals.wastedHours > 0 && (
+          <div className="text-red-500 text-sm">
+            {formatHours(totals.wastedHours)} wasted
+          </div>
+        )}
+        {totals.overApprovedHours > 0 && (
+          <div className="text-orange-500 text-sm">
+            {formatHours(totals.overApprovedHours)} over
+          </div>
+        )}
+        {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
+          <div className="text-blue-500 text-sm">
+            {formatHours(totals.inContextActualWorkHours)} this month
+          </div>
+        )}
+      </div>
+    );
   };
 
-  // Helper function to check if sponsor has any non-zero hours
-  const hasNonZeroSponsorHours = (client: string, sponsor: any) => {
-    return data.performanceAnalysis.weeks.some((week: any) => {
-      const weekClient = week.clients.find((c: any) => c.name === client);
-      const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-      const totals = weekSponsor?.totals?.regular;
-      return totals?.actualWorkHours > 0 || totals?.approvedWorkHours > 0 ||
-             weekSponsor?.regularCases?.some((c: any) => c.actualWorkHours > 0 || c.approvedWorkHours > 0);
-    });
-  };
+  // Get all unique clients and sort them
+  const allClients = pivotedData.byAccountManager
+    .flatMap((manager: any) => manager.byClient)
+    .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
-  // Helper function to check if case has any non-zero hours
-  const hasNonZeroCaseHours = (regularCase: any) => {
-    return regularCase.actualWorkHours > 0 || regularCase.approvedWorkHours > 0;
-  };
+  // Remove duplicates by client name
+  const uniqueClients = allClients.filter((client: any, index: number, self: any[]) =>
+    index === self.findIndex((c: any) => c.name === client.name)
+  );
 
   return (
     <div>
@@ -66,7 +73,8 @@ export function RegularCasesByClientTable({
         <TableHeader>
           <TableRow>
             <TableHead>Client</TableHead>
-            {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => (
+            <TableHead className="w-[150px]">Past</TableHead>
+            {pivotedData.byAccountManager[0]?.byClient[0]?.weeks.map((week: any, weekIndex: number) => (
               <TableHead 
                 key={week.start} 
                 className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
@@ -77,50 +85,27 @@ export function RegularCasesByClientTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.performanceAnalysis.weeks[0].clients
-            .filter(hasNonZeroHours)
-            .map((client: any) => (
+          {uniqueClients.map((client: any) => (
             <React.Fragment key={client.name}>
               <TableRow className="cursor-pointer hover:bg-gray-50" onClick={() => toggleClient(client.name)}>
                 <TableCell className="font-medium flex items-center gap-2">
                   {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   {client.name}
                 </TableCell>
-                {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                  const weekClient = week.clients.find((c: any) => c.name === client.name);
-                  const totals = weekClient?.totals?.regular || {};
-                  
-                  return (
-                    <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                      {weekClient ? (
-                        <div>
-                          <div>{formatHours(totals.actualWorkHours || 0)} / {formatHours(totals.approvedWorkHours || 0)}</div>
-                          {totals.wastedHours > 0 && (
-                            <div className="text-red-500 text-sm">
-                              {formatHours(totals.wastedHours)} wasted
-                            </div>
-                          )}
-                          {totals.overApprovedHours > 0 && (
-                            <div className="text-orange-500 text-sm">
-                              {formatHours(totals.overApprovedHours)} over
-                            </div>
-                          )}
-                          {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
-                            <div className="text-blue-500 text-sm">
-                              {formatHours(totals.inContextActualWorkHours)} this month
-                            </div>
-                          )}
-                        </div>
-                      ) : "-"}
-                    </TableCell>
-                  );
-                })}
+                <TableCell className="w-[150px]">
+                  {renderTotals(client.past)}
+                </TableCell>
+                {client.weeks.map((week: any, weekIndex: number) => (
+                  <TableCell 
+                    key={week.start} 
+                    className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                  >
+                    {renderTotals(week.totals)}
+                  </TableCell>
+                ))}
               </TableRow>
-              {expandedClients.has(client.name) && data.performanceAnalysis.weeks[0].clients
-                .find((c: any) => c.name === client.name)
-                ?.sponsors
-                .filter((sponsor: any) => hasNonZeroSponsorHours(client.name, sponsor))
-                .map((sponsor: any) => (
+
+              {expandedClients.has(client.name) && client.bySponsor.map((sponsor: any) => (
                 <React.Fragment key={`${client.name}-${sponsor.name}`}>
                   <TableRow 
                     className="bg-gray-100 cursor-pointer hover:bg-gray-200"
@@ -130,81 +115,37 @@ export function RegularCasesByClientTable({
                       {expandedSponsors.has(`${client.name}-${sponsor.name}`) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       {sponsor.name}
                     </TableCell>
-                    {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                      const weekClient = week.clients.find((c: any) => c.name === client.name);
-                      const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                      const totals = weekSponsor?.totals?.regular || {};
-
-                      return (
-                        <TableCell key={week.start} className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                          {weekSponsor ? (
-                            <div>
-                              <div>{formatHours(totals.actualWorkHours || 0)} / {formatHours(totals.approvedWorkHours || 0)}</div>
-                              {totals.wastedHours > 0 && (
-                                <div className="text-red-500 text-sm">
-                                  {formatHours(totals.wastedHours)} wasted
-                                </div>
-                              )}
-                              {totals.overApprovedHours > 0 && (
-                                <div className="text-orange-500 text-sm">
-                                  {formatHours(totals.overApprovedHours)} over
-                                </div>
-                              )}
-                              {totals.inContextActualWorkHours !== totals.actualWorkHours && totals.inContextActualWorkHours > 0 && (
-                                <div className="text-blue-500 text-sm">
-                                  {formatHours(totals.inContextActualWorkHours)} this month
-                                </div>
-                              )}
-                            </div>
-                          ) : "-"}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                  {expandedSponsors.has(`${client.name}-${sponsor.name}`) && 
-                    data.performanceAnalysis.weeks[0].clients
-                      .find((c: any) => c.name === client.name)
-                      ?.sponsors.find((s: any) => s.name === sponsor.name)
-                      ?.regularCases
-                      .filter(hasNonZeroCaseHours)
-                      .map((regularCase: any) => (
-                      <TableRow key={`${client.name}-${sponsor.name}-${regularCase.title}`}>
-                        <TableCell className="pl-16 text-sm text-gray-500">
-                          {regularCase.title}
-                        </TableCell>
-                        {data.performanceAnalysis.weeks.map((week: any, weekIndex: number) => {
-                          const weekClient = week.clients.find((c: any) => c.name === client.name);
-                          const weekSponsor = weekClient?.sponsors.find((s: any) => s.name === sponsor.name);
-                          const weekCase = (weekSponsor?.regularCases || [])
-                            .find((c: any) => c.title === regularCase.title);
-                          
-                          return (
-                            <TableCell key={week.start} className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}>
-                              {weekCase && (
-                                <div>
-                                  <div>{formatHours(weekCase.actualWorkHours)} / {formatHours(weekCase.approvedWorkHours)}</div>
-                                  {weekCase.wastedHours > 0 && (
-                                    <div className="text-red-500 text-sm">
-                                      {formatHours(weekCase.wastedHours)} wasted
-                                    </div>
-                                  )}
-                                  {weekCase.overApprovedHours > 0 && (
-                                    <div className="text-orange-500 text-sm">
-                                      {formatHours(weekCase.overApprovedHours)} over
-                                    </div>
-                                  )}
-                                  {weekCase.inContextActualWorkHours !== weekCase.actualWorkHours && weekCase.inContextActualWorkHours > 0 && (
-                                    <div className="text-blue-500 text-sm">
-                                      {formatHours(weekCase.inContextActualWorkHours)} this month
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
+                    <TableCell className="w-[150px]">
+                      {renderTotals(sponsor.past)}
+                    </TableCell>
+                    {sponsor.weeks.map((week: any, weekIndex: number) => (
+                      <TableCell 
+                        key={week.start} 
+                        className={`w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                      >
+                        {renderTotals(week.totals)}
+                      </TableCell>
                     ))}
+                  </TableRow>
+
+                  {expandedSponsors.has(`${client.name}-${sponsor.name}`) && sponsor.byCase.map((regularCase: any) => (
+                    <TableRow key={`${client.name}-${sponsor.name}-${regularCase.title}`}>
+                      <TableCell className="pl-16 text-sm text-gray-500">
+                        {regularCase.title}
+                      </TableCell>
+                      <TableCell className="w-[150px]">
+                        {renderTotals(regularCase.past)}
+                      </TableCell>
+                      {regularCase.weeks.map((week: any, weekIndex: number) => (
+                        <TableCell 
+                          key={week.start} 
+                          className={`bg-gray-200 w-[150px] ${weekIndex === selectedWeekIndex ? 'bg-blue-100' : ''} ${weekIndex > selectedWeekIndex ? 'opacity-50' : ''}`}
+                        >
+                          {renderTotals(week.totals)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
                 </React.Fragment>
               ))}
             </React.Fragment>

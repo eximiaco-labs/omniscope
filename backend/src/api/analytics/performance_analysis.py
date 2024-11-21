@@ -182,48 +182,51 @@ def _compute_performance_analysis_of_regular_cases_pivoted(performance_analysis:
         # Filter out clients with no data and no sponsors
         clients = [client for client in clients if client["weeks"] or client["by_sponsor"]]
 
-        # Get past data for account manager
-        past_am = next(
-            (am
-             for am in performance_analysis.past.account_managers 
-             if am.name == am_name),
-            None
-        )
-        
-        # Add past data for each account manager's client and their sponsors
-        for client in clients:
-            for past_client in past_am.clients:
-                if past_client.name == client["name"]:
-                    client["past"] = past_client.totals.regular
-                    
-                    # Add past data for sponsors and their cases
-                    for sponsor in client["by_sponsor"]:
-                        for past_sponsor in past_client.sponsors:
-                            if past_sponsor.name == sponsor["name"]:
-                                sponsor["past"] = past_sponsor.totals.regular
-                                
-                                # Add past data for cases
-                                for case in sponsor["by_case"]:
-                                    past_case = next(
-                                        (c for c in past_sponsor.regular_cases if c.title == case["title"]),
-                                        None
-                                    )
-                                    if past_case:
-                                        case["past"] = TotalsRegular(
-                                            approved_work_hours=past_case.approved_work_hours,
-                                            actual_work_hours=past_case.actual_work_hours,
-                                            in_context_actual_work_hours=past_case.in_context_actual_work_hours,
-                                            wasted_hours=past_case.wasted_hours,
-                                            over_approved_hours=past_case.over_approved_hours
+        # Get past data for account manager if available
+        past_am = None
+        if performance_analysis.past and performance_analysis.past.account_managers:
+            past_am = next(
+                (am
+                for am in performance_analysis.past.account_managers 
+                if am.name == am_name),
+                None
+            )
+
+        # Add past data for each account manager's client and their sponsors if past data exists
+        if past_am:
+            for client in clients:
+                for past_client in past_am.clients:
+                    if past_client.name == client["name"]:
+                        client["past"] = past_client.totals.regular
+                        
+                        # Add past data for sponsors and their cases
+                        for sponsor in client["by_sponsor"]:
+                            for past_sponsor in past_client.sponsors:
+                                if past_sponsor.name == sponsor["name"]:
+                                    sponsor["past"] = past_sponsor.totals.regular
+                                    
+                                    # Add past data for cases
+                                    for case in sponsor["by_case"]:
+                                        past_case = next(
+                                            (c for c in past_sponsor.regular_cases if c.title == case["title"]),
+                                            None
                                         )
-                                break
-                    break
+                                        if past_case:
+                                            case["past"] = TotalsRegular(
+                                                approved_work_hours=past_case.approved_work_hours,
+                                                actual_work_hours=past_case.actual_work_hours,
+                                                in_context_actual_work_hours=past_case.in_context_actual_work_hours,
+                                                wasted_hours=past_case.wasted_hours,
+                                                over_approved_hours=past_case.over_approved_hours
+                                            )
+                                    break
+                        break
             
         by_account_manager.append({
             "name": am_name,
             "by_client": clients,
             "weeks": weekly_totals,
-            "past": past_am.totals.regular,
+            "past": past_am.totals.regular if past_am else None,
         })
 
     return {
@@ -401,48 +404,51 @@ def _compute_performance_analysis_of_pre_contracted_cases_pivoted(performance_an
         # Filter out clients with no data and no sponsors
         clients = [client for client in clients if client["weeks"] or client["by_sponsor"]]
 
-        # Get past data for account manager
-        past_am = next(
-            (am
-             for am in performance_analysis.past.account_managers 
-             if am.name == am_name),
-            None
-        )
+        # Get past data for account manager if available
+        past_am = None
+        if performance_analysis.past and performance_analysis.past.account_managers:
+            past_am = next(
+                (am
+                for am in performance_analysis.past.account_managers 
+                if am.name == am_name),
+                None
+            )
         
-        # Add past data for each account manager's client and their sponsors
-        for client in clients:
-            for past_client in past_am.clients:
-                if past_client.name == client["name"]:
-                    client["past"] = past_client.totals.pre_contracted
-                    
-                    # Add past data for sponsors and their cases
-                    for sponsor in client["by_sponsor"]:
-                        for past_sponsor in past_client.sponsors:
-                            if past_sponsor.name == sponsor["name"]:
-                                sponsor["past"] = past_sponsor.totals.pre_contracted
-                                
-                                # Add past data for cases
-                                for case in sponsor["by_case"]:
-                                    past_case = next(
-                                        (c for c in past_sponsor.pre_contracted_cases if c.title == case["title"]),
-                                        None
-                                    )
-                                    if past_case:
-                                        case["past"] = TotalsPreContracted(
-                                            approved_work_hours=past_case.approved_work_hours,
-                                            actual_work_hours=past_case.actual_work_hours,
-                                            in_context_actual_work_hours=past_case.in_context_actual_work_hours,
-                                            possible_unpaid_hours=past_case.possible_unpaid_hours,
-                                            possible_idle_hours=past_case.possible_idle_hours
+        # Add past data for each account manager's client and their sponsors if past data exists
+        if past_am:
+            for client in clients:
+                for past_client in past_am.clients:
+                    if past_client.name == client["name"]:
+                        client["past"] = past_client.totals.pre_contracted
+                        
+                        # Add past data for sponsors and their cases
+                        for sponsor in client["by_sponsor"]:
+                            for past_sponsor in past_client.sponsors:
+                                if past_sponsor.name == sponsor["name"]:
+                                    sponsor["past"] = past_sponsor.totals.pre_contracted
+                                    
+                                    # Add past data for cases
+                                    for case in sponsor["by_case"]:
+                                        past_case = next(
+                                            (c for c in past_sponsor.pre_contracted_cases if c.title == case["title"]),
+                                            None
                                         )
-                                break
-                    break
+                                        if past_case:
+                                            case["past"] = TotalsPreContracted(
+                                                approved_work_hours=past_case.approved_work_hours,
+                                                actual_work_hours=past_case.actual_work_hours,
+                                                in_context_actual_work_hours=past_case.in_context_actual_work_hours,
+                                                possible_unpaid_hours=past_case.possible_unpaid_hours,
+                                                possible_idle_hours=past_case.possible_idle_hours
+                                            )
+                                    break
+                        break
             
         by_account_manager.append({
             "name": am_name,
             "by_client": clients,
             "weeks": weekly_totals,
-            "past": past_am.totals.pre_contracted,
+            "past": past_am.totals.pre_contracted if past_am else None,
         })
 
     return {

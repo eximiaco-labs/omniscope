@@ -1,134 +1,114 @@
 import { gql } from "@apollo/client";
 
 export const PERFORMANCE_ANALYSIS_QUERY = gql`
-  fragment TotalsFragment on Totals {
-    preContracted {
-      approvedWorkHours
-      actualWorkHours
-      inContextActualWorkHours
-      possibleUnpaidHours
-      possibleIdleHours
-    }
-    regular {
-      approvedWorkHours
-      actualWorkHours
-      inContextActualWorkHours
-      wastedHours
-      overApprovedHours
-    }
-  }
-
-  fragment RegularCaseFragment on RegularCasePerformanceSummary {
-    title
-    actualWorkHours
+  fragment TotalsRegularFragment on TotalsRegular {
     approvedWorkHours
+    actualWorkHours
     inContextActualWorkHours
-    overApprovedHours
     wastedHours
+    overApprovedHours
   }
 
-  fragment PreContractedCaseFragment on PreContractedCasePerformanceSummary {
-    title
-    actualWorkHours
+  fragment TotalsPreContractedFragment on TotalsPreContracted {
     approvedWorkHours
+    actualWorkHours
     inContextActualWorkHours
     possibleIdleHours
     possibleUnpaidHours
   }
 
+  fragment WeeksRegularFragment on PerformanceAnalysisPivotedRegularWeek {
+    start
+    end
+    totals {
+      ...TotalsRegularFragment
+    }
+  }
+
+  fragment WeeksPreContractedFragment on PerformanceAnalysisPivotedPreContractedWeek {
+    start
+    end
+    totals {
+      ...TotalsPreContractedFragment
+    }
+  }
+
   query PerformanceAnalysis($date: Date!) {
     performanceAnalysis(dateOfInterest: $date) {
-      dateOfInterest
-      start
-      end
-      weeks {
-        start
-        end
-        periodType
-        accountManagers {
-          name
-          totals {
-            ...TotalsFragment
-          }
-          clients {
+      pivoted {
+        preContracted {
+          byAccountManager {
             name
-            totals {
-              ...TotalsFragment
+            past {
+              ...TotalsPreContractedFragment
             }
-            sponsors {
+            weeks {
+              ...WeeksPreContractedFragment
+            }
+            byClient {
               name
-              totals {
-                ...TotalsFragment
+              past {
+                ...TotalsPreContractedFragment
               }
-              regularCases {
-                ...RegularCaseFragment
+              weeks {
+                ...WeeksPreContractedFragment
               }
-              preContractedCases {
-                ...PreContractedCaseFragment
+              bySponsor {
+                name
+                past {
+                  ...TotalsPreContractedFragment
+                }
+                weeks {
+                  ...WeeksPreContractedFragment
+                }
+                byCase {
+                  title
+                  past {
+                    ...TotalsPreContractedFragment
+                  }
+                  weeks {
+                    ...WeeksPreContractedFragment
+                  }
+                }
               }
             }
           }
         }
-        clients {
-          name
-          totals {
-            ...TotalsFragment
-          }
-          sponsors {
+        regular {
+          byAccountManager {
             name
-            totals {
-              ...TotalsFragment
+            past {
+              ...TotalsRegularFragment
             }
-            regularCases {
-              ...RegularCaseFragment
+            weeks {
+              ...WeeksRegularFragment
             }
-            preContractedCases {
-              ...PreContractedCaseFragment
-            }
-          }
-        }
-      }
-
-      past {
-        accountManagers {
-          name
-          totals {
-            ...TotalsFragment
-          }
-          clients {
-            name
-            totals {
-              ...TotalsFragment
-            }
-            sponsors {
+            byClient {
               name
-              totals {
-                ...TotalsFragment
+              past {
+                ...TotalsRegularFragment
               }
-              regularCases {
-                ...RegularCaseFragment
+              weeks {
+                ...WeeksRegularFragment
               }
-              preContractedCases {
-                ...PreContractedCaseFragment
+              bySponsor {
+                name
+                past {
+                  ...TotalsRegularFragment
+                }
+                weeks {
+                  ...WeeksRegularFragment
+                }
+                byCase {
+                  title
+                  past {
+                    ...TotalsRegularFragment
+                  }
+                  weeks {
+                    ...WeeksRegularFragment
+                  }
+                }
               }
-            }
-          }
-        }
-        clients {
-          name
-          totals {
-            ...TotalsFragment
-          }
-          sponsors {
-            name
-            totals {
-              ...TotalsFragment
-            }
-            regularCases {
-              ...RegularCaseFragment
-            }
-            preContractedCases {
-              ...PreContractedCaseFragment
             }
           }
         }
