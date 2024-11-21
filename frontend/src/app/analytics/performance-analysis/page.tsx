@@ -10,6 +10,16 @@ import { PreContractedCasesTable } from "./PreContractedCasesTable";
 import { RegularCasesByClientTable } from "./RegularCasesByClientTable";
 import { PreContractedCasesByClientTable } from "./PreContractedCasesByClientTable";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RegularCasesCTA } from "./RegularCasesCTA";
+import { SectionHeader } from "@/components/SectionHeader";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function PerformanceAnalysisPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -98,6 +108,10 @@ export default function PerformanceAnalysisPage() {
       </Tabs>
 
       <div className="space-y-8 ml-2 mr-2">
+        {selectedWeekIndex > 0 && (
+          <RegularCasesCTA data={data} selectedWeekIndex={selectedWeekIndex} formatHours={formatHours} />
+        )}
+        
         {viewMode === "managers" ? (
           <>
             <RegularCasesTable
