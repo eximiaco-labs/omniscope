@@ -107,10 +107,15 @@ type PastPerformanceAnalysis {
 
 type PerformanceAnalysisPivoted {
   regular: PerformanceAnalysisPivotedRegular!
+  preContracted: PerformanceAnalysisPivotedPreContracted!
 }
 
 type PerformanceAnalysisPivotedRegular {
   byAccountManager: [PerformanceAnalysisPivotedRegularByAccountManager!]!
+}
+
+type PerformanceAnalysisPivotedPreContracted {
+  byAccountManager: [PerformanceAnalysisPivotedPreContractedByAccountManager!]!
 }
 
 type PerformanceAnalysisPivotedRegularByAccountManager {
@@ -120,6 +125,13 @@ type PerformanceAnalysisPivotedRegularByAccountManager {
   byClient: [PerformanceAnalysisPivotedRegularByClient!]!
 }
 
+type PerformanceAnalysisPivotedPreContractedByAccountManager {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+  byClient: [PerformanceAnalysisPivotedPreContractedByClient!]!
+}
+
 type PerformanceAnalysisPivotedRegularByClient {
   name: String!
   weeks: [PerformanceAnalysisPivotedRegularWeek!]!
@@ -127,12 +139,26 @@ type PerformanceAnalysisPivotedRegularByClient {
   bySponsor: [PerformanceAnalysisPivotedRegularBySponsor!]!
 }
 
+type PerformanceAnalysisPivotedPreContractedByClient {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+  bySponsor: [PerformanceAnalysisPivotedPreContractedBySponsor!]!
+}
+
 type PerformanceAnalysisPivotedRegularBySponsor {
   name: String!
   weeks: [PerformanceAnalysisPivotedRegularWeek!]!
   past: TotalsRegular
   byCase: [PerformanceAnalysisPivotedRegularByCase!]!
-}
+} 
+
+type PerformanceAnalysisPivotedPreContractedBySponsor {
+  name: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+  byCase: [PerformanceAnalysisPivotedPreContractedByCase!]!
+} 
 
 type PerformanceAnalysisPivotedRegularByCase {
   title: String!
@@ -140,11 +166,24 @@ type PerformanceAnalysisPivotedRegularByCase {
   past: TotalsRegular
 }
 
+type PerformanceAnalysisPivotedPreContractedByCase {
+  title: String!
+  weeks: [PerformanceAnalysisPivotedPreContractedWeek!]!
+  past: TotalsPreContracted
+} 
+
 type PerformanceAnalysisPivotedRegularWeek {
   start: Date!
   end: Date!
   periodType: String!
   totals: TotalsRegular!
+}
+
+type PerformanceAnalysisPivotedPreContractedWeek {
+  start: Date!
+  end: Date!
+  periodType: String!
+  totals: TotalsPreContracted!
 }
 
 type PerformanceAnalysis {
