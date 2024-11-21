@@ -24,12 +24,8 @@ export default function PerformanceAnalysisPage() {
     setDate(today);
   }, []);
 
-  const firstDayOfMonth = new Date(date);
-  firstDayOfMonth.setDate(1);
-  const defaultDate = format(firstDayOfMonth, "yyyy-MM-dd");
-
   const { loading, error, data } = useQuery(PERFORMANCE_ANALYSIS_QUERY, {
-    variables: { date: defaultDate }
+    variables: { date: format(date, "yyyy-MM-dd") }
   });
 
   if (loading) return <div>Loading...</div>;
