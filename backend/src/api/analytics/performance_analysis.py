@@ -13,22 +13,63 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
         for account_manager in week.account_managers
     })
     
-    # Create lookup dict for faster access
+    # Get unique client names for each account manager across all weeks
+    client_names_by_account_manager = {}
+    for week in performance_analysis.weeks:
+        for account_manager in week.account_managers:
+            if account_manager.name not in client_names_by_account_manager:
+                client_names_by_account_manager[account_manager.name] = set()
+            
+            # Add all client names from this week's clients
+            client_names_by_account_manager[account_manager.name].update(
+                client.name for client in account_manager.clients
+            )
+    
+    # Convert sets to sorted lists
+    for account_manager_name in client_names_by_account_manager:
+        client_names_by_account_manager[account_manager_name] = sorted(
+            client_names_by_account_manager[account_manager_name]
+        )
+    
+    
     by_account_manager = []
     for account_manager_name in account_managers_names:
-        # Get weekly totals for this account manager
+        clients = [
+            { 
+                "name": client_name,
+                "weeks": []
+            }
+            for client_name in client_names_by_account_manager[account_manager_name]
+        ]
+        
         weekly_totals = []
         for week in performance_analysis.weeks:
             for am in week.account_managers:
-                if am.name == account_manager_name:
-                    weekly_totals.append({
-                        "start": week.start,
-                        "end": week.end,
-                        "period_type": week.period_type,
-                        "totals": am.totals.regular,
-                    })
-                    break
- 
+                weekly_totals.append({
+                    "start": week.start,
+                    "end": week.end,
+                    "period_type": week.period_type,
+                    "totals": am.totals.regular,
+                })
+                    
+                for client in am.clients:
+                    if client.totals.regular is not None:
+                        for client_entry in clients:
+                            if client_entry["name"] == client.name:
+                                client_entry["weeks"].append({
+                                    "start": week.start,
+                                    "end": week.end,
+                                    "period_type": week.period_type,
+                                    "totals": client.totals.regular,
+                                })
+                                break
+
+        clients = [
+            client
+            for client in clients
+            if len(client["weeks"]) > 0
+        ]
+
         past = None
         for am in performance_analysis.past.account_managers:
             if am.name == account_manager_name:
@@ -37,6 +78,7 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
             
         by_account_manager.append({
             "name": account_manager_name,
+            "by_client": clients,
             "weeks": weekly_totals,
             "past": past,
         })
@@ -45,4 +87,4 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
         "regular": {
             "by_account_manager": by_account_manager
         }
-    }
+    }    
