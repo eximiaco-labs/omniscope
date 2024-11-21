@@ -74,18 +74,25 @@ def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalys
         clients = [client for client in clients if client["weeks"]]
 
         # Get past data for account manager
-        past = next(
-            (am.totals.regular 
+        past_am = next(
+            (am
              for am in performance_analysis.past.account_managers 
              if am.name == am_name),
             None
         )
+        
+        # Add past data for each account manager's client
+        for client in clients:
+            for past_client in past_am.clients:
+                if past_client.name == client["name"]:
+                    client["past"] = past_client.totals.regular
+                    break   
             
         by_account_manager.append({
             "name": am_name,
             "by_client": clients,
             "weeks": weekly_totals,
-            "past": past,
+            "past": past_am.totals.regular,
         })
 
     return {
