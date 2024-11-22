@@ -320,4 +320,11 @@ type ApprovedVsActualWeek {
   approvedHours: Float!
   actualHours: Float!
   difference: Float!
-} 
+}
+
+# Revenue Tracking types
+
+type RevenueTracking {
+  year: Int!
+  month: Int!
+}
