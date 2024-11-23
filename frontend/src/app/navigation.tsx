@@ -22,8 +22,8 @@ export async function AnalyticsSidebarItems() {
   return [
     ...(getFlag('in-development') ? [
       {
-        title: "Revenue",
-        url: "/analytics/revenue",
+        title: "Revenue Tracking",
+        url: "/analytics/revenue-tracking",
         icon: DollarSignIcon,
       }
     ] : []),
