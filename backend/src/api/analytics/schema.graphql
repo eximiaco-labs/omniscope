@@ -336,6 +336,12 @@ type RevenueTrackingFixed {
 
 type RevenueTrackingFixedMonthly {
   total: Float!
+  byClient: [RevenueTrackingFixedByClient!]!
+}
+
+type RevenueTrackingFixedByClient {
+  name: String!
+  fee: Float!
   byCase: [RevenueTrackingFixedByCase!]!
 }
 
