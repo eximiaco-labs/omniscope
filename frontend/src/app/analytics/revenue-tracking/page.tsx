@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { STAT_COLORS } from "@/app/constants/colors";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import SectionHeader from "@/components/SectionHeader";
 
 export default function RevenuePage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -57,7 +58,8 @@ export default function RevenuePage() {
         <div className="flex-grow h-px bg-gray-200 ml-2"></div>
       </div>
 
-      <div className="space-y-8 ml-2 mr-2">
+      <div className="ml-2 mr-2">
+        <SectionHeader title="Fixed Fee Revenue Tracking" subtitle={format(date, "MMMM / yyyy")} />
         <Table>
           <TableHeader>
             <TableRow>

@@ -323,7 +323,6 @@ type ApprovedVsActualWeek {
 }
 
 # Revenue Tracking types
-
 type RevenueTracking {
   year: Int!
   month: Int!
@@ -336,6 +335,12 @@ type RevenueTrackingFixed {
 
 type RevenueTrackingFixedMonthly {
   total: Float!
+  byAccountManager: [RevenueTrackingFixedByAccountManager!]!
+}
+
+type RevenueTrackingFixedByAccountManager {
+  name: String!
+  fee: Float!
   byClient: [RevenueTrackingFixedByClient!]!
 }
 
