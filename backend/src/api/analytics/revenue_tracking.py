@@ -38,19 +38,20 @@ def resolve_revenue_tracking(root, info, date_of_interest: str | date):
             by_case = []
             for case in active_cases:
                 if case.find_client_name(globals.omni_models.clients) == client_name:
-                    if case.fixed_fee != 0:
+                    by_project = []
+                    for project in case.tracker_info:
+                        if project.billing and project.billing.fee and project.billing.fee != 0:
+                            by_project.append({
+                                "kind": project.kind,
+                                "name": project.name,
+                                "fee": (project.billing.fee / 100) if project.billing and project.billing.fee else 0
+                            })
+                    
+                    if len(by_project) > 0:
                         by_case.append({
                             "title": case.title,
-                            "fee": case.fixed_fee,
-                            "by_project": sorted([
-                                {
-                                    "kind": project.kind,
-                                    "name": project.name,
-                                    "fee": (project.billing.fee / 100) if project.billing and project.billing.fee else 0
-                                }
-                                for project in case.tracker_info
-                                if project.billing and project.billing.fee and project.billing.fee != 0
-                            ], key=lambda x: x["name"])
+                            "fee": sum(project["fee"] for project in by_project),
+                            "by_project": sorted(by_project, key=lambda x: x["name"])
                         })
         
             if len(by_case) > 0:
