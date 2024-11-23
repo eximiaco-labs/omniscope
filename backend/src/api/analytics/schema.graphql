@@ -327,4 +327,26 @@ type ApprovedVsActualWeek {
 type RevenueTracking {
   year: Int!
   month: Int!
+  fixed: RevenueTrackingFixed! 
+}
+
+type RevenueTrackingFixed {
+  monthly: RevenueTrackingFixedMonthly!
+}
+
+type RevenueTrackingFixedMonthly {
+  total: Float!
+  byCase: [RevenueTrackingFixedByCase!]!
+}
+
+type RevenueTrackingFixedByCase {
+  title: String!
+  fee: Float!
+  byProject: [RevenueTrackingFixedByProject!]!
+}
+
+type RevenueTrackingFixedByProject {
+  kind: String!
+  name: String!
+  fee: Float!
 }
