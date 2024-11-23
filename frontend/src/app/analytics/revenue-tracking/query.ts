@@ -14,13 +14,17 @@ export const REVENUE_TRACKING_QUERY = gql`
             byClient {
               name
               fee
-              byCase {
-                title
+              bySponsor {
+                name
                 fee
-                byProject {
-                  kind
-                  name
+                byCase {
+                  title
                   fee
+                  byProject {
+                    kind
+                    name
+                    fee
+                  }
                 }
               }
             }

@@ -22,6 +22,7 @@ import { Divider } from "@/components/catalyst/divider";
 export default function RevenuePage() {
   const [date, setDate] = useState<Date>(new Date());
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const [selectedKind, setSelectedKind] = useState<string>('total');
 
   useEffect(() => {
@@ -54,6 +55,16 @@ export default function RevenuePage() {
     setExpandedClients(newExpanded);
   };
 
+  const toggleSponsor = (sponsorName: string) => {
+    const newExpanded = new Set(expandedSponsors);
+    if (newExpanded.has(sponsorName)) {
+      newExpanded.delete(sponsorName);
+    } else {
+      newExpanded.add(sponsorName);
+    }
+    setExpandedSponsors(newExpanded);
+  };
+
   const calculateProjectTotal = (projects: any[], kind?: string) => {
     return projects.reduce((sum, project) => {
       if (kind && project.kind !== kind) return sum;
@@ -70,9 +81,15 @@ export default function RevenuePage() {
     }, 0);
   };
 
+  const calculateSponsorTotal = (sponsors: any[], kind?: string) => {
+    return sponsors.reduce((sum, sponsor) => {
+      return sum + calculateCaseTotal(sponsor.byCase, kind);
+    }, 0);
+  };
+
   const calculateClientTotal = (clients: any[], kind?: string) => {
     return clients.reduce((sum, client) => {
-      return sum + calculateCaseTotal(client.byCase, kind);
+      return sum + calculateSponsorTotal(client.bySponsor, kind);
     }, 0);
   };
 
@@ -101,14 +118,19 @@ export default function RevenuePage() {
         byClient: manager.byClient
           .map((client: any) => ({
             ...client,
-            byCase: client.byCase
-              .map((caseItem: any) => ({
-                ...caseItem,
-                byProject: caseItem.byProject.filter((project: any) => project.kind === selectedKind)
+            bySponsor: client.bySponsor
+              .map((sponsor: any) => ({
+                ...sponsor,
+                byCase: sponsor.byCase
+                  .map((caseItem: any) => ({
+                    ...caseItem,
+                    byProject: caseItem.byProject.filter((project: any) => project.kind === selectedKind)
+                  }))
+                  .filter((caseItem: any) => caseItem.byProject.length > 0)
               }))
-              .filter((caseItem: any) => caseItem.byProject.length > 0)
+              .filter((sponsor: any) => sponsor.byCase.length > 0)
           }))
-          .filter((client: any) => client.byCase.length > 0)
+          .filter((client: any) => client.bySponsor.length > 0)
       }))
       .filter((manager: any) => manager.byClient.length > 0);
   };
@@ -184,7 +206,7 @@ export default function RevenuePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Account Manager / Client / Case</TableHead>
+              <TableHead>Account Manager / Client / Sponsor / Case</TableHead>
               <TableHead>Projects</TableHead>
               <TableHead className="text-right">Fee</TableHead>
             </TableRow>
@@ -212,37 +234,54 @@ export default function RevenuePage() {
                         {client.name}
                       </TableCell>
                       <TableCell></TableCell>
-                      <TableCell className="text-right">{formatCurrency(calculateCaseTotal(client.byCase, selectedKind !== 'total' ? selectedKind : undefined))}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(calculateSponsorTotal(client.bySponsor, selectedKind !== 'total' ? selectedKind : undefined))}</TableCell>
                     </TableRow>
 
-                    {expandedClients.has(client.name) && client.byCase.map((caseItem: any) => (
-                      <TableRow key={`${client.name}-${caseItem.title}`} className="bg-gray-50">
-                        <TableCell className="pl-16 text-sm text-gray-600">
-                          {caseItem.title}
-                        </TableCell>
-                        <TableCell>
-                          <table className="w-full text-xs border-collapse">
-                            <tbody>
-                              {caseItem.byProject.map((project: any) => {
-                                const textColor = STAT_COLORS[project.kind as keyof typeof STAT_COLORS];
-                                
-                                return (
-                                  <tr key={project.name} className="border-b border-gray-200">
-                                    <td className="pr-2 w-[250px] break-words border-r border-gray-200">
-                                      <div style={{ color: textColor }}>
-                                        {project.name}
-                                      </div>
-                                    </td>
-                                    <td className="text-gray-600 pl-2 w-[100px]">{project.kind}</td>
-                                    <td className="text-gray-600 pl-2 text-right">{formatCurrency(project.fee)}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </TableCell>
-                        <TableCell className="text-right">{formatCurrency(calculateProjectTotal(caseItem.byProject, selectedKind !== 'total' ? selectedKind : undefined))}</TableCell>
-                      </TableRow>
+                    {expandedClients.has(client.name) && client.bySponsor.map((sponsor: any) => (
+                      <>
+                        <TableRow 
+                          key={`${client.name}-${sponsor.name}`}
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => toggleSponsor(sponsor.name)}
+                        >
+                          <TableCell className="text-sm text-gray-600 flex items-center gap-2 pl-12">
+                            {expandedSponsors.has(sponsor.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            {sponsor.name}
+                          </TableCell>
+                          <TableCell></TableCell>
+                          <TableCell className="text-right">{formatCurrency(calculateCaseTotal(sponsor.byCase, selectedKind !== 'total' ? selectedKind : undefined))}</TableCell>
+                        </TableRow>
+
+                        {expandedSponsors.has(sponsor.name) && sponsor.byCase.map((caseItem: any) => (
+                          <TableRow key={`${sponsor.name}-${caseItem.title}`} className="bg-gray-50">
+                            <TableCell className="pl-16 text-sm text-gray-600">
+                              {caseItem.title}
+                            </TableCell>
+                            <TableCell>
+                              <table className="w-full text-xs border-collapse">
+                                <tbody>
+                                  {caseItem.byProject.map((project: any) => {
+                                    const textColor = STAT_COLORS[project.kind as keyof typeof STAT_COLORS];
+                                    
+                                    return (
+                                      <tr key={project.name} className="border-b border-gray-200">
+                                        <td className="pr-2 w-[250px] break-words border-r border-gray-200">
+                                          <div style={{ color: textColor }}>
+                                            {project.name}
+                                          </div>
+                                        </td>
+                                        <td className="text-gray-600 pl-2 w-[100px]">{project.kind}</td>
+                                        <td className="text-gray-600 pl-2 text-right">{formatCurrency(project.fee)}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </TableCell>
+                            <TableCell className="text-right">{formatCurrency(calculateProjectTotal(caseItem.byProject, selectedKind !== 'total' ? selectedKind : undefined))}</TableCell>
+                          </TableRow>
+                        ))}
+                      </>
                     ))}
                   </>
                 ))}
