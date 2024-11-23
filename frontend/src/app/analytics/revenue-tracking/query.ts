@@ -8,16 +8,20 @@ export const REVENUE_TRACKING_QUERY = gql`
       fixed {
         monthly {
           total
-          byClient {
+          byAccountManager {
             name
             fee
-            byCase {
-              title
+            byClient {
+              name
               fee
-              byProject {
-                kind
-                name
+              byCase {
+                title
                 fee
+                byProject {
+                  kind
+                  name
+                  fee
+                }
               }
             }
           }

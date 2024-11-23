@@ -63,55 +63,67 @@ export default function RevenuePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Client / Case</TableHead>
+              <TableHead>Account Manager / Client / Case</TableHead>
               <TableHead>Projects</TableHead>
               <TableHead className="text-right">Fee</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.revenueTracking.fixed.monthly.byClient.map((client: any) => (
+            {data.revenueTracking.fixed.monthly.byAccountManager.map((manager: any) => (
               <>
-                <TableRow 
-                  key={client.name}
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => toggleClient(client.name)}
-                >
-                  <TableCell className="text-sm text-gray-600 flex items-center gap-2">
-                    {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                    {client.name}
+                <TableRow key={manager.name} className="bg-gray-100">
+                  <TableCell className="text-sm font-semibold">
+                    {manager.name}
                   </TableCell>
                   <TableCell></TableCell>
-                  <TableCell className="text-right">{formatCurrency(client.fee)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(manager.fee)}</TableCell>
                 </TableRow>
 
-                {expandedClients.has(client.name) && client.byCase.map((caseItem: any) => (
-                  <TableRow key={`${client.name}-${caseItem.title}`} className="bg-gray-50">
-                    <TableCell className="pl-8 text-sm text-gray-600">
-                      {caseItem.title}
-                    </TableCell>
-                    <TableCell>
-                      <table className="w-full text-xs border-collapse">
-                        <tbody>
-                          {caseItem.byProject.map((project: any) => {
-                            const textColor = STAT_COLORS[project.kind as keyof typeof STAT_COLORS];
-                            
-                            return (
-                              <tr key={project.name} className="border-b border-gray-200">
-                                <td className="pr-2 w-[250px] break-words border-r border-gray-200">
-                                  <div style={{ color: textColor }}>
-                                    {project.name}
-                                  </div>
-                                </td>
-                                <td className="text-gray-600 pl-2 w-[100px]">{project.kind}</td>
-                                <td className="text-gray-600 pl-2 text-right">{formatCurrency(project.fee)}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </TableCell>
-                    <TableCell className="text-right">{formatCurrency(caseItem.fee)}</TableCell>
-                  </TableRow>
+                {manager.byClient.map((client: any) => (
+                  <>
+                    <TableRow 
+                      key={`${manager.name}-${client.name}`}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => toggleClient(client.name)}
+                    >
+                      <TableCell className="text-sm text-gray-600 flex items-center gap-2 pl-8">
+                        {expandedClients.has(client.name) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        {client.name}
+                      </TableCell>
+                      <TableCell></TableCell>
+                      <TableCell className="text-right">{formatCurrency(client.fee)}</TableCell>
+                    </TableRow>
+
+                    {expandedClients.has(client.name) && client.byCase.map((caseItem: any) => (
+                      <TableRow key={`${client.name}-${caseItem.title}`} className="bg-gray-50">
+                        <TableCell className="pl-16 text-sm text-gray-600">
+                          {caseItem.title}
+                        </TableCell>
+                        <TableCell>
+                          <table className="w-full text-xs border-collapse">
+                            <tbody>
+                              {caseItem.byProject.map((project: any) => {
+                                const textColor = STAT_COLORS[project.kind as keyof typeof STAT_COLORS];
+                                
+                                return (
+                                  <tr key={project.name} className="border-b border-gray-200">
+                                    <td className="pr-2 w-[250px] break-words border-r border-gray-200">
+                                      <div style={{ color: textColor }}>
+                                        {project.name}
+                                      </div>
+                                    </td>
+                                    <td className="text-gray-600 pl-2 w-[100px]">{project.kind}</td>
+                                    <td className="text-gray-600 pl-2 text-right">{formatCurrency(project.fee)}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(caseItem.fee)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </>
                 ))}
               </>
             ))}
