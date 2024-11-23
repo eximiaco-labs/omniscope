@@ -1,6 +1,14 @@
 import globals
 
-def resolve_revenue_tracking(root, info, year: int, month: int):
+from datetime import date, datetime
+
+def resolve_revenue_tracking(root, info, date_of_interest: str | date):
+    if isinstance(date_of_interest, str):
+        date_of_interest = datetime.strptime(date_of_interest, "%Y-%m-%d").date()
+
+    year = date_of_interest.year
+    month = date_of_interest.month
+
     active_cases = [
         case
         for case in globals.omni_models.cases.get_all().values()
