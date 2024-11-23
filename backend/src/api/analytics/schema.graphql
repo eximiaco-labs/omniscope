@@ -347,6 +347,12 @@ type RevenueTrackingFixedByAccountManager {
 type RevenueTrackingFixedByClient {
   name: String!
   fee: Float!
+  bySponsor: [RevenueTrackingFixedBySponsor!]!
+}
+
+type RevenueTrackingFixedBySponsor {
+  name: String!
+  fee: Float!
   byCase: [RevenueTrackingFixedByCase!]!
 }
 
