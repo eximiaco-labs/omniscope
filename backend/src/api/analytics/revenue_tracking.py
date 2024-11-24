@@ -95,12 +95,16 @@ def compute_regular_revenue_tracking(date_of_interest: date):
         }
     }
 
-def compute_pre_contracted_revenue_tracking():
-    active_cases = [
-        case
-        for case in globals.omni_models.cases.get_all().values()
-        if case.is_active
-    ]
+def compute_pre_contracted_revenue_tracking(date_of_interest: date):
+    s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
+    e = datetime.combine(date_of_interest, datetime.max.time())
+    
+    timesheet = globals.omni_datasets.timesheets.get(s, e)
+    df = timesheet.data
+    df = df[df["Kind"] != "Internal"]
+    
+    case_ids = df["CaseId"].unique()
+    active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
     
     account_managers_names = sorted(set(_get_account_manager_name(case) for case in active_cases))
     
@@ -179,11 +183,10 @@ def resolve_revenue_tracking(root, info, date_of_interest: str | date):
     year = date_of_interest.year
     month = date_of_interest.month
 
-
     
     return {
         "year": year,
         "month": month,
-        "pre_contracted": compute_pre_contracted_revenue_tracking(),
+        "pre_contracted": compute_pre_contracted_revenue_tracking(date_of_interest),
         "regular": compute_regular_revenue_tracking(date_of_interest)
     }
