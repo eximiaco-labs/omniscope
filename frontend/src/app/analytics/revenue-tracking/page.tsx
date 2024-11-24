@@ -135,12 +135,12 @@ export default function RevenuePage() {
       .filter((manager: any) => manager.byClient.length > 0);
   };
 
-  const totalValue = data.revenueTracking.fixed.monthly.total;
-  const consultingValue = calculateManagerTotal(data.revenueTracking.fixed.monthly.byAccountManager, 'consulting');
-  const handsOnValue = calculateManagerTotal(data.revenueTracking.fixed.monthly.byAccountManager, 'handsOn');
-  const squadValue = calculateManagerTotal(data.revenueTracking.fixed.monthly.byAccountManager, 'squad');
+  const totalValue = data.revenueTracking.preContracted.monthly.total;
+  const consultingValue = calculateManagerTotal(data.revenueTracking.preContracted.monthly.byAccountManager, 'consulting');
+  const handsOnValue = calculateManagerTotal(data.revenueTracking.preContracted.monthly.byAccountManager, 'handsOn');
+  const squadValue = calculateManagerTotal(data.revenueTracking.preContracted.monthly.byAccountManager, 'squad');
 
-  const filteredManagers = filterDataByKind(data.revenueTracking.fixed.monthly.byAccountManager);
+  const filteredManagers = filterDataByKind(data.revenueTracking.preContracted.monthly.byAccountManager);
 
   return (
     <div className="flex flex-col gap-6">
@@ -150,7 +150,7 @@ export default function RevenuePage() {
       </div>
 
       <div className="ml-2 mr-2">
-        <SectionHeader title="Fixed Fee Revenue Tracking" subtitle={format(date, "MMMM / yyyy")} />
+        <SectionHeader title="Pre-contracted Revenue Tracking" subtitle={format(date, "MMMM / yyyy")} />
         
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div

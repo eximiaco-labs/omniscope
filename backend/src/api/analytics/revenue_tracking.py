@@ -86,7 +86,7 @@ def resolve_revenue_tracking(root, info, date_of_interest: str | date):
     return {
         "year": year,
         "month": month,
-        "fixed": { 
+        "pre_contracted": {
             "monthly": { 
                 "total": sum(account_manager["fee"] for account_manager in by_account_manager), 
                 "by_account_manager": by_account_manager

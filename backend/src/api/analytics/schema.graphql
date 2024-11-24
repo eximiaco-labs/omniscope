@@ -326,43 +326,43 @@ type ApprovedVsActualWeek {
 type RevenueTracking {
   year: Int!
   month: Int!
-  fixed: RevenueTrackingFixed! 
+  preContracted: RevenueTrackingPreContracted!
 }
 
-type RevenueTrackingFixed {
-  monthly: RevenueTrackingFixedMonthly!
+type RevenueTrackingPreContracted {
+  monthly: RevenueTrackingPreContractedMonthly!
 }
 
-type RevenueTrackingFixedMonthly {
+type RevenueTrackingPreContractedMonthly {
   total: Float!
-  byAccountManager: [RevenueTrackingFixedByAccountManager!]!
+  byAccountManager: [RevenueTrackingPreContractedByAccountManager!]!
 }
 
-type RevenueTrackingFixedByAccountManager {
+type RevenueTrackingPreContractedByAccountManager {
   name: String!
   fee: Float!
-  byClient: [RevenueTrackingFixedByClient!]!
+  byClient: [RevenueTrackingPreContractedByClient!]!
 }
 
-type RevenueTrackingFixedByClient {
+type RevenueTrackingPreContractedByClient {
   name: String!
   fee: Float!
-  bySponsor: [RevenueTrackingFixedBySponsor!]!
+  bySponsor: [RevenueTrackingPreContractedBySponsor!]!
 }
 
-type RevenueTrackingFixedBySponsor {
+type RevenueTrackingPreContractedBySponsor {
   name: String!
   fee: Float!
-  byCase: [RevenueTrackingFixedByCase!]!
+  byCase: [RevenueTrackingPreContractedByCase!]!
 }
 
-type RevenueTrackingFixedByCase {
+type RevenueTrackingPreContractedByCase {
   title: String!
   fee: Float!
-  byProject: [RevenueTrackingFixedByProject!]!
+  byProject: [RevenueTrackingPreContractedByProject!]!
 }
 
-type RevenueTrackingFixedByProject {
+type RevenueTrackingPreContractedByProject {
   kind: String!
   name: String!
   fee: Float!
