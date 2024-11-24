@@ -13,6 +13,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import Link from "next/link";
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -180,7 +181,15 @@ export default function RevenueForecastPage() {
             {sortedClients.map((client: any, index: number) => (
               <TableRow key={client.name}>
                 <TableCell className="text-center text-gray-500 text-[10px] h-[57px]">{index + 1}</TableCell>
-                <TableCell className="font-medium">{client.name}</TableCell>
+                <TableCell className="h-[57px]">
+                  {client.slug ? (
+                    <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
+                      {client.name}
+                    </Link>
+                  ) : (
+                    <span>{client.name}</span>
+                  )}
+                </TableCell>
                 <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${client.previous.regular === 0 ? 'text-gray-300' : ''} ${client.previous.regular > client.current.regular ? 'bg-red-50' : ''}`}>{formatCurrency(client.previous.regular)}</TableCell>
                 <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${client.previous.preContracted === 0 ? 'text-gray-300' : ''} ${client.previous.preContracted > client.current.preContracted ? 'bg-red-50' : ''}`}>
                   {formatCurrency(client.previous.preContracted)}
