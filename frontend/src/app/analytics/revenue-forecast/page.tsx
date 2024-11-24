@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
-import { format, endOfMonth, subMonths } from "date-fns";
+import { format, endOfMonth, subMonths, isSameDay, getDaysInMonth } from "date-fns";
 import { useState, useEffect } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { REVENUE_FORECAST_QUERY } from "./query";
@@ -13,10 +13,12 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
+  const [showPartialPreviousMonth, setShowPartialPreviousMonth] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
@@ -28,11 +30,23 @@ export default function RevenueForecastPage() {
   }, []);
 
   const previousMonthDate = endOfMonth(subMonths(date, 1));
+  
+  // Calculate the partial previous month date
+  const getPreviousMonthPartialDate = () => {
+    const previousMonth = subMonths(date, 1);
+    const currentDay = date.getDate();
+    const daysInPreviousMonth = getDaysInMonth(previousMonth);
+    const targetDay = Math.min(currentDay, daysInPreviousMonth);
+    return new Date(previousMonth.getFullYear(), previousMonth.getMonth(), targetDay);
+  };
+
+  const previousMonthPartialDate = getPreviousMonthPartialDate();
 
   const { loading, error, data } = useQuery(REVENUE_FORECAST_QUERY, {
     variables: {
       inAnalysisDate: format(date, "yyyy-MM-dd"),
       previousMonthDate: format(previousMonthDate, "yyyy-MM-dd"),
+      previousMonthPartialDate: format(previousMonthPartialDate, "yyyy-MM-dd"),
     },
   });
 
@@ -42,7 +56,9 @@ export default function RevenueForecastPage() {
   // Merge client data from both queries
   const clients = new Map();
 
-  data.previous_month.summaries.byClient.forEach((client: any) => {
+  const previousData = showPartialPreviousMonth ? data.previous_month_partial : data.previous_month;
+
+  previousData.summaries.byClient.forEach((client: any) => {
     clients.set(client.slug, {
       name: client.name,
       previous: {
@@ -161,7 +177,21 @@ export default function RevenueForecastPage() {
             <TableRow>
               <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
               <TableHead rowSpan={2}>Client</TableHead>
-              <TableHead colSpan={3} className="text-center border-l border-gray-300">{format(previousMonthDate, 'MMMM yyyy')}</TableHead>
+              <TableHead colSpan={3} className="text-center border-l border-gray-300">
+                <div className="flex items-center justify-center gap-2">
+                  {format(previousMonthDate, 'MMMM yyyy')}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="showPartial"
+                      checked={showPartialPreviousMonth}
+                      onCheckedChange={(checked) => setShowPartialPreviousMonth(checked as boolean)}
+                    />
+                    <label htmlFor="showPartial" className="text-sm text-gray-600">
+                      Until {format(previousMonthPartialDate, "EEEE, dd")}
+                    </label>
+                  </div>
+                </div>
+              </TableHead>
               <TableHead colSpan={3} className="text-center border-l border-gray-300">{format(date, "MMMM yyyy 'until' EEEE, dd")}</TableHead>
               <TableHead colSpan={3} className="text-center border-l border-gray-300">Difference</TableHead>
             </TableRow>

@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const REVENUE_FORECAST_QUERY = gql`
-  query RevenueForecast($inAnalysisDate: Date!, $previousMonthDate: Date!) {
+  query RevenueForecast($inAnalysisDate: Date!, $previousMonthDate: Date!, $previousMonthPartialDate: Date!) {
     in_analysis: revenueTracking(dateOfInterest: $inAnalysisDate) {
       summaries {
         byClient {
@@ -13,7 +13,22 @@ export const REVENUE_FORECAST_QUERY = gql`
         }
       }
     }
+
     previous_month: revenueTracking(dateOfInterest: $previousMonthDate) {
+      summaries {
+        byClient {
+          name
+          slug
+          regular
+          preContracted
+          total
+        }
+      }
+    }
+
+    previous_month_partial: revenueTracking(
+      dateOfInterest: $previousMonthPartialDate
+    ) {
       summaries {
         byClient {
           name
