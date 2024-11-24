@@ -53,7 +53,7 @@ def compute_regular_revenue_tracking(date_of_interest: date):
                                     by_project.append({
                                         "kind": project.kind,
                                         "name": project.name,
-                                        "rate": project.rate.rate,
+                                        "rate": project.rate.rate / 100,
                                         "hours": project_df["TimeInHs"].sum(),
                                         "fee": project_df["Revenue"].sum()
                                     })
