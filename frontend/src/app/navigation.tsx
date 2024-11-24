@@ -1,5 +1,3 @@
-import { getFlag } from './flags';
-
 import {
   CalendarCheckIcon,
   ColumnsIcon,
@@ -17,10 +15,11 @@ import {
   DollarSignIcon,
 } from "lucide-react";
 
+import { getFlag } from './flags';
 
-export async function AnalyticsSidebarItems() {
+export function getAnalyticsSidebarItems(userEmail?: string | null) {
   return [
-    ...(getFlag('is-fin-user') ? [
+    ...(getFlag('is-fin-user', userEmail) ? [
       {
         title: "Revenue Tracking",
         url: "/analytics/revenue-tracking",
@@ -55,7 +54,7 @@ export async function AnalyticsSidebarItems() {
   ];
 }
 
-export async function AboutUsSidebarItems() {
+export function getAboutUsSidebarItems() {
   return [
     {
         title: "Consultants & Engineers",
@@ -95,7 +94,7 @@ export async function AboutUsSidebarItems() {
   ];
 }
 
-export async function AdministrativeSidebarItems() {
+export function getAdministrativeSidebarItems() {
   return [
     {
       title: "Refresh data",

@@ -1,28 +1,23 @@
-// Simplified flags implementation without @vercel/flags
 export type Flag = {
   name: string;
   enabled: boolean;
 };
 
-const FIN_USER_EMAILS = [
-  'franco.alves@eximia.co',
-  'gustavo.azevedo@eximia.co', 
-  'gustavo@eximia.co',
-  'me@elemarjr.com',
-  'fernando.paiva@eximia.co',
-  'guilherme.lemos@eximia.co',
-  'maicon@eximia.co'
-];
+import { hasPermission } from './permissions';
 
 const FLAGS: Record<string, boolean> = {
   // Environment flags
   'in-development': process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview',
   'is-preview': process.env.VERCEL_ENV === 'preview',
   'is-production': process.env.NODE_ENV === 'production',
-  'is-fin-user': typeof window !== 'undefined' && FIN_USER_EMAILS.includes(sessionStorage.getItem('userEmail') || '')
 };
 
-export function getFlag(name: string): boolean {
+export function getFlag(name: string, email?: string | null): boolean {
+  // Special handling for permission-based flags
+  if (name === 'is-fin-user') {
+    return hasPermission(email, 'financial');
+  }
+
   if (process.env.FORCE_FLAGS) {
     try {
       const forcedFlags = JSON.parse(process.env.FORCE_FLAGS);
@@ -45,4 +40,3 @@ export const isDevelopment = () => getFlag('in-development');
 export const isPreview = () => getFlag('is-preview');
 export const isProduction = () => getFlag('is-production');
 export const isDebugMode = () => getFlag('debug-mode');
-export const isFinUser = () => getFlag('is-fin-user');

@@ -57,15 +57,6 @@ function createApolloClient(session: any) {
   return new ApolloClient({
     link: from([errorLink, authLink, httpLink]),
     cache: new InMemoryCache(),
-    // defaultOptions: {
-    //   watchQuery: {
-    //     fetchPolicy: "cache-first",
-    //     nextFetchPolicy: "cache-only",
-    //   },
-    //   query: {
-    //     fetchPolicy: "cache-first"
-    //   }
-    // }
   });
 }
 

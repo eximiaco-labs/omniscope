@@ -28,9 +28,9 @@ import { AvatarImage } from "@radix-ui/react-avatar";
 import Logo from "./logo";
 
 import {
-  AnalyticsSidebarItems,
-  AboutUsSidebarItems,
-  AdministrativeSidebarItems,
+  getAnalyticsSidebarItems,
+  getAboutUsSidebarItems,
+  getAdministrativeSidebarItems,
 } from "@/app/navigation"
 
 import React from "react";
@@ -56,9 +56,9 @@ export function OmniSidebar() {
 
   React.useEffect(() => {
     async function loadItems() {
-      const analytics = await AnalyticsSidebarItems();
-      const aboutUs = await AboutUsSidebarItems();
-      const admin = await AdministrativeSidebarItems();
+      const analytics = await getAnalyticsSidebarItems(session?.user?.email);
+      const aboutUs = await getAboutUsSidebarItems();
+      const admin = await getAdministrativeSidebarItems();
       
       setAnalyticsItems(analytics);
       setAboutUsItems(aboutUs);
