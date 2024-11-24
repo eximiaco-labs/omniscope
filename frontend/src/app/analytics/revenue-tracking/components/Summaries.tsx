@@ -59,6 +59,14 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
     }).format(value);
   };
 
+  const formatPercent = (value: number, total: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'percent',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(value / total);
+  };
+
   const totals = items.reduce((acc, item) => ({
     regular: acc.regular + item.regular,
     preContracted: acc.preContracted + item.preContracted,
@@ -102,16 +110,25 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
           <TableBody>
             {sortedItems.map((item, index) => (
               <TableRow key={index}>
-                <TableCell className="text-center text-gray-500 text-[10px]">{index + 1}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className="text-center text-gray-500 text-[10px] h-[57px]">{index + 1}</TableCell>
+                <TableCell className="h-[57px]">{item.name}</TableCell>
+                <TableCell className="text-right w-[120px] relative h-[57px]">
                   {formatNumber(item.regular)}
+                  <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                    {formatPercent(item.regular, totals.regular)}
+                  </div>
                 </TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className="text-right w-[120px] relative h-[57px]">
                   {formatNumber(item.preContracted)}
+                  <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                    {formatPercent(item.preContracted, totals.preContracted)}
+                  </div>
                 </TableCell>
-                <TableCell className="text-right font-semibold w-[120px]">
+                <TableCell className="text-right font-semibold w-[120px] relative h-[57px]">
                   {formatNumber(item.total)}
+                  <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                    {formatPercent(item.total, totals.total)}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
