@@ -179,16 +179,10 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                                             </div>
                                           </td>
                                           <td className="text-gray-600 pl-2 w-[100px]">
-                                            {project.kind}
-                                          </td>
-                                          <td className="text-gray-600 pl-2 w-[100px]">
                                             {project.rate}/h
                                           </td>
                                           <td className="text-gray-600 pl-2 w-[100px]">
                                             {project.hours}h
-                                          </td>
-                                          <td className="text-gray-600 pl-2 text-right">
-                                            {formatCurrency(project.fee)}
                                           </td>
                                         </tr>
                                       );
