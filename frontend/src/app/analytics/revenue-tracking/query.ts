@@ -5,6 +5,37 @@ export const REVENUE_TRACKING_QUERY = gql`
     revenueTracking(dateOfInterest: $date) {
       year
       month
+      summaries {
+        byMode {
+          regular
+          preContracted
+          total
+        }
+        byKind {
+          name
+          regular
+          preContracted
+          total
+        }
+        byAccountManager {
+          name
+          regular
+          preContracted
+          total
+        }
+        byClient {
+          name
+          regular
+          preContracted
+          total
+        }
+        bySponsor {
+          name
+          regular
+          preContracted
+          total
+        }
+      }
       regular {
         monthly {
           byAccountManager {

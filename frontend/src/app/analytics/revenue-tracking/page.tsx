@@ -7,6 +7,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { REVENUE_TRACKING_QUERY } from "./query";
 import { PreContractedRevenue } from "./components/PreContractedRevenue";
 import { RegularRevenue } from "./components/RegularRevenue";
+import { Summaries } from "./components/Summaries";
 
 export default function RevenuePage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -31,7 +32,10 @@ export default function RevenuePage() {
       </div>
 
       <div className="ml-2 mr-2">
-        <RegularRevenue data={data} date={date} />
+        <Summaries data={data} date={date} />
+        <div className="mt-6">
+          <RegularRevenue data={data} date={date} />
+        </div>
         <div className="mt-6">
           <PreContractedRevenue data={data} date={date} />
         </div>
