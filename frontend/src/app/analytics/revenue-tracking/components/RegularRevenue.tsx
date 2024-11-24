@@ -2,7 +2,6 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
-import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import {
   Table,
@@ -14,28 +13,20 @@ import {
 } from "@/components/ui/table";
 import { STAT_COLORS } from "@/app/constants/colors";
 
-interface PreContractedRevenueProps {
+interface RegularRevenueProps {
   data: any;
   date: Date;
 }
 
-export function PreContractedRevenue({
-  data,
-  date,
-}: PreContractedRevenueProps) {
-  const [expandedClients, setExpandedClients] = useState<Set<string>>(
-    new Set()
-  );
-  const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(
-    new Set()
-  );
-  const [selectedKind, setSelectedKind] = useState<string>("total");
+export function RegularRevenue({ data, date }: RegularRevenueProps) {
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "decimal",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'decimal',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(value);
   };
 
@@ -59,155 +50,41 @@ export function PreContractedRevenue({
     setExpandedSponsors(newExpanded);
   };
 
-  const calculateProjectTotal = (projects: any[], kind?: string) => {
+  const calculateProjectTotal = (projects: any[]) => {
     return projects.reduce((sum, project) => {
-      if (kind && project.kind !== kind) return sum;
       return sum + project.fee;
     }, 0);
   };
 
-  const calculateCaseTotal = (cases: any[], kind?: string) => {
+  const calculateCaseTotal = (cases: any[]) => {
     return cases.reduce((sum, caseItem) => {
-      const filteredProjects = kind
-        ? caseItem.byProject.filter((p: any) => p.kind === kind)
-        : caseItem.byProject;
-      return sum + calculateProjectTotal(filteredProjects, kind);
+      return sum + calculateProjectTotal(caseItem.byProject);
     }, 0);
   };
 
-  const calculateSponsorTotal = (sponsors: any[], kind?: string) => {
+  const calculateSponsorTotal = (sponsors: any[]) => {
     return sponsors.reduce((sum, sponsor) => {
-      return sum + calculateCaseTotal(sponsor.byCase, kind);
+      return sum + calculateCaseTotal(sponsor.byCase);
     }, 0);
   };
 
-  const calculateClientTotal = (clients: any[], kind?: string) => {
+  const calculateClientTotal = (clients: any[]) => {
     return clients.reduce((sum, client) => {
-      return sum + calculateSponsorTotal(client.bySponsor, kind);
+      return sum + calculateSponsorTotal(client.bySponsor);
     }, 0);
   };
 
-  const calculateManagerTotal = (managers: any[], kind?: string) => {
+  const calculateManagerTotal = (managers: any[]) => {
     return managers.reduce((sum, manager) => {
-      return sum + calculateClientTotal(manager.byClient, kind);
+      return sum + calculateClientTotal(manager.byClient);
     }, 0);
   };
 
-  const handleStatClick = (kind: string) => {
-    setSelectedKind(kind === selectedKind ? "total" : kind);
-  };
-
-  const getStatClassName = (kind: string) => {
-    return `cursor-pointer transition-all duration-300 ${
-      selectedKind === kind
-        ? "ring-2 ring-black shadow-lg scale-105"
-        : "hover:scale-102"
-    }`;
-  };
-
-  const filterDataByKind = (managers: any[]) => {
-    if (selectedKind === "total") return managers;
-
-    return managers
-      .map((manager) => ({
-        ...manager,
-        byClient: manager.byClient
-          .map((client: any) => ({
-            ...client,
-            bySponsor: client.bySponsor
-              .map((sponsor: any) => ({
-                ...sponsor,
-                byCase: sponsor.byCase
-                  .map((caseItem: any) => ({
-                    ...caseItem,
-                    byProject: caseItem.byProject.filter(
-                      (project: any) => project.kind === selectedKind
-                    ),
-                  }))
-                  .filter((caseItem: any) => caseItem.byProject.length > 0),
-              }))
-              .filter((sponsor: any) => sponsor.byCase.length > 0),
-          }))
-          .filter((client: any) => client.bySponsor.length > 0),
-      }))
-      .filter((manager: any) => manager.byClient.length > 0);
-  };
-
-  const totalValue = data.revenueTracking.preContracted.monthly.total;
-  const consultingValue = calculateManagerTotal(
-    data.revenueTracking.preContracted.monthly.byAccountManager,
-    "consulting"
-  );
-  const handsOnValue = calculateManagerTotal(
-    data.revenueTracking.preContracted.monthly.byAccountManager,
-    "handsOn"
-  );
-  const squadValue = calculateManagerTotal(
-    data.revenueTracking.preContracted.monthly.byAccountManager,
-    "squad"
-  );
-
-  const filteredManagers = filterDataByKind(
-    data.revenueTracking.preContracted.monthly.byAccountManager
-  );
+  const managers = data.revenueTracking.regular.monthly.byAccountManager;
 
   return (
     <>
-      <SectionHeader
-        title="Pre-contracted Revenue Tracking"
-        subtitle={format(date, "MMMM / yyyy")}
-      />
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div
-          className={getStatClassName("total")}
-          onClick={() => handleStatClick("total")}
-        >
-          <Stat
-            title="Total Revenue"
-            value={totalValue.toString()}
-            formatter={formatCurrency}
-          />
-        </div>
-        <div
-          className={getStatClassName("consulting")}
-          onClick={() => handleStatClick("consulting")}
-        >
-          <Stat
-            title="Consulting Revenue"
-            value={consultingValue.toString()}
-            color="#F59E0B"
-            total={totalValue}
-            formatter={formatCurrency}
-          />
-        </div>
-        <div
-          className={getStatClassName("handsOn")}
-          onClick={() => handleStatClick("handsOn")}
-        >
-          <Stat
-            title="Hands-On Revenue"
-            value={handsOnValue.toString()}
-            color="#8B5CF6"
-            total={totalValue}
-            formatter={formatCurrency}
-          />
-        </div>
-        <div
-          className={getStatClassName("squad")}
-          onClick={() => handleStatClick("squad")}
-        >
-          <Stat
-            title="Squad Revenue"
-            value={squadValue.toString()}
-            color="#3B82F6"
-            total={totalValue}
-            formatter={formatCurrency}
-          />
-        </div>
-      </div>
-
-      <Divider className="my-4" />
+      <SectionHeader title="Regular Consulting Revenue Tracking" subtitle={format(date, "'until' MMM dd, yyyy")} />
 
       <Table>
         <TableHeader>
@@ -218,7 +95,7 @@ export function PreContractedRevenue({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredManagers.map((manager: any) => (
+          {managers.map((manager: any) => (
             <>
               <TableRow key={manager.name} className="bg-gray-100">
                 <TableCell className="text-sm font-semibold">
@@ -226,12 +103,7 @@ export function PreContractedRevenue({
                 </TableCell>
                 <TableCell></TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(
-                    calculateClientTotal(
-                      manager.byClient,
-                      selectedKind !== "total" ? selectedKind : undefined
-                    )
-                  )}
+                  {formatCurrency(calculateClientTotal(manager.byClient))}
                 </TableCell>
               </TableRow>
 
@@ -252,12 +124,7 @@ export function PreContractedRevenue({
                     </TableCell>
                     <TableCell></TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(
-                        calculateSponsorTotal(
-                          client.bySponsor,
-                          selectedKind !== "total" ? selectedKind : undefined
-                        )
-                      )}
+                      {formatCurrency(calculateSponsorTotal(client.bySponsor))}
                     </TableCell>
                   </TableRow>
 
@@ -279,14 +146,7 @@ export function PreContractedRevenue({
                           </TableCell>
                           <TableCell></TableCell>
                           <TableCell className="text-right">
-                            {formatCurrency(
-                              calculateCaseTotal(
-                                sponsor.byCase,
-                                selectedKind !== "total"
-                                  ? selectedKind
-                                  : undefined
-                              )
-                            )}
+                            {formatCurrency(calculateCaseTotal(sponsor.byCase))}
                           </TableCell>
                         </TableRow>
 
@@ -321,6 +181,12 @@ export function PreContractedRevenue({
                                           <td className="text-gray-600 pl-2 w-[100px]">
                                             {project.kind}
                                           </td>
+                                          <td className="text-gray-600 pl-2 w-[100px]">
+                                            {project.rate}/h
+                                          </td>
+                                          <td className="text-gray-600 pl-2 w-[100px]">
+                                            {project.hours}h
+                                          </td>
                                           <td className="text-gray-600 pl-2 text-right">
                                             {formatCurrency(project.fee)}
                                           </td>
@@ -331,14 +197,7 @@ export function PreContractedRevenue({
                                 </table>
                               </TableCell>
                               <TableCell className="text-right">
-                                {formatCurrency(
-                                  calculateProjectTotal(
-                                    caseItem.byProject,
-                                    selectedKind !== "total"
-                                      ? selectedKind
-                                      : undefined
-                                  )
-                                )}
+                                {formatCurrency(calculateProjectTotal(caseItem.byProject))}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -351,12 +210,7 @@ export function PreContractedRevenue({
           <TableRow className="font-bold">
             <TableCell colSpan={2}>Total</TableCell>
             <TableCell className="text-right">
-              {formatCurrency(
-                calculateManagerTotal(
-                  filteredManagers,
-                  selectedKind !== "total" ? selectedKind : undefined
-                )
-              )}
+              {formatCurrency(calculateManagerTotal(managers))}
             </TableCell>
           </TableRow>
         </TableBody>
