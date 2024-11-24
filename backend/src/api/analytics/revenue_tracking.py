@@ -1,6 +1,7 @@
 import globals
 
 from datetime import date, datetime
+from models.helpers.slug import slugify
 import pandas as pd
 
 def _get_account_manager_name(case):
@@ -61,6 +62,7 @@ def compute_regular_revenue_tracking(date_of_interest: date):
                         if len(by_project) > 0:
                             by_case.append({
                                 "title": case.title,
+                                "slug": case.slug,
                                 "fee": sum(project["fee"] for project in by_project),
                                 "by_project": sorted(by_project, key=lambda x: x["name"])
                             })
@@ -68,20 +70,25 @@ def compute_regular_revenue_tracking(date_of_interest: date):
                 if len(by_case) > 0:
                     by_sponsor.append({
                         "name": sponsor_name,
+                        "slug": slugify(sponsor_name),
                         "by_case": by_case, 
                         "fee": sum(case["fee"] for case in by_case)
                     })
             
             if len(by_sponsor) > 0:
+                client = globals.omni_models.clients.get_by_name(client_name)
                 by_client.append({
                     "name": client_name,
+                    "slug": client.slug if client else None,
                     "by_sponsor": by_sponsor,
                     "fee": sum(sponsor["fee"] for sponsor in by_sponsor)
                 })
         
         if len(by_client) > 0:
+            account_manager = globals.omni_models.workers.get_by_name(account_manager_name)
             by_account_manager.append({
                 "name": account_manager_name,
+                "slug": account_manager.slug if account_manager else None,
                 "by_client": by_client,
                 "fee": sum(client["fee"] for client in by_client)
             })
@@ -142,6 +149,7 @@ def compute_pre_contracted_revenue_tracking(date_of_interest: date):
                         if len(by_project) > 0:
                             by_case.append({
                                 "title": case.title,
+                                "slug": case.slug,
                                 "fee": sum(project["fee"] for project in by_project),
                                 "by_project": sorted(by_project, key=lambda x: x["name"])
                             })
@@ -149,20 +157,25 @@ def compute_pre_contracted_revenue_tracking(date_of_interest: date):
                 if len(by_case) > 0:
                     by_sponsor.append({
                         "name": sponsor_name,
+                        "slug": slugify(sponsor_name),
                         "by_case": by_case, 
                         "fee": sum(case["fee"] for case in by_case)
                     })
             
             if len(by_sponsor) > 0:
+                client = globals.omni_models.clients.get_by_name(client_name)
                 by_client.append({
                     "name": client_name,
+                    "slug": client.slug if client else None,
                     "by_sponsor": by_sponsor,
                     "fee": sum(sponsor["fee"] for sponsor in by_sponsor)
                 })
         
         if len(by_client) > 0:
+            account_manager = globals.omni_models.workers.get_by_name(account_manager_name)
             by_account_manager.append({
                 "name": account_manager_name,
+                "slug": account_manager.slug if account_manager else None,
                 "by_client": by_client,
                 "fee": sum(client["fee"] for client in by_client)
             })
@@ -175,7 +188,7 @@ def compute_pre_contracted_revenue_tracking(date_of_interest: date):
             "by_account_manager": by_account_manager
         }
     }
-
+    
 def compute_summary_by_account_manager(pre_contracted, regular):
     account_managers_names = sorted(set(    
         account_manager["name"]
@@ -194,8 +207,10 @@ def compute_summary_by_account_manager(pre_contracted, regular):
             for account_manager in regular["monthly"]["by_account_manager"]
             if account_manager["name"] == account_manager_name
         )
+        account_manager = globals.omni_models.workers.get_by_name(account_manager_name)
         by_account_manager.append({
             "name": account_manager_name,
+            "slug": account_manager.slug if account_manager else None,
             "pre_contracted": pre_contracted_fee,
             "regular": regular_fee,
             "total": pre_contracted_fee + regular_fee   
@@ -224,8 +239,10 @@ def compute_summary_by_client(pre_contracted, regular):
             for client in account_manager["by_client"]
             if client["name"] == client_name
         )
+        client = globals.omni_models.clients.get_by_name(client_name)
         by_client.append({
             "name": client_name,
+            "slug": client.slug if client else None,
             "pre_contracted": pre_contracted_fee,
             "regular": regular_fee,
             "total": pre_contracted_fee + regular_fee
@@ -259,6 +276,7 @@ def compute_summary_by_sponsor(pre_contracted, regular):
         )
         by_sponsor.append({
             "name": sponsor_name,
+            "slug": slugify(sponsor_name),
             "pre_contracted": pre_contracted_fee,
             "regular": regular_fee,
             "total": pre_contracted_fee + regular_fee

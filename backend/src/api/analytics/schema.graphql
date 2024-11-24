@@ -351,6 +351,7 @@ type RevenueTrackingSummaries {
 
 type RevenueTrackingSummary {
   name: String!
+  slug: String
   preContracted: Float!
   regular: Float!
   total: Float!
@@ -374,48 +375,56 @@ type RevenueTrackingRegularMonthly {
 
 type RevenueTrackingPreContractedByAccountManager {
   name: String!
+  slug: String
   fee: Float!
   byClient: [RevenueTrackingPreContractedByClient!]!
 }
 
 type RevenueTrackingRegularByAccountManager {
   name: String!
+  slug: String
   fee: Float!
   byClient: [RevenueTrackingRegularByClient!]!
 }
 
 type RevenueTrackingPreContractedByClient {
   name: String!
+  slug: String
   fee: Float!
   bySponsor: [RevenueTrackingRegularBySponsor!]!
 }
 
 type RevenueTrackingRegularByClient {
   name: String!
+  slug: String
   fee: Float!
   bySponsor: [RevenueTrackingRegularBySponsor!]!
 }
 
 type RevenueTrackingPreContractedBySponsor {
   name: String!
+  slug: String
   fee: Float!
   byCase: [RevenueTrackingPreContractedByCase!]!
 }
 
 type RevenueTrackingRegularBySponsor {
   name: String!
+  slug: String
   fee: Float!
   byCase: [RevenueTrackingRegularByCase!]!
 }
 
 type RevenueTrackingPreContractedByCase {
   title: String!
+  slug: String
   fee: Float!
   byProject: [RevenueTrackingPreContractedByProject!]!
 }
 
 type RevenueTrackingRegularByCase {
   title: String!
+  slug: String
   fee: Float!
   byProject: [RevenueTrackingRegularByProject!]!
 }
