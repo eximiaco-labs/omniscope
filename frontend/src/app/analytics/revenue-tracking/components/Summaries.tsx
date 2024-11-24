@@ -28,28 +28,18 @@ interface SummaryCardProps {
 
 const SummaryCard = ({ title, items }: SummaryCardProps) => {
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof typeof items[0] | null;
-    direction: 'asc' | 'desc';
+    key: keyof typeof items[0];
+    direction: 'desc';
   }>({ key: 'total', direction: 'desc' });
 
   const sortedItems = [...items].sort((a, b) => {
-    if (!sortConfig.key) return 0;
-    
-    if (a[sortConfig.key] < b[sortConfig.key]) {
-      return sortConfig.direction === 'asc' ? -1 : 1;
-    }
-    if (a[sortConfig.key] > b[sortConfig.key]) {
-      return sortConfig.direction === 'asc' ? 1 : -1;
-    }
+    if (a[sortConfig.key] < b[sortConfig.key]) return 1;
+    if (a[sortConfig.key] > b[sortConfig.key]) return -1;
     return 0;
   });
 
   const requestSort = (key: keyof typeof items[0]) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
+    setSortConfig({ key, direction: 'desc' });
   };
 
   const formatNumber = (value: number) => {
@@ -73,6 +63,27 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
     total: acc.total + item.total
   }), { regular: 0, preContracted: 0, total: 0 });
 
+  // Calculate cumulative percentage for current sort key
+  const cumulativeItems = sortedItems.map((item, index) => {
+    const previousSum = sortedItems
+      .slice(0, index)
+      .reduce((sum, i) => sum + Number(i[sortConfig.key]), 0);
+    const currentValue = Number(item[sortConfig.key]);
+    const cumulative = (previousSum + currentValue) / totals[sortConfig.key === 'name' ? 'total' : sortConfig.key];
+    return { ...item, cumulative };
+  });
+
+  // Calculate background intensity based on contribution
+  const getBackgroundColor = (cumulative: number, previousCumulative: number, isSignificant: boolean) => {
+    if (!isSignificant) return undefined;
+    const contribution = cumulative - (previousCumulative || 0);
+    const intensity = Math.round(230 - (contribution * 100));
+    return `rgb(${intensity}, ${intensity}, ${intensity})`;
+  };
+
+  const threshold = 0.8;
+  const showHighlight = items.length > 10;
+
   return (
     <div className="bg-white p-4">
       <SectionHeader title={title} subtitle="" />
@@ -85,31 +96,40 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                 className="text-left cursor-pointer hover:bg-gray-50"
                 onClick={() => requestSort('name')}
               >
-                {title.replace('By ', '')} {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                {title.replace('By ', '')} {sortConfig.key === 'name' && '↓'}
               </TableHead>
               <TableHead 
                 className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
                 onClick={() => requestSort('regular')}
               >
-                Regular {sortConfig.key === 'regular' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                Regular {sortConfig.key === 'regular' && '↓'}
               </TableHead>
               <TableHead 
                 className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
                 onClick={() => requestSort('preContracted')}
               >
-                Pre {sortConfig.key === 'preContracted' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                Pre {sortConfig.key === 'preContracted' && '↓'}
               </TableHead>
               <TableHead 
                 className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
                 onClick={() => requestSort('total')}
               >
-                Total {sortConfig.key === 'total' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                Total {sortConfig.key === 'total' && '↓'}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedItems.map((item, index) => (
-              <TableRow key={index}>
+            {cumulativeItems.map((item, index) => (
+              <TableRow 
+                key={index}
+                style={{
+                  backgroundColor: getBackgroundColor(
+                    item.cumulative, 
+                    index > 0 ? cumulativeItems[index - 1].cumulative : 0,
+                    showHighlight && item.cumulative <= threshold
+                  )
+                }}
+              >
                 <TableCell className="text-center text-gray-500 text-[10px] h-[57px]">{index + 1}</TableCell>
                 <TableCell className="h-[57px]">{item.name}</TableCell>
                 <TableCell className="text-right w-[120px] relative h-[57px]">
