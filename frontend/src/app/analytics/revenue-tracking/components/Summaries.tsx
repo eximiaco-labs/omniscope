@@ -59,6 +59,12 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
     }).format(value);
   };
 
+  const totals = items.reduce((acc, item) => ({
+    regular: acc.regular + item.regular,
+    preContracted: acc.preContracted + item.preContracted,
+    total: acc.total + item.total
+  }), { regular: 0, preContracted: 0, total: 0 });
+
   return (
     <div className="bg-white p-4">
       <SectionHeader title={title} subtitle="" />
@@ -107,6 +113,18 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                 </TableCell>
               </TableRow>
             ))}
+            <TableRow className="font-bold border-t-2">
+              <TableCell>Total</TableCell>
+              <TableCell className="text-right w-[120px]">
+                {formatNumber(totals.regular)}
+              </TableCell>
+              <TableCell className="text-right w-[120px]">
+                {formatNumber(totals.preContracted)}
+              </TableCell>
+              <TableCell className="text-right w-[120px]">
+                {formatNumber(totals.total)}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>
