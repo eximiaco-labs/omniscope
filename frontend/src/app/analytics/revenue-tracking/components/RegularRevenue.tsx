@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { STAT_COLORS } from "@/app/constants/colors";
+import Link from "next/link";
 
 interface RegularRevenueProps {
   data: any;
@@ -106,7 +107,13 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
               <>
                 <TableRow key={manager.name} className="bg-gray-100">
                   <TableCell className="text-sm font-semibold">
-                    {manager.name}
+                    {manager.slug ? (
+                      <Link href={`/about-us/account-managers/${manager.slug}`} className="text-blue-600 hover:underline">
+                        {manager.name}
+                      </Link>
+                    ) : (
+                      manager.name
+                    )}
                   </TableCell>
                   <TableCell></TableCell>
                   <TableCell className="text-right">
@@ -127,7 +134,13 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                         ) : (
                           <ChevronRight size={16} />
                         )}
-                        {client.name}
+                        {client.slug ? (
+                          <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
+                            {client.name}
+                          </Link>
+                        ) : (
+                          client.name
+                        )}
                       </TableCell>
                       <TableCell></TableCell>
                       <TableCell className="text-right">
@@ -151,7 +164,13 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                               ) : (
                                 <ChevronRight size={16} />
                               )}
-                              {sponsor.name}
+                              {sponsor.slug ? (
+                                <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:underline">
+                                  {sponsor.name}
+                                </Link>
+                              ) : (
+                                sponsor.name
+                              )}
                             </TableCell>
                             <TableCell></TableCell>
                             <TableCell className="text-right">
@@ -168,7 +187,13 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                                 className="bg-gray-50"
                               >
                                 <TableCell className="pl-16 text-sm text-gray-600">
-                                  {caseItem.title}
+                                  {caseItem.slug ? (
+                                    <Link href={`/about-us/cases/${caseItem.slug}`} className="text-blue-600 hover:underline">
+                                      {caseItem.title}
+                                    </Link>
+                                  ) : (
+                                    caseItem.title
+                                  )}
                                 </TableCell>
                                 <TableCell>
                                   <table className="w-full text-xs border-collapse">
