@@ -17,9 +17,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-import {
-  ChevronsUpDown,
-} from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
@@ -31,7 +29,8 @@ import {
   getAnalyticsSidebarItems,
   getAboutUsSidebarItems,
   getAdministrativeSidebarItems,
-} from "@/app/navigation"
+  getFinancialSidebarItems,
+} from "@/app/navigation";
 
 import React from "react";
 
@@ -50,16 +49,27 @@ export function OmniSidebar() {
     skip: !session?.user?.email,
   });
 
-  const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([]);
-  const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([]);
-  const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([]);
+  const [financialItems, setFinancialItems] = React.useState<
+    Array<{ title: string; url: string; icon: any }>
+  >([]);
+  const [analyticsItems, setAnalyticsItems] = React.useState<
+    Array<{ title: string; url: string; icon: any }>
+  >([]);
+  const [aboutUsItems, setAboutUsItems] = React.useState<
+    Array<{ title: string; url: string; icon: any }>
+  >([]);
+  const [adminItems, setAdminItems] = React.useState<
+    Array<{ title: string; url: string; icon: any }>
+  >([]);
 
   React.useEffect(() => {
     async function loadItems() {
+      const financial = await getFinancialSidebarItems(session?.user?.email);
       const analytics = await getAnalyticsSidebarItems(session?.user?.email);
       const aboutUs = await getAboutUsSidebarItems();
       const admin = await getAdministrativeSidebarItems();
-      
+
+      setFinancialItems(financial);
       setAnalyticsItems(analytics);
       setAboutUsItems(aboutUs);
       setAdminItems(admin);
@@ -90,12 +100,12 @@ export function OmniSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {financialItems.length > 0 && (
+          <OmniSidebarGroup title="Financial" items={financialItems} />
+        )}
         <OmniSidebarGroup title="Analytics" items={analyticsItems} />
         <OmniSidebarGroup title="About Us" items={aboutUsItems} />
-        <OmniSidebarGroup
-          title="Administrative"
-          items={adminItems}
-        />
+        <OmniSidebarGroup title="Administrative" items={adminItems} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

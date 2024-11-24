@@ -17,15 +17,25 @@ import {
 
 import { getFlag } from './flags';
 
-export function getAnalyticsSidebarItems(userEmail?: string | null) {
+export function getFinancialSidebarItems(userEmail?: string | null) {
   return [
     ...(getFlag('is-fin-user', userEmail) ? [
       {
         title: "Revenue Tracking",
         url: "/analytics/revenue-tracking",
         icon: DollarSignIcon,
+      },
+      {
+        title: "Revenue Forecast",
+        url: "/analytics/revenue-forecast",
+        icon: ChartLineIcon,
       }
     ] : []),
+  ];
+}
+
+export function getAnalyticsSidebarItems(userEmail?: string | null) {
+  return [
     {
       title: "Performance Analysis",
       url: "/analytics/performance-analysis",
