@@ -100,30 +100,39 @@ export default function RevenueForecastPage() {
               <TableHead rowSpan={2}>Client</TableHead>
               <TableHead colSpan={3} className="text-center border-l">{format(previousMonthDate, 'MMMM yyyy')}</TableHead>
               <TableHead colSpan={3} className="text-center border-l">{format(date, "MMMM yyyy 'until' EEEE, dd")}</TableHead>
+              <TableHead colSpan={3} className="text-center border-l">Difference</TableHead>
             </TableRow>
             <TableRow>
-              <TableHead className="text-right w-[120px] relative border-l">Regular</TableHead>
-              <TableHead className="text-right w-[120px] relative">Pre</TableHead>
-              <TableHead className="text-right w-[120px] relative font-bold">Total</TableHead>
-              <TableHead className="text-right w-[120px] relative border-l">Regular</TableHead>
-              <TableHead className="text-right w-[120px] relative">Pre</TableHead>
-              <TableHead className="text-right w-[120px] relative font-bold">Total</TableHead>
+              <TableHead className="text-right w-[100px] relative border-l">Regular</TableHead>
+              <TableHead className="text-right w-[100px] relative">Pre</TableHead>
+              <TableHead className="text-right w-[100px] relative font-bold">Total</TableHead>
+              <TableHead className="text-right w-[100px] relative border-l">Regular</TableHead>
+              <TableHead className="text-right w-[100px] relative">Pre</TableHead>
+              <TableHead className="text-right w-[100px] relative font-bold">Total</TableHead>
+              <TableHead className="text-right w-[100px] relative border-l">Regular</TableHead>
+              <TableHead className="text-right w-[100px] relative">Pre</TableHead>
+              <TableHead className="text-right w-[100px] relative font-bold">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {Array.from(clients.values()).map((client: any) => (
               <TableRow key={client.name}>
                 <TableCell className="font-medium">{client.name}</TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px] border-l">{formatCurrency(client.previous.regular)}</TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px]">
+                <TableCell className="text-right w-[100px] relative h-[57px] border-l">{formatCurrency(client.previous.regular)}</TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px]">
                   {formatCurrency(client.previous.preContracted)}
                 </TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px] font-bold">{formatCurrency(client.previous.total)}</TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px] border-l">{formatCurrency(client.current.regular)}</TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px]">
+                <TableCell className="text-right w-[100px] relative h-[57px] font-bold">{formatCurrency(client.previous.total)}</TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px] border-l">{formatCurrency(client.current.regular)}</TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px]">
                   {formatCurrency(client.current.preContracted)}
                 </TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px] font-bold">{formatCurrency(client.current.total)}</TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px] font-bold">{formatCurrency(client.current.total)}</TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px] border-l">{formatCurrency(client.current.regular - client.previous.regular)}</TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px]">
+                  {formatCurrency(client.current.preContracted - client.previous.preContracted)}
+                </TableCell>
+                <TableCell className="text-right w-[100px] relative h-[57px] font-bold">{formatCurrency(client.current.total - client.previous.total)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
