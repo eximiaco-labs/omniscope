@@ -27,7 +27,7 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
   );
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat("en-US", {
       style: "decimal",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,

@@ -35,13 +35,13 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => (
             <tr key={index} className="border-b last:border-b-0">
               <td className="py-2">{item.name}</td>
               <td className="text-right py-2">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.regular)}
+                {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.regular)}
               </td>
               <td className="text-right py-2">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.preContracted)}
+                {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.preContracted)}
               </td>
               <td className="text-right py-2 font-semibold">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.total)}
+                {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.total)}
               </td>
             </tr>
           ))}
