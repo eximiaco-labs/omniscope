@@ -13,6 +13,7 @@ import {
   TargetIcon,
   ChartLineIcon,
   DollarSignIcon,
+  TrendingUpIcon,
 } from "lucide-react";
 
 import { getFlag } from './flags';
@@ -28,7 +29,7 @@ export function getFinancialSidebarItems(userEmail?: string | null) {
       {
         title: "Revenue Forecast",
         url: "/analytics/revenue-forecast",
-        icon: ChartLineIcon,
+        icon: TrendingUpIcon,
       }
     ] : []),
   ];
