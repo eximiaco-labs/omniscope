@@ -158,6 +158,7 @@ export default function RevenueForecastPage() {
         <Table>
           <TableHeader className="bg-gray-50">
             <TableRow>
+              <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
               <TableHead rowSpan={2}>Client</TableHead>
               <TableHead colSpan={3} className="text-center border-l border-gray-300">{format(previousMonthDate, 'MMMM yyyy')}</TableHead>
               <TableHead colSpan={3} className="text-center border-l border-gray-300">{format(date, "MMMM yyyy 'until' EEEE, dd")}</TableHead>
@@ -176,37 +177,103 @@ export default function RevenueForecastPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedClients.map((client: any) => (
+            {sortedClients.map((client: any, index: number) => (
               <TableRow key={client.name}>
+                <TableCell className="text-center text-gray-500 text-[10px] h-[57px]">{index + 1}</TableCell>
                 <TableCell className="font-medium">{client.name}</TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm">{formatCurrency(client.previous.regular)}</TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm">
+                <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${client.previous.regular === 0 ? 'text-gray-300' : ''} ${client.previous.regular > client.current.regular ? 'bg-red-50' : ''}`}>{formatCurrency(client.previous.regular)}</TableCell>
+                <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${client.previous.preContracted === 0 ? 'text-gray-300' : ''} ${client.previous.preContracted > client.current.preContracted ? 'bg-red-50' : ''}`}>
                   {formatCurrency(client.previous.preContracted)}
                 </TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm">{formatCurrency(client.previous.total)}</TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm">{formatCurrency(client.current.regular)}</TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm">
+                <TableCell className={`text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm ${client.previous.total === 0 ? 'text-gray-300' : ''} ${client.previous.total > client.current.total ? 'bg-red-50' : ''}`}>{formatCurrency(client.previous.total)}</TableCell>
+                <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${client.current.regular === 0 ? 'text-gray-300' : ''} ${client.current.regular > client.previous.regular ? 'bg-green-50' : ''}`}>{formatCurrency(client.current.regular)}</TableCell>
+                <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${client.current.preContracted === 0 ? 'text-gray-300' : ''} ${client.current.preContracted > client.previous.preContracted ? 'bg-green-50' : ''}`}>
                   {formatCurrency(client.current.preContracted)}
                 </TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm">{formatCurrency(client.current.total)}</TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm">{formatCurrency(client.current.regular - client.previous.regular)}</TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm">
-                  {formatCurrency(client.current.preContracted - client.previous.preContracted)}
+                <TableCell className={`text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm ${client.current.total === 0 ? 'text-gray-300' : ''} ${client.current.total > client.previous.total ? 'bg-green-50' : ''}`}>{formatCurrency(client.current.total)}</TableCell>
+                <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${(client.current.regular - client.previous.regular) === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.current.regular - client.previous.regular)}
+                  {client.current.regular - client.previous.regular !== 0 && (
+                    <div className={`absolute bottom-1 right-2 text-[10px] ${client.current.regular > client.previous.regular ? 'text-green-600' : 'text-red-600'}`}>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'percent',
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      }).format((client.current.regular - client.previous.regular) / client.previous.regular)}
+                    </div>
+                  )}
                 </TableCell>
-                <TableCell className="text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm">{formatCurrency(client.current.total - client.previous.total)}</TableCell>
+                <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${(client.current.preContracted - client.previous.preContracted) === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.current.preContracted - client.previous.preContracted)}
+                  {client.current.preContracted - client.previous.preContracted !== 0 && (
+                    <div className={`absolute bottom-1 right-2 text-[10px] ${client.current.preContracted > client.previous.preContracted ? 'text-green-600' : 'text-red-600'}`}>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'percent',
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      }).format((client.current.preContracted - client.previous.preContracted) / client.previous.preContracted)}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell className={`text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm ${(client.current.total - client.previous.total) === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.current.total - client.previous.total)}
+                  {client.current.total - client.previous.total !== 0 && (
+                    <div className={`absolute bottom-1 right-2 text-[10px] ${client.current.total > client.previous.total ? 'text-green-600' : 'text-red-600'}`}>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'percent',
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      }).format((client.current.total - client.previous.total) / client.previous.total)}
+                    </div>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
             <TableRow className="font-bold border-t-2">
+              <TableCell></TableCell>
               <TableCell>Total</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm">{formatCurrency(totals.previous.regular)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm">{formatCurrency(totals.previous.preContracted)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm">{formatCurrency(totals.previous.total)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm">{formatCurrency(totals.current.regular)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm">{formatCurrency(totals.current.preContracted)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm">{formatCurrency(totals.current.total)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm">{formatCurrency(totals.current.regular - totals.previous.regular)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm">{formatCurrency(totals.current.preContracted - totals.previous.preContracted)}</TableCell>
-              <TableCell className="text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm">{formatCurrency(totals.current.total - totals.previous.total)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${totals.previous.regular === 0 ? 'text-gray-300' : ''} ${totals.previous.regular > totals.current.regular ? 'bg-red-50' : ''}`}>{formatCurrency(totals.previous.regular)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${totals.previous.preContracted === 0 ? 'text-gray-300' : ''} ${totals.previous.preContracted > totals.current.preContracted ? 'bg-red-50' : ''}`}>{formatCurrency(totals.previous.preContracted)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm ${totals.previous.total === 0 ? 'text-gray-300' : ''} ${totals.previous.total > totals.current.total ? 'bg-red-50' : ''}`}>{formatCurrency(totals.previous.total)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${totals.current.regular === 0 ? 'text-gray-300' : ''} ${totals.current.regular > totals.previous.regular ? 'bg-green-50' : ''}`}>{formatCurrency(totals.current.regular)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${totals.current.preContracted === 0 ? 'text-gray-300' : ''} ${totals.current.preContracted > totals.previous.preContracted ? 'bg-green-50' : ''}`}>{formatCurrency(totals.current.preContracted)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm ${totals.current.total === 0 ? 'text-gray-300' : ''} ${totals.current.total > totals.previous.total ? 'bg-green-50' : ''}`}>{formatCurrency(totals.current.total)}</TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-300 text-sm ${(totals.current.regular - totals.previous.regular) === 0 ? 'text-gray-300' : ''}`}>
+                {formatCurrency(totals.current.regular - totals.previous.regular)}
+                {totals.current.regular - totals.previous.regular !== 0 && (
+                  <div className={`absolute bottom-1 right-2 text-[10px] ${totals.current.regular > totals.previous.regular ? 'text-green-600' : 'text-red-600'}`}>
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'percent',
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    }).format((totals.current.regular - totals.previous.regular) / totals.previous.regular)}
+                  </div>
+                )}
+              </TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] border-l border-gray-100 text-sm ${(totals.current.preContracted - totals.previous.preContracted) === 0 ? 'text-gray-300' : ''}`}>
+                {formatCurrency(totals.current.preContracted - totals.previous.preContracted)}
+                {totals.current.preContracted - totals.previous.preContracted !== 0 && (
+                  <div className={`absolute bottom-1 right-2 text-[10px] ${totals.current.preContracted > totals.previous.preContracted ? 'text-green-600' : 'text-red-600'}`}>
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'percent',
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    }).format((totals.current.preContracted - totals.previous.preContracted) / totals.previous.preContracted)}
+                  </div>
+                )}
+              </TableCell>
+              <TableCell className={`text-right w-[100px] relative h-[57px] font-bold border-l border-gray-100 text-sm ${(totals.current.total - totals.previous.total) === 0 ? 'text-gray-300' : ''}`}>
+                {formatCurrency(totals.current.total - totals.previous.total)}
+                {totals.current.total - totals.previous.total !== 0 && (
+                  <div className={`absolute bottom-1 right-2 text-[10px] ${totals.current.total > totals.previous.total ? 'text-green-600' : 'text-red-600'}`}>
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'percent',
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    }).format((totals.current.total - totals.previous.total) / totals.previous.total)}
+                  </div>
+                )}
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
