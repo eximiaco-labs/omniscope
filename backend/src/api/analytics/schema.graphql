@@ -326,8 +326,11 @@ type ApprovedVsActualWeek {
 type RevenueTracking {
   year: Int!
   month: Int!
+  day: Int!
   preContracted: RevenueTrackingPreContracted!
   regular: RevenueTrackingRegular!
+  summaries: RevenueTrackingSummaries!
+  total: Float!
 }
 
 type RevenueTrackingPreContracted {
@@ -336,6 +339,27 @@ type RevenueTrackingPreContracted {
 
 type RevenueTrackingRegular {
   monthly: RevenueTrackingRegularMonthly!
+}
+
+type RevenueTrackingSummaries {
+  byAccountManager: [RevenueTrackingSummary!]!
+  byClient: [RevenueTrackingSummary!]!
+  bySponsor: [RevenueTrackingSummary!]!
+  byKind: [RevenueTrackingSummary!]!
+  byMode: RevenueTrackingSummaryByMode!
+}
+
+type RevenueTrackingSummary {
+  name: String!
+  preContracted: Float!
+  regular: Float!
+  total: Float!
+}
+
+type RevenueTrackingSummaryByMode {
+  preContracted: Float!
+  regular: Float!
+  total: Float!
 }
 
 type RevenueTrackingPreContractedMonthly {
