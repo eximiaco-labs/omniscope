@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
 import { useState } from "react";
+import Link from "next/link";
 
 interface SummariesProps {
   data: RevenueTrackingQuery;
@@ -20,6 +21,7 @@ interface SummaryCardProps {
   title: string;
   items: {
     name: string;
+    slug: string;
     regular: number;
     preContracted: number;
     total: number;
@@ -67,9 +69,9 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
   const cumulativeItems = sortedItems.map((item, index) => {
     const previousSum = sortedItems
       .slice(0, index)
-      .reduce((sum, i) => sum + Number(i[sortConfig.key]), 0);
-    const currentValue = Number(item[sortConfig.key]);
-    const cumulative = (previousSum + currentValue) / totals[sortConfig.key === 'name' ? 'total' : sortConfig.key];
+      .reduce((sum, i) => sum + Number(i[sortConfig.key === 'name' || sortConfig.key === 'slug' ? 'total' : sortConfig.key]), 0);
+    const currentValue = Number(item[sortConfig.key === 'name' || sortConfig.key === 'slug' ? 'total' : sortConfig.key]);
+    const cumulative = (previousSum + currentValue) / totals[sortConfig.key === 'name' || sortConfig.key === 'slug' ? 'total' : sortConfig.key];
     return { ...item, cumulative };
   });
 
@@ -83,6 +85,25 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
 
   const threshold = 0.8;
   const showHighlight = items.length > 10;
+
+  const getItemLink = (item: typeof items[0]) => {
+    if (!item.slug) {
+      return null;
+    }
+
+    switch(title) {
+      case "By Type":
+        return null;
+      case "By Account Manager":
+        return `/about-us/account-managers/${item.slug}`;
+      case "By Client":
+        return `/about-us/clients/${item.slug}`;
+      case "By Sponsor":
+        return `/about-us/sponsors/${item.slug}`;
+      default:
+        return "#";
+    }
+  };
 
   return (
     <div className="bg-white p-4">
@@ -131,7 +152,15 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                 }}
               >
                 <TableCell className="text-center text-gray-500 text-[10px] h-[57px]">{index + 1}</TableCell>
-                <TableCell className="h-[57px]">{item.name}</TableCell>
+                <TableCell className="h-[57px]">
+                  {getItemLink(item) ? (
+                    <Link href={getItemLink(item)!} className="text-blue-600 hover:underline">
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <span>{item.name}</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right w-[120px] relative h-[57px]">
                   {formatNumber(item.regular)}
                   <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
@@ -185,7 +214,10 @@ export function Summaries({ data, date }: SummariesProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SummaryCard 
           title="By Type" 
-          items={summaries.byKind}
+          items={summaries.byKind.map(item => ({
+            ...item,
+            slug: ""
+          }))}
         />
         
         <SummaryCard 

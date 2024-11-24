@@ -19,18 +19,21 @@ export const REVENUE_TRACKING_QUERY = gql`
         }
         byAccountManager {
           name
+          slug
           regular
           preContracted
           total
         }
         byClient {
           name
+          slug
           regular
           preContracted
           total
         }
         bySponsor {
           name
+          slug
           regular
           preContracted
           total
@@ -40,15 +43,19 @@ export const REVENUE_TRACKING_QUERY = gql`
         monthly {
           byAccountManager {
             name
+            slug
             fee
             byClient {
               name
+              slug
               fee
               bySponsor {
                 name
+                slug
                 fee
                 byCase {
                   title
+                  slug
                   fee
                   byProject {
                     kind
@@ -69,15 +76,19 @@ export const REVENUE_TRACKING_QUERY = gql`
           total
           byAccountManager {
             name
+            slug
             fee
             byClient {
               name
+              slug
               fee
               bySponsor {
                 name
+                slug
                 fee
                 byCase {
                   title
+                  slug
                   fee
                   byProject {
                     kind

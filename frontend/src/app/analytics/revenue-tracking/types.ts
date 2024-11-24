@@ -16,23 +16,25 @@ export interface RevenueTrackingQuery {
       }>;
       byAccountManager: Array<{
         name: string;
+        slug: string;
         regular: number;
         preContracted: number;
         total: number;
       }>;
       byClient: Array<{
         name: string;
+        slug: string;
         regular: number;
         preContracted: number;
         total: number;
       }>;
       bySponsor: Array<{
         name: string;
+        slug: string;
         regular: number;
         preContracted: number;
         total: number;
       }>;
     };
-    // ... outros campos existentes ...
   };
 } 
