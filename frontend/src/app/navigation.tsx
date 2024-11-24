@@ -20,7 +20,7 @@ import {
 
 export async function AnalyticsSidebarItems() {
   return [
-    ...(getFlag('in-development') ? [
+    ...(getFlag('is-fin-user') ? [
       {
         title: "Revenue Tracking",
         url: "/analytics/revenue-tracking",
