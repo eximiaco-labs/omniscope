@@ -11,15 +11,16 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { 
-  AnalyticsSidebarItems, 
-  AboutUsSidebarItems, 
-  AdministrativeSidebarItems 
+  getAnalyticsSidebarItems, 
+  getAboutUsSidebarItems, 
+  getAdministrativeSidebarItems 
 } from "@/app/navigation"
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
 import { useQuery, gql } from "@apollo/client"
 import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon, TrophyIcon } from "lucide-react"
 import { getFlag } from '../flags';
+import { useSession } from "next-auth/react"
 
 const GET_CONSULTANTS = gql`
   query GetConsultants {
@@ -78,15 +79,16 @@ interface OmniCommandsProps {
 export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
   const router = useRouter()
   const { data } = useQuery(GET_CONSULTANTS)
+  const { data: session } = useSession();
   const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
 
   React.useEffect(() => {
     async function loadItems() {
-      const analytics = await AnalyticsSidebarItems()
-      const aboutUs = await AboutUsSidebarItems()
-      const admin = await AdministrativeSidebarItems()
+      const analytics = await getAnalyticsSidebarItems(session?.user?.email)
+      const aboutUs = await getAboutUsSidebarItems()
+      const admin = await getAdministrativeSidebarItems()
       
       setAnalyticsItems(analytics)
       setAboutUsItems(aboutUs)
