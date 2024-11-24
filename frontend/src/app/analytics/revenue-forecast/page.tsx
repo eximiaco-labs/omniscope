@@ -95,19 +95,19 @@ export default function RevenueForecastPage() {
 
       <div className="ml-2 mr-2">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-50">
             <TableRow>
               <TableHead rowSpan={2}>Client</TableHead>
-              <TableHead colSpan={3} className="text-center border-l">Previous</TableHead>
-              <TableHead colSpan={3} className="text-center border-l">Current</TableHead>
+              <TableHead colSpan={3} className="text-center border-l">{format(previousMonthDate, 'MMMM yyyy')}</TableHead>
+              <TableHead colSpan={3} className="text-center border-l">{format(date, "MMMM yyyy 'until' EEEE, dd")}</TableHead>
             </TableRow>
             <TableRow>
               <TableHead className="text-right w-[120px] relative border-l">Regular</TableHead>
               <TableHead className="text-right w-[120px] relative">Pre</TableHead>
-              <TableHead className="text-right w-[120px] relative">Total</TableHead>
+              <TableHead className="text-right w-[120px] relative font-bold">Total</TableHead>
               <TableHead className="text-right w-[120px] relative border-l">Regular</TableHead>
               <TableHead className="text-right w-[120px] relative">Pre</TableHead>
-              <TableHead className="text-right w-[120px] relative">Total</TableHead>
+              <TableHead className="text-right w-[120px] relative font-bold">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,12 +118,12 @@ export default function RevenueForecastPage() {
                 <TableCell className="text-right w-[120px] relative h-[57px]">
                   {formatCurrency(client.previous.preContracted)}
                 </TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px]">{formatCurrency(client.previous.total)}</TableCell>
+                <TableCell className="text-right w-[120px] relative h-[57px] font-bold">{formatCurrency(client.previous.total)}</TableCell>
                 <TableCell className="text-right w-[120px] relative h-[57px] border-l">{formatCurrency(client.current.regular)}</TableCell>
                 <TableCell className="text-right w-[120px] relative h-[57px]">
                   {formatCurrency(client.current.preContracted)}
                 </TableCell>
-                <TableCell className="text-right w-[120px] relative h-[57px]">{formatCurrency(client.current.total)}</TableCell>
+                <TableCell className="text-right w-[120px] relative h-[57px] font-bold">{formatCurrency(client.current.total)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
