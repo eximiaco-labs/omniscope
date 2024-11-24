@@ -1,6 +1,14 @@
 import { format } from "date-fns";
 import { RevenueTrackingQuery } from "../types";
-import { Table } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import SectionHeader from "@/components/SectionHeader";
 
 interface SummariesProps {
   data: RevenueTrackingQuery;
@@ -22,30 +30,30 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => (
     <h3 className="text-lg font-semibold mb-3">{title}</h3>
     <div className="overflow-x-auto">
       <Table>
-        <thead>
-          <tr className="border-b">
-            <th className="text-left py-2">{title}</th>
-            <th className="text-right py-2">Regular</th>
-            <th className="text-right py-2">Pre-contracted</th>
-            <th className="text-right py-2">Total</th>
-          </tr>
-        </thead>
-        <tbody>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-left">{title}</TableHead>
+            <TableHead className="text-right">Regular</TableHead>
+            <TableHead className="text-right">Pre-contracted</TableHead>
+            <TableHead className="text-right">Total</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {items.map((item, index) => (
-            <tr key={index} className="border-b last:border-b-0">
-              <td className="py-2">{item.name}</td>
-              <td className="text-right py-2">
+            <TableRow key={index}>
+              <TableCell>{item.name}</TableCell>
+              <TableCell className="text-right">
                 {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.regular)}
-              </td>
-              <td className="text-right py-2">
+              </TableCell>
+              <TableCell className="text-right">
                 {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.preContracted)}
-              </td>
-              <td className="text-right py-2 font-semibold">
+              </TableCell>
+              <TableCell className="text-right font-semibold">
                 {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.total)}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
+        </TableBody>
       </Table>
     </div>
   </div>
@@ -56,9 +64,10 @@ export function Summaries({ data, date }: SummariesProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">
-        Summary - {format(date, "MMMM yyyy")}
-      </h2>
+      <SectionHeader
+        title={format(date, "MMMM yyyy 'Summary'")}
+        subtitle={format(date, "'until' EEEE, dd")}
+      />
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SummaryCard 
@@ -83,4 +92,4 @@ export function Summaries({ data, date }: SummariesProps) {
       </div>
     </div>
   );
-} 
+}
