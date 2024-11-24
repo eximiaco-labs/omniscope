@@ -58,9 +58,15 @@ class Appointment(e.Appointment):
     is_eximiaco: Optional[bool] = False
     is_handson: Optional[bool] = False
 
+    rate: Optional[float] = 0
+
     @property
     def time_in_hs(self):
         return round(self.time / 3600, 1)
+
+    @property
+    def revenue(self):
+        return self.rate * self.time_in_hs if self.rate else 0
 
     @property
     def week(self) -> str:
@@ -113,6 +119,7 @@ class Appointment(e.Appointment):
         data['created_at_week'] = self.created_at_week
         data['correctness'] = self.correctness
         data['is_lte'] = self.is_lte
+        data['revenue'] = self.revenue
         return data
 
     @classmethod
@@ -121,6 +128,8 @@ class Appointment(e.Appointment):
         base_dict['is_squad'] = project.is_squad if project else False
         base_dict['is_eximiaco'] = project.is_eximiaco if project else True
         base_dict['is_handson'] = project.is_handson if project else False
+
+        base_dict['rate'] = project.rate.rate / 100 if project.rate and project.rate.type == 'project_rate' else 0
 
         if base_dict['is_handson']:
             base_dict['is_squad'] = False

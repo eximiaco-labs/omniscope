@@ -24,6 +24,10 @@ class User(BaseModel):
 class Billing(BaseModel):
     type: Optional[str] = None
     fee: Optional[float] = None
+    
+class Rate(BaseModel):
+    type: Optional[str] = None
+    rate: Optional[float] = None
 
 class Budget(BaseModel):
     type: Optional[str]=None
@@ -45,7 +49,7 @@ class Project(BaseModel):
     billing: Optional[Billing] = None
     client_id: Optional[int] = Field(None, alias='client')
     budget: Optional[Budget] = None
-
+    rate: Optional[Rate] = None
 
     @property
     def slug(self) -> str:

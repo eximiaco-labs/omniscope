@@ -320,4 +320,125 @@ type ApprovedVsActualWeek {
   approvedHours: Float!
   actualHours: Float!
   difference: Float!
-} 
+}
+
+# Revenue Tracking types
+type RevenueTracking {
+  year: Int!
+  month: Int!
+  day: Int!
+  preContracted: RevenueTrackingPreContracted!
+  regular: RevenueTrackingRegular!
+  summaries: RevenueTrackingSummaries!
+  total: Float!
+}
+
+type RevenueTrackingPreContracted {
+  monthly: RevenueTrackingPreContractedMonthly!
+}
+
+type RevenueTrackingRegular {
+  monthly: RevenueTrackingRegularMonthly!
+}
+
+type RevenueTrackingSummaries {
+  byAccountManager: [RevenueTrackingSummary!]!
+  byClient: [RevenueTrackingSummary!]!
+  bySponsor: [RevenueTrackingSummary!]!
+  byKind: [RevenueTrackingSummary!]!
+  byMode: RevenueTrackingSummaryByMode!
+}
+
+type RevenueTrackingSummary {
+  name: String!
+  slug: String
+  preContracted: Float!
+  regular: Float!
+  total: Float!
+}
+
+type RevenueTrackingSummaryByMode {
+  preContracted: Float!
+  regular: Float!
+  total: Float!
+}
+
+type RevenueTrackingPreContractedMonthly {
+  total: Float!
+  byAccountManager: [RevenueTrackingPreContractedByAccountManager!]!
+}
+
+type RevenueTrackingRegularMonthly {
+  total: Float!
+  byAccountManager: [RevenueTrackingRegularByAccountManager!]!
+}
+
+type RevenueTrackingPreContractedByAccountManager {
+  name: String!
+  slug: String
+  fee: Float!
+  byClient: [RevenueTrackingPreContractedByClient!]!
+}
+
+type RevenueTrackingRegularByAccountManager {
+  name: String!
+  slug: String
+  fee: Float!
+  byClient: [RevenueTrackingRegularByClient!]!
+}
+
+type RevenueTrackingPreContractedByClient {
+  name: String!
+  slug: String
+  fee: Float!
+  bySponsor: [RevenueTrackingRegularBySponsor!]!
+}
+
+type RevenueTrackingRegularByClient {
+  name: String!
+  slug: String
+  fee: Float!
+  bySponsor: [RevenueTrackingRegularBySponsor!]!
+}
+
+type RevenueTrackingPreContractedBySponsor {
+  name: String!
+  slug: String
+  fee: Float!
+  byCase: [RevenueTrackingPreContractedByCase!]!
+}
+
+type RevenueTrackingRegularBySponsor {
+  name: String!
+  slug: String
+  fee: Float!
+  byCase: [RevenueTrackingRegularByCase!]!
+}
+
+type RevenueTrackingPreContractedByCase {
+  title: String!
+  slug: String
+  fee: Float!
+  byProject: [RevenueTrackingPreContractedByProject!]!
+}
+
+type RevenueTrackingRegularByCase {
+  title: String!
+  slug: String
+  fee: Float!
+  byProject: [RevenueTrackingRegularByProject!]!
+}
+
+type RevenueTrackingPreContractedByProject {
+  kind: String!
+  name: String!
+  fee: Float!
+}
+
+type RevenueTrackingRegularByProject {
+  kind: String!
+  name: String!
+  rate: Float!
+  hours: Float!
+  fee: Float!
+}
