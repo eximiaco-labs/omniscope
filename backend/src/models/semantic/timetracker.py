@@ -119,6 +119,7 @@ class Appointment(e.Appointment):
         data['created_at_week'] = self.created_at_week
         data['correctness'] = self.correctness
         data['is_lte'] = self.is_lte
+        data['revenue'] = self.revenue
         return data
 
     @classmethod
