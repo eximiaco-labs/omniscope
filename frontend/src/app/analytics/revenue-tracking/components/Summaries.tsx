@@ -72,6 +72,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px] text-center">#</TableHead>
               <TableHead 
                 className="text-left cursor-pointer hover:bg-gray-50"
                 onClick={() => requestSort('name')}
@@ -101,6 +102,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
           <TableBody>
             {sortedItems.map((item, index) => (
               <TableRow key={index}>
+                <TableCell className="text-center text-gray-500 text-[10px]">{index + 1}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell className="text-right w-[120px]">
                   {formatNumber(item.regular)}
@@ -114,6 +116,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
               </TableRow>
             ))}
             <TableRow className="font-bold border-t-2">
+              <TableCell></TableCell>
               <TableCell>Total</TableCell>
               <TableCell className="text-right w-[120px]">
                 {formatNumber(totals.regular)}
