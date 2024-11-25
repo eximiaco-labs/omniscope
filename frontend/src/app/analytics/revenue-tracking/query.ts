@@ -23,6 +23,10 @@ export const REVENUE_TRACKING_QUERY = gql`
           regular
           preContracted
           total
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
         }
         byClient {
           name
@@ -30,6 +34,10 @@ export const REVENUE_TRACKING_QUERY = gql`
           regular
           preContracted
           total
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
         }
         bySponsor {
           name
@@ -37,6 +45,10 @@ export const REVENUE_TRACKING_QUERY = gql`
           regular
           preContracted
           total
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
         }
       }
       regular {

@@ -20,6 +20,10 @@ export interface RevenueTrackingQuery {
         regular: number;
         preContracted: number;
         total: number;
+        consultingFee: number;
+        consultingPreFee: number;
+        handsOnFee: number;
+        squadFee: number;
       }>;
       byClient: Array<{
         name: string;
@@ -27,6 +31,10 @@ export interface RevenueTrackingQuery {
         regular: number;
         preContracted: number;
         total: number;
+        consultingFee: number;
+        consultingPreFee: number;
+        handsOnFee: number;
+        squadFee: number;
       }>;
       bySponsor: Array<{
         name: string;
@@ -34,7 +42,11 @@ export interface RevenueTrackingQuery {
         regular: number;
         preContracted: number;
         total: number;
+        consultingFee: number;
+        consultingPreFee: number;
+        handsOnFee: number;
+        squadFee: number;
       }>;
     };
   };
-} 
+}

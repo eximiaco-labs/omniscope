@@ -60,8 +60,8 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project):
                                 "title": case.title,
                                 "slug": case.slug,
                                 "fee": sum(project["fee"] for project in by_project),
-                                "consulting_fee": sum(project["fee"] for project in by_project if project["kind"] == "consulting") if not case.pre_contracted_value else 0,
-                                "consulting_pre_fee": sum(project["fee"] for project in by_project if project["kind"] == "consulting") if case.pre_contracted_value else 0,
+                                "consulting_fee": sum(project["fee"] for project in by_project if project["kind"] == "consulting" and not project["fixed"]),
+                                "consulting_pre_fee": sum(project["fee"] for project in by_project if project["kind"] == "consulting" and project["fixed"]),
                                 "hands_on_fee": sum(project["fee"] for project in by_project if project["kind"] == "handsOn"),
                                 "squad_fee": sum(project["fee"] for project in by_project if project["kind"] == "squad"),
                                 "by_project": sorted(by_project, key=lambda x: x["name"])
@@ -132,7 +132,8 @@ def compute_regular_revenue_tracking(date_of_interest: date):
                     "name": project.name,
                     "rate": project.rate.rate / 100,
                     "hours": project_df["TimeInHs"].sum(),
-                    "fee": project_df["Revenue"].sum()
+                    "fee": project_df["Revenue"].sum(),
+                    "fixed": False
                 }
         return None
     
@@ -144,7 +145,8 @@ def compute_pre_contracted_revenue_tracking(date_of_interest: date):
             return {
                 "kind": project.kind,
                 "name": project.name,
-                "fee": project.billing.fee / 100
+                "fee": project.billing.fee / 100,
+                "fixed": True
             }
         return None 
     
@@ -157,10 +159,10 @@ class AccountManagerSummary:
     pre_contracted: float
     regular: float
     total: float
-    total_consulting_fee: float
-    total_consulting_pre_fee: float
-    total_hands_on_fee: float
-    total_squad_fee: float
+    consulting_fee: float
+    consulting_pre_fee: float
+    hands_on_fee: float
+    squad_fee: float
     
     @staticmethod
     def build(account_manager_name, pre_contracted, regular):
@@ -174,16 +176,23 @@ class AccountManagerSummary:
             for account_manager in regular["monthly"]["by_account_manager"]
             if account_manager["name"] == account_manager_name
         )
+        
         total_consulting_fee = sum(
             account_manager["consulting_fee"]
             for account_manager in regular["monthly"]["by_account_manager"]
             if account_manager["name"] == account_manager_name
-        )
+        ) 
+        
         total_consulting_pre_fee = sum(
             account_manager["consulting_pre_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
             if account_manager["name"] == account_manager_name
+        ) + sum(
+            account_manager["consulting_pre_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            if account_manager["name"] == account_manager_name
         )
+        
         total_hands_on_fee = sum(
             account_manager["hands_on_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -202,10 +211,10 @@ class AccountManagerSummary:
             pre_contracted=pre_contracted_fee,
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
-            total_consulting_fee=total_consulting_fee,
-            total_consulting_pre_fee=total_consulting_pre_fee,
-            total_hands_on_fee=total_hands_on_fee,
-            total_squad_fee=total_squad_fee,
+            consulting_fee=total_consulting_fee,
+            consulting_pre_fee=total_consulting_pre_fee,
+            hands_on_fee=total_hands_on_fee,
+            squad_fee=total_squad_fee,
         )
     
     def build_list(pre_contracted, regular):
@@ -226,10 +235,10 @@ class ClientSummary:
     pre_contracted: float
     regular: float
     total: float
-    total_consulting_fee: float
-    total_consulting_pre_fee: float
-    total_hands_on_fee: float
-    total_squad_fee: float
+    consulting_fee: float
+    consulting_pre_fee: float
+    hands_on_fee: float
+    squad_fee: float
     
     @staticmethod
     def build(client_name, pre_contracted, regular):
@@ -239,30 +248,41 @@ class ClientSummary:
             for client in account_manager["by_client"]
             if client["name"] == client_name
         )
+        
         regular_fee = sum(
             client["fee"]
             for account_manager in regular["monthly"]["by_account_manager"]
             for client in account_manager["by_client"]
             if client["name"] == client_name
         )
+        
         total_consulting_fee = sum(
             client["consulting_fee"]
             for account_manager in regular["monthly"]["by_account_manager"]
             for client in account_manager["by_client"]
             if client["name"] == client_name
         )
+        
+        
         total_consulting_pre_fee = sum(
             client["consulting_pre_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
             for client in account_manager["by_client"]
             if client["name"] == client_name
+        ) + sum(
+            client["consulting_pre_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            if client["name"] == client_name
         )
+        
         total_hands_on_fee = sum(
             client["hands_on_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
             for client in account_manager["by_client"]
             if client["name"] == client_name
         )
+        
         total_squad_fee = sum(
             client["squad_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -277,10 +297,10 @@ class ClientSummary:
             pre_contracted=pre_contracted_fee,
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
-            total_consulting_fee=total_consulting_fee,
-            total_consulting_pre_fee=total_consulting_pre_fee,
-            total_hands_on_fee=total_hands_on_fee,
-            total_squad_fee=total_squad_fee
+            consulting_fee=total_consulting_fee,
+            consulting_pre_fee=total_consulting_pre_fee,
+            hands_on_fee=total_hands_on_fee,
+            squad_fee=total_squad_fee
         )
     
     @staticmethod
@@ -303,10 +323,10 @@ class SponsorSummary:
     pre_contracted: float
     regular: float
     total: float
-    total_consulting_fee: float
-    total_consulting_pre_fee: float
-    total_hands_on_fee: float
-    total_squad_fee: float
+    consulting_fee: float
+    consulting_pre_fee: float
+    hands_on_fee: float
+    squad_fee: float
     
     @staticmethod
     def build(sponsor_name, pre_contracted, regular):
@@ -330,14 +350,22 @@ class SponsorSummary:
             for client in account_manager["by_client"]
             for sponsor in client["by_sponsor"]
             if sponsor["name"] == sponsor_name
-        )
+        ) 
+            
         total_consulting_pre_fee = sum(
             sponsor["consulting_pre_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
             for client in account_manager["by_client"]
             for sponsor in client["by_sponsor"]
             if sponsor["name"] == sponsor_name
+        ) + sum(
+            sponsor["consulting_pre_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
         )
+        
         total_hands_on_fee = sum(
             sponsor["hands_on_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -359,10 +387,10 @@ class SponsorSummary:
             pre_contracted=pre_contracted_fee,
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
-            total_consulting_fee=total_consulting_fee,
-            total_consulting_pre_fee=total_consulting_pre_fee,
-            total_hands_on_fee=total_hands_on_fee,
-            total_squad_fee=total_squad_fee
+            consulting_fee=total_consulting_fee,
+            consulting_pre_fee=total_consulting_pre_fee,
+            hands_on_fee=total_hands_on_fee,
+            squad_fee=total_squad_fee
         )
     
     @staticmethod

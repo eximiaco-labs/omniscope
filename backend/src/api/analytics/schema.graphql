@@ -342,11 +342,11 @@ type RevenueTrackingRegular {
 }
 
 type RevenueTrackingSummaries {
-  byAccountManager: [RevenueTrackingSummary!]!
-  byClient: [RevenueTrackingSummary!]!
-  bySponsor: [RevenueTrackingSummary!]!
-  byKind: [RevenueTrackingSummary!]!
-  byMode: RevenueTrackingSummaryByMode!
+  byAccountManager: [RevenueTrackingByAccountManager!]!
+  byClient: [RevenueTrackingByClient!]!
+  bySponsor: [RevenueTrackingBySponsor!]!
+  byKind: [RevenueTrackingByKind!]!
+  byMode: RevenueTrackingByMode!
 }
 
 type RevenueTrackingSummary {
@@ -361,7 +361,14 @@ type RevenueTrackingSummary {
   totalSquadFee: Float!
 }
 
-type RevenueTrackingSummaryByMode {
+type RevenueTrackingByKind {
+  name: String!
+  preContracted: Float!
+  regular: Float!
+  total: Float!
+}
+
+type RevenueTrackingByMode {
   preContracted: Float!
   regular: Float!
   total: Float!
@@ -384,6 +391,9 @@ type RevenueTrackingByAccountManager {
   consultingPreFee: Float!
   handsOnFee: Float!
   squadFee: Float!
+  regular: Float!
+  preContracted: Float!
+  total: Float!
   byClient: [RevenueTrackingByClient!]!
 }
 
@@ -395,6 +405,9 @@ type RevenueTrackingByClient {
   consultingPreFee: Float!
   handsOnFee: Float!
   squadFee: Float!
+  regular: Float!
+  preContracted: Float!
+  total: Float!
   bySponsor: [RevenueTrackingBySponsor!]!
 }
 
@@ -406,6 +419,9 @@ type RevenueTrackingBySponsor {
   consultingPreFee: Float!
   handsOnFee: Float!
   squadFee: Float!
+  regular: Float!
+  preContracted: Float!
+  total: Float!
   byCase: [RevenueTrackingByCase!]!
 }
 
@@ -417,6 +433,9 @@ type RevenueTrackingByCase {
   consultingPreFee: Float!
   handsOnFee: Float!
   squadFee: Float!
+  regular: Float!
+  preContracted: Float!
+  total: Float!
   byProject: [RevenueTrackingByProject!]!
 }
 

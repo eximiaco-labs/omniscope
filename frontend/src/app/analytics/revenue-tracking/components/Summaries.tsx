@@ -26,6 +26,10 @@ interface SummaryCardProps {
     regular: number;
     preContracted: number;
     total: number;
+    consultingFee: number;
+    consultingPreFee: number;
+    handsOnFee: number;
+    squadFee: number;
   }[];
 }
 
@@ -65,8 +69,20 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
       regular: acc.regular + item.regular,
       preContracted: acc.preContracted + item.preContracted,
       total: acc.total + item.total,
+      consultingFee: acc.consultingFee + item.consultingFee,
+      consultingPreFee: acc.consultingPreFee + item.consultingPreFee,
+      handsOnFee: acc.handsOnFee + item.handsOnFee,
+      squadFee: acc.squadFee + item.squadFee
     }),
-    { regular: 0, preContracted: 0, total: 0 }
+    { 
+      regular: 0, 
+      preContracted: 0, 
+      total: 0,
+      consultingFee: 0,
+      consultingPreFee: 0,
+      handsOnFee: 0,
+      squadFee: 0
+    }
   );
 
   // Calculate cumulative percentage for current sort key
@@ -153,15 +169,27 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                 </TableHead>
                 <TableHead
                   className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
-                  onClick={() => requestSort("regular")}
+                  onClick={() => requestSort("consultingFee")}
                 >
-                  Regular {sortConfig.key === "regular" && "↓"}
+                  Consulting {sortConfig.key === "consultingFee" && "↓"}
                 </TableHead>
                 <TableHead
                   className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
-                  onClick={() => requestSort("preContracted")}
+                  onClick={() => requestSort("consultingPreFee")}
                 >
-                  Pre {sortConfig.key === "preContracted" && "↓"}
+                  Consulting Pre {sortConfig.key === "consultingPreFee" && "↓"}
+                </TableHead>
+                <TableHead
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  onClick={() => requestSort("handsOnFee")}
+                >
+                  Hands On {sortConfig.key === "handsOnFee" && "↓"}
+                </TableHead>
+                <TableHead
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  onClick={() => requestSort("squadFee")}
+                >
+                  Squad {sortConfig.key === "squadFee" && "↓"}
                 </TableHead>
                 <TableHead
                   className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
@@ -199,15 +227,27 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                     )}
                   </TableCell>
                   <TableCell className="text-right w-[120px] relative h-[57px]">
-                    {formatNumber(item.regular)}
+                    {formatNumber(item.consultingFee)}
                     <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.regular, totals.regular)}
+                      {formatPercent(item.consultingFee, totals.consultingFee)}
                     </div>
                   </TableCell>
                   <TableCell className="text-right w-[120px] relative h-[57px]">
-                    {formatNumber(item.preContracted)}
+                    {formatNumber(item.consultingPreFee)}
                     <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.preContracted, totals.preContracted)}
+                      {formatPercent(item.consultingPreFee, totals.consultingPreFee)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right w-[120px] relative h-[57px]">
+                    {formatNumber(item.handsOnFee)}
+                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                      {formatPercent(item.handsOnFee, totals.handsOnFee)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right w-[120px] relative h-[57px]">
+                    {formatNumber(item.squadFee)}
+                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                      {formatPercent(item.squadFee, totals.squadFee)}
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-semibold w-[120px] relative h-[57px]">
@@ -222,10 +262,16 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                 <TableCell></TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell className="text-right w-[120px]">
-                  {formatNumber(totals.regular)}
+                  {formatNumber(totals.consultingFee)}
                 </TableCell>
                 <TableCell className="text-right w-[120px]">
-                  {formatNumber(totals.preContracted)}
+                  {formatNumber(totals.consultingPreFee)}
+                </TableCell>
+                <TableCell className="text-right w-[120px]">
+                  {formatNumber(totals.handsOnFee)}
+                </TableCell>
+                <TableCell className="text-right w-[120px]">
+                  {formatNumber(totals.squadFee)}
                 </TableCell>
                 <TableCell className="text-right w-[120px]">
                   {formatNumber(totals.total)}
