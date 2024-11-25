@@ -291,19 +291,39 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
               <TableRow className="font-bold border-t-2">
                 <TableCell></TableCell>
                 <TableCell>Total</TableCell>
-                <TableCell className={`text-right w-[120px] border-l border-gray-300 ${totals.consultingFee === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-300 ${totals.consultingFee === 0 ? 'text-gray-300' : ''}`}>
+                  {totals.consultingFee !== 0 && (
+                    <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                      {formatPercent(totals.consultingFee, totals.total)}
+                    </div>
+                  )}
                   {formatNumber(totals.consultingFee)}
                 </TableCell>
-                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.consultingPreFee === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${totals.consultingPreFee === 0 ? 'text-gray-300' : ''}`}>
+                  {totals.consultingPreFee !== 0 && (
+                    <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                      {formatPercent(totals.consultingPreFee, totals.total)}
+                    </div>
+                  )}
                   {formatNumber(totals.consultingPreFee)}
                 </TableCell>
-                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.handsOnFee === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${totals.handsOnFee === 0 ? 'text-gray-300' : ''}`}>
+                  {totals.handsOnFee !== 0 && (
+                    <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                      {formatPercent(totals.handsOnFee, totals.total)}
+                    </div>
+                  )}
                   {formatNumber(totals.handsOnFee)}
                 </TableCell>
-                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.squadFee === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${totals.squadFee === 0 ? 'text-gray-300' : ''}`}>
+                  {totals.squadFee !== 0 && (
+                    <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                      {formatPercent(totals.squadFee, totals.total)}
+                    </div>
+                  )}
                   {formatNumber(totals.squadFee)}
                 </TableCell>
-                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.total === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${totals.total === 0 ? 'text-gray-300' : ''}`}>
                   {formatNumber(totals.total)}
                 </TableCell>
               </TableRow>
