@@ -308,7 +308,7 @@ export default function RevenueForecastPage() {
     });
   };
 
-  const renderTable = (title: string, clients: Map<string, any>, tableId: string) => {
+  const renderConsultingTable = (title: string, clients: Map<string, any>, tableId: string) => {
     const sortedClients = getSortedClients(clients, tableId);
     const sortConfig = sortConfigs[tableId];
     const total = sortedClients.reduce((acc, client) => ({
@@ -347,12 +347,12 @@ export default function RevenueForecastPage() {
             <TableRow>
               <TableHead></TableHead>
               <TableHead></TableHead>
-              <TableHead className="text-right w-[120px] border-x">Until {format(threeMonthsAgoPartialDate, "dd")}</TableHead>
-              <TableHead className="text-right w-[120px] border-r">Full Month</TableHead>
-              <TableHead className="text-right w-[120px] border-x">Until {format(twoMonthsAgoPartialDate, "dd")}</TableHead>
-              <TableHead className="text-right w-[120px] border-r">Full Month</TableHead>
-              <TableHead className="text-right w-[120px] border-x">Until {format(previousMonthPartialDate, "dd")}</TableHead>
-              <TableHead className="text-right w-[120px] border-r">Full Month</TableHead>
+              <TableHead className="text-right w-[95px] border-x">Until {format(threeMonthsAgoPartialDate, "dd")}</TableHead>
+              <TableHead className="text-right w-[95px] border-r">Full Month</TableHead>
+              <TableHead className="text-right w-[95px] border-x">Until {format(twoMonthsAgoPartialDate, "dd")}</TableHead>
+              <TableHead className="text-right w-[95px] border-r">Full Month</TableHead>
+              <TableHead className="text-right w-[95px] border-x">Until {format(previousMonthPartialDate, "dd")}</TableHead>
+              <TableHead className="text-right w-[95px] border-r">Full Month</TableHead>
               <TableHead onClick={() => requestSort('current', tableId)} className="text-right cursor-pointer hover:bg-gray-100 w-[120px] border-x">
                 Realized {sortConfig.key === 'current' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
@@ -375,22 +375,22 @@ export default function RevenueForecastPage() {
                     <span>{client.name}</span>
                   )}
                 </TableCell>
-                <TableCell className={`text-right border-x ${client.threeMonthsAgoPartial === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right border-x text-[12px] ${client.threeMonthsAgoPartial === 0 ? 'text-gray-300' : ''}`}>
                   {formatCurrency(client.threeMonthsAgoPartial)}
                 </TableCell>
-                <TableCell className={`text-right border-r ${client.threeMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right border-r text-[12px] ${client.threeMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
                   {formatCurrency(client.threeMonthsAgoFull)}
                 </TableCell>
-                <TableCell className={`text-right border-x ${client.twoMonthsAgoPartial === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right border-x text-[12px] ${client.twoMonthsAgoPartial === 0 ? 'text-gray-300' : ''}`}>
                   {formatCurrency(client.twoMonthsAgoPartial)}
                 </TableCell>
-                <TableCell className={`text-right border-r ${client.twoMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right border-r text-[12px] ${client.twoMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
                   {formatCurrency(client.twoMonthsAgoFull)}
                 </TableCell>
-                <TableCell className={`text-right border-x ${client.previousPartial === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right border-x text-[12px] ${client.previousPartial === 0 ? 'text-gray-300' : ''}`}>
                   {formatCurrency(client.previousPartial)}
                 </TableCell>
-                <TableCell className={`text-right border-r ${client.previousFull === 0 ? 'text-gray-300' : ''}`}>
+                <TableCell className={`text-right border-r text-[12px] ${client.previousFull === 0 ? 'text-gray-300' : ''}`}>
                   {formatCurrency(client.previousFull)}
                 </TableCell>
                 <TableCell className={`text-right border-x ${client.current === 0 ? 'text-gray-300' : ''}`}>
@@ -407,15 +407,88 @@ export default function RevenueForecastPage() {
             <TableRow className="font-bold border-t-2 h-[57px]">
               <TableCell></TableCell>
               <TableCell>Total</TableCell>
-              <TableCell className="text-right border-x">{formatCurrency(total.threeMonthsAgoPartial)}</TableCell>
-              <TableCell className="text-right border-r">{formatCurrency(total.threeMonthsAgoFull)}</TableCell>
-              <TableCell className="text-right border-x">{formatCurrency(total.twoMonthsAgoPartial)}</TableCell>
-              <TableCell className="text-right border-r">{formatCurrency(total.twoMonthsAgoFull)}</TableCell>
-              <TableCell className="text-right border-x">{formatCurrency(total.previousPartial)}</TableCell>
-              <TableCell className="text-right border-r">{formatCurrency(total.previousFull)}</TableCell>
+              <TableCell className="text-right border-x text-[12px]">{formatCurrency(total.threeMonthsAgoPartial)}</TableCell>
+              <TableCell className="text-right border-r text-[12px]">{formatCurrency(total.threeMonthsAgoFull)}</TableCell>
+              <TableCell className="text-right border-x text-[12px]">{formatCurrency(total.twoMonthsAgoPartial)}</TableCell>
+              <TableCell className="text-right border-r text-[12px]">{formatCurrency(total.twoMonthsAgoFull)}</TableCell>
+              <TableCell className="text-right border-x text-[12px]">{formatCurrency(total.previousPartial)}</TableCell>
+              <TableCell className="text-right border-r text-[12px]">{formatCurrency(total.previousFull)}</TableCell>
               <TableCell className="text-right border-x">{formatCurrency(total.current)}</TableCell>
               <TableCell className="text-right border-x">{formatCurrency(total.projected)}</TableCell>
               <TableCell className="text-right border-r">{formatCurrency(total.expected)}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
+
+  const renderOtherTable = (title: string, clients: Map<string, any>, tableId: string) => {
+    const sortedClients = getSortedClients(clients, tableId);
+    const sortConfig = sortConfigs[tableId];
+    const total = sortedClients.reduce((acc, client) => ({
+      threeMonthsAgoFull: acc.threeMonthsAgoFull + client.threeMonthsAgoFull,
+      twoMonthsAgoFull: acc.twoMonthsAgoFull + client.twoMonthsAgoFull,
+      previousFull: acc.previousFull + client.previousFull,
+      current: acc.current + client.current
+    }), { threeMonthsAgoFull: 0, twoMonthsAgoFull: 0, previousFull: 0, current: 0 });
+
+    return (
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="w-[50px] text-center">#</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead className="text-center border-x w-[95px]">
+                {format(threeMonthsAgoDate, 'MMM yyyy')}
+              </TableHead>
+              <TableHead className="text-center border-x w-[95px]">
+                {format(twoMonthsAgoDate, 'MMM yyyy')}
+              </TableHead>
+              <TableHead className="text-center border-x w-[95px]">
+                {format(previousMonthDate, 'MMM yyyy')}
+              </TableHead>
+              <TableHead className="text-center border-x w-[120px]">
+                {format(date, "MMM yyyy")}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedClients.map((client: any, index: number) => (
+              <TableRow key={client.name} className="h-[57px]">
+                <TableCell className="text-center text-gray-500 text-[10px]">{index + 1}</TableCell>
+                <TableCell>
+                  {client.slug ? (
+                    <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
+                      {client.name}
+                    </Link>
+                  ) : (
+                    <span>{client.name}</span>
+                  )}
+                </TableCell>
+                <TableCell className={`text-right border-x text-[12px] ${client.threeMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.threeMonthsAgoFull)}
+                </TableCell>
+                <TableCell className={`text-right border-x text-[12px] ${client.twoMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.twoMonthsAgoFull)}
+                </TableCell>
+                <TableCell className={`text-right border-x text-[12px] ${client.previousFull === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.previousFull)}
+                </TableCell>
+                <TableCell className={`text-right border-x ${client.current === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.current)}
+                </TableCell>
+              </TableRow>
+            ))}
+            <TableRow className="font-bold border-t-2 h-[57px]">
+              <TableCell></TableCell>
+              <TableCell>Total</TableCell>
+              <TableCell className="text-right border-x text-[12px]">{formatCurrency(total.threeMonthsAgoFull)}</TableCell>
+              <TableCell className="text-right border-x text-[12px]">{formatCurrency(total.twoMonthsAgoFull)}</TableCell>
+              <TableCell className="text-right border-x text-[12px]">{formatCurrency(total.previousFull)}</TableCell>
+              <TableCell className="text-right border-x">{formatCurrency(total.current)}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -430,10 +503,10 @@ export default function RevenueForecastPage() {
       </div>
 
       <div className="ml-2 mr-2">
-        {renderTable('Consulting', consultingClients, 'consulting')}
-        {renderTable('Consulting Pre', consultingPreClients, 'consultingPre')}
-        {renderTable('Hands On', handsOnClients, 'handsOn')}
-        {renderTable('Squad', squadClients, 'squad')}
+        {renderConsultingTable('Consulting', consultingClients, 'consulting')}
+        {renderOtherTable('Consulting Pre', consultingPreClients, 'consultingPre')}
+        {renderOtherTable('Hands On', handsOnClients, 'handsOn')}
+        {renderOtherTable('Squad', squadClients, 'squad')}
       </div>
     </div>
   );
