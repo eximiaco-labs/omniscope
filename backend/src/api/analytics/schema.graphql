@@ -334,11 +334,11 @@ type RevenueTracking {
 }
 
 type RevenueTrackingPreContracted {
-  monthly: RevenueTrackingPreContractedMonthly!
+  monthly: RevenueTrackingMonthly!
 }
 
 type RevenueTrackingRegular {
-  monthly: RevenueTrackingRegularMonthly!
+  monthly: RevenueTrackingMonthly!
 }
 
 type RevenueTrackingSummaries {
@@ -355,6 +355,10 @@ type RevenueTrackingSummary {
   preContracted: Float!
   regular: Float!
   total: Float!
+  totalConsultingFee: Float!
+  totalConsultingPreFee: Float!
+  totalHandsOnFee: Float!
+  totalSquadFee: Float!
 }
 
 type RevenueTrackingSummaryByMode {
@@ -363,82 +367,63 @@ type RevenueTrackingSummaryByMode {
   total: Float!
 }
 
-type RevenueTrackingPreContractedMonthly {
+type RevenueTrackingMonthly {
   total: Float!
-  byAccountManager: [RevenueTrackingPreContractedByAccountManager!]!
+  totalConsultingFee: Float!
+  totalConsultingPreFee: Float!
+  totalHandsOnFee: Float!
+  totalSquadFee: Float!
+  byAccountManager: [RevenueTrackingByAccountManager!]!
 }
 
-type RevenueTrackingRegularMonthly {
-  total: Float!
-  byAccountManager: [RevenueTrackingRegularByAccountManager!]!
-}
-
-type RevenueTrackingPreContractedByAccountManager {
+type RevenueTrackingByAccountManager {
   name: String!
   slug: String
   fee: Float!
-  byClient: [RevenueTrackingPreContractedByClient!]!
+  consultingFee: Float!
+  consultingPreFee: Float!
+  handsOnFee: Float!
+  squadFee: Float!
+  byClient: [RevenueTrackingByClient!]!
 }
 
-type RevenueTrackingRegularByAccountManager {
+type RevenueTrackingByClient {
   name: String!
   slug: String
   fee: Float!
-  byClient: [RevenueTrackingRegularByClient!]!
+  consultingFee: Float!
+  consultingPreFee: Float!
+  handsOnFee: Float!
+  squadFee: Float!
+  bySponsor: [RevenueTrackingBySponsor!]!
 }
 
-type RevenueTrackingPreContractedByClient {
+type RevenueTrackingBySponsor {
   name: String!
   slug: String
   fee: Float!
-  bySponsor: [RevenueTrackingRegularBySponsor!]!
+  consultingFee: Float!
+  consultingPreFee: Float!
+  handsOnFee: Float!
+  squadFee: Float!
+  byCase: [RevenueTrackingByCase!]!
 }
 
-type RevenueTrackingRegularByClient {
-  name: String!
-  slug: String
-  fee: Float!
-  bySponsor: [RevenueTrackingRegularBySponsor!]!
-}
-
-type RevenueTrackingPreContractedBySponsor {
-  name: String!
-  slug: String
-  fee: Float!
-  byCase: [RevenueTrackingPreContractedByCase!]!
-}
-
-type RevenueTrackingRegularBySponsor {
-  name: String!
-  slug: String
-  fee: Float!
-  byCase: [RevenueTrackingRegularByCase!]!
-}
-
-type RevenueTrackingPreContractedByCase {
+type RevenueTrackingByCase {
   title: String!
   slug: String
   fee: Float!
-  byProject: [RevenueTrackingPreContractedByProject!]!
+  consultingFee: Float!
+  consultingPreFee: Float!
+  handsOnFee: Float!
+  squadFee: Float!
+  byProject: [RevenueTrackingByProject!]!
 }
 
-type RevenueTrackingRegularByCase {
-  title: String!
-  slug: String
-  fee: Float!
-  byProject: [RevenueTrackingRegularByProject!]!
-}
-
-type RevenueTrackingPreContractedByProject {
+type RevenueTrackingByProject {
   kind: String!
   name: String!
-  fee: Float!
-}
-
-type RevenueTrackingRegularByProject {
-  kind: String!
-  name: String!
-  rate: Float!
-  hours: Float!
+  rate: Float
+  hours: Float
   fee: Float!
 }
