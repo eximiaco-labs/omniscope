@@ -167,15 +167,16 @@ class AccountManagerSummary:
             for account_manager_name in account_managers_names
         ]
     
-def compute_summary_by_client(pre_contracted, regular):
-    clients_names = sorted(set(
-        client["name"]
-        for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
-        for client in account_manager["by_client"]
-    ))
+@dataclass
+class ClientSummary:
+    name: str
+    slug: str
+    pre_contracted: float
+    regular: float
+    total: float
     
-    by_client = []
-    for client_name in clients_names:
+    @staticmethod
+    def build(client_name, pre_contracted, regular):
         pre_contracted_fee = sum(
             client["fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -189,26 +190,38 @@ def compute_summary_by_client(pre_contracted, regular):
             if client["name"] == client_name
         )
         client = globals.omni_models.clients.get_by_name(client_name)
-        by_client.append({
-            "name": client_name,
-            "slug": client.slug if client else None,
-            "pre_contracted": pre_contracted_fee,
-            "regular": regular_fee,
-            "total": pre_contracted_fee + regular_fee
-        })
+        
+        return ClientSummary(
+            name=client_name,
+            slug=client.slug if client else None,
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee
+        )
     
-    return by_client
+    @staticmethod
+    def build_list(pre_contracted, regular):
+        clients_names = sorted(set(
+            client["name"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+        ))
+        
+        return [
+            ClientSummary.build(client_name, pre_contracted, regular)
+            for client_name in clients_names
+        ]
     
-def compute_summary_by_sponsor(pre_contracted, regular):
-    sponsors_names = sorted(set(
-        sponsor["name"]
-        for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
-        for client in account_manager["by_client"]
-        for sponsor in client["by_sponsor"]
-    ))
+@dataclass
+class SponsorSummary:
+    name: str
+    slug: str
+    pre_contracted: float
+    regular: float
+    total: float
     
-    by_sponsor = []
-    for sponsor_name in sponsors_names:
+    @staticmethod
+    def build(sponsor_name, pre_contracted, regular):
         pre_contracted_fee = sum(
             sponsor["fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -223,21 +236,39 @@ def compute_summary_by_sponsor(pre_contracted, regular):
             for sponsor in client["by_sponsor"]
             if sponsor["name"] == sponsor_name
         )
-        by_sponsor.append({
-            "name": sponsor_name,
-            "slug": slugify(sponsor_name),
-            "pre_contracted": pre_contracted_fee,
-            "regular": regular_fee,
-            "total": pre_contracted_fee + regular_fee
-        })
+        
+        return SponsorSummary(
+            name=sponsor_name,
+            slug=slugify(sponsor_name),
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee
+        )
     
-    return by_sponsor
+    @staticmethod
+    def build_list(pre_contracted, regular):
+        sponsors_names = sorted(set(
+            sponsor["name"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+        ))
+        
+        return [
+            SponsorSummary.build(sponsor_name, pre_contracted, regular)
+            for sponsor_name in sponsors_names
+        ]
 
-def compute_summary_by_kind(pre_contracted, regular):
-    kinds = ["consulting", "handsOn", "squad"]
-    
-    by_kind = []
-    for kind in kinds:
+
+@dataclass
+class KindSummary:
+    name: str
+    pre_contracted: float
+    regular: float
+    total: float
+
+    @staticmethod
+    def build(kind, pre_contracted, regular):
         pre_contracted_fee = sum(
             project["fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -256,19 +287,23 @@ def compute_summary_by_kind(pre_contracted, regular):
             for project in case["by_project"]
             if project["kind"] == kind
         )
-        by_kind.append({
-            "name": kind,
-            "pre_contracted": pre_contracted_fee,
-            "regular": regular_fee,
-            "total": pre_contracted_fee + regular_fee
-        })
-    
-    return by_kind
+        
+        return KindSummary(
+            name=kind,
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee
+        )
+
+    @staticmethod
+    def build_list(pre_contracted, regular):
+        return [
+            KindSummary.build(kind, pre_contracted, regular)
+            for kind in PROJECT_KINDS
+        ]
 
 def compute_summaries(pre_contracted, regular):
-    by_client = compute_summary_by_client(pre_contracted, regular)
-    by_sponsor = compute_summary_by_sponsor(pre_contracted, regular)
-    by_kind = compute_summary_by_kind(pre_contracted, regular)
+
     by_mode = {
         "pre_contracted": pre_contracted["monthly"]["total"],
         "regular": regular["monthly"]["total"],
@@ -277,9 +312,9 @@ def compute_summaries(pre_contracted, regular):
     
     return {
         "by_account_manager": AccountManagerSummary.build_list(pre_contracted, regular),
-        "by_client": by_client,
-        "by_sponsor": by_sponsor,
-        "by_kind": by_kind,
+        "by_client": ClientSummary.build_list(pre_contracted, regular),
+        "by_sponsor": SponsorSummary.build_list(pre_contracted, regular),
+        "by_kind": KindSummary.build_list(pre_contracted, regular),
         "by_mode": by_mode,
     }
     
