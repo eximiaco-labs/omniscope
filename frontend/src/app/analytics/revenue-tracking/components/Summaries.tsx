@@ -227,6 +227,11 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                     )}
                   </TableCell>
                   <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-300 ${item.consultingFee === 0 ? 'text-gray-300' : ''}`}>
+                    {item.consultingFee !== 0 && (
+                      <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                        {formatPercent(item.consultingFee, item.total)}
+                      </div>
+                    )}
                     {formatNumber(item.consultingFee)}
                     {item.consultingFee !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
@@ -235,6 +240,11 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                     )}
                   </TableCell>
                   <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.consultingPreFee === 0 ? 'text-gray-300' : ''}`}>
+                    {item.consultingPreFee !== 0 && (
+                      <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                        {formatPercent(item.consultingPreFee, item.total)}
+                      </div>
+                    )}
                     {formatNumber(item.consultingPreFee)}
                     {item.consultingPreFee !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
@@ -243,6 +253,11 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                     )}
                   </TableCell>
                   <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.handsOnFee === 0 ? 'text-gray-300' : ''}`}>
+                    {item.handsOnFee !== 0 && (
+                      <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                        {formatPercent(item.handsOnFee, item.total)}
+                      </div>
+                    )}
                     {formatNumber(item.handsOnFee)}
                     {item.handsOnFee !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
@@ -251,6 +266,11 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                     )}
                   </TableCell>
                   <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.squadFee === 0 ? 'text-gray-300' : ''}`}>
+                    {item.squadFee !== 0 && (
+                      <div className="absolute top-1 left-2 text-[10px] text-gray-500">
+                        {formatPercent(item.squadFee, item.total)}
+                      </div>
+                    )}
                     {formatNumber(item.squadFee)}
                     {item.squadFee !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
