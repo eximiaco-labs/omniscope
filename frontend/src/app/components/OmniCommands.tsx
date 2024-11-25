@@ -10,10 +10,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { 
-  getAnalyticsSidebarItems, 
-  getAboutUsSidebarItems, 
-  getAdministrativeSidebarItems 
+import {
+  getAnalyticsSidebarItems,
+  getAboutUsSidebarItems,
+  getAdministrativeSidebarItems,
+  getFinancialSidebarItems
 } from "@/app/navigation"
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
@@ -80,16 +81,19 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
   const router = useRouter()
   const { data } = useQuery(GET_CONSULTANTS)
   const { data: session } = useSession();
+  const [finantialsItems, setFinantialsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
 
   React.useEffect(() => {
     async function loadItems() {
+      const finantials = await getFinancialSidebarItems(session?.user?.email)
       const analytics = await getAnalyticsSidebarItems(session?.user?.email)
       const aboutUs = await getAboutUsSidebarItems()
       const admin = await getAdministrativeSidebarItems()
       
+      setFinantialsItems(finantials)
       setAnalyticsItems(analytics)
       setAboutUsItems(aboutUs)
       setAdminItems(admin)
@@ -118,7 +122,17 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        
+        <CommandGroup heading="Financial">
+          {finantialsItems.map((item) => (
+              <CommandItem
+                key={item.url}
+                onSelect={() => runCommand(() => router.push(item.url))}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.title}
+              </CommandItem>
+          ))}
+        </CommandGroup>
         <CommandGroup heading="Analytics">
           {analyticsItems.map((item) => (
             <CommandItem
