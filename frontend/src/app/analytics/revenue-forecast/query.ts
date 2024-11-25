@@ -9,6 +9,10 @@ export const REVENUE_FORECAST_QUERY = gql`
           slug
           regular
           preContracted
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
           total
         }
       }
@@ -21,6 +25,10 @@ export const REVENUE_FORECAST_QUERY = gql`
           slug
           regular
           preContracted
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
           total
         }
       }
@@ -35,6 +43,10 @@ export const REVENUE_FORECAST_QUERY = gql`
           slug
           regular
           preContracted
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
           total
         }
       }
