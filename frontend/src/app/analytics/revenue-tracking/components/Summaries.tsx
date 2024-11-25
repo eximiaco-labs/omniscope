@@ -168,31 +168,31 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                   {title.replace("By ", "")} {sortConfig.key === "name" && "↓"}
                 </TableHead>
                 <TableHead
-                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px] border-l border-gray-300"
                   onClick={() => requestSort("consultingFee")}
                 >
                   Consulting {sortConfig.key === "consultingFee" && "↓"}
                 </TableHead>
                 <TableHead
-                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px] border-l border-gray-100"
                   onClick={() => requestSort("consultingPreFee")}
                 >
                   Consulting Pre {sortConfig.key === "consultingPreFee" && "↓"}
                 </TableHead>
                 <TableHead
-                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px] border-l border-gray-100"
                   onClick={() => requestSort("handsOnFee")}
                 >
                   Hands On {sortConfig.key === "handsOnFee" && "↓"}
                 </TableHead>
                 <TableHead
-                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px] border-l border-gray-100"
                   onClick={() => requestSort("squadFee")}
                 >
                   Squad {sortConfig.key === "squadFee" && "↓"}
                 </TableHead>
                 <TableHead
-                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px]"
+                  className="text-right cursor-pointer hover:bg-gray-50 w-[120px] border-l border-gray-100"
                   onClick={() => requestSort("total")}
                 >
                   Total {sortConfig.key === "total" && "↓"}
@@ -226,54 +226,64 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                       <span>{item.name}</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right w-[120px] relative h-[57px]">
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-300 ${item.consultingFee === 0 ? 'text-gray-300' : ''}`}>
                     {formatNumber(item.consultingFee)}
-                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.consultingFee, totals.consultingFee)}
-                    </div>
+                    {item.consultingFee !== 0 && (
+                      <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                        {formatPercent(item.consultingFee, totals.consultingFee)}
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="text-right w-[120px] relative h-[57px]">
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.consultingPreFee === 0 ? 'text-gray-300' : ''}`}>
                     {formatNumber(item.consultingPreFee)}
-                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.consultingPreFee, totals.consultingPreFee)}
-                    </div>
+                    {item.consultingPreFee !== 0 && (
+                      <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                        {formatPercent(item.consultingPreFee, totals.consultingPreFee)}
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="text-right w-[120px] relative h-[57px]">
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.handsOnFee === 0 ? 'text-gray-300' : ''}`}>
                     {formatNumber(item.handsOnFee)}
-                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.handsOnFee, totals.handsOnFee)}
-                    </div>
+                    {item.handsOnFee !== 0 && (
+                      <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                        {formatPercent(item.handsOnFee, totals.handsOnFee)}
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="text-right w-[120px] relative h-[57px]">
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.squadFee === 0 ? 'text-gray-300' : ''}`}>
                     {formatNumber(item.squadFee)}
-                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.squadFee, totals.squadFee)}
-                    </div>
+                    {item.squadFee !== 0 && (
+                      <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                        {formatPercent(item.squadFee, totals.squadFee)}
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="text-right font-semibold w-[120px] relative h-[57px]">
+                  <TableCell className={`text-right font-semibold w-[120px] relative h-[57px] border-l border-gray-100 ${item.total === 0 ? 'text-gray-300' : ''}`}>
                     {formatNumber(item.total)}
-                    <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                      {formatPercent(item.total, totals.total)}
-                    </div>
+                    {item.total !== 0 && (
+                      <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
+                        {formatPercent(item.total, totals.total)}
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
               <TableRow className="font-bold border-t-2">
                 <TableCell></TableCell>
                 <TableCell>Total</TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className={`text-right w-[120px] border-l border-gray-300 ${totals.consultingFee === 0 ? 'text-gray-300' : ''}`}>
                   {formatNumber(totals.consultingFee)}
                 </TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.consultingPreFee === 0 ? 'text-gray-300' : ''}`}>
                   {formatNumber(totals.consultingPreFee)}
                 </TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.handsOnFee === 0 ? 'text-gray-300' : ''}`}>
                   {formatNumber(totals.handsOnFee)}
                 </TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.squadFee === 0 ? 'text-gray-300' : ''}`}>
                   {formatNumber(totals.squadFee)}
                 </TableCell>
-                <TableCell className="text-right w-[120px]">
+                <TableCell className={`text-right w-[120px] border-l border-gray-100 ${totals.total === 0 ? 'text-gray-300' : ''}`}>
                   {formatNumber(totals.total)}
                 </TableCell>
               </TableRow>
