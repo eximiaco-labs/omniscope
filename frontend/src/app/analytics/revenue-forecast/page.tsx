@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
-import { format, endOfMonth, subMonths, isSameDay, getDaysInMonth } from "date-fns";
+import { format, endOfMonth, subMonths, isSameDay, getDaysInMonth, getDate } from "date-fns";
 import { useState, useEffect } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { REVENUE_FORECAST_QUERY } from "./query";
@@ -35,6 +35,8 @@ export default function RevenueForecastPage() {
   }, []);
 
   const previousMonthDate = endOfMonth(subMonths(date, 1));
+  const twoMonthsAgoDate = endOfMonth(subMonths(date, 2));
+  const threeMonthsAgoDate = endOfMonth(subMonths(date, 3));
   
   const getPreviousMonthPartialDate = () => {
     const previousMonth = subMonths(date, 1);
@@ -44,13 +46,35 @@ export default function RevenueForecastPage() {
     return new Date(previousMonth.getFullYear(), previousMonth.getMonth(), targetDay);
   };
 
+  const getTwoMonthsAgoPartialDate = () => {
+    const twoMonthsAgo = subMonths(date, 2);
+    const currentDay = date.getDate();
+    const daysInTwoMonthsAgo = getDaysInMonth(twoMonthsAgo);
+    const targetDay = Math.min(currentDay, daysInTwoMonthsAgo);
+    return new Date(twoMonthsAgo.getFullYear(), twoMonthsAgo.getMonth(), targetDay);
+  };
+
+  const getThreeMonthsAgoPartialDate = () => {
+    const threeMonthsAgo = subMonths(date, 3);
+    const currentDay = date.getDate();
+    const daysInThreeMonthsAgo = getDaysInMonth(threeMonthsAgo);
+    const targetDay = Math.min(currentDay, daysInThreeMonthsAgo);
+    return new Date(threeMonthsAgo.getFullYear(), threeMonthsAgo.getMonth(), targetDay);
+  };
+
   const previousMonthPartialDate = getPreviousMonthPartialDate();
+  const twoMonthsAgoPartialDate = getTwoMonthsAgoPartialDate();
+  const threeMonthsAgoPartialDate = getThreeMonthsAgoPartialDate();
 
   const { loading, error, data } = useQuery(REVENUE_FORECAST_QUERY, {
     variables: {
       inAnalysisDate: format(date, "yyyy-MM-dd"),
       previousMonthDate: format(previousMonthDate, "yyyy-MM-dd"),
       previousMonthPartialDate: format(previousMonthPartialDate, "yyyy-MM-dd"),
+      twoMonthsAgoDate: format(twoMonthsAgoDate, "yyyy-MM-dd"),
+      twoMonthsAgoPartialDate: format(twoMonthsAgoPartialDate, "yyyy-MM-dd"),
+      threeMonthsAgoDate: format(threeMonthsAgoDate, "yyyy-MM-dd"),
+      threeMonthsAgoPartialDate: format(threeMonthsAgoPartialDate, "yyyy-MM-dd"),
     },
   });
 
@@ -61,15 +85,109 @@ export default function RevenueForecastPage() {
   const processServiceData = (type: 'regular' | 'preContracted' | 'consultingFee' | 'consultingPreFee' | 'handsOnFee' | 'squadFee') => {
     const clients = new Map();
 
-    data.previous_month.summaries.byClient.forEach((client: any) => {
+    data.three_months_ago.summaries.byClient.forEach((client: any) => {
       if (client[type]) {
         clients.set(client.slug, {
           name: client.name,
           slug: client.slug,
-          previousFull: client[type],
+          threeMonthsAgoFull: client[type],
+          threeMonthsAgoPartial: 0,
+          twoMonthsAgoFull: 0,
+          twoMonthsAgoPartial: 0,
+          previousFull: 0,
           previousPartial: 0,
-          current: 0
+          current: 0,
+          projected: 0,
+          expected: 0
         });
+      }
+    });
+
+    data.three_months_ago_partial.summaries.byClient.forEach((client: any) => {
+      if (client[type]) {
+        if (clients.has(client.slug)) {
+          clients.get(client.slug).threeMonthsAgoPartial = client[type];
+        } else {
+          clients.set(client.slug, {
+            name: client.name,
+            slug: client.slug,
+            threeMonthsAgoFull: 0,
+            threeMonthsAgoPartial: client[type],
+            twoMonthsAgoFull: 0,
+            twoMonthsAgoPartial: 0,
+            previousFull: 0,
+            previousPartial: 0,
+            current: 0,
+            projected: 0,
+            expected: 0
+          });
+        }
+      }
+    });
+
+    data.two_months_ago.summaries.byClient.forEach((client: any) => {
+      if (client[type]) {
+        if (clients.has(client.slug)) {
+          clients.get(client.slug).twoMonthsAgoFull = client[type];
+        } else {
+          clients.set(client.slug, {
+            name: client.name,
+            slug: client.slug,
+            threeMonthsAgoFull: 0,
+            threeMonthsAgoPartial: 0,
+            twoMonthsAgoFull: client[type],
+            twoMonthsAgoPartial: 0,
+            previousFull: 0,
+            previousPartial: 0,
+            current: 0,
+            projected: 0,
+            expected: 0
+          });
+        }
+      }
+    });
+
+    data.two_months_ago_partial.summaries.byClient.forEach((client: any) => {
+      if (client[type]) {
+        if (clients.has(client.slug)) {
+          clients.get(client.slug).twoMonthsAgoPartial = client[type];
+        } else {
+          clients.set(client.slug, {
+            name: client.name,
+            slug: client.slug,
+            threeMonthsAgoFull: 0,
+            threeMonthsAgoPartial: 0,
+            twoMonthsAgoFull: 0,
+            twoMonthsAgoPartial: client[type],
+            previousFull: 0,
+            previousPartial: 0,
+            current: 0,
+            projected: 0,
+            expected: 0
+          });
+        }
+      }
+    });
+
+    data.previous_month.summaries.byClient.forEach((client: any) => {
+      if (client[type]) {
+        if (clients.has(client.slug)) {
+          clients.get(client.slug).previousFull = client[type];
+        } else {
+          clients.set(client.slug, {
+            name: client.name,
+            slug: client.slug,
+            threeMonthsAgoFull: 0,
+            threeMonthsAgoPartial: 0,
+            twoMonthsAgoFull: 0,
+            twoMonthsAgoPartial: 0,
+            previousFull: client[type],
+            previousPartial: 0,
+            current: 0,
+            projected: 0,
+            expected: 0
+          });
+        }
       }
     });
 
@@ -81,9 +199,15 @@ export default function RevenueForecastPage() {
           clients.set(client.slug, {
             name: client.name,
             slug: client.slug,
+            threeMonthsAgoFull: 0,
+            threeMonthsAgoPartial: 0,
+            twoMonthsAgoFull: 0,
+            twoMonthsAgoPartial: 0,
             previousFull: 0,
             previousPartial: client[type],
-            current: 0
+            current: 0,
+            projected: 0,
+            expected: 0
           });
         }
       }
@@ -92,14 +216,46 @@ export default function RevenueForecastPage() {
     data.in_analysis.summaries.byClient.forEach((client: any) => {
       if (client[type]) {
         if (clients.has(client.slug)) {
-          clients.get(client.slug).current = client[type];
+          const currentValue = client[type];
+          const clientData = clients.get(client.slug);
+          clientData.current = currentValue;
+          
+          // Calculate projected value based on current day of month
+          const currentDay = getDate(date);
+          const daysInMonth = getDaysInMonth(date);
+          const projectedValue = (currentValue / currentDay) * daysInMonth;
+          clientData.projected = projectedValue;
+
+          // Calculate expected value (60% previous month + 25% two months ago + 15% three months ago)
+          const previousValue = clientData.previousFull;
+          const twoMonthsAgoValue = clientData.twoMonthsAgoFull;
+          const threeMonthsAgoValue = clientData.threeMonthsAgoFull;
+          
+          if (threeMonthsAgoValue === 0 && twoMonthsAgoValue === 0) {
+            clientData.expected = previousValue;
+          } else if (threeMonthsAgoValue === 0) {
+            clientData.expected = (previousValue * 0.8) + (twoMonthsAgoValue * 0.2);
+          } else {
+            clientData.expected = (previousValue * 0.6) + (twoMonthsAgoValue * 0.25) + (threeMonthsAgoValue * 0.15);
+          }
         } else {
+          const currentValue = client[type];
+          const currentDay = getDate(date);
+          const daysInMonth = getDaysInMonth(date);
+          const projectedValue = (currentValue / currentDay) * daysInMonth;
+          
           clients.set(client.slug, {
             name: client.name,
             slug: client.slug,
+            threeMonthsAgoFull: 0,
+            threeMonthsAgoPartial: 0,
+            twoMonthsAgoFull: 0,
+            twoMonthsAgoPartial: 0,
             previousFull: 0,
             previousPartial: 0,
-            current: client[type]
+            current: currentValue,
+            projected: projectedValue,
+            expected: 0
           });
         }
       }
@@ -156,10 +312,16 @@ export default function RevenueForecastPage() {
     const sortedClients = getSortedClients(clients, tableId);
     const sortConfig = sortConfigs[tableId];
     const total = sortedClients.reduce((acc, client) => ({
+      threeMonthsAgoFull: acc.threeMonthsAgoFull + client.threeMonthsAgoFull,
+      threeMonthsAgoPartial: acc.threeMonthsAgoPartial + client.threeMonthsAgoPartial,
+      twoMonthsAgoFull: acc.twoMonthsAgoFull + client.twoMonthsAgoFull,
+      twoMonthsAgoPartial: acc.twoMonthsAgoPartial + client.twoMonthsAgoPartial,
       previousFull: acc.previousFull + client.previousFull,
       previousPartial: acc.previousPartial + client.previousPartial,
-      current: acc.current + client.current
-    }), { previousFull: 0, previousPartial: 0, current: 0 });
+      current: acc.current + client.current,
+      projected: acc.projected + client.projected,
+      expected: acc.expected + client.expected
+    }), { threeMonthsAgoFull: 0, threeMonthsAgoPartial: 0, twoMonthsAgoFull: 0, twoMonthsAgoPartial: 0, previousFull: 0, previousPartial: 0, current: 0, projected: 0, expected: 0 });
 
     return (
       <div className="mb-8">
@@ -170,81 +332,90 @@ export default function RevenueForecastPage() {
               <TableHead className="w-[50px] text-center">#</TableHead>
               <TableHead>Client</TableHead>
               <TableHead colSpan={2} className="text-center border-x">
+                {format(threeMonthsAgoDate, 'MMM yyyy')}
+              </TableHead>
+              <TableHead colSpan={2} className="text-center border-x">
+                {format(twoMonthsAgoDate, 'MMM yyyy')}
+              </TableHead>
+              <TableHead colSpan={2} className="text-center border-x">
                 {format(previousMonthDate, 'MMM yyyy')}
               </TableHead>
-              <TableHead onClick={() => requestSort('current', tableId)} className="text-right cursor-pointer hover:bg-gray-100 w-[120px]">
-                {format(date, "MMM yyyy")} {sortConfig.key === 'current' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+              <TableHead colSpan={3} className="text-center border-x">
+                {format(date, "MMM yyyy")}
               </TableHead>
-              <TableHead className="text-right w-[120px]">Difference</TableHead>
             </TableRow>
             <TableRow>
               <TableHead></TableHead>
               <TableHead></TableHead>
+              <TableHead className="text-right w-[120px] border-x">Until {format(threeMonthsAgoPartialDate, "dd")}</TableHead>
+              <TableHead className="text-right w-[120px] border-r">Full Month</TableHead>
+              <TableHead className="text-right w-[120px] border-x">Until {format(twoMonthsAgoPartialDate, "dd")}</TableHead>
+              <TableHead className="text-right w-[120px] border-r">Full Month</TableHead>
               <TableHead className="text-right w-[120px] border-x">Until {format(previousMonthPartialDate, "dd")}</TableHead>
               <TableHead className="text-right w-[120px] border-r">Full Month</TableHead>
-              <TableHead></TableHead>
-              <TableHead></TableHead>
+              <TableHead onClick={() => requestSort('current', tableId)} className="text-right cursor-pointer hover:bg-gray-100 w-[120px] border-x">
+                Realized {sortConfig.key === 'current' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+              </TableHead>
+              <TableHead onClick={() => requestSort('projected', tableId)} className="text-right cursor-pointer hover:bg-gray-100 w-[120px] border-x">
+                Projected {sortConfig.key === 'projected' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+              </TableHead>
+              <TableHead className="text-right w-[120px] border-r">Expected</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedClients.map((client: any, index: number) => {
-              const diff = client.current - client.previousFull;
-              const percentChange = client.previousFull !== 0 ? diff / client.previousFull : 0;
-              
-              return (
-                <TableRow key={client.name} className="h-[57px]">
-                  <TableCell className="text-center text-gray-500 text-[10px]">{index + 1}</TableCell>
-                  <TableCell>
-                    {client.slug ? (
-                      <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
-                        {client.name}
-                      </Link>
-                    ) : (
-                      <span>{client.name}</span>
-                    )}
-                  </TableCell>
-                  <TableCell className={`text-right border-x ${client.previousPartial === 0 ? 'text-gray-300' : ''}`}>
-                    {formatCurrency(client.previousPartial)}
-                  </TableCell>
-                  <TableCell className={`text-right border-r ${client.previousFull === 0 ? 'text-gray-300' : ''}`}>
-                    {formatCurrency(client.previousFull)}
-                  </TableCell>
-                  <TableCell className={`text-right ${client.current === 0 ? 'text-gray-300' : ''}`}>
-                    {formatCurrency(client.current)}
-                  </TableCell>
-                  <TableCell className="text-right relative">
-                    {formatCurrency(diff)}
-                    {diff !== 0 && (
-                      <div className={`absolute bottom-1 right-2 text-[10px] ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'percent',
-                          minimumFractionDigits: 1,
-                          maximumFractionDigits: 1,
-                        }).format(percentChange)}
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {sortedClients.map((client: any, index: number) => (
+              <TableRow key={client.name} className="h-[57px]">
+                <TableCell className="text-center text-gray-500 text-[10px]">{index + 1}</TableCell>
+                <TableCell>
+                  {client.slug ? (
+                    <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
+                      {client.name}
+                    </Link>
+                  ) : (
+                    <span>{client.name}</span>
+                  )}
+                </TableCell>
+                <TableCell className={`text-right border-x ${client.threeMonthsAgoPartial === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.threeMonthsAgoPartial)}
+                </TableCell>
+                <TableCell className={`text-right border-r ${client.threeMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.threeMonthsAgoFull)}
+                </TableCell>
+                <TableCell className={`text-right border-x ${client.twoMonthsAgoPartial === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.twoMonthsAgoPartial)}
+                </TableCell>
+                <TableCell className={`text-right border-r ${client.twoMonthsAgoFull === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.twoMonthsAgoFull)}
+                </TableCell>
+                <TableCell className={`text-right border-x ${client.previousPartial === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.previousPartial)}
+                </TableCell>
+                <TableCell className={`text-right border-r ${client.previousFull === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.previousFull)}
+                </TableCell>
+                <TableCell className={`text-right border-x ${client.current === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.current)}
+                </TableCell>
+                <TableCell className={`text-right border-x ${client.projected === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.projected)}
+                </TableCell>
+                <TableCell className={`text-right border-r ${client.expected === 0 ? 'text-gray-300' : ''}`}>
+                  {formatCurrency(client.expected)}
+                </TableCell>
+              </TableRow>
+            ))}
             <TableRow className="font-bold border-t-2 h-[57px]">
               <TableCell></TableCell>
               <TableCell>Total</TableCell>
+              <TableCell className="text-right border-x">{formatCurrency(total.threeMonthsAgoPartial)}</TableCell>
+              <TableCell className="text-right border-r">{formatCurrency(total.threeMonthsAgoFull)}</TableCell>
+              <TableCell className="text-right border-x">{formatCurrency(total.twoMonthsAgoPartial)}</TableCell>
+              <TableCell className="text-right border-r">{formatCurrency(total.twoMonthsAgoFull)}</TableCell>
               <TableCell className="text-right border-x">{formatCurrency(total.previousPartial)}</TableCell>
               <TableCell className="text-right border-r">{formatCurrency(total.previousFull)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(total.current)}</TableCell>
-              <TableCell className="text-right relative">
-                {formatCurrency(total.current - total.previousFull)}
-                {total.previousFull !== 0 && (
-                  <div className={`absolute bottom-1 right-2 text-[10px] ${total.current > total.previousFull ? 'text-green-600' : 'text-red-600'}`}>
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'percent',
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 1,
-                    }).format((total.current - total.previousFull) / total.previousFull)}
-                  </div>
-                )}
-              </TableCell>
+              <TableCell className="text-right border-x">{formatCurrency(total.current)}</TableCell>
+              <TableCell className="text-right border-x">{formatCurrency(total.projected)}</TableCell>
+              <TableCell className="text-right border-r">{formatCurrency(total.expected)}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
