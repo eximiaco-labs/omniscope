@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from models.analytics.revenue_tracking import compute_revenue_tracking
 
 def resolve_revenue_tracking(root, info, date_of_interest: str | date):

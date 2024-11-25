@@ -3,13 +3,17 @@ import globals
 from datetime import date, datetime
 from models.helpers.slug import slugify
 import pandas as pd
+from dataclasses import dataclass
+INTERNAL_KIND = "Internal"
+PROJECT_KINDS = ["consulting", "handsOn", "squad"]
+NA_VALUE = "N/A"
 
 def _get_account_manager_name(case):
     if not case.client_id:
-        return "N/A"
+        return NA_VALUE
     
     client = globals.omni_models.clients.get_by_id(case.client_id)
-    return client.account_manager.name if client and client.account_manager else "N/A"
+    return client.account_manager.name if client and client.account_manager else NA_VALUE
 
 def _compute_revenue_tracking_base(date_of_interest: date, process_project):
     s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
@@ -17,7 +21,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project):
     
     timesheet = globals.omni_datasets.timesheets.get(s, e)
     df = timesheet.data
-    df = df[df["Kind"] != "Internal"]
+    df = df[df["Kind"] != INTERNAL_KIND]
     
     case_ids = df["CaseId"].unique()
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
@@ -35,7 +39,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project):
         
         for client_name in client_names:
             sponsors_names = sorted(set(
-                case.sponsor if case.sponsor else "N/A"
+                case.sponsor if case.sponsor else NA_VALUE
                 for case in active_cases
                 if case.find_client_name(globals.omni_models.clients) == client_name
             ))
@@ -121,15 +125,17 @@ def compute_pre_contracted_revenue_tracking(date_of_interest: date):
         return None 
     
     return _compute_revenue_tracking_base(date_of_interest, process_project)
+
+@dataclass
+class AccountManagerSummary:
+    name: str
+    slug: str
+    pre_contracted: float
+    regular: float
+    total: float
     
-def compute_summary_by_account_manager(pre_contracted, regular):
-    account_managers_names = sorted(set(    
-        account_manager["name"]
-        for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
-    ))
-    
-    by_account_manager = []
-    for account_manager_name in account_managers_names:
+    @staticmethod
+    def build(account_manager_name, pre_contracted, regular):
         pre_contracted_fee = sum(
             account_manager["fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -141,16 +147,26 @@ def compute_summary_by_account_manager(pre_contracted, regular):
             if account_manager["name"] == account_manager_name
         )
         account_manager = globals.omni_models.workers.get_by_name(account_manager_name)
-        by_account_manager.append({
-            "name": account_manager_name,
-            "slug": account_manager.slug if account_manager else None,
-            "pre_contracted": pre_contracted_fee,
-            "regular": regular_fee,
-            "total": pre_contracted_fee + regular_fee   
-        })
+        
+        return AccountManagerSummary(
+            name=account_manager_name,
+            slug=account_manager.slug if account_manager else None,
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee
+        )
     
-    return by_account_manager
-
+    def build_list(pre_contracted, regular):
+        account_managers_names = sorted(set(    
+            account_manager["name"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
+        ))
+        
+        return [
+            AccountManagerSummary.build(account_manager_name, pre_contracted, regular) 
+            for account_manager_name in account_managers_names
+        ]
+    
 def compute_summary_by_client(pre_contracted, regular):
     clients_names = sorted(set(
         client["name"]
@@ -250,7 +266,6 @@ def compute_summary_by_kind(pre_contracted, regular):
     return by_kind
 
 def compute_summaries(pre_contracted, regular):
-    by_account_manager = compute_summary_by_account_manager(pre_contracted, regular)
     by_client = compute_summary_by_client(pre_contracted, regular)
     by_sponsor = compute_summary_by_sponsor(pre_contracted, regular)
     by_kind = compute_summary_by_kind(pre_contracted, regular)
@@ -261,7 +276,7 @@ def compute_summaries(pre_contracted, regular):
     }
     
     return {
-        "by_account_manager": by_account_manager,
+        "by_account_manager": AccountManagerSummary.build_list(pre_contracted, regular),
         "by_client": by_client,
         "by_sponsor": by_sponsor,
         "by_kind": by_kind,
