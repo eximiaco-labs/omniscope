@@ -245,7 +245,7 @@ export function Summaries({ data, date }: SummariesProps) {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title={format(date, "MMMM yyyy 'Summary'")}
+        title={format(date, "MMMM yyyy 'Revenue Summary'")}
         subtitle={format(date, "'until' EEEE, dd")}
       />
 
@@ -264,7 +264,7 @@ export function Summaries({ data, date }: SummariesProps) {
               <>
                 <div>
                   <Stat
-                    title="Consulting (regular)"
+                    title="Consulting"
                     value={kind.regular.toString()}
                     color="#F59E0B"
                     total={data.revenueTracking.summaries.byKind.reduce((sum, k) => sum + k.total, 0)}
