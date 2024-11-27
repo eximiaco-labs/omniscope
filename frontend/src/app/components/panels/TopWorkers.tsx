@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,6 +9,7 @@ import {
 } from "@/components/catalyst/table";
 import RankingIndicator from "@/components/RankingIndicator";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import SectionHeader from "@/components/SectionHeader";
 
 interface TopWorkersProps {
   workerData?: any[] | null;
@@ -76,6 +76,9 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
   };
 
   const getTitle = () => {
+    if (!workerData || filteredWorkers.length === 0) {
+      return "Workers";
+    }
     if (!expanded) {
       return filteredWorkers.length > 3 ? "Top 3 Workers" : "Workers";
     } else {
@@ -83,71 +86,56 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
     }
   };
 
-  if (!workerData || workerData.length === 0) {
-    return (
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">Workers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-gray-500">No worker data available</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div>
       <style>{fadeInAnimation}</style>
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            {getTitle()}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <SectionHeader title={getTitle()} subtitle="" />
+
+      {!workerData || filteredWorkers.length === 0 ? (
+        <p className="text-center text-gray-500">No worker data available</p>
+      ) : (
+        <>
           <Table className="w-full table-fixed">
             <TableHead>
-              <TableRow className="bg-gray-100">
-                <TableHeader className="font-semibold text-left w-8/12">Worker</TableHeader>
-                <TableHeader className="font-semibold text-center w-4/12">Hours</TableHeader>
+              <TableRow>
+                <TableHeader className="w-[50px] text-center">#</TableHeader>
+                <TableHeader className="w-8/12">Worker</TableHeader>
+                <TableHeader className="w-4/12">Hours</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
               {displayedWorkers.map((worker: any, index: number) => (
-                <TableRow 
+                <TableRow
                   key={`${worker.name}-${animationTrigger}`}
-                  className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  style={{ 
-                    animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
-                    opacity: 0,
-                  }}
+                  className="hover:bg-gray-50"
                 >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center space-x-3">
-                      <RankingIndicator
-                        index={index + 1}
-                        percentage={calculatePercentage(getItemValue(worker, 'totalHours'))}
-                      />
+                  <TableCell className="text-center text-gray-500 text-[10px]">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
                       <div className="flex flex-col">
-                        <span style={{ transition: 'all 0.3s ease-in-out' }}>{worker.name}</span>
-                        <span className="text-xs text-gray-500" style={{ transition: 'all 0.3s ease-in-out' }}>
+                        <span>{worker.name}</span>
+                        <span className="text-xs text-gray-500">
                           {getItemValue(worker, 'uniqueClients')} clients • {getItemValue(worker, 'uniqueCases')} cases
                         </span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <span className="font-medium" style={{ transition: 'all 0.3s ease-in-out' }}>
+                  <TableCell>
+                    <div className="flex flex-col">
                       {formatHours(getItemValue(worker, 'totalHours'))}
-                    </span>
+                      <span className="text-xs text-gray-500">
+                        {calculatePercentage(getItemValue(worker, 'totalHours'))}%
+                      </span>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
           {filteredWorkers.length > 3 && (
-            <div className="mt-4 text-center">
+            <div className="mt-4">
               <button
                 onClick={toggleExpand}
                 className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
@@ -166,8 +154,8 @@ const TopWorkers: React.FC<TopWorkersProps> = ({ workerData, selectedStat, total
               </button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      )}
     </div>
   );
 };

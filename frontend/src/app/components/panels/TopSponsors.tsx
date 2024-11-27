@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,6 +9,7 @@ import {
 } from "@/components/catalyst/table";
 import RankingIndicator from "@/components/RankingIndicator";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import SectionHeader from "@/components/SectionHeader";
 
 interface TopSponsorsProps {
   sponsorData: any[] | null;
@@ -99,92 +99,84 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
   return (
     <div>
       <style>{fadeInAnimation}</style>
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            {getTitle()}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!sponsorData || filteredSponsors.length === 0 ? (
-            <p className="text-center text-gray-500">No sponsor data available</p>
-          ) : (
-            <>
-              <Table className="w-full table-fixed">
-                <TableHead>
-                  <TableRow className="bg-gray-100">
-                    <TableHeader className="font-semibold text-left w-8/12">
-                      Sponsor
-                    </TableHeader>
-                    <TableHeader className="font-semibold text-center w-4/12">
-                      Hours
-                    </TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {displayedSponsors.map((sponsor: any, index: number) => (
-                    <TableRow
-                      key={`${sponsor.name}-${animationTrigger}`}
-                      className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      }`}
-                      style={{
-                        animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
-                        opacity: 0,
-                      }}
-                    >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center space-x-3">
-                          <RankingIndicator
-                            index={index + 1}
-                            percentage={calculatePercentage(
-                              getItemValue(sponsor, "totalHours")
-                            )}
-                          />
-                          <div className="flex flex-col">
-                            <span className="transition-all duration-300 ease-in-out">
-                              {sponsor.name}
-                            </span>
-                            <span className="text-xs text-gray-500 transition-all duration-300 ease-in-out">
-                              {getItemValue(sponsor, "uniqueCases")} case(s)
-                              {getItemValue(sponsor, "uniqueWorkers") > 1 && ` • ${getItemValue(sponsor, "uniqueWorkers")} workers`}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="font-medium transition-all duration-300 ease-in-out">
-                          {formatHours(getItemValue(sponsor, "totalHours"))}
+      <SectionHeader title={getTitle()} subtitle="" />
+
+      {!sponsorData || filteredSponsors.length === 0 ? (
+        <p className="text-center text-gray-500">No sponsor data available</p>
+      ) : (
+        <>
+          <Table className="w-full table-fixed">
+            <TableHead>
+              <TableRow>
+                <TableHeader className="w-[50px] text-center">#</TableHeader>
+                <TableHeader className="w-8/12">
+                  Sponsor
+                </TableHeader>
+                <TableHeader className="w-4/12">
+                  Hours
+                </TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {displayedSponsors.map((sponsor: any, index: number) => (
+                <TableRow
+                  key={`${sponsor.name}-${animationTrigger}`}
+                  className="hover:bg-gray-50"
+                >
+                  <TableCell className="text-center text-gray-500 text-[10px]">
+                    {index + 1}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {/* <RankingIndicator
+                        index={index + 1}
+                        percentage={calculatePercentage(
+                          getItemValue(sponsor, "totalHours")
+                        )}
+                      /> */}
+                      <div className="flex flex-col">
+                        <span>{sponsor.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {getItemValue(sponsor, "uniqueCases")} case(s)
+                          {getItemValue(sponsor, "uniqueWorkers") > 1 && ` • ${getItemValue(sponsor, "uniqueWorkers")} workers`}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filteredSponsors.length > 3 && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={toggleExpand}
-                    className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-                  >
-                    {expanded ? (
-                      <>
-                        <ChevronUp className="w-4 h-4 mr-2" />
-                        Show Less
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="w-4 h-4 mr-2" />
-                        Show More
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      {formatHours(getItemValue(sponsor, "totalHours"))}
+                      <span className="text-xs text-gray-500">
+                        {calculatePercentage(getItemValue(sponsor, "totalHours"))}%
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {filteredSponsors.length > 3 && (
+            <div className="mt-4">
+              <button
+                onClick={toggleExpand}
+                className="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                {expanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 mr-2" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 mr-2" />
+                    Show More
+                  </>
+                )}
+              </button>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      )}
     </div>
   );
 };

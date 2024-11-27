@@ -2,8 +2,10 @@ import globals
 
 from datetime import date, datetime
 from models.helpers.slug import slugify
+from models.domain.cases import Case
 import pandas as pd
 from dataclasses import dataclass
+
 INTERNAL_KIND = "Internal"
 PROJECT_KINDS = ["consulting", "handsOn", "squad"]
 NA_VALUE = "N/A"
@@ -51,7 +53,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project):
                     if case.find_client_name(globals.omni_models.clients) == client_name and case.sponsor == sponsor_name:
                         by_project = []
                         for project in case.tracker_info:
-                            project_data = process_project(project, df)
+                            project_data = process_project(case, project, df)
                             if project_data:
                                 by_project.append(project_data)
                     
@@ -123,7 +125,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project):
     }
 
 def compute_regular_revenue_tracking(date_of_interest: date):
-    def process_project(project, timesheet_df):
+    def process_project(_, project, timesheet_df):
         if project.rate and project.rate.rate:
             project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
             if len(project_df) > 0:
@@ -140,14 +142,58 @@ def compute_regular_revenue_tracking(date_of_interest: date):
     return _compute_revenue_tracking_base(date_of_interest, process_project)
 
 def compute_pre_contracted_revenue_tracking(date_of_interest: date):
-    def process_project(project, _):
+    def process_project(case: Case, project, timesheet_df: pd.DataFrame):
         if project.billing and project.billing.fee and project.billing.fee != 0:
-            return {
-                "kind": project.kind,
-                "name": project.name,
-                "fee": project.billing.fee / 100,
-                "fixed": True
-            }
+            if project.budget and project.budget.period == 'general':
+
+                if not case.start_of_contract:
+                    print(f'--> {project.name} has no start or end of contract')
+                
+                d = timesheet_df[timesheet_df["Date"].notna()]["Date"].iloc[0]
+                m = d.month
+                y = d.year
+                
+                start = case.start_of_contract.replace(day=1)
+                end = case.end_of_contract
+                if end is None:
+                    end = start
+                
+                in_contract = start.year <= y <= end.year
+
+                if in_contract and y == start.year:
+                    in_contract = m >= start.month
+
+                if in_contract and y == end.year:
+                    in_contract = m <= end.month
+
+                if not in_contract:
+                    return None
+
+                if start.year == end.year:
+                    number_of_months = end.month - start.month + 1
+                else:
+                    months_on_start_year = 12 - start.month + 1
+                    months_on_end_year = end.month
+                    if end.year - start.year > 1:
+                        number_of_months = months_on_start_year + months_on_end_year + (end.year - start.year - 1) * 12
+                    else:   
+                        number_of_months = months_on_start_year + months_on_end_year
+                        
+                fee = project.billing.fee / 100 / number_of_months
+
+                return {
+                    "kind": project.kind,
+                    "name": project.name,
+                    "fee": fee,
+                    "fixed": True
+                }
+            else:
+                return {
+                    "kind": project.kind,
+                    "name": project.name,
+                    "fee": project.billing.fee / 100,
+                    "fixed": True
+                }
         return None 
     
     return _compute_revenue_tracking_base(date_of_interest, process_project)

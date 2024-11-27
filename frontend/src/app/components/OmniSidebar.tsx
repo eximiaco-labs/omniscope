@@ -17,7 +17,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronsUpDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
@@ -33,6 +33,11 @@ import {
 } from "@/app/navigation";
 
 import React from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -158,20 +163,31 @@ function OmniSidebarGroup({
   items: { title: string; url: string; icon: any }[];
 }) {
   return (
-    <SidebarGroup>
-      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
-      <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuSubItem key={item.title}>
-            <SidebarMenuButton asChild>
-              <Link href={item.url}>
-                <item.icon />
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuSubItem>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <Collapsible>
+      <SidebarGroup>
+        {title && (
+          <SidebarGroupLabel asChild>
+            <CollapsibleTrigger>
+              {title}
+              <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+            </CollapsibleTrigger>
+          </SidebarGroupLabel>
+        )}
+        <CollapsibleContent>
+          <SidebarMenu>
+            {items.map((item) => (
+              <SidebarMenuSubItem key={item.title}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenu>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
   );
 }
