@@ -131,13 +131,13 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             f'{len(duplicate_everhour_ids)} Everhour project ID(s) are used in multiple cases:\n' + '\n'.join(details)
         ))
     
-    # for case in cases:
-    #     if case.is_active and not case.pre_contracted_value:
-    #         for tp in case.tracker_info:
-    #             if tp.billing and tp.billing.type == 'fixed_fee':
-    #                 result.append(Inconsistency(
-    #                     'Case not marked as "pre-contracted" has a fixed fee tracking project',
-    #                     f'Case "{case.title}" has no pre-contracted value set, but has a fixed billing type tracking project.'
-    #                 ))
+    for case in cases:
+        if case.is_active and (not case.start_of_contract or not case.end_of_contract):
+            for project in case.tracker_info:
+                if project.billing and project.billing.type == 'fixed_fee' and project.budget and project.budget.period == 'general':
+                    result.append(Inconsistency(
+                        'Missing contract dates for fixed fee project',
+                        f'The case "{case.title}" contains a fixed fee project "{project.name}" but is missing contract start/end dates. These dates are required to properly distribute the fixed fee across months.'
+                    ))
         
     return result
