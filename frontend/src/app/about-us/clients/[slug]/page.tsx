@@ -125,19 +125,7 @@ export default function ClientPage() {
 
       <Divider className="my-8" />
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Cases</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-medium">
-            {filteredCases.length || 0}
-          </span>
-        </div>
-      </div>
 
-      <CasesGallery
-        filteredCases={filteredCases}
-        timesheetData={timesheet}
-      />
     </div>
   );
 }

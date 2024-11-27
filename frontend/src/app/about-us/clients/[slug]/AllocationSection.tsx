@@ -8,6 +8,7 @@ import TopSponsors from "@/app/components/panels/TopSponsors";
 import { CasesTable } from "./CasesTable";
 import { Divider } from "@/components/catalyst/divider";
 import SectionHeader from "@/components/SectionHeader";
+import { CasesGallery } from "../../cases/CasesGallery";
 
 interface AllocationSectionProps {
   selectedDataset: string;
@@ -89,7 +90,9 @@ export function AllocationSection({
               >
                 <Stat
                   title="Consulting Hours"
-                  value={timesheet?.byKind?.consulting?.totalHours?.toString() || "0"}
+                  value={
+                    timesheet?.byKind?.consulting?.totalHours?.toString() || "0"
+                  }
                   color="#F59E0B"
                   total={timesheet?.totalHours}
                 />
@@ -100,7 +103,9 @@ export function AllocationSection({
               >
                 <Stat
                   title="Hands-On Hours"
-                  value={timesheet?.byKind?.handsOn?.totalHours?.toString() || "0"}
+                  value={
+                    timesheet?.byKind?.handsOn?.totalHours?.toString() || "0"
+                  }
                   color="#8B5CF6"
                   total={timesheet?.totalHours}
                 />
@@ -111,7 +116,9 @@ export function AllocationSection({
               >
                 <Stat
                   title="Squad Hours"
-                  value={timesheet?.byKind?.squad?.totalHours?.toString() || "0"}
+                  value={
+                    timesheet?.byKind?.squad?.totalHours?.toString() || "0"
+                  }
                   color="#3B82F6"
                   total={timesheet?.totalHours}
                 />
@@ -122,7 +129,9 @@ export function AllocationSection({
               >
                 <Stat
                   title="Internal Hours"
-                  value={timesheet?.byKind?.internal?.totalHours?.toString() || "0"}
+                  value={
+                    timesheet?.byKind?.internal?.totalHours?.toString() || "0"
+                  }
                   color="#10B981"
                   total={timesheet?.totalHours}
                 />
@@ -147,9 +156,20 @@ export function AllocationSection({
                 totalHours={timesheet?.totalHours || 0}
               />
             </div>
+
+            <SectionHeader
+              title="Cases"
+              subtitle={filteredCases.length + " active"}
+            />
+            <div className="px-2">
+              <CasesGallery
+                filteredCases={filteredCases}
+                timesheetData={timesheet}
+              />
+            </div>
           </>
         )}
       </div>
     </>
   );
-} 
+}
