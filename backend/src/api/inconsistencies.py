@@ -107,7 +107,7 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
     # Build mapping of everhour project IDs to cases
     everhour_id_to_cases = {}
     for case in cases:
-        if case.is_active and case.everhour_projects_ids:
+        if case.everhour_projects_ids:
             for everhour_id in case.everhour_projects_ids:
                 if everhour_id not in everhour_id_to_cases:
                     everhour_id_to_cases[everhour_id] = []
@@ -121,16 +121,13 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
     }
 
     if duplicate_everhour_ids:
-        details = []
         for everhour_id, cases_list in duplicate_everhour_ids.items():
-            case_names = [case.title for case in cases_list]
-            details.append(f"Everhour project ID {everhour_id} is used in cases: {', '.join(case_names)}")
-            
-        result.append(Inconsistency(
-            'Duplicate Everhour Project IDs',
-            f'{len(duplicate_everhour_ids)} Everhour project ID(s) are used in multiple cases:\n' + '\n'.join(details)
-        ))
-    
+            cases_titles = [case.title for case in cases_list]
+            result.append(Inconsistency(
+                f'{everhour_id} referenced in multiple cases',
+                f'Cases:\n' + '; '.join(cases_titles)
+            ))
+
     for case in cases:
         if case.is_active and (not case.start_of_contract or not case.end_of_contract):
             for project in case.tracker_info:
