@@ -166,46 +166,45 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                         )?.workers || [];
                         
                         const textColor = STAT_COLORS[track.kind as keyof typeof STAT_COLORS];
+                        const rowSpan = Math.max(1, projectWorkers.length);
                         
                         return (
-                          <React.Fragment key={track.id}>
-                            {projectWorkers.length > 0 ? (
-                              projectWorkers.map((worker: string) => (
-                                <tr key={`${track.id}-${worker}`} className="border-b border-gray-200">
-                                  <td className="pr-2 w-[210px] break-words border-r border-gray-200">
-                                    <div style={{ color: textColor }}>
-                                      {track.name}
-                                      {track.budget && (
-                                        <div className="text-gray-500 mt-1">
-                                          <span className="inline-block bg-gray-100 px-1 rounded">
-                                            {track.budget.hours}h/{track.budget.period}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="text-gray-600 pl-2">{worker}</td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr key={track.id} className="border-b border-gray-200">
-                                <td className="pr-2 w-[210px] break-words border-r border-gray-200">
-                                  <div style={{ color: textColor }}>
-                                    {track.name}
-                                    {track.budget && (
-                                      <div className="text-gray-500 mt-1">
-                                        <span className="inline-block bg-gray-100 px-1 rounded">
-                                          {track.budget.hours}h/{track.budget.period}
-                                        </span>
-                                      </div>
-                                    )}
+                          <tr key={track.id} className="border-b border-gray-200">
+                            <td 
+                              rowSpan={rowSpan} 
+                              className="pr-2 w-[210px] break-words border-r border-gray-200 align-top"
+                            >
+                              <div style={{ color: textColor }}>
+                                {track.name}
+                                {track.budget && (
+                                  <div className="text-gray-500 mt-1">
+                                    <span className="inline-block bg-gray-100 px-1 rounded">
+                                      {track.budget.hours}h/{track.budget.period}
+                                    </span>
                                   </div>
-                                </td>
-                                <td className="text-gray-400 pl-2">No team members</td>
-                              </tr>
-                            )}
-                          </React.Fragment>
+                                )}
+                              </div>
+                            </td>
+                            <td className="text-gray-600 pl-2">
+                              {projectWorkers.length > 0 ? (
+                                projectWorkers[0]
+                              ) : (
+                                <span className="text-gray-400">No team members</span>
+                              )}
+                            </td>
+                          </tr>
                         );
+                      })}
+                      {caseData.caseDetails.tracker.map((track: TrackingProject) => {
+                        const projectWorkers = caseData.workersByTrackingProject?.find(
+                          (project: { projectId: string }) => project.projectId === track.id
+                        )?.workers || [];
+                        
+                        return projectWorkers.slice(1).map((worker: string, index: number) => (
+                          <tr key={`${track.id}-${index + 1}`} className="border-b border-gray-200">
+                            <td className="text-gray-600 pl-2">{worker}</td>
+                          </tr>
+                        ));
                       })}
                     </tbody>
                   </table>
@@ -215,7 +214,7 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
               </TableCell>
               <TableCell>
                 <span className="text-xs text-gray-600">
-                  {caseData.caseDetails.weeklyApprovedHours || 0}
+                  {(caseData.totalHours || 0).toFixed(1)}
                 </span>
               </TableCell>
             </TableRow>

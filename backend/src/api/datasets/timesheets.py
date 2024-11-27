@@ -124,13 +124,15 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
 
         if group_column == 'CaseTitle' and 'workersByTrackingProject' in map:
             wdf = df[df['CaseTitle'] == group_value]
-            workersByTrackingProject = wdf.groupby('ProjectId')['WorkerName'].apply(lambda x: x.unique().tolist()).reset_index()
-            summary['workers_by_tracking_project'] = [
+            workersByTrackingProject = wdf.groupby('ProjectId')['WorkerName'].agg(list).reset_index()
+            project_workers = [
                 {
                     'project_id': row['ProjectId'],
-                    'workers': row['WorkerName']
-                } for _, row in workersByTrackingProject.iterrows()
+                    'workers': sorted(set(row['WorkerName']))
+                }   
+                for _, row in workersByTrackingProject.iterrows()
             ]
+            summary['workers_by_tracking_project'] = project_workers
             
         if group_column == 'CaseTitle' and 'byWorker' in map:
             summary['by_worker'] = summarize_by_worker(group_df, map['byWorker'])
