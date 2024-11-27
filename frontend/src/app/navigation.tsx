@@ -23,12 +23,12 @@ export function getFinancialSidebarItems(userEmail?: string | null) {
     ...(getFlag('is-fin-user', userEmail) ? [
       {
         title: "Revenue Tracking",
-        url: "/analytics/revenue-tracking",
+        url: "/financial/revenue-tracking",
         icon: DollarSignIcon,
       },
       {
         title: "Revenue Forecast",
-        url: "/analytics/revenue-forecast",
+        url: "/financial/revenue-forecast",
         icon: TrendingUpIcon,
       }
     ] : []),
