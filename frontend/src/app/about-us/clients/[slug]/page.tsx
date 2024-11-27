@@ -5,13 +5,9 @@ import { useQuery } from "@apollo/client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { GET_CLIENT_BY_SLUG, GET_CLIENT_TIMESHEET } from "./queries";
 import { ClientHeader } from "./ClientHeader";
-import TopWorkers from "@/app/components/panels/TopWorkers";
-import TopSponsors from "@/app/components/panels/TopSponsors";
-import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
-import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { CasesGallery } from "../../cases/CasesGallery";
-import { CasesTable } from "./CasesTable";
+import { AllocationSection } from "./AllocationSection";
 
 export default function ClientPage() {
   const { slug } = useParams();
@@ -66,7 +62,9 @@ export default function ClientPage() {
     }`;
   };
 
-  const getStatusColor = (status: string): "zinc" | "rose" | "amber" | "lime" => {
+  const getStatusColor = (
+    status: string
+  ): "zinc" | "rose" | "amber" | "lime" => {
     switch (status) {
       case "Critical":
         return "rose";
@@ -93,138 +91,53 @@ export default function ClientPage() {
 
   const timesheet = timesheetData?.timesheet;
 
-  const filteredCases = timesheet?.byCase?.filter((caseData: any) => {
-    switch (selectedStat) {
-      case "consulting":
-        return caseData.totalConsultingHours > 0;
-      case "handsOn":
-        return caseData.totalHandsOnHours > 0;
-      case "squad":
-        return caseData.totalSquadHours > 0;
-      case "internal":
-        return caseData.totalInternalHours > 0;
-      case "total":
-        return caseData.totalHours > 0;
-      default:
-        return true;
-    }
-  }) || [];
+  const filteredCases =
+    timesheet?.byCase?.filter((caseData: any) => {
+      switch (selectedStat) {
+        case "consulting":
+          return caseData.totalConsultingHours > 0;
+        case "handsOn":
+          return caseData.totalHandsOnHours > 0;
+        case "squad":
+          return caseData.totalSquadHours > 0;
+        case "internal":
+          return caseData.totalInternalHours > 0;
+        case "total":
+          return caseData.totalHours > 0;
+        default:
+          return true;
+      }
+    }) || [];
 
   return (
     <div>
       <ClientHeader client={clientData?.client} />
 
-      <div className="mt-6 mb-6">
-        <DatasetSelector
-          selectedDataset={selectedDataset}
-          onDatasetSelect={handleDatasetSelect}
-        />
+      <AllocationSection
+        selectedDataset={selectedDataset}
+        onDatasetSelect={handleDatasetSelect}
+        timesheetData={timesheetData}
+        timesheetLoading={timesheetLoading}
+        timesheetError={timesheetError}
+        selectedStat={selectedStat}
+        handleStatClick={handleStatClick}
+      />
+
+      <Divider className="my-8" />
+
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-semibold">Cases</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-medium">
+            {filteredCases.length || 0}
+          </span>
+        </div>
       </div>
 
-      {timesheetLoading ? (
-        <p>Loading timesheet data...</p>
-      ) : timesheetError ? (
-        <p>Error loading timesheet: {timesheetError.message}</p>
-      ) : (
-        <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-            <div
-              className={`${getStatClassName("total")} transform`}
-              onClick={() => handleStatClick("total")}
-            >
-              <Stat
-                title="Total Hours"
-                value={timesheet?.totalHours?.toString() || "0"}
-              />
-            </div>
-            <div
-              className={`${getStatClassName("consulting")} transform`}
-              onClick={() => handleStatClick("consulting")}
-            >
-              <Stat
-                title="Consulting Hours"
-                value={
-                  timesheet?.byKind?.consulting?.totalHours?.toString() || "0"
-                }
-                color="#F59E0B"
-                total={timesheet?.totalHours}
-              />
-            </div>
-            <div
-              className={`${getStatClassName("handsOn")} transform`}
-              onClick={() => handleStatClick("handsOn")}
-            >
-              <Stat
-                title="Hands-On Hours"
-                value={
-                  timesheet?.byKind?.handsOn?.totalHours?.toString() || "0"
-                }
-                color="#8B5CF6"
-                total={timesheet?.totalHours}
-              />
-            </div>
-            <div
-              className={`${getStatClassName("squad")} transform`}
-              onClick={() => handleStatClick("squad")}
-            >
-              <Stat
-                title="Squad Hours"
-                value={timesheet?.byKind?.squad?.totalHours?.toString() || "0"}
-                color="#3B82F6"
-                total={timesheet?.totalHours}
-              />
-            </div>
-            <div
-              className={`${getStatClassName("internal")} transform`}
-              onClick={() => handleStatClick("internal")}
-            >
-              <Stat
-                title="Internal Hours"
-                value={
-                  timesheet?.byKind?.internal?.totalHours?.toString() || "0"
-                }
-                color="#10B981"
-                total={timesheet?.totalHours}
-              />
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <CasesTable filteredCases={filteredCases} />
-          </div>
-
-          <Divider className="my-6" />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <TopWorkers
-              workerData={timesheet?.byWorker || []}
-              selectedStat={selectedStat}
-              totalHours={timesheet?.totalHours || 0}
-            />
-            <TopSponsors
-              sponsorData={timesheet?.bySponsor || []}
-              selectedStat={selectedStat}
-              totalHours={timesheet?.totalHours || 0}
-            />
-          </div>
-
-          <Divider className="my-8" />
-
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold">Cases</h2>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">
-                {filteredCases.length || 0}
-              </span>
-            </div>
-          </div>
-
-          <CasesGallery
-            filteredCases={filteredCases}
-            timesheetData={timesheet}
-          />
-        </>
-      )}
+      <CasesGallery
+        filteredCases={filteredCases}
+        timesheetData={timesheet}
+      />
     </div>
   );
 }
