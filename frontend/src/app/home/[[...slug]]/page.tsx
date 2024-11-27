@@ -1,22 +1,13 @@
 "use client";
 
 import { redirect } from "next/navigation";
-
-import React from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
-import AccountManagerHome from "../../about-us/account-managers/[slug]/page";
-import ConsultantOrEngineerHome from "./ConsultantOrEngineerHome";
-import Header from "./Header";
 
 const GET_USER = gql`
   query GetUser($slug: String, $email: String) {
     user(slug: $slug, email: $email) {
-      name
-      photoUrl
-      email
-      position
       kind
       slug
     }
@@ -52,11 +43,4 @@ export default function HomePage() {
   else {
     redirect(`/about-us/consultants-and-engineers/${user.slug}`);
   }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <Header user={user} />
-      {user && user.kind === "CONSULTANT" && <ConsultantOrEngineerHome user={user} />}
-    </div>
-  );
 }
