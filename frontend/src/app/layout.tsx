@@ -100,7 +100,7 @@ export default function RootLayout({
                           </div>
                         </header>
                         <main>
-                          <div className="container mx-auto px-4 py-4">
+                          <div className="container mx-auto px-4">
                             <InconsistencyAlerts />
                             {children}
                           </div>
