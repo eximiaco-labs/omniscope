@@ -17,7 +17,6 @@ export function OmniBreadcrumb({ currentPage }: OmniBreadcrumbProps) {
   const pathSegments = pathname
     .split("/")
     .filter(segment => segment !== "")
-    .slice(1) // Skip first element
     .map(segment => ({
       name: segment.split("-").map(word => {
         const connectors = ['e', 'do', 'de', 'das', 'dos', 'da', 'and', 'or', 'but', 'if', 'then', 'because', 'as', "by",  'until', 'while', 'as', 'until', 'while', 'as', 'until', 'while'];
