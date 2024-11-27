@@ -1,28 +1,21 @@
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
-import { ChevronDown, ChevronsUpDown } from "lucide-react";
+import { DollarSignIcon, BarChart3Icon, UsersIcon, SettingsIcon } from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
-import { Avatar } from "@/components/ui/avatar";
-import { AvatarImage } from "@radix-ui/react-avatar";
 import Logo from "./logo";
 
 import {
@@ -33,11 +26,8 @@ import {
 } from "@/app/navigation";
 
 import React from "react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { NavUser } from "./NavUser";
+import { getFlag } from "@/app/flags";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -53,6 +43,7 @@ export function OmniSidebar() {
     variables: { email: session?.user?.email },
     skip: !session?.user?.email,
   });
+  const { setOpen } = useSidebar();
 
   const [financialItems, setFinancialItems] = React.useState<
     Array<{ title: string; url: string; icon: any }>
@@ -67,6 +58,13 @@ export function OmniSidebar() {
     Array<{ title: string; url: string; icon: any }>
   >([]);
 
+  const [activeSection, setActiveSection] = React.useState<string>("Analytics");
+  const [activeItems, setActiveItems] = React.useState<
+    Array<{ title: string; url: string; icon: any }>
+  >([]);
+
+  const hasFinancialAccess = getFlag('is-fin-user', session?.user?.email);
+
   React.useEffect(() => {
     async function loadItems() {
       const financial = await getFinancialSidebarItems(session?.user?.email);
@@ -78,116 +76,139 @@ export function OmniSidebar() {
       setAnalyticsItems(analytics);
       setAboutUsItems(aboutUs);
       setAdminItems(admin);
+
+      // Set initial active items based on permissions
+      if (hasFinancialAccess && financial.length > 0) {
+        setActiveSection("Financial");
+        setActiveItems(financial);
+      } else {
+        setActiveSection("Analytics");
+        setActiveItems(analytics);
+      }
     }
     loadItems();
-  }, []);
+  }, [session?.user?.email, hasFinancialAccess]);
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <Link
-                href="/"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center gap-2"
-              >
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Logo className="size-6" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Omniscope</span>
-                  <span className="truncate text-xs">Visual Management</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        {financialItems.length > 0 && (
-          <OmniSidebarGroup title="Financial" items={financialItems} />
-        )}
-        <OmniSidebarGroup title="Analytics" items={analyticsItems} />
-        <OmniSidebarGroup title="About Us" items={aboutUsItems} />
-        <OmniSidebarGroup title="Administrative" items={adminItems} />
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage
-                      src={userData?.user?.photoUrl || "/profile-photo.jpg"}
-                    />
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {session?.user?.name}
-                    </span>
-                    <span className="truncate text-xs">
-                      {session?.user?.email}
-                    </span>
-                  </div>
-                  <ChevronsUpDown className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                className="w-[--radix-popper-anchor-width]"
-              >
-                <DropdownMenuItem>
-                  <Link href="/api/auth/signout">
-                    <span>Sign out</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
-  );
-}
-
-function OmniSidebarGroup({
-  title,
-  items,
-}: {
-  title: string | null;
-  items: { title: string; url: string; icon: any }[];
-}) {
-  return (
-    <Collapsible>
-      <SidebarGroup>
-        {title && (
-          <SidebarGroupLabel asChild>
-            <CollapsibleTrigger>
-              {title}
-              <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-            </CollapsibleTrigger>
-          </SidebarGroupLabel>
-        )}
-        <CollapsibleContent>
+    <Sidebar
+      collapsible="icon"
+      className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
+    >
+      {/* First sidebar - Section selection */}
+      <Sidebar
+        collapsible="none"
+        className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
+      >
+        <SidebarHeader>
           <SidebarMenu>
-            {items.map((item) => (
-              <SidebarMenuSubItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuSubItem>
-            ))}
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
+                <Link href="/">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <Logo className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">Omniscope</span>
+                    <span className="truncate text-xs">Visual Management</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
-        </CollapsibleContent>
-      </SidebarGroup>
-    </Collapsible>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent className="px-1.5 md:px-0">
+              <SidebarMenu>
+                {hasFinancialAccess && financialItems.length > 0 && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={activeSection === "Financial"}
+                      onClick={() => {
+                        setActiveSection("Financial");
+                        setActiveItems(financialItems);
+                        setOpen(true);
+                      }}
+                    >
+                      <DollarSignIcon className="size-4" />
+                      <span>Financial</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={activeSection === "Analytics"}
+                    onClick={() => {
+                      setActiveSection("Analytics");
+                      setActiveItems(analyticsItems);
+                      setOpen(true);
+                    }}
+                  >
+                    <BarChart3Icon className="size-4" />
+                    <span>Analytics</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={activeSection === "About Us"}
+                    onClick={() => {
+                      setActiveSection("About Us");
+                      setActiveItems(aboutUsItems);
+                      setOpen(true);
+                    }}
+                  >
+                    <UsersIcon className="size-4" />
+                    <span>About Us</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={activeSection === "Administrative"}
+                    onClick={() => {
+                      setActiveSection("Administrative");
+                      setActiveItems(adminItems);
+                      setOpen(true);
+                    }}
+                  >
+                    <SettingsIcon className="size-4" />
+                    <span>Administrative</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser />
+        </SidebarFooter>
+      </Sidebar>
+
+      {/* Second sidebar - Items for selected section */}
+      <Sidebar collapsible="none" className="hidden flex-1 md:flex">
+        <SidebarHeader className="border-b p-4">
+          <div className="text-base font-medium text-foreground">
+            {activeSection}
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup className="px-0">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {activeItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <Link href={item.url}>
+                        {/* <item.icon /> */}
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+    </Sidebar>
   );
 }
