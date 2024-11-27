@@ -76,14 +76,14 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
   return (
     <Table>
       <TableHeader>
-        <TableRow className="bg-gray-100">
-          <TableHead className="font-semibold text-left w-[360px]">Case</TableHead>
+        <TableRow>
+          <TableHead className="w-[360px]">Case</TableHead>
           {showSponsorColumn && (
-            <TableHead className="font-semibold text-left">Sponsor</TableHead>
+            <TableHead>Sponsor</TableHead>
           )}
-          <TableHead className="font-semibold text-left">Contract Period</TableHead>
-          <TableHead className="font-semibold text-left">Projects & Team Members</TableHead>
-          <TableHead className="font-semibold text-left">CWH</TableHead>
+          <TableHead>Contract Period</TableHead>
+          <TableHead>Projects & Team Members</TableHead>
+          <TableHead>CWH</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

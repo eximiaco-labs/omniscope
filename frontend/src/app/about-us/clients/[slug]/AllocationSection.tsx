@@ -142,9 +142,7 @@ export function AllocationSection({
               <CasesTable filteredCases={filteredCases} />
             </div>
 
-            <Divider className="my-6" />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 mb-8">
               <TopWorkers
                 workerData={timesheet?.byWorker || []}
                 selectedStat={selectedStat}
