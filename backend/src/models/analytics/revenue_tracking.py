@@ -17,7 +17,7 @@ def _get_account_manager_name(case):
     client = globals.omni_models.clients.get_by_id(case.client_id)
     return client.account_manager.name if client and client.account_manager else NA_VALUE
 
-def _compute_revenue_tracking_base(date_of_interest: date, process_project, account_manager_name: str = None):
+def _compute_revenue_tracking_base(date_of_interest: date, process_project, account_manager_name_or_slug: str = None):
     s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
     e = datetime.combine(date_of_interest, datetime.max.time())
     
@@ -25,8 +25,11 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
     df = timesheet.data
     df = df[df["Kind"] != INTERNAL_KIND]
     
-    if account_manager_name:
-        df = df[df["AccountManagerName"] == account_manager_name]
+    if account_manager_name_or_slug:
+        df_ = df[df["AccountManagerName"] == account_manager_name_or_slug]
+        if len(df_) == 0:
+            df_ = df[df["AccountManagerSlug"] == account_manager_name_or_slug]
+        df = df_    
     
     case_ids = df["CaseId"].unique()
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
@@ -129,7 +132,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
 
 def compute_regular_revenue_tracking(
     date_of_interest: date, 
-    account_manager_name: str = None
+    account_manager_name_or_slug: str = None
 ):
     def process_project(_, project, timesheet_df):
         if project.rate and project.rate.rate:
@@ -145,11 +148,11 @@ def compute_regular_revenue_tracking(
                 }
         return None
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name)
+    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)
 
 def compute_pre_contracted_revenue_tracking(
     date_of_interest: date, 
-    account_manager_name: str = None
+    account_manager_name_or_slug: str = None
 ):
     def process_project(case: Case, project, timesheet_df: pd.DataFrame):
         if project.billing and project.billing.fee and project.billing.fee != 0:
@@ -205,7 +208,7 @@ def compute_pre_contracted_revenue_tracking(
                 }
         return None 
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name)
+    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)
 
 @dataclass
 class AccountManagerSummary:
@@ -523,13 +526,13 @@ def compute_summaries(pre_contracted, regular):
     
 def compute_revenue_tracking(
     date_of_interest: date,
-    account_manager_name: str = None
+    account_manager_name_or_slug: str = None
     ):
     year = date_of_interest.year
     month = date_of_interest.month
     
-    pre_contracted = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name)
-    regular = compute_regular_revenue_tracking(date_of_interest, account_manager_name)
+    pre_contracted = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    regular = compute_regular_revenue_tracking(date_of_interest, account_manager_name_or_slug)
     
     summaries = compute_summaries(pre_contracted, regular)
     
