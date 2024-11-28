@@ -17,13 +17,16 @@ def _get_account_manager_name(case):
     client = globals.omni_models.clients.get_by_id(case.client_id)
     return client.account_manager.name if client and client.account_manager else NA_VALUE
 
-def _compute_revenue_tracking_base(date_of_interest: date, process_project):
+def _compute_revenue_tracking_base(date_of_interest: date, process_project, account_manager_name: str = None):
     s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
     e = datetime.combine(date_of_interest, datetime.max.time())
     
     timesheet = globals.omni_datasets.timesheets.get(s, e)
     df = timesheet.data
     df = df[df["Kind"] != INTERNAL_KIND]
+    
+    if account_manager_name:
+        df = df[df["AccountManagerName"] == account_manager_name]
     
     case_ids = df["CaseId"].unique()
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
@@ -124,7 +127,10 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project):
         }
     }
 
-def compute_regular_revenue_tracking(date_of_interest: date):
+def compute_regular_revenue_tracking(
+    date_of_interest: date, 
+    account_manager_name: str = None
+):
     def process_project(_, project, timesheet_df):
         if project.rate and project.rate.rate:
             project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
@@ -139,9 +145,12 @@ def compute_regular_revenue_tracking(date_of_interest: date):
                 }
         return None
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project)
+    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name)
 
-def compute_pre_contracted_revenue_tracking(date_of_interest: date):
+def compute_pre_contracted_revenue_tracking(
+    date_of_interest: date, 
+    account_manager_name: str = None
+):
     def process_project(case: Case, project, timesheet_df: pd.DataFrame):
         if project.billing and project.billing.fee and project.billing.fee != 0:
             if project.budget and project.budget.period == 'general':
@@ -196,7 +205,7 @@ def compute_pre_contracted_revenue_tracking(date_of_interest: date):
                 }
         return None 
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project)
+    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name)
 
 @dataclass
 class AccountManagerSummary:
@@ -512,12 +521,15 @@ def compute_summaries(pre_contracted, regular):
         "by_mode": by_mode,
     }
     
-def compute_revenue_tracking(date_of_interest: date):
+def compute_revenue_tracking(
+    date_of_interest: date,
+    account_manager_name: str = None
+    ):
     year = date_of_interest.year
     month = date_of_interest.month
     
-    pre_contracted = compute_pre_contracted_revenue_tracking(date_of_interest)
-    regular = compute_regular_revenue_tracking(date_of_interest)
+    pre_contracted = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name)
+    regular = compute_regular_revenue_tracking(date_of_interest, account_manager_name)
     
     summaries = compute_summaries(pre_contracted, regular)
     
