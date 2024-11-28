@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AlertTriangle, Mail } from "lucide-react";
+import SectionHeader from "@/components/SectionHeader";
 
 const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
   query GetAccountManagersAndTimesheet {
@@ -228,16 +229,11 @@ export default function AccountManagers() {
 
   return (
     <>
-      <div className="grid grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-6 gap-4 mb-4">
         <div className="col-span-6">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
             <div className="lg:col-span-1">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ALL TIME
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="All Time" subtitle="" />
               <div
                 className={`${getStatClassName(
                   "allAccountManagers"
@@ -251,15 +247,7 @@ export default function AccountManagers() {
               </div>
             </div>
             <div className="lg:col-span-5">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ACTIVE{" "}
-                  <span className="text-xs text-gray-600 uppercase">
-                    LAST SIX WEEKS
-                  </span>
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="Active" subtitle="Last Six Weeks" />
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 <div
                   className={`${getStatClassName("total")} transform`}
@@ -319,28 +307,29 @@ export default function AccountManagers() {
           </div>
         </div>
       </div>
-      <Divider className="my-8" />
-      <AnimatePresence>
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {filteredAccountManagers.map((manager: any) => (
-            <motion.div
-              key={manager.slug}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-            >
-              <AccountManagerCard manager={manager} />
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <div className="px-2">
+        <AnimatePresence>
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 space-y-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {filteredAccountManagers.map((manager: any) => (
+              <motion.div
+                key={manager.slug}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <AccountManagerCard manager={manager} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </>
   );
 }
