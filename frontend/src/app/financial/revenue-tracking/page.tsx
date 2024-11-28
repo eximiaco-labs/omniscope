@@ -33,10 +33,10 @@ export default function RevenuePage() {
 
       <div className="ml-2 mr-2">
         <Summaries data={data} date={date} />
-        <div className="mt-6">
+        <div className="mt-4">
           <RegularRevenue data={data} date={date} />
         </div>
-        <div className="mt-6">
+        <div className="mt-4">
           <PreContractedRevenue data={data} date={date} />
         </div>
       </div>
