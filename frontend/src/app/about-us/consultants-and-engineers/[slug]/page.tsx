@@ -13,7 +13,7 @@ import { CasesSummary } from "../../account-managers/[slug]/CasesSummary";
 export default function ConsultantPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [selectedDataset, setSelectedDataset] = useState("timesheet-last-six-weeks");
+  const [selectedDataset, setSelectedDataset] = useState("timesheet-this-month");
 
   const { data, loading, error } = useQuery<{ consultantOrEngineer: Consultant }>(
     GET_CONSULTANT,
@@ -50,17 +50,6 @@ export default function ConsultantPage() {
         onDatasetSelect={setSelectedDataset}
         showWorkersInfo={false}
       />
-      
-      {/* <div className="mb-4">
-        <SectionHeader
-          title="Performance Analysis"
-          subtitle={new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        />
-      </div> */}
     </div>
   );
 }

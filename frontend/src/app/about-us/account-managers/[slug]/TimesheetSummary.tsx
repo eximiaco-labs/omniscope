@@ -34,6 +34,72 @@ interface Worker {
   [key: string]: string | number;
 }
 
+interface CategoryCardProps {
+  title: string;
+  color: string;
+  data: any;
+  selectedCard: string | null;
+  showWorkersInfo: boolean;
+  onCardClick: (title: string) => void;
+}
+
+const CategoryCard = ({ title, color, data, selectedCard, showWorkersInfo, onCardClick }: CategoryCardProps) => {
+  const formatHours = (hours: number) => {
+    return `${Math.round(hours * 10) / 10}h`;
+  };
+
+  return (
+    <Card
+      key={title}
+      className={`text-white transition-all duration-200 h-[140px] ${
+        data?.totalHours === 0 ? "opacity-50" : "cursor-pointer"
+      } ${
+        selectedCard === title && data?.totalHours > 0
+          ? "ring-2 ring-offset-2 ring-black scale-105"
+          : data?.totalHours > 0
+          ? "hover:scale-102"
+          : ""
+      }`}
+      style={{ backgroundColor: color }}
+      onClick={() => {
+        if (data?.totalHours > 0) {
+          onCardClick(title);
+        }
+      }}
+      role={data?.totalHours > 0 ? "button" : "presentation"}
+      tabIndex={data?.totalHours > 0 ? 0 : -1}
+      onKeyDown={(e) => {
+        if (data?.totalHours > 0 && (e.key === "Enter" || e.key === " ")) {
+          onCardClick(title);
+        }
+      }}
+    >
+      <CardHeader className="pb-2">
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="pb-2">
+        <div className="text-3xl font-bold">
+          {formatHours(data?.totalHours || 0)}
+        </div>
+      </CardContent>
+      <CardFooter>
+        <div className="text-[10px] text-left">
+          <div className="font-medium">
+            {data?.uniqueClients} client{data?.uniqueClients !== 1 ? "s" : ""} •{" "}
+            {data?.uniqueSponsors} sponsor{data?.uniqueSponsors !== 1 ? "s" : ""} •{" "}
+            {data?.uniqueCases} case{data?.uniqueCases !== 1 ? "s" : ""}
+            {showWorkersInfo && (
+              <>
+                {" "}• {data?.uniqueWorkers} worker{data?.uniqueWorkers !== 1 ? "s" : ""}
+              </>
+            )}
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
 export function TimesheetSummary({
   timesheet,
   selectedDataset,
@@ -313,61 +379,15 @@ export function TimesheetSummary({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {categories.map(({ title, color, data }) => (
-            <Card
+            <CategoryCard
               key={title}
-              className={`text-white transition-all duration-200 h-[140px] ${
-                data?.totalHours === 0 ? "opacity-50" : "cursor-pointer"
-              } ${
-                selectedCard === title && data?.totalHours > 0
-                  ? "ring-2 ring-offset-2 ring-black scale-105"
-                  : data?.totalHours > 0
-                  ? "hover:scale-102"
-                  : ""
-              }`}
-              style={{ backgroundColor: color }}
-              onClick={() => {
-                if (data?.totalHours > 0) {
-                  setSelectedCard(selectedCard === title ? null : title);
-                }
-              }}
-              role={data?.totalHours > 0 ? "button" : "presentation"}
-              tabIndex={data?.totalHours > 0 ? 0 : -1}
-              onKeyDown={(e) => {
-                if (
-                  data?.totalHours > 0 &&
-                  (e.key === "Enter" || e.key === " ")
-                ) {
-                  setSelectedCard(selectedCard === title ? null : title);
-                }
-              }}
-            >
-              <CardHeader className="pb-2">
-                <CardTitle>{title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="text-3xl font-bold">
-                  {formatHours(data?.totalHours || 0)}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <div className="text-[10px] text-left">
-                  <div className="font-medium">
-                    {data?.uniqueClients} client
-                    {data?.uniqueClients !== 1 ? "s" : ""} •{" "}
-                    {data?.uniqueSponsors} sponsor
-                    {data?.uniqueSponsors !== 1 ? "s" : ""} •{" "}
-                    {data?.uniqueCases} case
-                    {data?.uniqueCases !== 1 ? "s" : ""}
-                    {showWorkersInfo && (
-                      <>
-                        {" "}• {data?.uniqueWorkers}{" "}
-                        worker{data?.uniqueWorkers !== 1 ? "s" : ""}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardFooter>
-            </Card>
+              title={title}
+              color={color}
+              data={data}
+              selectedCard={selectedCard}
+              showWorkersInfo={showWorkersInfo}
+              onCardClick={(title) => setSelectedCard(selectedCard === title ? null : title)}
+            />
           ))}
         </div>
 
