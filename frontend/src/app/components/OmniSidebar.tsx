@@ -28,6 +28,7 @@ import {
 import React from "react";
 import { NavUser } from "./NavUser";
 import { getFlag } from "@/app/flags";
+import { usePathname } from "next/navigation";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -44,6 +45,7 @@ export function OmniSidebar() {
     skip: !session?.user?.email,
   });
   const { setOpen } = useSidebar();
+  const pathname = usePathname();
 
   const [financialItems, setFinancialItems] = React.useState<
     Array<{ title: string; url: string; icon: any }>
@@ -196,7 +198,7 @@ export function OmniSidebar() {
               <SidebarMenu>
                 {activeItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.url)}>
                       <Link href={item.url}>
                         {/* <item.icon /> */}
                         <span>{item.title}</span>
