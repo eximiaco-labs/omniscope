@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { Badge } from "@/components/catalyst/badge";
 import { Heading } from "@/components/catalyst/heading";
 import { useQuery } from "@apollo/client";
-import { useState, useEffect } from "react";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +14,7 @@ import { Option } from "react-tailwindcss-select/dist/components/type";
 import { CasesGallery } from "./CasesGallery";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import SectionHeader from "@/components/SectionHeader";
 
 export default function Cases() {
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
@@ -26,6 +28,7 @@ export default function Cases() {
       filters:
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
+    ssr: true
   });
   const [selectedStat, setSelectedStat] = useState<string>("allCases");
 
@@ -111,16 +114,11 @@ export default function Cases() {
           />
         </div>
       </div>
-      <div className="grid grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-6 gap-4 mb-4">
         <div className="col-span-6">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
             <div className="lg:col-span-1">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ALL TIME
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="All Time" subtitle="" />
               <div
                 className={`${getStatClassName("allCases")} transform`}
                 onClick={() => handleStatClick("allCases")}
@@ -129,15 +127,7 @@ export default function Cases() {
               </div>
             </div>
             <div className="lg:col-span-5">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ACTIVE{" "}
-                  <span className="text-xs text-gray-600 uppercase">
-                    LAST SIX WEEKS
-                  </span>
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="Active" subtitle="Last Six Weeks" />
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 <div
                   className={`${getStatClassName("total")} transform`}
@@ -205,21 +195,31 @@ export default function Cases() {
           </div>
         </div>
       </div>
-      <Divider className="my-8" />
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search cases..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <div className="px-2">
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search cases..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CasesGallery 
+              filteredCases={filteredCases} 
+              timesheetData={data.timesheet} 
+            />
+          </motion.div>
+        </AnimatePresence>
       </div>
-      <CasesGallery 
-        filteredCases={filteredCases} 
-        timesheetData={data.timesheet} 
-      />
     </>
   );
 }
