@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { STAT_COLORS } from "@/app/constants/colors";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DatasetSelector from "@/app/analytics/datasets/DatasetSelector";
 import { ClientSponsorCaseWorkerTable } from "./ClientSponsorCaseWorkerTable";
@@ -48,55 +42,60 @@ const CategoryCard = ({ title, color, data, selectedCard, showWorkersInfo, onCar
     return `${Math.round(hours * 10) / 10}h`;
   };
 
+  const numericValue = data?.totalHours || 0;
+  const percentage = data?.totalHours ? ((data.totalHours / data.totalHours) * 100).toFixed(1) : null;
+
   return (
-    <Card
-      key={title}
-      className={`text-white transition-all duration-200 h-[140px] ${
-        data?.totalHours === 0 ? "opacity-50" : "cursor-pointer"
+    <div
+      className={`p-6 text-white border border-gray-200 rounded-sm relative transition-all duration-200 h-[120px] ${
+        numericValue === 0 ? "opacity-50" : "cursor-pointer"
       } ${
-        selectedCard === title && data?.totalHours > 0
+        selectedCard === title && numericValue > 0
           ? "ring-2 ring-offset-2 ring-black scale-105"
-          : data?.totalHours > 0
+          : numericValue > 0
           ? "hover:scale-102"
           : ""
       }`}
       style={{ backgroundColor: color }}
       onClick={() => {
-        if (data?.totalHours > 0) {
+        if (numericValue > 0) {
           onCardClick(title);
         }
       }}
-      role={data?.totalHours > 0 ? "button" : "presentation"}
-      tabIndex={data?.totalHours > 0 ? 0 : -1}
+      role={numericValue > 0 ? "button" : "presentation"}
+      tabIndex={numericValue > 0 ? 0 : -1}
       onKeyDown={(e) => {
-        if (data?.totalHours > 0 && (e.key === "Enter" || e.key === " ")) {
+        if (numericValue > 0 && (e.key === "Enter" || e.key === " ")) {
           onCardClick(title);
         }
       }}
     >
-      <CardHeader className="pb-2">
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <div className="text-3xl font-bold">
-          {formatHours(data?.totalHours || 0)}
+      <h3 className="text-sm font-medium text-white">{title}</h3>
+      <div className="mt-1 text-3xl font-semibold">
+        {formatHours(numericValue)}
+      </div>
+      <div className="absolute top-6 right-2 text-[10px] opacity-90">
+        <ul className="list-none text-right">
+          {data?.uniqueClients > 0 && (
+            <li>{data.uniqueClients} client{data.uniqueClients !== 1 ? "s" : ""}</li>
+          )}
+          {data?.uniqueSponsors > 0 && (
+            <li>{data.uniqueSponsors} sponsor{data.uniqueSponsors !== 1 ? "s" : ""}</li>
+          )}
+          {data?.uniqueCases > 0 && (
+            <li>{data.uniqueCases} case{data.uniqueCases !== 1 ? "s" : ""}</li>
+          )}
+          {showWorkersInfo && data?.uniqueWorkers > 0 && (
+            <li>{data.uniqueWorkers} worker{data.uniqueWorkers !== 1 ? "s" : ""}</li>
+          )}
+        </ul>
+      </div>
+      {percentage && (
+        <div className="absolute bottom-2 right-2 text-xs opacity-90">
+          {`${percentage}%`}
         </div>
-      </CardContent>
-      <CardFooter>
-        <div className="text-[10px] text-left">
-          <div className="font-medium">
-            {data?.uniqueClients} client{data?.uniqueClients !== 1 ? "s" : ""} •{" "}
-            {data?.uniqueSponsors} sponsor{data?.uniqueSponsors !== 1 ? "s" : ""} •{" "}
-            {data?.uniqueCases} case{data?.uniqueCases !== 1 ? "s" : ""}
-            {showWorkersInfo && (
-              <>
-                {" "}• {data?.uniqueWorkers} worker{data?.uniqueWorkers !== 1 ? "s" : ""}
-              </>
-            )}
-          </div>
-        </div>
-      </CardFooter>
-    </Card>
+      )}
+    </div>
   );
 };
 
