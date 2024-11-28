@@ -6,7 +6,6 @@ import { GET_ACCOUNT_MANAGER, AccountManager } from "./queries";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { TimesheetSummary } from "./TimesheetSummary";
-import SectionHeader from "@/components/SectionHeader";
 import { CasesSummary } from "./CasesSummary";
 import { ActiveDealsSummary } from "./ActiveDealsSummary";
 import { Summaries } from "@/app/financial/revenue-tracking/components/Summaries";
@@ -17,7 +16,7 @@ export default function AccountManagerPage() {
   const slug = params.slug as string;
   const [selectedDataset, setSelectedDataset] = useState("timesheet-last-six-weeks");
 
-  const { data, loading, error } = useQuery<{ accountManager: AccountManager, revenueTracking: RevenueTrackingQuery }>(
+  const { data, loading, error } = useQuery<{ accountManager: AccountManager, revenueTracking: any }>(
     GET_ACCOUNT_MANAGER,
     {
       variables: { 
@@ -46,7 +45,8 @@ export default function AccountManagerPage() {
         </div>
       </header>
 
-      <Summaries data={data} date={new Date()} />
+     
+      <Summaries data={ data } date={new Date()} />
 
       <TimesheetSummary 
         timesheet={data.accountManager.timesheet}
