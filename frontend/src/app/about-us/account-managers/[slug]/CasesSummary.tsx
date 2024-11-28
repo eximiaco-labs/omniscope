@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { AccountManager } from "./queries";
 import SectionHeader from "@/components/SectionHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "react-day-picker";
 import { Badge } from "@/components/catalyst/badge";
 
 interface CasesSummaryProps {
