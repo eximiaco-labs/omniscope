@@ -14,7 +14,7 @@ import Link from "next/link";
 import { Stat } from "@/app/components/analytics/stat";
 
 interface SummariesProps {
-  data: RevenueTrackingQuery;
+  data: any;
   date: Date;
 }
 
