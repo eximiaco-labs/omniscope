@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { AccountManager } from "./queries";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
@@ -76,16 +75,18 @@ export function ActiveDealsSummary({ activeDeals }: ActiveDealsSummaryProps) {
       <SectionHeader title="Active Deals Summary" subtitle="" />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 ml-2 mr-2">
         {summaryCards.map((card, index) => (
-          <Card 
+          <div 
             key={card.title} 
-            className={`transition-all duration-200 ${
+            className={`p-6 border border-gray-200 rounded-sm relative transition-all duration-200 h-[120px] ${
               card.count === 0 ? "opacity-50" : "cursor-pointer"
             } ${
               selectedCard === card.title && card.count > 0
                 ? "ring-2 ring-offset-2 ring-black scale-105"
                 : card.count > 0
-                ? "hover:scale-102 hover:shadow-md"
+                ? "hover:scale-102"
                 : ""
+            } ${
+              index > 0 && card.count > 0 ? "bg-red-600 text-white" : ""
             }`}
             onClick={() => {
               if (card.count > 0) {
@@ -100,15 +101,28 @@ export function ActiveDealsSummary({ activeDeals }: ActiveDealsSummaryProps) {
             }}
             role={card.count > 0 ? "button" : "presentation"}
             tabIndex={card.count > 0 ? 0 : -1}
+            onKeyDown={(e) => {
+              if (card.count > 0 && (e.key === "Enter" || e.key === " ")) {
+                setSelectedCard(selectedCard === card.title ? null : card.title);
+                if (card.title !== selectedCard) {
+                  setSortConfig({
+                    key: getDefaultSortKey(card.title),
+                    direction: 'asc'
+                  });
+                }
+              }
+            }}
           >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold">{card.title}</CardTitle>
-              <CardDescription className="text-sm text-gray-500">{card.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{card.count}</p>
-            </CardContent>
-          </Card>
+            <h3 className={`text-sm font-medium ${index > 0 && card.count > 0 ? "text-white" : ""}`}>
+              {card.title}
+            </h3>
+            <div className={`text-3xl font-semibold ${index > 0 && card.count > 0 ? "text-white" : ""}`}>
+              {card.count}
+            </div>
+            <div className={`absolute bottom-4 right-4 text-[10px] max-w-[50%] text-right ${index > 0 && card.count > 0 ? "text-white/80" : "text-gray-500"}`}>
+              {card.description}
+            </div>
+          </div>
         ))}
       </div>
 

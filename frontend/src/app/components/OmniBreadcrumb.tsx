@@ -6,6 +6,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Slash } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 interface OmniBreadcrumbProps {
@@ -17,7 +18,6 @@ export function OmniBreadcrumb({ currentPage }: OmniBreadcrumbProps) {
   const pathSegments = pathname
     .split("/")
     .filter(segment => segment !== "")
-    .slice(1) // Skip first element
     .map(segment => ({
       name: segment.split("-").map(word => {
         const connectors = ['e', 'do', 'de', 'das', 'dos', 'da', 'and', 'or', 'but', 'if', 'then', 'because', 'as', "by",  'until', 'while', 'as', 'until', 'while', 'as', 'until', 'while'];
@@ -40,9 +40,11 @@ export function OmniBreadcrumb({ currentPage }: OmniBreadcrumbProps) {
         </BreadcrumbItem>
         {pathSegments.map((segment, index) => (
           <>
-            <BreadcrumbSeparator key={`sep-${index}`} className="hidden md:block" />
+            <BreadcrumbSeparator key={`sep-${index}`} className="hidden md:block">
+              <Slash />
+            </BreadcrumbSeparator>
             <BreadcrumbItem key={`item-${index}`} className="hidden md:block">
-              {index === pathSegments.length - 1 ? (
+              {index === pathSegments.length - 1 || index === 0? (
                 <BreadcrumbPage>{segment.name}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink href={`/${pathSegments.slice(0, index + 1).map(s => s.path).join("/")}`}>

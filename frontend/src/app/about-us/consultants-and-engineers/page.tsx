@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Avatar } from "@/components/catalyst/avatar";
+import { Badge } from "@/components/catalyst/badge";
 import { Heading } from "@/components/catalyst/heading";
 import { gql, useQuery } from "@apollo/client";
 import { Stat } from "@/app/components/analytics/stat";
@@ -9,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { WorkerCard } from "./WorkerCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import SectionHeader from "@/components/SectionHeader";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
@@ -145,16 +148,11 @@ export default function ConsultantsAndEngineers() {
 
   return (
     <>
-      <div className="grid grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-6 gap-4 mb-4">
         <div className="col-span-6">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
             <div className="lg:col-span-1">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ALL TIME
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="All Time" subtitle="" />
               <div
                 className={`${getStatClassName("allWorkers")} transform`}
                 onClick={() => handleStatClick("allWorkers")}
@@ -166,15 +164,7 @@ export default function ConsultantsAndEngineers() {
               </div>
             </div>
             <div className="lg:col-span-5">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ACTIVE{" "}
-                  <span className="text-xs text-gray-600 uppercase">
-                    LAST SIX WEEKS
-                  </span>
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="Active" subtitle="Last Six Weeks" />
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 <div
                   className={`${getStatClassName("total")} transform`}
@@ -234,7 +224,6 @@ export default function ConsultantsAndEngineers() {
           </div>
         </div>
       </div>
-      <Divider className="my-8" />
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -245,32 +234,34 @@ export default function ConsultantsAndEngineers() {
           className="pl-10"
         />
       </div>
-      <AnimatePresence>
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {filteredWorkers.map((worker) => (
-            <motion.div
-              key={worker.slug}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-            >
-              <WorkerCard
-                worker={worker}
-                workerData={data.timesheet.byWorker.find(
-                  (w) => w.name === worker.name
-                )}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <div className="px-2">
+        <AnimatePresence>
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 space-y-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {filteredWorkers.map((worker) => (
+              <motion.div
+                key={worker.slug}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <WorkerCard
+                  worker={worker}
+                  workerData={data.timesheet.byWorker.find(
+                    (w) => w.name === worker.name
+                  )}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </>
   );
 }

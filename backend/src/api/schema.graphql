@@ -39,7 +39,7 @@ type Query {
   projects: [Project!]!
   approvedVsActual(start: Date!, end: Date!): ApprovedVsActual!
   performanceAnalysis(dateOfInterest: Date!): PerformanceAnalysis!
-  revenueTracking(dateOfInterest: Date!): RevenueTracking!
+  revenueTracking(dateOfInterest: Date, accountManagerNameOrSlug: String): RevenueTracking!
 
   activeDeals(accountManagerSlug: String, accountManagerName: String): [ActiveDeal!]!
   activeDeal(id: Int): ActiveDeal

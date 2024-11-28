@@ -14,7 +14,7 @@ import Link from "next/link";
 import { Stat } from "@/app/components/analytics/stat";
 
 interface SummariesProps {
-  data: RevenueTrackingQuery;
+  data: any;
   date: Date;
 }
 
@@ -153,7 +153,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
   };
 
   return (
-    <div className="bg-white p-4">
+    <div className="bg-white px-2">
       <SectionHeader title={title} subtitle="" />
       <div className="px-2 mt-4">
         <div className="overflow-x-auto">
@@ -339,7 +339,7 @@ export function Summaries({ data, date }: SummariesProps) {
   const summaries = data.revenueTracking.summaries;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <SectionHeader
         title={format(date, "MMMM yyyy 'Revenue Summary'")}
         subtitle={format(date, "'until' EEEE, dd")}

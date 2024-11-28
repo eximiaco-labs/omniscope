@@ -1,3 +1,4 @@
+import { RevenueTrackingQuery } from "@/app/financial/revenue-tracking/types";
 import { gql } from "@apollo/client";
 
 export const GET_ACCOUNT_MANAGER = gql`
@@ -86,6 +87,57 @@ export const GET_ACCOUNT_MANAGER = gql`
             totalSquadHours
             totalInternalHours
           }
+        }
+      }
+    }
+
+    revenueTracking(accountManagerNameOrSlug: $slug) {
+      year
+      month
+      summaries {
+        byMode {
+          regular
+          preContracted
+          total
+        }
+        byKind {
+          name
+          regular
+          preContracted
+          total
+        }
+        byAccountManager {
+          name
+          slug
+          regular
+          preContracted
+          total
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
+        }
+        byClient {
+          name
+          slug
+          regular
+          preContracted
+          total
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
+        }
+        bySponsor {
+          name
+          slug
+          regular
+          preContracted
+          total
+          consultingFee
+          consultingPreFee
+          handsOnFee
+          squadFee
         }
       }
     }

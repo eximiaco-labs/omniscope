@@ -1,5 +1,6 @@
 import React from 'react';
 import { Stat } from "@/app/components/analytics/stat";
+import SectionHeader from "@/components/SectionHeader";
 
 interface ClientStatsSectionProps {
   data: any | null;
@@ -47,27 +48,17 @@ const ClientStatsSection: React.FC<ClientStatsSectionProps> = ({ data, selectedS
   ];
 
   return (
-    <div className="grid grid-cols-6 gap-4 mb-8">
+    <div className="grid grid-cols-6 gap-4">
       <div className="col-span-6">
         <div className={`grid grid-cols-1 ${data.clients ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4`}>
           {data.clients && (
             <div className="lg:col-span-1">
-              <div className="flex items-center mb-3">
-                <p className="text-sm font-semibold text-gray-900 uppercase">
-                  ALL TIME
-                </p>
-                <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-              </div>
+              <SectionHeader title="All Time" subtitle="" />
               {renderStat('allClients', 'All Clients', data.clients.length.toString())}
             </div>
           )}
           <div className={data.clients ? 'lg:col-span-5' : 'lg:col-span-6'}>
-            <div className="flex items-center mb-3">
-              <p className="text-sm font-semibold text-gray-900 uppercase">
-                ACTIVE <span className="text-xs text-gray-600 uppercase">LAST SIX WEEKS</span>
-              </p>
-              <div className="flex-grow h-px bg-gray-200 ml-2"></div>
-            </div>
+            <SectionHeader title="Active" subtitle="Last Six Weeks" />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
               {stats.map(stat => renderStat(stat.name, stat.title, stat.value, stat.color, data.timesheet?.uniqueClients))}
             </div>

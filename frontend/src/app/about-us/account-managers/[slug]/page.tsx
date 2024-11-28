@@ -9,13 +9,15 @@ import { TimesheetSummary } from "./TimesheetSummary";
 import SectionHeader from "@/components/SectionHeader";
 import { CasesSummary } from "./CasesSummary";
 import { ActiveDealsSummary } from "./ActiveDealsSummary";
+import { Summaries } from "@/app/financial/revenue-tracking/components/Summaries";
+import { RevenueTrackingQuery } from "@/app/financial/revenue-tracking/types";
 
 export default function AccountManagerPage() {
   const params = useParams();
   const slug = params.slug as string;
   const [selectedDataset, setSelectedDataset] = useState("timesheet-last-six-weeks");
 
-  const { data, loading, error } = useQuery<{ accountManager: AccountManager }>(
+  const { data, loading, error } = useQuery<{ accountManager: AccountManager, revenueTracking: RevenueTrackingQuery }>(
     GET_ACCOUNT_MANAGER,
     {
       variables: { 
@@ -44,6 +46,8 @@ export default function AccountManagerPage() {
         </div>
       </header>
 
+      <Summaries data={data} date={new Date()} />
+
       <TimesheetSummary 
         timesheet={data.accountManager.timesheet}
         selectedDataset={selectedDataset}
@@ -53,17 +57,6 @@ export default function AccountManagerPage() {
       <CasesSummary cases={data.accountManager.cases} />
 
       <ActiveDealsSummary activeDeals={data.accountManager.activeDeals} />
-      
-      {/* <div className="mb-4">
-        <SectionHeader
-          title="Consulting Performance Analysis"
-          subtitle={new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        />
-      </div> */}
     </div>
   );
 }
