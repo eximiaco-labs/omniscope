@@ -68,7 +68,7 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
   const summaryCards = [
     {
       title: "Active Cases",
-      description: "Total number of active cases being managed",
+      description: "Total number of cases being managed",
       count: cases.length,
       items: cases
     },
@@ -80,7 +80,7 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
     },
     {
       title: "Stale Updates",
-      description: "Cases that haven't been updated in over 30 days",
+      description: "Cases not updated in 30+ days",
       count: cases.filter(c => c.isStale).length,
       items: cases.filter(c => c.isStale)
     },
@@ -123,15 +123,15 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
       <SectionHeader title="Cases summary" subtitle="" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 ml-2 mr-2">
         {summaryCards.map((card, index) => (
-          <Card 
+          <div 
             key={card.title} 
-            className={`transition-all duration-200 ${
+            className={`p-6 border border-gray-200 rounded-sm relative transition-all duration-200 h-[120px] ${
               card.count === 0 ? "opacity-50" : "cursor-pointer"
             } ${
               selectedCard === card.title && card.count > 0
                 ? "ring-2 ring-offset-2 ring-black scale-105"
                 : card.count > 0
-                ? "hover:scale-102 hover:shadow-md"
+                ? "hover:scale-102"
                 : ""
             } ${
               index > 0 && card.count > 0 ? "bg-red-600 text-white" : ""
@@ -161,14 +161,16 @@ export function CasesSummary({ cases }: CasesSummaryProps) {
               }
             }}
           >
-            <CardHeader className="pb-2">
-              <CardTitle className={`text-lg font-semibold ${index > 0 && card.count > 0 ? "text-white" : ""}`}>{card.title}</CardTitle>
-              <CardDescription className={`text-sm ${index > 0 && card.count > 0 ? "text-white/80" : "text-gray-500"}`}>{card.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className={`text-3xl font-bold ${index > 0 && card.count > 0 ? "text-white" : ""}`}>{card.count}</p>
-            </CardContent>
-          </Card>
+            <h3 className={`text-sm font-medium ${index > 0 && card.count > 0 ? "text-white" : ""}`}>
+              {card.title}
+            </h3>
+            <div className={`text-3xl font-semibold ${index > 0 && card.count > 0 ? "text-white" : ""}`}>
+              {card.count}
+            </div>
+            <div className={`absolute bottom-4 right-4 text-[10px] max-w-[50%] text-right ${index > 0 && card.count > 0 ? "text-white/80" : "text-gray-500"}`}>
+              {card.description}
+            </div>
+          </div>
         ))}
       </div>
 

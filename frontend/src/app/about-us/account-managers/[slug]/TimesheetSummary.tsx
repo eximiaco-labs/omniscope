@@ -35,15 +35,16 @@ interface CategoryCardProps {
   selectedCard: string | null;
   showWorkersInfo: boolean;
   onCardClick: (title: string) => void;
+  totalHours: number;
 }
 
-const CategoryCard = ({ title, color, data, selectedCard, showWorkersInfo, onCardClick }: CategoryCardProps) => {
+const CategoryCard = ({ title, color, data, selectedCard, showWorkersInfo, onCardClick, totalHours }: CategoryCardProps) => {
   const formatHours = (hours: number) => {
     return `${Math.round(hours * 10) / 10}h`;
   };
 
   const numericValue = data?.totalHours || 0;
-  const percentage = data?.totalHours ? ((data.totalHours / data.totalHours) * 100).toFixed(1) : null;
+  const percentage = totalHours > 0 ? ((numericValue / totalHours) * 100).toFixed(1) : null;
 
   return (
     <div
@@ -360,6 +361,8 @@ export function TimesheetSummary({
     },
   ];
 
+  const totalHours = categories.reduce((sum, category) => sum + (category.data?.totalHours || 0), 0);
+
   const selectedCategory = categories.find((cat) => cat.title === selectedCard);
   const sortedClientData = selectedCategory?.clientData
     .filter((client) => client.totalHours > 0)
@@ -386,6 +389,7 @@ export function TimesheetSummary({
               selectedCard={selectedCard}
               showWorkersInfo={showWorkersInfo}
               onCardClick={(title) => setSelectedCard(selectedCard === title ? null : title)}
+              totalHours={totalHours}
             />
           ))}
         </div>
