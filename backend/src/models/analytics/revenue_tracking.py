@@ -1,6 +1,6 @@
 import globals
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from models.helpers.slug import slugify
 from models.domain.cases import Case
 import pandas as pd
@@ -59,12 +59,12 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
                     if case.find_client_name(globals.omni_models.clients) == client_name and case.sponsor == sponsor_name:
                         by_project = []
                         for project in case.tracker_info:
-                            project_data = process_project(case, project, df)
+                            project_data = process_project(date_of_interest, case, project, df)
                             if project_data:
                                 by_project.append(project_data)
                     
                         if len(by_project) > 0:
-                            by_case.append({
+                            case_ = {
                                 "title": case.title,
                                 "slug": case.slug,
                                 "fee": sum(project["fee"] for project in by_project),
@@ -73,10 +73,15 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
                                 "hands_on_fee": sum(project["fee"] for project in by_project if project["kind"] == "handsOn"),
                                 "squad_fee": sum(project["fee"] for project in by_project if project["kind"] == "squad"),
                                 "by_project": sorted(by_project, key=lambda x: x["name"])
-                            })
+                            }
+                            
+                            if "partial" in by_project[0]:
+                                case_["partial"] = any("partial" in project and project["partial"] for project in by_project)
+                            
+                            by_case.append(case_)
                 
                 if len(by_case) > 0:
-                    by_sponsor.append({
+                    sponsor_ = {
                         "name": sponsor_name,
                         "slug": slugify(sponsor_name),
                         "by_case": by_case, 
@@ -85,11 +90,16 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
                         "consulting_pre_fee": sum(case["consulting_pre_fee"] for case in by_case),
                         "hands_on_fee": sum(case["hands_on_fee"] for case in by_case),
                         "squad_fee": sum(case["squad_fee"] for case in by_case),
-                    })
+                        }
+                    
+                    if "partial" in by_case[0]:
+                        sponsor_["partial"] = any("partial" in case and case["partial"] for case in by_case)
+                    
+                    by_sponsor.append(sponsor_)
             
             if len(by_sponsor) > 0:
                 client = globals.omni_models.clients.get_by_name(client_name)
-                by_client.append({
+                client_ = {
                     "name": client_name,
                     "slug": client.slug if client else None,
                     "by_sponsor": by_sponsor,
@@ -98,11 +108,16 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
                     "consulting_pre_fee": sum(sponsor["consulting_pre_fee"] for sponsor in by_sponsor),
                     "hands_on_fee": sum(sponsor["hands_on_fee"] for sponsor in by_sponsor),
                     "squad_fee": sum(sponsor["squad_fee"] for sponsor in by_sponsor),
-                })
+                }
+                
+                if "partial" in by_sponsor[0]:
+                    client_["partial"] = any("partial" in sponsor and sponsor["partial"] for sponsor in by_sponsor)
+                
+                by_client.append(client_)
         
         if len(by_client) > 0:
             account_manager = globals.omni_models.workers.get_by_name(account_manager_name)
-            by_account_manager.append({
+            account_manager_ = {
                 "name": account_manager_name,
                 "slug": account_manager.slug if account_manager else None,
                 "by_client": by_client,
@@ -111,7 +126,12 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
                 "consulting_pre_fee": sum(client["consulting_pre_fee"] for client in by_client),
                 "hands_on_fee": sum(client["hands_on_fee"] for client in by_client),
                 "squad_fee": sum(client["squad_fee"] for client in by_client),
-            })
+                }
+            
+            if "partial" in by_client[0]:
+                account_manager_["partial"] = any("partial" in client and client["partial"] for client in by_client)
+            
+            by_account_manager.append(account_manager_)
             
     total = sum(account_manager["fee"] for account_manager in by_account_manager)
     total_consulting_fee = sum(account_manager["consulting_fee"] for account_manager in by_account_manager)
@@ -134,7 +154,7 @@ def compute_regular_revenue_tracking(
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
-    def process_project(_, project, timesheet_df):
+    def process_project(date_of_interest: date, _, project, timesheet_df):
         if project.rate and project.rate.rate:
             project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
             if len(project_df) > 0:
@@ -154,7 +174,7 @@ def compute_pre_contracted_revenue_tracking(
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
-    def process_project(case: Case, project, timesheet_df: pd.DataFrame):
+    def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame):
         if project.billing and project.billing.fee and project.billing.fee != 0:
             if project.budget and project.budget.period == 'general':
 
@@ -200,12 +220,39 @@ def compute_pre_contracted_revenue_tracking(
                     "fixed": True
                 }
             else:
+                project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+                partial = False
+                fee = project.billing.fee / 100
+                partial_fee = 0
+                
+                if project.kind != "consulting":    
+                    is_last_day_of_month = date_of_interest.month != (date_of_interest + timedelta(days=1)).month
+                    if is_last_day_of_month:
+                        workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index()
+                        number_of_workers = len(workers_hours)
+                        fee_per_worker = fee / number_of_workers
+                        hourly_fee = fee_per_worker / 160
+                        for worker_name, hours in workers_hours.values:
+                            if hours < 140:
+                                print(f'--> ({project.kind}) - {project.name} has partial billing for {worker_name} with {hours} hours')
+                                partial = True
+                                partial_fee += hourly_fee * hours
+                            
+                # TODO: Verificar se tem algum colaborador lançando horas no primeiro dia de trabalho do mês
+                # TODO: fator individual por trabalhador   
+                # TODO: O que fazer com "trabalhaadores ocasionais"
+                
+                if partial:
+                    print(f'--> ({project.kind}) - {project.name} has partial billing of {partial_fee} instead of {fee}')
+                
                 return {
                     "kind": project.kind,
                     "name": project.name,
-                    "fee": project.billing.fee / 100,
+                    "fee": partial_fee if partial else fee,
+                    "partial": partial,
                     "fixed": True
                 }
+                
         return None 
     
     return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)

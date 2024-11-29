@@ -394,6 +394,7 @@ type RevenueTrackingByAccountManager {
   regular: Float!
   preContracted: Float!
   total: Float!
+  partial: Boolean
   byClient: [RevenueTrackingByClient!]!
 }
 
@@ -408,6 +409,7 @@ type RevenueTrackingByClient {
   regular: Float!
   preContracted: Float!
   total: Float!
+  partial: Boolean
   bySponsor: [RevenueTrackingBySponsor!]!
 }
 
@@ -422,6 +424,7 @@ type RevenueTrackingBySponsor {
   regular: Float!
   preContracted: Float!
   total: Float!
+  partial: Boolean
   byCase: [RevenueTrackingByCase!]!
 }
 
@@ -436,6 +439,7 @@ type RevenueTrackingByCase {
   regular: Float!
   preContracted: Float!
   total: Float!
+  partial: Boolean
   byProject: [RevenueTrackingByProject!]!
 }
 
@@ -445,4 +449,5 @@ type RevenueTrackingByProject {
   rate: Float
   hours: Float
   fee: Float!
+  partial: Boolean
 }

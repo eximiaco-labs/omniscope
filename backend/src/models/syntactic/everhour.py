@@ -50,6 +50,7 @@ class Project(BaseModel):
     client_id: Optional[int] = Field(None, alias='client')
     budget: Optional[Budget] = None
     rate: Optional[Rate] = None
+    users: Optional[List[int]] = None
 
     @property
     def slug(self) -> str:
