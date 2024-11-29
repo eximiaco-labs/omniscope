@@ -79,17 +79,41 @@ export function OmniSidebar() {
       setAboutUsItems(aboutUs);
       setAdminItems(admin);
 
-      // Set initial active items based on permissions
-      if (hasFinancialAccess && financial.length > 0) {
-        setActiveSection("Financial");
-        setActiveItems(financial);
-      } else {
-        setActiveSection("Analytics");
-        setActiveItems(analytics);
+      // Determine active section based on current path
+      let initialSection = "Analytics";
+      let initialItems = analytics;
+
+      if (hasFinancialAccess) {
+        const isFinancialPath = financial.some(item => pathname.startsWith(item.url));
+        if (isFinancialPath) {
+          initialSection = "Financial";
+          initialItems = financial;
+        }
       }
+
+      const isAnalyticsPath = analytics.some(item => pathname.startsWith(item.url));
+      if (isAnalyticsPath) {
+        initialSection = "Analytics";
+        initialItems = analytics;
+      }
+
+      const isAboutUsPath = aboutUs.some(item => pathname.startsWith(item.url));
+      if (isAboutUsPath) {
+        initialSection = "About Us";
+        initialItems = aboutUs;
+      }
+
+      const isAdminPath = admin.some(item => pathname.startsWith(item.url));
+      if (isAdminPath) {
+        initialSection = "Administrative";
+        initialItems = admin;
+      }
+
+      setActiveSection(initialSection);
+      setActiveItems(initialItems);
     }
     loadItems();
-  }, [session?.user?.email, hasFinancialAccess]);
+  }, [session?.user?.email, hasFinancialAccess, pathname]);
 
   return (
     <Sidebar
