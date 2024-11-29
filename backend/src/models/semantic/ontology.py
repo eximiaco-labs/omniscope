@@ -107,7 +107,6 @@ class Client(BaseModel):
 
         return result
 
-
 class Case(BaseModel):
     id: int
     title: str
@@ -147,8 +146,6 @@ class Case(BaseModel):
         allocation = allocation.strip().replace(',', '.')
         match = re.match(r'^(\d+(?:\.\d+)?)', allocation)
         allocation = match.group(1) if match else '0'
-
-        print(post.meta.get('valor-pre-contratado', {}))
 
         pre_contracted_value = post.meta.get('valor-pre-contratado', {})
         if isinstance(pre_contracted_value, list):
