@@ -331,6 +331,55 @@ type RevenueTracking {
   regular: RevenueTrackingRegular!
   summaries: RevenueTrackingSummaries!
   total: Float!
+  proRataInfo: RevenueTrackingProRataInfo!
+}
+
+type RevenueTrackingProRataInfo {
+  byKind: [RevenueTrackingProRataByKind!]!
+}
+
+type RevenueTrackingProRataByKind {
+  kind: String!
+  penalty: Float!
+  byAccountManager: [RevenueTrackingProRataByAccountManager!]!
+}
+
+type RevenueTrackingProRataByAccountManager {
+  name: String!
+  penalty: Float!
+  byClient: [RevenueTrackingProRataByClient!]!
+}
+
+type RevenueTrackingProRataByClient {
+  name: String!
+  penalty: Float!
+  bySponsor: [RevenueTrackingProRataBySponsor!]!
+}
+
+type RevenueTrackingProRataBySponsor {
+  name: String!
+  penalty: Float!
+  byCase: [RevenueTrackingProRataByCase!]!
+}
+
+type RevenueTrackingProRataByCase {
+  title: String!
+  penalty: Float!
+  byProject: [RevenueTrackingProRataByProject!]!
+}
+
+type RevenueTrackingProRataByProject {
+  name: String!
+  penalty: Float!
+  partialFee: Float!
+  byWorker: [RevenueTrackingProRataByWorker!]!
+} 
+
+type RevenueTrackingProRataByWorker {
+  name: String!
+  penalty: Float!
+  hours: Float!
+  partialFee: Float!
 }
 
 type RevenueTrackingPreContracted {

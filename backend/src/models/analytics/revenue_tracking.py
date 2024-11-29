@@ -21,6 +21,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
     s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
     e = datetime.combine(date_of_interest, datetime.max.time())
     
+    pro_rata_info = { "by_kind": [] }
     timesheet = globals.omni_datasets.timesheets.get(s, e)
     df = timesheet.data
     df = df[df["Kind"] != INTERNAL_KIND]
@@ -59,7 +60,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
                     if case.find_client_name(globals.omni_models.clients) == client_name and case.sponsor == sponsor_name:
                         by_project = []
                         for project in case.tracker_info:
-                            project_data = process_project(date_of_interest, case, project, df)
+                            project_data = process_project(date_of_interest, case, project, df, pro_rata_info)
                             if project_data:
                                 by_project.append(project_data)
                     
@@ -148,13 +149,13 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
             "total_squad_fee": total_squad_fee,
             "by_account_manager": by_account_manager
         }
-    }
+    }, pro_rata_info
 
 def compute_regular_revenue_tracking(
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
-    def process_project(date_of_interest: date, _, project, timesheet_df):
+    def process_project(date_of_interest: date, _, project, timesheet_df, pro_rata_info):
         if project.rate and project.rate.rate:
             project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
             if len(project_df) > 0:
@@ -168,13 +169,13 @@ def compute_regular_revenue_tracking(
                 }
         return None
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)
+    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)[0]
 
 def compute_pre_contracted_revenue_tracking(
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
-    def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame):
+    def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame, pro_rata_info):
         if project.billing and project.billing.fee and project.billing.fee != 0:
             if project.budget and project.budget.period == 'general':
 
@@ -227,24 +228,147 @@ def compute_pre_contracted_revenue_tracking(
                 
                 if project.kind != "consulting":    
                     is_last_day_of_month = date_of_interest.month != (date_of_interest + timedelta(days=1)).month
+                    client = globals.omni_models.clients.get_by_id(case.client_id)
+                    if not client:
+                        client_name = "N/A"
+                        account_manager_name = "N/A"
+                    else:
+                        client_name = client.name
+                        account_manager_name = client.account_manager.name if client.account_manager else "N/A"
+                        
                     if is_last_day_of_month:
+                        
                         workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index()
                         number_of_workers = len(workers_hours)
                         fee_per_worker = fee / number_of_workers
                         hourly_fee = fee_per_worker / 160
+                        
                         for worker_name, hours in workers_hours.values:
                             if hours < 140:
-                                print(f'--> ({project.kind}) - {project.name} has partial billing for {worker_name} with {hours} hours')
                                 partial = True
                                 partial_fee += hourly_fee * hours
+                                
+                                kinds = pro_rata_info["by_kind"]
+                                
+                                kind_info = next(
+                                    (e for e in kinds if e["kind"] == project.kind),
+                                    None
+                                )
+                                
+                                if kind_info is None:
+                                    kind_info = {
+                                        "kind": project.kind,
+                                        "penalty": 0,
+                                        "by_account_manager": []
+                                    }
+                                    kinds.append(kind_info)
+                                    
+                                account_managers = kind_info["by_account_manager"]
+                                
+                                # Find or create account manager info
+                                account_manager_info = next(
+                                    (
+                                        e for e in account_managers 
+                                        if e["name"] == account_manager_name
+                                    ),
+                                    None
+                                )
+                                
+                                if account_manager_info is None:
+                                    account_manager_info = {
+                                        "name": account_manager_name,
+                                        "penalty": 0,
+                                        "by_client": []
+                                    }
+                                    account_managers.append(account_manager_info)
+                                
+                                    
+                                client_info = next(
+                                    (
+                                        e for e in account_manager_info["by_client"] 
+                                        if e["name"] == client_name
+                                    ),
+                                    None
+                                )
+                                
+                                if client_info is None:
+                                    client_info = {
+                                        "name": client_name,
+                                        "penalty": 0,
+                                        "by_sponsor": []
+                                    }
+                                    account_manager_info["by_client"].append(client_info)
+                                
+                                sponsor_info = next(
+                                    (
+                                        e for e in client_info["by_sponsor"] 
+                                        if e["name"] == case.sponsor
+                                    ),
+                                    None
+                                )
+                                
+                                if sponsor_info is None:
+                                    sponsor_info = {
+                                        "name": case.sponsor,
+                                        "penalty": 0,
+                                        "by_case": []
+                                    }
+                                    client_info["by_sponsor"].append(sponsor_info)
+                                    
+                                case_info = next(
+                                    (
+                                        e for e in sponsor_info["by_case"] 
+                                        if e["title"] == case.title
+                                    ),
+                                    None
+                                )
+                                
+                                if case_info is None:
+                                    case_info = {
+                                        "title": case.title,
+                                        "penalty": 0,
+                                        "by_project": []
+                                    }
+                                    sponsor_info["by_case"].append(case_info)
+                                    
+                                project_info = next(
+                                    (
+                                        e for e in case_info["by_project"] 
+                                        if e["name"] == project.name
+                                    ),
+                                    None
+                                )
+                                
+                                if project_info is None:
+                                    project_info = {
+                                        "name": project.name,
+                                        "partial_fee": fee,
+                                        "penalty": 0,
+                                        "by_worker": []
+                                    }
+                                    case_info["by_project"].append(project_info)
+                                    
+                                penalty = fee_per_worker - (hourly_fee * hours)
+                                project_info["by_worker"].append({
+                                    "name": worker_name,
+                                    "hours": hours,
+                                    "partial_fee": hourly_fee * hours,
+                                    "penalty": penalty
+                                })
+                                
+                                project_info["partial_fee"] = project_info["partial_fee"] - penalty
+                                project_info["penalty"] = project_info["penalty"] + penalty
+                                case_info["penalty"] = case_info["penalty"] + penalty
+                                sponsor_info["penalty"] = sponsor_info["penalty"] + penalty
+                                client_info["penalty"] = client_info["penalty"] + penalty
+                                account_manager_info["penalty"] = account_manager_info["penalty"] + penalty
+                                kind_info["penalty"] = kind_info["penalty"] + penalty  
+                                
                             
                 # TODO: Verificar se tem algum colaborador lançando horas no primeiro dia de trabalho do mês
                 # TODO: fator individual por trabalhador   
                 # TODO: O que fazer com "trabalhaadores ocasionais"
-                
-                if partial:
-                    print(f'--> ({project.kind}) - {project.name} has partial billing of {partial_fee} instead of {fee}')
-                
+         
                 return {
                     "kind": project.kind,
                     "name": project.name,
@@ -578,7 +702,10 @@ def compute_revenue_tracking(
     year = date_of_interest.year
     month = date_of_interest.month
     
-    pre_contracted = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    pre_contracted_computation = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    pre_contracted = pre_contracted_computation[0]
+    pro_rata_info = pre_contracted_computation[1]
+    
     regular = compute_regular_revenue_tracking(date_of_interest, account_manager_name_or_slug)
     
     summaries = compute_summaries(pre_contracted, regular)
@@ -588,6 +715,7 @@ def compute_revenue_tracking(
         "month": month,
         "day": date_of_interest.day,
         "pre_contracted": pre_contracted,
+        "pro_rata_info": pro_rata_info,
         "regular": regular,
         "summaries": summaries,
         "total": summaries["by_mode"]["pre_contracted"] + summaries["by_mode"]["regular"]

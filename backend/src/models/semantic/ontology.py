@@ -107,7 +107,6 @@ class Client(BaseModel):
 
         return result
 
-
 class Case(BaseModel):
     id: int
     title: str
