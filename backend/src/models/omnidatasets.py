@@ -316,7 +316,10 @@ class OmniDatasets:
         result = {'filterable_fields': []}
 
         for field in filterable_fields:
-            options = sorted([value for value in df[field].unique().tolist() if value is not None])
+            options = []
+            if len(df) > 0:
+                options = sorted([value for value in df[field].unique().tolist() if value is not None])
+            
             selected_values = []
 
             if filters:
@@ -334,8 +337,7 @@ class OmniDatasets:
             )
 
             # Apply filter to dataframe
-            if selected_values:
+            if selected_values and len(df) > 0:
                 df = df[df[field].isin(selected_values)]
         
         return df, result
-
