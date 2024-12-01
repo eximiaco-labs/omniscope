@@ -752,6 +752,12 @@ def compute_revenue_tracking(
     timesheet = globals.omni_datasets.timesheets.get(s, e)
     df = timesheet.data
     
+    df, result = globals.omni_datasets.apply_filters(
+        globals.omni_datasets.timesheets,
+        df,
+        filters
+    )
+    
     pre_contracted_computation = compute_pre_contracted_revenue_tracking(df, date_of_interest, account_manager_name_or_slug)
     pre_contracted = pre_contracted_computation[0]
     pro_rata_info = pre_contracted_computation[1]
@@ -768,5 +774,6 @@ def compute_revenue_tracking(
         "pro_rata_info": pro_rata_info,
         "regular": regular,
         "summaries": summaries,
-        "total": summaries["by_mode"]["pre_contracted"] + summaries["by_mode"]["regular"]
+        "total": summaries["by_mode"]["pre_contracted"] + summaries["by_mode"]["regular"],
+        "filterable_fields": result["filterable_fields"]
     }
