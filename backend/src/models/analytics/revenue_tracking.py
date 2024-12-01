@@ -24,13 +24,48 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
     pro_rata_info = { "by_kind": [] }
     timesheet = globals.omni_datasets.timesheets.get(s, e)
     df = timesheet.data
+    
+    if df is None or len(df) == 0:
+        return {
+            "monthly": {
+                "total": 0,
+                "total_consulting_fee": 0,
+                "total_consulting_pre_fee": 0,
+                "total_hands_on_fee": 0,
+                "total_squad_fee": 0,
+                "by_account_manager": []
+            }
+        }, pro_rata_info
+        
     df = df[df["Kind"] != INTERNAL_KIND]
+    if len(df) == 0:
+        return {
+            "monthly": {
+                "total": 0,
+                "total_consulting_fee": 0,
+                "total_consulting_pre_fee": 0,
+                "total_hands_on_fee": 0,
+                "total_squad_fee": 0,
+                "by_account_manager": []
+            }
+        }, pro_rata_info
     
     if account_manager_name_or_slug:
         df_ = df[df["AccountManagerName"] == account_manager_name_or_slug]
         if len(df_) == 0:
             df_ = df[df["AccountManagerSlug"] == account_manager_name_or_slug]
-        df = df_    
+        df = df_
+        if len(df) == 0:
+            return {
+                "monthly": {
+                    "total": 0,
+                    "total_consulting_fee": 0,
+                    "total_consulting_pre_fee": 0,
+                    "total_hands_on_fee": 0,
+                    "total_squad_fee": 0,
+                    "by_account_manager": []
+                }
+            }, pro_rata_info
     
     case_ids = df["CaseId"].unique()
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
@@ -182,6 +217,9 @@ def compute_pre_contracted_revenue_tracking(
                 if not case.start_of_contract:
                     print(f'--> {project.name} has no start or end of contract')
                 
+                if len(timesheet_df) == 0 or "Date" not in timesheet_df.columns or timesheet_df["Date"].isna().all():
+                    return None
+                    
                 d = timesheet_df[timesheet_df["Date"].notna()]["Date"].iloc[0]
                 m = d.month
                 y = d.year
@@ -222,6 +260,9 @@ def compute_pre_contracted_revenue_tracking(
                 }
             else:
                 project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+                if len(project_df) == 0:
+                    return None
+                    
                 partial = False
                 fee = project.billing.fee / 100
                 partial_fee = 0
@@ -239,6 +280,9 @@ def compute_pre_contracted_revenue_tracking(
                     if is_last_day_of_month:
                         
                         workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index()
+                        if len(workers_hours) == 0:
+                            return None
+                            
                         number_of_workers = len(workers_hours)
                         fee_per_worker = fee / number_of_workers
                         hourly_fee = fee_per_worker / 160
