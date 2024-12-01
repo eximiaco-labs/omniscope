@@ -8,6 +8,76 @@ import { useState } from "react";
 import SectionHeader from "@/components/SectionHeader";
 import React from "react";
 
+type DayData = {
+  day?: number;
+  type: 'prev' | 'current' | 'next' | 'total';
+  hours: number;
+}
+
+type DayCellProps = {
+  dayData: DayData;
+  weekIndex: number;
+  dayIndex: number;
+  isSelected: boolean;
+  selectedRow: number | null;
+  rowPercentage: string | null;
+  columnPercentage: string | null;
+  onDayClick: (day: number, type: 'prev' | 'current' | 'next', weekIndex: number) => void;
+}
+
+const DayCell = ({
+  dayData,
+  weekIndex,
+  dayIndex,
+  isSelected,
+  selectedRow,
+  rowPercentage,
+  columnPercentage,
+  onDayClick
+}: DayCellProps) => {
+  const { type, hours } = dayData;
+  const day = 'day' in dayData ? dayData.day : undefined;
+
+  return (
+    <div
+      key={`${weekIndex}-${dayIndex}`}
+      onClick={() => {
+        if (type !== 'total' && day !== undefined) {
+          onDayClick(day, type, weekIndex);
+        }
+      }}
+      className={`
+        p-2 text-center cursor-pointer transition-colors relative min-h-[70px] flex flex-col justify-between
+        border-b border-r border-gray-200 last:border-r-0 last:border-b-0
+        ${type === 'current' ? 'hover:bg-gray-100' : type === 'total' ? 'bg-gray-50' : 'text-gray-400 hover:bg-gray-100'}
+        ${isSelected ? 'ring-2 ring-blue-500 ring-inset font-bold' : ''}
+        ${selectedRow === weekIndex ? 'bg-gray-50' : ''}
+      `}
+    >
+      {type !== 'total' ? (
+        <>
+          {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
+          <span className="absolute top-[15px] left-1/2 transform -translate-x-1/2">{day}</span>
+          {hours > 0 && (
+            <>
+              <span className={`absolute bottom-[15px] left-1/2 transform -translate-x-1/2 text-[12px] block ${type === 'current' ? 'text-blue-600' : 'text-gray-400'}`}>{hours}h</span>
+              {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
+            </>
+          )}
+        </>
+      ) : (
+        hours > 0 && (
+          <>
+            {rowPercentage && <span className="absolute top-0 left-0 text-[8px] text-gray-500">{rowPercentage}%</span>}
+            <span className="absolute top-[9px] left-1/2 transform -translate-x-1/2 text-[9px] text-blue-600">{hours}h</span>
+            {columnPercentage && <span className="absolute bottom-0 right-0 text-[8px] text-gray-500">{columnPercentage}%</span>}
+          </>
+        )
+      )}
+    </div>
+  );
+};
+
 export default function ConsultantPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -64,7 +134,7 @@ export default function ConsultantPage() {
     return dayData?.totalHours || 0;
   };
 
-  const handleDayClick = (day: number, type: string, rowIndex: number) => {
+  const handleDayClick = (day: number, type: 'prev' | 'current' | 'next', rowIndex: number) => {
     if (type === 'prev') {
       const newDate = new Date(selectedDate);
       newDate.setMonth(selectedDate.getMonth() - 1);
@@ -160,7 +230,7 @@ export default function ConsultantPage() {
               const date = new Date(currentYear, currentMonth, -i);
               return {
                 day: date.getDate(),
-                type: 'prev',
+                type: 'prev' as const,
                 hours: getHoursForDate(date)
               };
             }).reverse();
@@ -170,7 +240,7 @@ export default function ConsultantPage() {
               const date = new Date(currentYear, currentMonth, i + 1);
               return {
                 day: i + 1,
-                type: 'current',
+                type: 'current' as const,
                 hours: getHoursForDate(date)
               };
             });
@@ -181,7 +251,7 @@ export default function ConsultantPage() {
               const date = new Date(currentYear, currentMonth + 1, i + 1);
               return {
                 day: i + 1,
-                type: 'next',
+                type: 'next' as const,
                 hours: getHoursForDate(date)
               };
             });
@@ -194,7 +264,7 @@ export default function ConsultantPage() {
                 // Only include hours from current month in total
                 return sum + (type === 'current' ? hours : 0);
               }, 0);
-              return [...weekDays, { type: 'total', hours: weekTotal }];
+              return [...weekDays, { type: 'total' as const, hours: weekTotal }];
             });
 
             // Calculate column totals (only for current month)
@@ -212,54 +282,34 @@ export default function ConsultantPage() {
                 {rows.map((week, weekIndex) => (
                   <React.Fragment key={weekIndex}>
                     {week.map((dayData, dayIndex) => {
-                      const { type, hours } = dayData;
-                      const day = 'day' in dayData ? dayData.day : null;
-                      const isSelected = day !== null && selectedDay === day && 
-                        ((type === 'current' && selectedDate.getMonth() === currentMonth) ||
-                         (type === 'prev' && selectedDate.getMonth() === currentMonth - 1) ||
-                         (type === 'next' && selectedDate.getMonth() === currentMonth + 1));
+                      const isSelected = 'day' in dayData && dayData.day !== undefined && selectedDay === dayData.day && 
+                        ((dayData.type === 'current' && selectedDate.getMonth() === currentMonth) ||
+                         (dayData.type === 'prev' && selectedDate.getMonth() === currentMonth - 1) ||
+                         (dayData.type === 'next' && selectedDate.getMonth() === currentMonth + 1));
                       
                       const weekTotal = week[7].hours;
                       const columnTotal = columnTotals[dayIndex];
                       
-                      // Only calculate percentages for current month days
-                      const showPercentages = type === 'current' && hours > 0;
-                      const rowPercentage = showPercentages && weekTotal > 0 ? ((hours || 0) / weekTotal * 100).toFixed(1) : null;
-                      const columnPercentage = showPercentages && columnTotal > 0 ? ((hours || 0) / columnTotal * 100).toFixed(1) : null;
+                      // Calculate percentages only for current month cells with hours
+                      const rowPercentage = dayData.type === 'current' && dayData.hours > 0 && weekTotal > 0 
+                        ? ((dayData.hours || 0) / weekTotal * 100).toFixed(1) 
+                        : null;
+                      const columnPercentage = dayData.type === 'current' && dayData.hours > 0 && columnTotal > 0 
+                        ? ((dayData.hours || 0) / columnTotal * 100).toFixed(1) 
+                        : null;
                       
                       return (
-                        <div
+                        <DayCell
                           key={`${weekIndex}-${dayIndex}`}
-                          onClick={() => type !== 'total' && handleDayClick(day, type, weekIndex)}
-                          className={`
-                            p-2 text-center cursor-pointer transition-colors relative min-h-[70px] flex flex-col justify-between
-                            border-b border-r border-gray-200 last:border-r-0 last:border-b-0
-                            ${type === 'current' ? 'hover:bg-gray-100' : type === 'total' ? 'bg-gray-50' : 'text-gray-400 hover:bg-gray-100'}
-                            ${isSelected ? 'ring-2 ring-blue-500 ring-inset font-bold' : ''}
-                            ${selectedRow === weekIndex ? 'bg-gray-50' : ''}
-                          `}
-                        >
-                          {type !== 'total' && (
-                            <>
-                              <div className="relative w-full">
-                                {rowPercentage && <span className="absolute -top-1 left-0 text-[8px] text-gray-500">{rowPercentage}%</span>}
-                                <span className="absolute top-[9px] left-1/2 transform -translate-x-1/2 text-sm">{day}</span>
-                              </div>
-                              {hours > 0 && (
-                                <div className="relative w-full">
-                                  <span className={`absolute bottom-[10px] left-1/2 transform -translate-x-1/2 text-[9px] block ${type === 'current' ? 'text-blue-600' : 'text-gray-400'}`}>{hours}h</span>
-                                  {columnPercentage && <span className="absolute bottom-0 right-0 text-[8px] text-gray-500">{columnPercentage}%</span>}
-                                </div>
-                              )}
-                            </>
-                          )}
-                          {type === 'total' && hours > 0 && (
-                            <>
-                              <span className="absolute top-[9px] left-1/2 transform -translate-x-1/2 text-[9px] text-blue-600">{hours}h</span>
-                              <span className="absolute bottom-0 right-0 text-[8px] text-gray-500">{columnPercentage}%</span>
-                            </>
-                          )}
-                        </div>
+                          dayData={dayData}
+                          weekIndex={weekIndex}
+                          dayIndex={dayIndex}
+                          isSelected={isSelected}
+                          selectedRow={selectedRow}
+                          rowPercentage={rowPercentage}
+                          columnPercentage={columnPercentage}
+                          onDayClick={handleDayClick}
+                        />
                       );
                     })}
                   </React.Fragment>
@@ -272,8 +322,9 @@ export default function ConsultantPage() {
                   >
                     {total > 0 && (
                       <>
+                        {index < 7 && <span className="absolute top-0 left-0 text-[8px] text-gray-500">{((total / columnTotals[7]) * 100).toFixed(1)}%</span>}
                         <span className="absolute top-[9px] left-1/2 transform -translate-x-1/2 text-[9px] text-blue-600">{total}h</span>
-                        {index < 7 && <span className="absolute bottom-0 left-0 text-[8px] text-gray-500">{((total / columnTotals[7]) * 100).toFixed(1)}%</span>}
+                        {index < 7 && <span className="absolute bottom-0 right-0 text-[8px] text-gray-500">{((total / columnTotals[7]) * 100).toFixed(1)}%</span>}
                       </>
                     )}
                   </div>
