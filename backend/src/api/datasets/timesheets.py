@@ -12,6 +12,40 @@ import globals
 
 
 def summarize(df: pd.DataFrame) -> Dict[str, Any]:
+    if len(df) == 0:
+        return {
+            "total_entries": 0,
+            "total_hours": 0,
+            "unique_clients": 0, 
+            "unique_workers": 0,
+            "unique_cases": 0,
+            "unique_working_days": 0,
+            "unique_sponsors": 0,
+            "unique_account_managers": 0,
+            "unique_weeks": 0,
+            "average_hours_per_entry": 0,
+            "std_dev_hours_per_entry": 0,
+            "average_hours_per_day": 0,
+            "std_dev_hours_per_day": 0,
+            "average_hours_per_worker": 0,
+            "std_dev_hours_per_worker": 0,
+            "average_hours_per_client": 0,
+            "std_dev_hours_per_client": 0,
+            "average_hours_per_case": 0,
+            "std_dev_hours_per_case": 0,
+            "average_hours_per_sponsor": 0,
+            "std_dev_hours_per_sponsor": 0,
+            "average_hours_per_account_manager": 0,
+            "std_dev_hours_per_account_manager": 0,
+            "average_hours_per_week": 0,
+            "std_dev_hours_per_week": 0,
+            "total_squad_hours": 0,
+            "total_consulting_hours": 0,
+            "total_internal_hours": 0,
+            "total_hands_on_hours": 0,
+            "weekly_hours": []
+        }
+
     # Perform groupby operations once
     group_operations = {
         "date": df.groupby("Date")["TimeInHs"],
@@ -71,6 +105,9 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
+    if len(df) == 0:
+        return {}
+
     kinds = ['Internal', 'Consulting', 'Squad', 'HandsOn']
     summary_by_kind = {}
 
@@ -79,6 +116,9 @@ def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
         if kind_in_map in map:
             kind_map = map[kind_in_map]
             df_kind = df[df['Kind'] == kind]
+
+            if len(df_kind) == 0:
+                continue
 
             if kind == 'HandsOn':
                 label = 'hands_on'
@@ -95,6 +135,9 @@ def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
     return summary_by_kind
 
 def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name", map: Dict = None) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    if len(df) == 0:
+        return []
+
     summaries = []
     for group_value, group_df in df.groupby(group_column):
         summary = summarize(group_df)
@@ -161,6 +204,9 @@ def summarize_by_date(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[
     return summarize_by_group(df, 'Date', name_key="date", map=map)
 
 def summarize_by_week(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    if len(df) == 0:
+        return []
+
     summaries = summarize_by_group(df, 'Week', name_key="week", map=map)
     
     # Sort the summaries based on the 'week' key
