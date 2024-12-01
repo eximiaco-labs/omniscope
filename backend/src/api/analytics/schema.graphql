@@ -332,6 +332,7 @@ type RevenueTracking {
   summaries: RevenueTrackingSummaries!
   total: Float!
   proRataInfo: RevenueTrackingProRataInfo!
+  filterableFields: [FilterableField]!
 }
 
 type RevenueTrackingProRataInfo {
