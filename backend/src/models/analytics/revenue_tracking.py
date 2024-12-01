@@ -1,3 +1,4 @@
+import calendar
 import globals
 
 from datetime import date, datetime, timedelta
@@ -253,6 +254,33 @@ def compute_pre_contracted_revenue_tracking(
                     "kind": project.kind,
                     "name": project.name,
                     "fee": fee,
+                    "fixed": True
+                }
+            elif case.pre_contracted_value:
+                fee = case.pre_contracted_value / 100
+                
+                should_do_pro_rata = (
+                    case.start_of_contract 
+                    and case.start_of_contract.year == date_of_interest.year 
+                    and case.start_of_contract.month == date_of_interest.month
+                )
+                
+                if should_do_pro_rata:
+                    fee = fee * (date_of_interest.day / calendar.monthrange(date_of_interest.year, date_of_interest.month)[1])
+                
+                should_do_pro_rata = (
+                    case.end_of_contract 
+                    and case.end_of_contract.year == date_of_interest.year 
+                    and case.end_of_contract.month == date_of_interest.month
+                )
+                
+                if should_do_pro_rata:
+                    fee = fee * (calendar.monthrange(date_of_interest.year, date_of_interest.month)[1] / date_of_interest.day)
+                
+                return {
+                    "kind": project.kind,
+                    "name": project.name,
+                    "fee": project.billing.fee / 100,
                     "fixed": True
                 }
             else:
