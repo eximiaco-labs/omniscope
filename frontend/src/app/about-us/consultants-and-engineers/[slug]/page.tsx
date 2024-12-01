@@ -19,35 +19,39 @@ type DayCellProps = {
   weekIndex: number;
   dayIndex: number;
   isSelected: boolean;
+  selectedColumn: number | null;
   selectedRow: number | null;
+  isAllSelected: boolean;
   rowPercentage: string | null;
   columnPercentage: string | null;
   onDayClick: (day: number, type: 'prev' | 'current' | 'next', weekIndex: number) => void;
 }
 
-type WeekTotalCellProps = {
+type TotalCellProps = {
   hours: number;
-  weekIndex: number;
+  index: number;
   selectedRow: number | null;
+  selectedColumn: number | null;
+  isAllSelected: boolean;
   rowPercentage?: string | null;
   columnPercentage?: string | null;
+  grandTotal?: number;
+  onSelect: (index: number) => void;
 }
 
-type DayOfWeekTotalCellProps = {
-  total: number;
-  index: number;
-  grandTotal: number;
-}
-
-const DayOfWeekTotalCell = ({ total, index, grandTotal }: DayOfWeekTotalCellProps) => {
+const DayOfWeekTotalCell = ({ hours, index, grandTotal, selectedColumn, isAllSelected, onSelect }: TotalCellProps) => {
   return (
     <div
-      className="p-2 text-center bg-gray-50 flex items-center justify-center relative h-[70px] border-r border-gray-200 last:border-r-0"
+      onClick={() => onSelect(index)}
+      className={`
+        p-2 text-center bg-gray-50 flex items-center justify-center relative h-[70px] border-r border-gray-200 last:border-r-0 cursor-pointer
+        ${selectedColumn === index || isAllSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
+      `}
     >
-      {total > 0 && (
+      {hours > 0 && (
         <>
-          {index < 7 && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{((total / grandTotal) * 100).toFixed(1)}%</span>}
-          <span className="text-blue-600">{total}h</span>
+          {index < 7 && grandTotal && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{((hours / grandTotal) * 100).toFixed(1)}%</span>}
+          <span className="text-blue-600">{hours}h</span>
         </>
       )}
     </div>
@@ -56,18 +60,21 @@ const DayOfWeekTotalCell = ({ total, index, grandTotal }: DayOfWeekTotalCellProp
 
 const WeekTotalCell = ({
   hours,
-  weekIndex,
+  index,
   selectedRow,
+  isAllSelected,
   rowPercentage,
-  columnPercentage
-}: WeekTotalCellProps) => {
+  columnPercentage,
+  onSelect
+}: TotalCellProps) => {
   return (
     <div
+      onClick={() => onSelect(index)}
       className={`
-        p-2 text-center relative h-[70px] flex flex-col justify-between
+        p-2 text-center relative h-[70px] flex flex-col justify-between cursor-pointer
         border-b border-r border-gray-200 last:border-r-0 last:border-b-0
         bg-gray-50
-        ${selectedRow === weekIndex ? 'bg-gray-50' : ''}
+        ${selectedRow === index || isAllSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
       `}
     >
       {hours > 0 && (
@@ -86,7 +93,9 @@ const DayCell = ({
   weekIndex,
   dayIndex,
   isSelected,
+  selectedColumn,
   selectedRow,
+  isAllSelected,
   rowPercentage,
   columnPercentage,
   onDayClick
@@ -94,20 +103,23 @@ const DayCell = ({
   const { type, hours } = dayData;
   const day = 'day' in dayData ? dayData.day : undefined;
 
+  const isSelectable = type === 'current' && hours > 0;
+  const isHighlighted = isSelected || selectedColumn === dayIndex || selectedRow === weekIndex || isAllSelected;
+
   return (
     <div
       key={`${weekIndex}-${dayIndex}`}
       onClick={() => {
-        if (type !== 'total' && day !== undefined) {
+        if (isSelectable && day !== undefined) {
           onDayClick(day, type, weekIndex);
         }
       }}
       className={`
-        p-2 text-center cursor-pointer transition-colors relative h-[70px] flex flex-col justify-between
+        p-2 text-center transition-colors relative h-[70px] flex flex-col justify-between
         border-b border-r border-gray-200 last:border-r-0 last:border-b-0
-        ${type === 'current' ? 'hover:bg-gray-100' : type === 'total' ? 'bg-gray-50' : 'text-gray-400 hover:bg-gray-100'}
-        ${isSelected ? 'ring-2 ring-blue-500 ring-inset font-bold' : ''}
-        ${selectedRow === weekIndex ? 'bg-gray-50' : ''}
+        ${isSelectable ? 'cursor-pointer hover:bg-gray-100' : ''}
+        ${type === 'current' ? '' : type === 'total' ? 'bg-gray-50' : 'text-gray-400'}
+        ${isHighlighted ? 'ring-2 ring-blue-500 ring-inset' : ''}
       `}
     >
       {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
@@ -128,6 +140,8 @@ export default function ConsultantPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
+  const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
+  const [isAllSelected, setIsAllSelected] = useState(false);
 
   // Calculate visible dates for dataset
   const getVisibleDates = () => {
@@ -193,7 +207,30 @@ export default function ConsultantPage() {
       setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day));
     }
     setSelectedDay(day);
+    setSelectedRow(null);
+    setSelectedColumn(null);
+    setIsAllSelected(false);
+  };
+
+  const handleColumnSelect = (columnIndex: number) => {
+    if (columnIndex === 7) {
+      setIsAllSelected(true);
+      setSelectedColumn(null);
+      setSelectedRow(null);
+      setSelectedDay(null);
+    } else {
+      setSelectedColumn(columnIndex);
+      setSelectedRow(null);
+      setSelectedDay(null);
+      setIsAllSelected(false);
+    }
+  };
+
+  const handleRowSelect = (rowIndex: number) => {
     setSelectedRow(rowIndex);
+    setSelectedColumn(null);
+    setSelectedDay(null);
+    setIsAllSelected(false);
   };
 
   const handleMonthChange = (increment: number) => {
@@ -202,6 +239,8 @@ export default function ConsultantPage() {
     setSelectedDate(newDate);
     setSelectedDay(null);
     setSelectedRow(null);
+    setSelectedColumn(null);
+    setIsAllSelected(false);
   };
 
   const months = [
@@ -244,10 +283,15 @@ export default function ConsultantPage() {
         </div>
         <div className="grid grid-cols-8 border border-gray-200">
           {/* Header row with day names */}
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Total'].map((day) => (
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Total'].map((day, index) => (
             <div 
               key={day}
-              className="text-center p-2 text-sm font-semibold text-gray-600 border-b border-r border-gray-200 last:border-r-0 h-[70px] flex items-center justify-center"
+              onClick={() => handleColumnSelect(index)}
+              className={`
+                text-center p-2 text-sm font-semibold text-gray-600 border-b border-r border-gray-200 last:border-r-0 h-[70px] 
+                flex items-center justify-center cursor-pointer
+                ${(selectedColumn === index && !isAllSelected) || (isAllSelected) ? 'ring-2 ring-blue-500 ring-inset' : ''}
+              `}
             >
               {day}
             </div>
@@ -349,7 +393,9 @@ export default function ConsultantPage() {
                           weekIndex={weekIndex}
                           dayIndex={dayIndex}
                           isSelected={isSelected}
+                          selectedColumn={selectedColumn}
                           selectedRow={selectedRow}
+                          isAllSelected={isAllSelected}
                           rowPercentage={rowPercentage}
                           columnPercentage={columnPercentage}
                           onDayClick={handleDayClick}
@@ -358,9 +404,12 @@ export default function ConsultantPage() {
                     })}
                     <WeekTotalCell
                       hours={week[7].hours}
-                      weekIndex={weekIndex}
+                      index={weekIndex}
                       selectedRow={selectedRow}
+                      selectedColumn={null}
+                      isAllSelected={isAllSelected}
                       columnPercentage={week[7].hours > 0 ? ((week[7].hours / columnTotals[7]) * 100).toFixed(1) : null}
+                      onSelect={handleRowSelect}
                     />
                   </React.Fragment>
                 ))}
@@ -368,9 +417,13 @@ export default function ConsultantPage() {
                 {columnTotals.map((total, index) => (
                   <DayOfWeekTotalCell
                     key={`total-${index}`}
-                    total={total}
+                    hours={total}
                     index={index}
+                    selectedRow={null}
+                    selectedColumn={selectedColumn}
+                    isAllSelected={isAllSelected}
                     grandTotal={columnTotals[7]}
+                    onSelect={handleColumnSelect}
                   />
                 ))}
               </>
