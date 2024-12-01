@@ -17,20 +17,50 @@ def _get_account_manager_name(case):
     client = globals.omni_models.clients.get_by_id(case.client_id)
     return client.account_manager.name if client and client.account_manager else NA_VALUE
 
-def _compute_revenue_tracking_base(date_of_interest: date, process_project, account_manager_name_or_slug: str = None):
-    s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
-    e = datetime.combine(date_of_interest, datetime.max.time())
-    
+def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, process_project, account_manager_name_or_slug: str = None):
     pro_rata_info = { "by_kind": [] }
-    timesheet = globals.omni_datasets.timesheets.get(s, e)
-    df = timesheet.data
+    
+    if df is None or len(df) == 0:
+        return {
+            "monthly": {
+                "total": 0,
+                "total_consulting_fee": 0,
+                "total_consulting_pre_fee": 0,
+                "total_hands_on_fee": 0,
+                "total_squad_fee": 0,
+                "by_account_manager": []
+            }
+        }, pro_rata_info
+        
     df = df[df["Kind"] != INTERNAL_KIND]
+    if len(df) == 0:
+        return {
+            "monthly": {
+                "total": 0,
+                "total_consulting_fee": 0,
+                "total_consulting_pre_fee": 0,
+                "total_hands_on_fee": 0,
+                "total_squad_fee": 0,
+                "by_account_manager": []
+            }
+        }, pro_rata_info
     
     if account_manager_name_or_slug:
         df_ = df[df["AccountManagerName"] == account_manager_name_or_slug]
         if len(df_) == 0:
             df_ = df[df["AccountManagerSlug"] == account_manager_name_or_slug]
-        df = df_    
+        df = df_
+        if len(df) == 0:
+            return {
+                "monthly": {
+                    "total": 0,
+                    "total_consulting_fee": 0,
+                    "total_consulting_pre_fee": 0,
+                    "total_hands_on_fee": 0,
+                    "total_squad_fee": 0,
+                    "by_account_manager": []
+                }
+            }, pro_rata_info
     
     case_ids = df["CaseId"].unique()
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
@@ -152,6 +182,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
     }, pro_rata_info
 
 def compute_regular_revenue_tracking(
+    df: pd.DataFrame,
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
@@ -169,9 +200,10 @@ def compute_regular_revenue_tracking(
                 }
         return None
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)[0]
+    return _compute_revenue_tracking_base(df, date_of_interest, process_project, account_manager_name_or_slug)[0]
 
 def compute_pre_contracted_revenue_tracking(
+    df: pd.DataFrame,
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
@@ -182,6 +214,9 @@ def compute_pre_contracted_revenue_tracking(
                 if not case.start_of_contract:
                     print(f'--> {project.name} has no start or end of contract')
                 
+                if len(timesheet_df) == 0 or "Date" not in timesheet_df.columns or timesheet_df["Date"].isna().all():
+                    return None
+                    
                 d = timesheet_df[timesheet_df["Date"].notna()]["Date"].iloc[0]
                 m = d.month
                 y = d.year
@@ -222,6 +257,9 @@ def compute_pre_contracted_revenue_tracking(
                 }
             else:
                 project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+                if len(project_df) == 0:
+                    return None
+                    
                 partial = False
                 fee = project.billing.fee / 100
                 partial_fee = 0
@@ -239,6 +277,9 @@ def compute_pre_contracted_revenue_tracking(
                     if is_last_day_of_month:
                         
                         workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index()
+                        if len(workers_hours) == 0:
+                            return None
+                            
                         number_of_workers = len(workers_hours)
                         fee_per_worker = fee / number_of_workers
                         hourly_fee = fee_per_worker / 160
@@ -379,7 +420,7 @@ def compute_pre_contracted_revenue_tracking(
                 
         return None 
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)
+    return _compute_revenue_tracking_base(df, date_of_interest, process_project, account_manager_name_or_slug)
 
 @dataclass
 class AccountManagerSummary:
@@ -697,16 +738,34 @@ def compute_summaries(pre_contracted, regular):
     
 def compute_revenue_tracking(
     date_of_interest: date,
-    account_manager_name_or_slug: str = None
+    account_manager_name_or_slug: str = None,
+    filters = None
     ):
+    
     year = date_of_interest.year
     month = date_of_interest.month
     
-    pre_contracted_computation = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
+    e = datetime.combine(date_of_interest, datetime.max.time())
+    
+    pro_rata_info = { "by_kind": [] }
+    timesheet = globals.omni_datasets.timesheets.get(s, e)
+    df = timesheet.data
+    
+    if len(df) != 0:
+        df = df[df["Kind"] != "Internal"]
+    
+    df, result = globals.omni_datasets.apply_filters(
+        globals.omni_datasets.timesheets,
+        df,
+        filters
+    )
+    
+    pre_contracted_computation = compute_pre_contracted_revenue_tracking(df, date_of_interest, account_manager_name_or_slug)
     pre_contracted = pre_contracted_computation[0]
     pro_rata_info = pre_contracted_computation[1]
     
-    regular = compute_regular_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    regular = compute_regular_revenue_tracking(df, date_of_interest, account_manager_name_or_slug)
     
     summaries = compute_summaries(pre_contracted, regular)
     
@@ -718,5 +777,6 @@ def compute_revenue_tracking(
         "pro_rata_info": pro_rata_info,
         "regular": regular,
         "summaries": summaries,
-        "total": summaries["by_mode"]["pre_contracted"] + summaries["by_mode"]["regular"]
+        "total": summaries["by_mode"]["pre_contracted"] + summaries["by_mode"]["regular"],
+        "filterable_fields": result["filterable_fields"]
     }
