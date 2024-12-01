@@ -25,6 +25,62 @@ type DayCellProps = {
   onDayClick: (day: number, type: 'prev' | 'current' | 'next', weekIndex: number) => void;
 }
 
+type WeekTotalCellProps = {
+  hours: number;
+  weekIndex: number;
+  selectedRow: number | null;
+  rowPercentage?: string | null;
+  columnPercentage?: string | null;
+}
+
+type DayOfWeekTotalCellProps = {
+  total: number;
+  index: number;
+  grandTotal: number;
+}
+
+const DayOfWeekTotalCell = ({ total, index, grandTotal }: DayOfWeekTotalCellProps) => {
+  return (
+    <div
+      className="p-2 text-center bg-gray-50 flex items-center justify-center relative h-[70px] border-r border-gray-200 last:border-r-0"
+    >
+      {total > 0 && (
+        <>
+          {index < 7 && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{((total / grandTotal) * 100).toFixed(1)}%</span>}
+          <span className="text-blue-600">{total}h</span>
+        </>
+      )}
+    </div>
+  );
+};
+
+const WeekTotalCell = ({
+  hours,
+  weekIndex,
+  selectedRow,
+  rowPercentage,
+  columnPercentage
+}: WeekTotalCellProps) => {
+  return (
+    <div
+      className={`
+        p-2 text-center relative h-[70px] flex flex-col justify-between
+        border-b border-r border-gray-200 last:border-r-0 last:border-b-0
+        bg-gray-50
+        ${selectedRow === weekIndex ? 'bg-gray-50' : ''}
+      `}
+    >
+      {hours > 0 && (
+        <>
+          {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
+          <span className="absolute top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-600">{hours}h</span>
+          {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
+        </>
+      )}
+    </div>
+  );
+};
+
 const DayCell = ({
   dayData,
   weekIndex,
@@ -47,32 +103,20 @@ const DayCell = ({
         }
       }}
       className={`
-        p-2 text-center cursor-pointer transition-colors relative min-h-[70px] flex flex-col justify-between
+        p-2 text-center cursor-pointer transition-colors relative h-[70px] flex flex-col justify-between
         border-b border-r border-gray-200 last:border-r-0 last:border-b-0
         ${type === 'current' ? 'hover:bg-gray-100' : type === 'total' ? 'bg-gray-50' : 'text-gray-400 hover:bg-gray-100'}
         ${isSelected ? 'ring-2 ring-blue-500 ring-inset font-bold' : ''}
         ${selectedRow === weekIndex ? 'bg-gray-50' : ''}
       `}
     >
-      {type !== 'total' ? (
+      {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
+      <span className="absolute top-[15px] left-1/2 transform -translate-x-1/2 text-[12px]">{day}</span>
+      {hours > 0 && (
         <>
-          {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
-          <span className="absolute top-[15px] left-1/2 transform -translate-x-1/2">{day}</span>
-          {hours > 0 && (
-            <>
-              <span className={`absolute bottom-[15px] left-1/2 transform -translate-x-1/2 text-[12px] block ${type === 'current' ? 'text-blue-600' : 'text-gray-400'}`}>{hours}h</span>
-              {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
-            </>
-          )}
+          <span className={`absolute bottom-[15px] left-1/2 transform -translate-x-1/2 block ${type === 'current' ? 'text-blue-600' : 'text-gray-400'}`}>{hours}h</span>
+          {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
         </>
-      ) : (
-        hours > 0 && (
-          <>
-            {rowPercentage && <span className="absolute top-0 left-0 text-[8px] text-gray-500">{rowPercentage}%</span>}
-            <span className="absolute top-[9px] left-1/2 transform -translate-x-1/2 text-[9px] text-blue-600">{hours}h</span>
-            {columnPercentage && <span className="absolute bottom-0 right-0 text-[8px] text-gray-500">{columnPercentage}%</span>}
-          </>
-        )
       )}
     </div>
   );
@@ -203,7 +247,7 @@ export default function ConsultantPage() {
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Total'].map((day) => (
             <div 
               key={day}
-              className="text-center p-2 text-sm font-semibold text-gray-600 border-b border-r border-gray-200 last:border-r-0"
+              className="text-center p-2 text-sm font-semibold text-gray-600 border-b border-r border-gray-200 last:border-r-0 h-[70px] flex items-center justify-center"
             >
               {day}
             </div>
@@ -281,7 +325,7 @@ export default function ConsultantPage() {
               <>
                 {rows.map((week, weekIndex) => (
                   <React.Fragment key={weekIndex}>
-                    {week.map((dayData, dayIndex) => {
+                    {week.slice(0, 7).map((dayData, dayIndex) => {
                       const isSelected = 'day' in dayData && dayData.day !== undefined && selectedDay === dayData.day && 
                         ((dayData.type === 'current' && selectedDate.getMonth() === currentMonth) ||
                          (dayData.type === 'prev' && selectedDate.getMonth() === currentMonth - 1) ||
@@ -312,22 +356,22 @@ export default function ConsultantPage() {
                         />
                       );
                     })}
+                    <WeekTotalCell
+                      hours={week[7].hours}
+                      weekIndex={weekIndex}
+                      selectedRow={selectedRow}
+                      columnPercentage={week[7].hours > 0 ? ((week[7].hours / columnTotals[7]) * 100).toFixed(1) : null}
+                    />
                   </React.Fragment>
                 ))}
                 {/* Total row */}
                 {columnTotals.map((total, index) => (
-                  <div
+                  <DayOfWeekTotalCell
                     key={`total-${index}`}
-                    className="p-2 text-center bg-gray-50 flex flex-col items-center justify-center relative min-h-[50px] border-r border-gray-200 last:border-r-0"
-                  >
-                    {total > 0 && (
-                      <>
-                        {index < 7 && <span className="absolute top-0 left-0 text-[8px] text-gray-500">{((total / columnTotals[7]) * 100).toFixed(1)}%</span>}
-                        <span className="absolute top-[9px] left-1/2 transform -translate-x-1/2 text-[9px] text-blue-600">{total}h</span>
-                        {index < 7 && <span className="absolute bottom-0 right-0 text-[8px] text-gray-500">{((total / columnTotals[7]) * 100).toFixed(1)}%</span>}
-                      </>
-                    )}
-                  </div>
+                    total={total}
+                    index={index}
+                    grandTotal={columnTotals[7]}
+                  />
                 ))}
               </>
             );
