@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 export const REVENUE_TRACKING_QUERY = gql`
-  query RevenueTracking($date: Date!) {
-    revenueTracking(dateOfInterest: $date) {
+  query RevenueTracking($date: Date!, $filters: [FilterInput]) {
+    revenueTracking(dateOfInterest: $date, filters: $filters) {
       year
       month
       summaries {
@@ -112,6 +112,11 @@ export const REVENUE_TRACKING_QUERY = gql`
             }
           }
         }
+      }
+      filterableFields {
+        field
+        options
+        selectedValues
       }
     }
   }
