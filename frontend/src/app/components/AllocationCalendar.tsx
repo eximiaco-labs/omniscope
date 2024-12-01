@@ -271,7 +271,7 @@ export function AllocationCalendar({
   });
 
   return (
-    <div className="w-full lg:w-1/2 border border-gray-200 rounded-lg p-4">
+    <div className="w-full border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-center mb-4">
         <button 
           onClick={() => handleMonthChange(-1)}
