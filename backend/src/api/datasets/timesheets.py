@@ -182,33 +182,15 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
     df = timesheet.data
 
     # Filter the dataframe based on the 'kind' parameter
-    if kind != "ALL":
+    if len(df) > 0 and kind != "ALL":
         df = df[df['Kind'] == kind.capitalize()]
 
-    # Compose filterable_fields and apply filters
-    filterable_fields = source.get_filterable_fields()
-    result = {'filterable_fields': []}
+    df, result = globals.omni_datasets.apply_filters(
+        source,
+        df,
+        filters
+    )
     
-    for field in filterable_fields:
-        options = sorted([value for value in df[field].unique().tolist() if value is not None])
-        selected_values = []
-        
-        if filters:
-            for filter_item in filters:
-                if filter_item['field'] == field:
-                    selected_values = filter_item['selected_values']
-                    break
-        
-        result['filterable_fields'].append({
-            'field': field,
-            'selected_values': selected_values,
-            'options': options
-        })
-        
-        # Apply filter to dataframe
-        if selected_values:
-            df = df[df[field].isin(selected_values)]
-
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
         'byKind', 'byWorker', 'byClient', 'byCase', 'bySponsor', 
