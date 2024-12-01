@@ -752,6 +752,9 @@ def compute_revenue_tracking(
     timesheet = globals.omni_datasets.timesheets.get(s, e)
     df = timesheet.data
     
+    if len(df) != 0:
+        df = df[df["Kind"] != "Internal"]
+    
     df, result = globals.omni_datasets.apply_filters(
         globals.omni_datasets.timesheets,
         df,
