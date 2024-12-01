@@ -11,6 +11,10 @@ export const GET_CONSULTANT = gql`
         byDate {
           date
           totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
         }
       }
     }
@@ -26,6 +30,10 @@ export interface Consultant {
     byDate: Array<{
       date: string;
       totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
     }>;
   };
 }
