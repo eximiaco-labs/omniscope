@@ -46,7 +46,7 @@ export default function AccountManagerPage() {
       </header>
 
      
-      <Summaries data={ data } date={new Date()} />
+      {/*<Summaries data={ data } date={new Date()} />*/}
 
       <TimesheetSummary 
         timesheet={data.accountManager.timesheet}
