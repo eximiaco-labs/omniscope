@@ -85,7 +85,19 @@ class OmniDatasets:
             return None
 
         source = self.get_dataset_source_by_slug(slug)
+        if slug.startswith('timesheet-') and len(slug.split('-')) == 7:
+            parts = slug.split('-')
+            start_day = int(parts[1])
+            start_month = int(parts[2])
+            start_year = int(parts[3])
+            end_day = int(parts[4])
+            end_month = int(parts[5])
+            end_year = int(parts[6])
 
+            start_date = datetime(start_year, start_month, start_day, 0, 0, 0, 0)
+            end_date = datetime(end_year, end_month, end_day, 23, 59, 59, 9999)
+
+            return source.get(start_date, end_date)
         if slug.startswith('timesheet-') and len(slug.split('-')) == 5:
             parts = slug.split('-')
             start_day = int(parts[1])
