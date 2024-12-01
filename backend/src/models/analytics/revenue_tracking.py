@@ -17,13 +17,8 @@ def _get_account_manager_name(case):
     client = globals.omni_models.clients.get_by_id(case.client_id)
     return client.account_manager.name if client and client.account_manager else NA_VALUE
 
-def _compute_revenue_tracking_base(date_of_interest: date, process_project, account_manager_name_or_slug: str = None):
-    s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
-    e = datetime.combine(date_of_interest, datetime.max.time())
-    
+def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, process_project, account_manager_name_or_slug: str = None):
     pro_rata_info = { "by_kind": [] }
-    timesheet = globals.omni_datasets.timesheets.get(s, e)
-    df = timesheet.data
     
     if df is None or len(df) == 0:
         return {
@@ -187,6 +182,7 @@ def _compute_revenue_tracking_base(date_of_interest: date, process_project, acco
     }, pro_rata_info
 
 def compute_regular_revenue_tracking(
+    df: pd.DataFrame,
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
@@ -204,9 +200,10 @@ def compute_regular_revenue_tracking(
                 }
         return None
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)[0]
+    return _compute_revenue_tracking_base(df, date_of_interest, process_project, account_manager_name_or_slug)[0]
 
 def compute_pre_contracted_revenue_tracking(
+    df: pd.DataFrame,
     date_of_interest: date, 
     account_manager_name_or_slug: str = None
 ):
@@ -423,7 +420,7 @@ def compute_pre_contracted_revenue_tracking(
                 
         return None 
     
-    return _compute_revenue_tracking_base(date_of_interest, process_project, account_manager_name_or_slug)
+    return _compute_revenue_tracking_base(df, date_of_interest, process_project, account_manager_name_or_slug)
 
 @dataclass
 class AccountManagerSummary:
@@ -741,16 +738,25 @@ def compute_summaries(pre_contracted, regular):
     
 def compute_revenue_tracking(
     date_of_interest: date,
-    account_manager_name_or_slug: str = None
+    account_manager_name_or_slug: str = None,
+    filters = None
     ):
+    
     year = date_of_interest.year
     month = date_of_interest.month
     
-    pre_contracted_computation = compute_pre_contracted_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    s = datetime.combine(date(date_of_interest.year, date_of_interest.month, 1), datetime.min.time())
+    e = datetime.combine(date_of_interest, datetime.max.time())
+    
+    pro_rata_info = { "by_kind": [] }
+    timesheet = globals.omni_datasets.timesheets.get(s, e)
+    df = timesheet.data
+    
+    pre_contracted_computation = compute_pre_contracted_revenue_tracking(df, date_of_interest, account_manager_name_or_slug)
     pre_contracted = pre_contracted_computation[0]
     pro_rata_info = pre_contracted_computation[1]
     
-    regular = compute_regular_revenue_tracking(date_of_interest, account_manager_name_or_slug)
+    regular = compute_regular_revenue_tracking(df, date_of_interest, account_manager_name_or_slug)
     
     summaries = compute_summaries(pre_contracted, regular)
     
