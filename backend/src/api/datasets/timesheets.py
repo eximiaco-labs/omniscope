@@ -12,6 +12,40 @@ import globals
 
 
 def summarize(df: pd.DataFrame) -> Dict[str, Any]:
+    if len(df) == 0:
+        return {
+            "total_entries": 0,
+            "total_hours": 0,
+            "unique_clients": 0, 
+            "unique_workers": 0,
+            "unique_cases": 0,
+            "unique_working_days": 0,
+            "unique_sponsors": 0,
+            "unique_account_managers": 0,
+            "unique_weeks": 0,
+            "average_hours_per_entry": 0,
+            "std_dev_hours_per_entry": 0,
+            "average_hours_per_day": 0,
+            "std_dev_hours_per_day": 0,
+            "average_hours_per_worker": 0,
+            "std_dev_hours_per_worker": 0,
+            "average_hours_per_client": 0,
+            "std_dev_hours_per_client": 0,
+            "average_hours_per_case": 0,
+            "std_dev_hours_per_case": 0,
+            "average_hours_per_sponsor": 0,
+            "std_dev_hours_per_sponsor": 0,
+            "average_hours_per_account_manager": 0,
+            "std_dev_hours_per_account_manager": 0,
+            "average_hours_per_week": 0,
+            "std_dev_hours_per_week": 0,
+            "total_squad_hours": 0,
+            "total_consulting_hours": 0,
+            "total_internal_hours": 0,
+            "total_hands_on_hours": 0,
+            "weekly_hours": []
+        }
+
     # Perform groupby operations once
     group_operations = {
         "date": df.groupby("Date")["TimeInHs"],
@@ -71,6 +105,9 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
+    if len(df) == 0:
+        return {}
+
     kinds = ['Internal', 'Consulting', 'Squad', 'HandsOn']
     summary_by_kind = {}
 
@@ -79,6 +116,9 @@ def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
         if kind_in_map in map:
             kind_map = map[kind_in_map]
             df_kind = df[df['Kind'] == kind]
+
+            if len(df_kind) == 0:
+                continue
 
             if kind == 'HandsOn':
                 label = 'hands_on'
@@ -95,6 +135,9 @@ def summarize_by_kind(df: pd.DataFrame, map: Dict) -> Dict[str, Dict[str, Any]]:
     return summary_by_kind
 
 def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "name", map: Dict = None) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    if len(df) == 0:
+        return []
+
     summaries = []
     for group_value, group_df in df.groupby(group_column):
         summary = summarize(group_df)
@@ -161,6 +204,9 @@ def summarize_by_date(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[
     return summarize_by_group(df, 'Date', name_key="date", map=map)
 
 def summarize_by_week(df: pd.DataFrame, map: Dict) -> List[Dict[str, Union[Dict[str, Any], Any]]]:
+    if len(df) == 0:
+        return []
+
     summaries = summarize_by_group(df, 'Week', name_key="week", map=map)
     
     # Sort the summaries based on the 'week' key
@@ -182,33 +228,15 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
     df = timesheet.data
 
     # Filter the dataframe based on the 'kind' parameter
-    if kind != "ALL":
+    if len(df) > 0 and kind != "ALL":
         df = df[df['Kind'] == kind.capitalize()]
 
-    # Compose filterable_fields and apply filters
-    filterable_fields = source.get_filterable_fields()
-    result = {'filterable_fields': []}
+    df, result = globals.omni_datasets.apply_filters(
+        source,
+        df,
+        filters
+    )
     
-    for field in filterable_fields:
-        options = sorted([value for value in df[field].unique().tolist() if value is not None])
-        selected_values = []
-        
-        if filters:
-            for filter_item in filters:
-                if filter_item['field'] == field:
-                    selected_values = filter_item['selected_values']
-                    break
-        
-        result['filterable_fields'].append({
-            'field': field,
-            'selected_values': selected_values,
-            'options': options
-        })
-        
-        # Apply filter to dataframe
-        if selected_values:
-            df = df[df[field].isin(selected_values)]
-
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
         'byKind', 'byWorker', 'byClient', 'byCase', 'bySponsor', 

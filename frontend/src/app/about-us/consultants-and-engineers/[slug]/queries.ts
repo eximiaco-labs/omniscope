@@ -1,65 +1,31 @@
 import { gql } from "@apollo/client";
 
 export const GET_CONSULTANT = gql`
-  query GetConsultant($slug: String!, $dataset: String!) {
+  query GetConsultant($slug: String!, $dataset1: String!, $dataset2: String!) {
     consultantOrEngineer(slug: $slug) {
       photoUrl
       name
       position
 
-      timesheet(slug: $dataset) {
-        byKind {
-          consulting {
-            uniqueClients
-            uniqueSponsors
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-
-          handsOn {
-            uniqueClients
-            uniqueSponsors
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-
-          squad {
-            uniqueClients
-            uniqueSponsors
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
-
-          internal {
-            uniqueClients
-            uniqueSponsors
-            uniqueCases
-            uniqueWorkers
-            totalHours
-          }
+      timesheet1: timesheet(slug: $dataset1) {
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
         }
+      }
 
-        byCase {
-          title
-          caseDetails {
-            client {
-              name
-              accountManager {
-                name
-              }
-            }
-            sponsor
-          }
-          byWorker {
-            name
-            totalConsultingHours
-            totalHandsOnHours
-            totalSquadHours
-            totalInternalHours
-          }
+      timesheet2: timesheet(slug: $dataset2) {
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
         }
       }
     }
@@ -71,50 +37,25 @@ export interface Consultant {
   name: string;
   position: string;
 
-  timesheet: {
-    byKind: {
-      consulting: {
-        uniqueClients: number;
-        uniqueSponsors: number;
-        uniqueCases: number;
-        uniqueWorkers: number;
-        totalHours: number;
-      };
-      handsOn: {
-        uniqueClients: number;
-        uniqueSponsors: number;
-        uniqueCases: number;
-        uniqueWorkers: number;
-        totalHours: number;
-      };
-      squad: {
-        uniqueClients: number;
-        uniqueSponsors: number;
-        uniqueCases: number;
-        uniqueWorkers: number;
-        totalHours: number;
-      };
-      internal: {
-        uniqueClients: number;
-        uniqueSponsors: number;
-        uniqueCases: number;
-        uniqueWorkers: number;
-        totalHours: number;
-      };
-    };
-    byCase: Array<{
-      title: string;
-      caseDetails: {
-        client: { name: string; accountManager: { name: string } };
-        sponsor: string;
-      };
-      byWorker: {
-        name: string;
-        totalConsultingHours: number;
-        totalHandsOnHours: number;
-        totalSquadHours: number;
-        totalInternalHours: number;
-      }[];
+  timesheet1: {
+    byDate: Array<{
+      date: string;
+      totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
+    }>;
+  };
+
+  timesheet2: {
+    byDate: Array<{
+      date: string;
+      totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
     }>;
   };
 }

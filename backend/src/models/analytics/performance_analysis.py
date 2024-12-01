@@ -33,6 +33,16 @@ class WorkingDayHours:
     @staticmethod
     def from_timesheet(timesheet: pd.DataFrame, day_of_interest) -> 'WorkingDayHours':
         timesheet = timesheet[pd.to_datetime(timesheet['Date']).dt.date == day_of_interest.date()]
+        
+        if len(timesheet) == 0:
+            return WorkingDayHours(
+                date=day_of_interest,
+                hours=0,
+                pre_contracted_work_hours=0,
+                regular_work_hours=0,
+                by_case=[]
+            )
+            
         by_case = [
             CaseHours.new(case_id, hours)
             for case_id, hours in timesheet.groupby('CaseId')['TimeInHs'].sum().items()
@@ -212,7 +222,8 @@ class OneWeekPerformanceSummary:
         client = globals.omni_models.clients.get_by_id(case.client_id) if case.client_id else None
         
         actual_hours = self.week.by_case.get(case.id, 0)
-        this_month_hours = self.week.this_month(this_month).by_case.get(case.id, 0)
+        this_month_week = self.week.this_month(this_month)
+        this_month_hours = this_month_week.by_case.get(case.id, 0) if this_month_week else 0
 
         id = case.id
         title = case.title
@@ -268,8 +279,14 @@ class TotalsRegular:
     
     @staticmethod
     def compute_from_cases(cases: List[RegularCasePerformanceSummary]):
-        if len(cases) == 0:
-            return None
+        if not cases:
+            return TotalsRegular(
+                approved_work_hours=0,
+                actual_work_hours=0,
+                in_context_actual_work_hours=0,
+                wasted_hours=0,
+                over_approved_hours=0
+            )
 
         return TotalsRegular(
             approved_work_hours=sum(case.approved_work_hours for case in cases),
@@ -289,8 +306,14 @@ class TotalsPreContracted:
     
     @staticmethod
     def compute_from_cases(cases: List[PreContractedCasePerformanceSummary]):
-        if len(cases) == 0:
-            return None
+        if not cases:
+            return TotalsPreContracted(
+                approved_work_hours=0,
+                actual_work_hours=0,
+                in_context_actual_work_hours=0,
+                possible_unpaid_hours=0,
+                possible_idle_hours=0
+            )
 
         return TotalsPreContracted(
             approved_work_hours=sum(case.approved_work_hours for case in cases),
@@ -444,6 +467,8 @@ def _get_analysis_period(start: date, end: date) -> tuple[date, date]:
 
 def _get_timesheet(start: date, end: date) -> pd.DataFrame:
     source_timesheet = globals.omni_datasets.timesheets.get(start, end).data
+    if len(source_timesheet) == 0:
+        return pd.DataFrame(columns=['Date', 'Kind', 'CaseId', 'TimeInHs'])
     timesheet = source_timesheet[source_timesheet['Kind'] == 'Consulting']
     return timesheet
 
