@@ -136,7 +136,45 @@ type TimesheetSummary implements ISummary {
   byWeek: [WeekSummary!]!
   byOffer: [NamedSummary!]!
 
+  appointments: [AppointmentSummary!]!
+
   filterableFields: [FilterableField]!
+}
+
+type AppointmentSummary {
+  createdAt: Date!
+  date: Date!
+
+  dayOfWeek: String!
+  month: String!
+  year: String!
+  yearMonth: String!
+
+  isSquad: Boolean!
+  isEximiaco: Boolean!
+
+  week: String!
+
+  timeInHs: Float!
+
+  kind: String!
+  createdAtWeek: String!
+
+  correctness: String!
+  isLte: Boolean!
+
+  workerName: String!
+  workerSlug: String!
+  
+  caseTitle: String!
+  
+  sponsor: String!
+  clientName: String!
+  
+  accountManagerName: String!
+  accountManagerSlug: String!
+
+  productsOrServices: String!
 }
 
 type KindSummary {
