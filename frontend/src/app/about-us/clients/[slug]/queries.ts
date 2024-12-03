@@ -1,11 +1,33 @@
 import { gql } from "@apollo/client";
 
 export const GET_CLIENT_BY_SLUG = gql`
-  query GetClientBySlug($slug: String!) {
+  query GetClientBySlug($slug: String!, $dataset1: String!, $dataset2: String!) {
     client(slug: $slug) {
       name
       logoUrl
       isStrategic
+
+      timesheet1: timesheet(slug: $dataset1) {
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+
+      timesheet2: timesheet(slug: $dataset2) {
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
     }
   }
 `;
@@ -42,6 +64,7 @@ export const GET_CLIENT_TIMESHEET = gql`
         }
       }
     }
+
     timesheet(slug: $datasetSlug, filters: [{ field: "ClientName", selectedValues: [$clientName] }]) {
       uniqueClients
       uniqueCases

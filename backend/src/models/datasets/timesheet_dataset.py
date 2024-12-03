@@ -102,8 +102,6 @@ class TimesheetDataset(OmniDataset):
                 row['case_title'] = case.title
                 row['sponsor'] = case.sponsor
                 row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
-                
-                if row['kind'] == 'consulting' and case
 
                 # Obter produtos ou serviços associados
                 products_or_services = [get_offer_name(offer) for offer in case.offers_ids]
