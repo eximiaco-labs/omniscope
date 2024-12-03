@@ -91,7 +91,7 @@ const WeekTotalCell = ({
       {statHours > 0 && (
         <>
           {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
-          <span style={{color: STAT_COLORS[selectedStatType]}} className="absolute top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">{statHours}h</span>
+          <span style={{color: STAT_COLORS[selectedStatType]}} className="absolute top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">{statHours.toFixed(1)}h</span>
           {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
         </>
       )}
@@ -173,7 +173,32 @@ export function AllocationCalendar({
   setIsAllSelected,
   timesheet
 }: AllocationCalendarProps) {
-  const [selectedStatType, setSelectedStatType] = useState<StatType>('consulting');
+  // Calculate total hours for each type
+  const totalHours = {
+    consulting: 0,
+    handsOn: 0,
+    squad: 0,
+    internal: 0
+  };
+
+  timesheet.byDate.forEach((day: { 
+    totalConsultingHours?: number;
+    totalHandsOnHours?: number; 
+    totalSquadHours?: number;
+    totalInternalHours?: number;
+  }) => {
+    totalHours.consulting += day.totalConsultingHours || 0;
+    totalHours.handsOn += day.totalHandsOnHours || 0;
+    totalHours.squad += day.totalSquadHours || 0;
+    totalHours.internal += day.totalInternalHours || 0;
+  });
+
+  // Get available stat types (those with hours > 0)
+  const availableStatTypes = Object.entries(totalHours)
+    .filter(([_, hours]) => hours > 0)
+    .map(([type]) => type as StatType);
+
+  const [selectedStatType, setSelectedStatType] = useState<StatType>(availableStatTypes[0] || 'consulting');
 
   const getHoursForDate = (date: Date) => {
     const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
@@ -250,26 +275,6 @@ export function AllocationCalendar({
     "July", "August", "September", "October", "November", "December"
   ];
 
-  // Calculate total hours for each type
-  const totalHours = {
-    consulting: 0,
-    handsOn: 0,
-    squad: 0,
-    internal: 0
-  };
-
-  timesheet.byDate.forEach((day: { 
-    totalConsultingHours?: number;
-    totalHandsOnHours?: number; 
-    totalSquadHours?: number;
-    totalInternalHours?: number;
-  }) => {
-    totalHours.consulting += day.totalConsultingHours || 0;
-    totalHours.handsOn += day.totalHandsOnHours || 0;
-    totalHours.squad += day.totalSquadHours || 0;
-    totalHours.internal += day.totalInternalHours || 0;
-  });
-
   return (
     <div className="w-full border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-center mb-4">
@@ -290,22 +295,22 @@ export function AllocationCalendar({
         </button>
       </div>
 
-      <Tabs defaultValue="consulting" className="mb-4">
-        <TabsList className="w-full">
-          {totalHours.consulting > 0 && (
-            <TabsTrigger value="consulting" onClick={() => handleStatTypeChange('consulting')} className="flex-1">Consulting</TabsTrigger>
-          )}
-          {totalHours.handsOn > 0 && (
-            <TabsTrigger value="handsOn" onClick={() => handleStatTypeChange('handsOn')} className="flex-1">Hands-on</TabsTrigger>
-          )}
-          {totalHours.squad > 0 && (
-            <TabsTrigger value="squad" onClick={() => handleStatTypeChange('squad')} className="flex-1">Squad</TabsTrigger>
-          )}
-          {totalHours.internal > 0 && (
-            <TabsTrigger value="internal" onClick={() => handleStatTypeChange('internal')} className="flex-1">Internal</TabsTrigger>
-          )}
-        </TabsList>
-      </Tabs>
+      {availableStatTypes.length > 0 && (
+        <Tabs value={selectedStatType} defaultValue={availableStatTypes[0]} className="mb-4">
+          <TabsList className="w-full">
+            {availableStatTypes.map(type => (
+              <TabsTrigger 
+                key={type}
+                value={type} 
+                onClick={() => handleStatTypeChange(type)} 
+                className="flex-1"
+              >
+                {type === 'handsOn' ? 'Hands-on' : type.charAt(0).toUpperCase() + type.slice(1)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
 
       <div className="grid grid-cols-8 border border-gray-200">
         {/* Header row with day names */}
