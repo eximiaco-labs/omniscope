@@ -136,14 +136,15 @@ type TimesheetSummary implements ISummary {
   byWeek: [WeekSummary!]!
   byOffer: [NamedSummary!]!
 
-  appointments: [AppointmentSummary!]!
+  appointments: [Appointment!]!
 
   filterableFields: [FilterableField]!
 }
 
-type AppointmentSummary {
+type Appointment {
   createdAt: Date!
   date: Date!
+  comment: String
 
   dayOfWeek: String!
   month: String!
