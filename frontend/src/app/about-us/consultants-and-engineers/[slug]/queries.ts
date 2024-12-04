@@ -11,6 +11,7 @@ export const GET_CONSULTANT = gql`
         appointments {
           kind
           date
+          workerName
           clientName
           comment
           timeInHs

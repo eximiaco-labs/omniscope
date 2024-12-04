@@ -228,7 +228,7 @@ export default function ConsultantPage() {
       }
     });
 
-    // Filter based on selected stat type
+    // Filter based on selected stat type and sort alphabetically by client name
     return Object.entries(clientHours)
       .map(([client, hours]) => ({
         client,
@@ -239,7 +239,7 @@ export default function ConsultantPage() {
         )
       }))
       .filter(summary => summary.hours > 0)
-      .sort((a, b) => b.hours - a.hours);
+      .sort((a, b) => a.client.localeCompare(b.client));
   };
 
   return (
