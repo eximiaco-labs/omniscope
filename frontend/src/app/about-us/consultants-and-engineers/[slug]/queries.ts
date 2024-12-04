@@ -8,6 +8,13 @@ export const GET_CONSULTANT = gql`
       position
 
       timesheet1: timesheet(slug: $dataset1) {
+        appointments {
+          kind
+          date
+          clientName
+          comment
+          timeInHs
+        }
         byDate {
           date
           totalHours
@@ -19,6 +26,13 @@ export const GET_CONSULTANT = gql`
       }
 
       timesheet2: timesheet(slug: $dataset2) {
+        appointments {
+          kind
+          date
+          clientName
+          comment
+          timeInHs
+        }
         byDate {
           date
           totalHours
@@ -38,6 +52,13 @@ export interface Consultant {
   position: string;
 
   timesheet1: {
+    appointments: Array<{
+      date: string;
+      clientName: string;
+      comment: string;
+      timeInHs: number;
+      kind: string;
+    }>;
     byDate: Array<{
       date: string;
       totalHours: number;
@@ -49,6 +70,13 @@ export interface Consultant {
   };
 
   timesheet2: {
+    appointments: Array<{
+      date: string;
+      clientName: string;
+      comment: string;
+      timeInHs: number;
+      kind: string;
+    }>;
     byDate: Array<{
       date: string;
       totalHours: number;

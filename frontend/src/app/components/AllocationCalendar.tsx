@@ -158,6 +158,8 @@ interface AllocationCalendarProps {
   isAllSelected: boolean;
   setIsAllSelected: (selected: boolean) => void;
   timesheet: any;
+  selectedStatType: StatType;
+  setSelectedStatType: (type: StatType) => void;
 }
 
 export function AllocationCalendar({
@@ -171,7 +173,9 @@ export function AllocationCalendar({
   setSelectedColumn,
   isAllSelected,
   setIsAllSelected,
-  timesheet
+  timesheet,
+  selectedStatType,
+  setSelectedStatType
 }: AllocationCalendarProps) {
   // Calculate total hours for each type
   const totalHours = {
@@ -197,8 +201,6 @@ export function AllocationCalendar({
   const availableStatTypes = Object.entries(totalHours)
     .filter(([_, hours]) => hours > 0)
     .map(([type]) => type as StatType);
-
-  const [selectedStatType, setSelectedStatType] = useState<StatType>(availableStatTypes[0] || 'consulting');
 
   const getHoursForDate = (date: Date) => {
     const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
