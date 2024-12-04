@@ -202,6 +202,11 @@ export function AllocationCalendar({
     .filter(([_, hours]) => hours > 0)
     .map(([type]) => type as StatType);
 
+  // If selectedStatType is not available, use first available type
+  if (!availableStatTypes.includes(selectedStatType) && availableStatTypes.length > 0) {
+    setSelectedStatType(availableStatTypes[0]);
+  }
+
   const getHoursForDate = (date: Date) => {
     const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
     const dayData = timesheet.byDate.find((d: { date: string }) => d.date === formattedDate);
