@@ -8,6 +8,14 @@ export const GET_CLIENT_BY_SLUG = gql`
       isStrategic
 
       timesheet1: timesheet(slug: $dataset1) {
+        appointments {
+          kind
+          date
+          workerName
+          clientName
+          comment
+          timeInHs
+        }
         byDate {
           date
           totalHours
@@ -19,6 +27,14 @@ export const GET_CLIENT_BY_SLUG = gql`
       }
 
       timesheet2: timesheet(slug: $dataset2) {
+        appointments {
+          kind
+          date
+          workerName
+          clientName
+          comment
+          timeInHs
+        }
         byDate {
           date
           totalHours
