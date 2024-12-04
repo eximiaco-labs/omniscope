@@ -10,8 +10,21 @@ import { CasesSummary } from "./CasesSummary";
 import { ActiveDealsSummary } from "./ActiveDealsSummary";
 import { AllocationCalendar } from "@/app/components/AllocationCalendar";
 import SectionHeader from "@/components/SectionHeader";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { StatType } from "@/app/constants/colors";
 
 interface ClientSummary {
@@ -20,9 +33,9 @@ interface ClientSummary {
   appointments: any[];
 }
 
-const ClientSummarySection = ({ 
-  summaries, 
-  selectedStatType 
+const ClientSummarySection = ({
+  summaries,
+  selectedStatType,
 }: {
   summaries: ClientSummary[] | null;
   selectedStatType: StatType;
@@ -33,7 +46,10 @@ const ClientSummarySection = ({
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <h3 className="font-semibold mb-2">Client Summary:</h3>
       {summaries.map((summary) => (
-        <div key={summary.client} className="flex justify-between items-center py-1">
+        <div
+          key={summary.client}
+          className="flex justify-between items-center py-1"
+        >
           <span>{summary.client}</span>
           <div className="flex items-center gap-4">
             <span>{summary.hours.toFixed(1)}h</span>
@@ -43,7 +59,12 @@ const ClientSummarySection = ({
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle>{summary.client} - {selectedStatType.charAt(0).toUpperCase() + selectedStatType.slice(1)} Hours</SheetTitle>
+                  <SheetTitle>
+                    {summary.client} -{" "}
+                    {selectedStatType.charAt(0).toUpperCase() +
+                      selectedStatType.slice(1)}{" "}
+                    Hours
+                  </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 max-h-[60vh] overflow-y-auto">
                   <Table>
@@ -58,10 +79,18 @@ const ClientSummarySection = ({
                     <TableBody>
                       {summary.appointments.map((apt, idx) => (
                         <TableRow key={idx}>
-                          <TableCell className="font-medium text-xs">{apt.date}</TableCell>
-                          <TableCell className="text-xs">{apt.workerName}</TableCell>
-                          <TableCell className="text-xs">{apt.timeInHs}h</TableCell>
-                          <TableCell className="text-gray-600 text-xs">{apt.comment}</TableCell>
+                          <TableCell className="font-medium text-xs">
+                            {apt.date}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {apt.workerName}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {apt.timeInHs}h
+                          </TableCell>
+                          <TableCell className="text-gray-600 text-xs">
+                            {apt.comment}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -79,7 +108,9 @@ const ClientSummarySection = ({
 export default function AccountManagerPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [selectedDataset, setSelectedDataset] = useState("timesheet-last-six-weeks");
+  const [selectedDataset, setSelectedDataset] = useState(
+    "timesheet-last-six-weeks"
+  );
 
   // Previous month states
   const [selectedDatePrev, setSelectedDatePrev] = useState(
@@ -87,17 +118,23 @@ export default function AccountManagerPage() {
   );
   const [selectedDayPrev, setSelectedDayPrev] = useState<number | null>(null);
   const [selectedRowPrev, setSelectedRowPrev] = useState<number | null>(null);
-  const [selectedColumnPrev, setSelectedColumnPrev] = useState<number | null>(null);
+  const [selectedColumnPrev, setSelectedColumnPrev] = useState<number | null>(
+    null
+  );
   const [isAllSelectedPrev, setIsAllSelectedPrev] = useState(false);
-  const [selectedStatTypePrev, setSelectedStatTypePrev] = useState<StatType>('consulting');
+  const [selectedStatTypePrev, setSelectedStatTypePrev] =
+    useState<StatType>("consulting");
 
   // Current month states
   const [selectedDateCurr, setSelectedDateCurr] = useState(new Date());
   const [selectedDayCurr, setSelectedDayCurr] = useState<number | null>(null);
   const [selectedRowCurr, setSelectedRowCurr] = useState<number | null>(null);
-  const [selectedColumnCurr, setSelectedColumnCurr] = useState<number | null>(null);
+  const [selectedColumnCurr, setSelectedColumnCurr] = useState<number | null>(
+    null
+  );
   const [isAllSelectedCurr, setIsAllSelectedCurr] = useState(false);
-  const [selectedStatTypeCurr, setSelectedStatTypeCurr] = useState<StatType>('consulting');
+  const [selectedStatTypeCurr, setSelectedStatTypeCurr] =
+    useState<StatType>("consulting");
 
   const getVisibleDates = (date: Date) => {
     const currentMonth = date.getMonth();
@@ -141,103 +178,132 @@ export default function AccountManagerPage() {
   const { data, loading, error } = useQuery<{ accountManager: AccountManager }>(
     GET_ACCOUNT_MANAGER,
     {
-      variables: { 
+      variables: {
         slug,
-        dataset: selectedDataset.replace('timesheet-', ''),
+        dataset: selectedDataset.replace("timesheet-", ""),
         dataset1: previousMonthDataset,
-        dataset2: currentMonthDataset
-      }
+        dataset2: currentMonthDataset,
+      },
     }
   );
 
-  const getSelectedClientSummary = (timesheet: any, selectedDay: number | null, selectedRow: number | null, selectedColumn: number | null, isAllSelected: boolean, selectedDate: Date, selectedStatType: StatType) => {
-    if (!selectedDay && !selectedRow && !selectedColumn && !isAllSelected) return null;
+  const getSelectedClientSummary = (
+    timesheet: any,
+    selectedDay: number | null,
+    selectedRow: number | null,
+    selectedColumn: number | null,
+    isAllSelected: boolean,
+    selectedDate: Date,
+    selectedStatType: StatType
+  ) => {
+    if (!selectedDay && !selectedRow && !selectedColumn && !isAllSelected)
+      return null;
 
-    const clientHours: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number } } = {};
+    const clientHours: {
+      [key: string]: {
+        total: number;
+        consulting: number;
+        handsOn: number;
+        squad: number;
+        internal: number;
+      };
+    } = {};
     const clientAppointments: { [key: string]: any[] } = {};
-    
-    timesheet.appointments.forEach((appointment: {
-      date: string;
-      clientName: string;
-      workerName: string;
-      timeInHs: number;
-      comment: string;
-      kind: string;
-    }) => {
-      const appointmentDate = new Date(appointment.date);
-      const dayOfMonth = appointmentDate.getUTCDate();
-      const dayOfWeek = appointmentDate.getUTCDay();
-      const appointmentMonth = appointmentDate.getUTCMonth();
-      
-      const firstDayOfMonth = new Date(appointmentDate.getUTCFullYear(), appointmentDate.getUTCMonth(), 1);
-      const firstDayOffset = firstDayOfMonth.getUTCDay();
 
-      const weekIndex = Math.floor((dayOfMonth + firstDayOffset - 1) / 7);
+    timesheet.appointments.forEach(
+      (appointment: {
+        date: string;
+        clientName: string;
+        workerName: string;
+        timeInHs: number;
+        comment: string;
+        kind: string;
+      }) => {
+        const appointmentDate = new Date(appointment.date);
+        const dayOfMonth = appointmentDate.getUTCDate();
+        const dayOfWeek = appointmentDate.getUTCDay();
+        const appointmentMonth = appointmentDate.getUTCMonth();
 
-      const shouldInclude = (isAllSelected || 
-        (selectedDay !== null && dayOfMonth === selectedDay) ||
-        (selectedRow !== null && weekIndex === selectedRow) ||
-        (selectedColumn !== null && dayOfWeek === selectedColumn)) &&
-        appointmentMonth === selectedDate.getMonth();
-
-      if (shouldInclude) {
-        const clientName = appointment.clientName;
-        if (!clientHours[clientName]) {
-          clientHours[clientName] = {
-            total: 0,
-            consulting: 0,
-            handsOn: 0,
-            squad: 0,
-            internal: 0
-          };
-        }
-
-        const dayData = timesheet.byDate.find((d: any) => 
-          new Date(d.date).getUTCDate() === dayOfMonth && 
-          new Date(d.date).getUTCMonth() === appointmentMonth
+        const firstDayOfMonth = new Date(
+          appointmentDate.getUTCFullYear(),
+          appointmentDate.getUTCMonth(),
+          1
         );
+        const firstDayOffset = firstDayOfMonth.getUTCDay();
 
-        if (dayData) {
-          clientHours[clientName].total += appointment.timeInHs;
-          
-          switch(appointment.kind.toLowerCase()) {
-            case 'consulting':
-              clientHours[clientName].consulting += appointment.timeInHs;
-              break;
-            case 'handson':
-              clientHours[clientName].handsOn += appointment.timeInHs;
-              break;
-            case 'squad':
-              clientHours[clientName].squad += appointment.timeInHs;
-              break;
-            case 'internal':
-              clientHours[clientName].internal += appointment.timeInHs;
-              break;
+        const weekIndex = Math.floor((dayOfMonth + firstDayOffset - 1) / 7);
+
+        const shouldInclude =
+          (isAllSelected ||
+            (selectedDay !== null && dayOfMonth === selectedDay) ||
+            (selectedRow !== null && weekIndex === selectedRow) ||
+            (selectedColumn !== null && dayOfWeek === selectedColumn)) &&
+          appointmentMonth === selectedDate.getMonth();
+
+        if (shouldInclude) {
+          const clientName = appointment.clientName;
+          if (!clientHours[clientName]) {
+            clientHours[clientName] = {
+              total: 0,
+              consulting: 0,
+              handsOn: 0,
+              squad: 0,
+              internal: 0,
+            };
           }
 
-          if (!clientAppointments[clientName]) {
-            clientAppointments[clientName] = [];
-          }
+          const dayData = timesheet.byDate.find(
+            (d: any) =>
+              new Date(d.date).getUTCDate() === dayOfMonth &&
+              new Date(d.date).getUTCMonth() === appointmentMonth
+          );
 
-          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-          clientAppointments[clientName].push({
-            ...appointment,
-            date: `${days[appointmentDate.getUTCDay()]} ${appointmentDate.getUTCDate()}`
-          });
+          if (dayData) {
+            clientHours[clientName].total += appointment.timeInHs;
+
+            switch (appointment.kind.toLowerCase()) {
+              case "consulting":
+                clientHours[clientName].consulting += appointment.timeInHs;
+                break;
+              case "handson":
+                clientHours[clientName].handsOn += appointment.timeInHs;
+                break;
+              case "squad":
+                clientHours[clientName].squad += appointment.timeInHs;
+                break;
+              case "internal":
+                clientHours[clientName].internal += appointment.timeInHs;
+                break;
+            }
+
+            if (!clientAppointments[clientName]) {
+              clientAppointments[clientName] = [];
+            }
+
+            const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            clientAppointments[clientName].push({
+              ...appointment,
+              date: `${
+                days[appointmentDate.getUTCDay()]
+              } ${appointmentDate.getUTCDate()}`,
+            });
+          }
         }
       }
-    });
+    );
 
     return Object.entries(clientHours)
       .map(([client, hours]) => ({
         client,
         hours: hours[selectedStatType],
-        appointments: clientAppointments[client].filter(apt => 
-          apt.kind.toLowerCase() === selectedStatType ||
-          (selectedStatType === 'handsOn' && apt.kind.toLowerCase() === 'handson')
-        )
+        appointments: clientAppointments[client].filter(
+          (apt) =>
+            apt.kind.toLowerCase() === selectedStatType ||
+            (selectedStatType === "handsOn" &&
+              apt.kind.toLowerCase() === "handson")
+        ),
       }))
-      .filter(summary => summary.hours > 0)
+      .filter((summary) => summary.hours > 0)
       .sort((a, b) => b.hours - a.hours);
   };
 
@@ -245,7 +311,15 @@ export default function AccountManagerPage() {
   if (error) return <div>Error loading data</div>;
   if (!data?.accountManager) return <div>Manager not found</div>;
 
-  const { name, position, photoUrl, timesheet1, timesheet2, cases, activeDeals } = data.accountManager;
+  const {
+    name,
+    position,
+    photoUrl,
+    timesheet1,
+    timesheet2,
+    cases,
+    activeDeals,
+  } = data.accountManager;
 
   return (
     <div className="w-full p-2">
@@ -261,7 +335,7 @@ export default function AccountManagerPage() {
       </header>
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
-      
+
       <div className="ml-2 mr-2">
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -325,14 +399,16 @@ export default function AccountManagerPage() {
         </div>
       </div>
 
-      <TimesheetSummary 
-        timesheet={data.accountManager.timesheet}
-        selectedDataset={selectedDataset}
-        onDatasetSelect={setSelectedDataset}
-      />
+      <div className="mt-4">
+        <TimesheetSummary
+          timesheet={data.accountManager.timesheet}
+          selectedDataset={selectedDataset}
+          onDatasetSelect={setSelectedDataset}
+        />
 
-      <CasesSummary cases={cases} />
-      <ActiveDealsSummary activeDeals={activeDeals} />
+        <CasesSummary cases={cases} />
+        <ActiveDealsSummary activeDeals={activeDeals} />
+      </div>
     </div>
   );
 }
