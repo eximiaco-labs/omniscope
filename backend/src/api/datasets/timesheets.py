@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Union
 from graphql import GraphQLResolveInfo
 
 from api.utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
+from models.helpers.slug import slugify
 
 import globals
 
@@ -281,6 +282,35 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
     
     if 'byOffer' in requested_fields:
         result['by_offer'] = summarize_by_offer(df, map['byOffer'])
+        
+    if 'appointments' in requested_fields:
+        def summarize_appointments(df, fields):
+            appointments = []
+            
+            fields_slugs = {}
+            for field in fields:
+                # Convert camelCase to snake_case
+                parts = []
+                current_part = field[0].lower()
+                for c in field[1:]:
+                    if c.isupper():
+                        parts.append(current_part)
+                        current_part = c.lower()
+                    else:
+                        current_part += c
+                parts.append(current_part)
+                field_slug = '_'.join(parts)
+                fields_slugs[field] = field_slug
+            
+            for _, row in df.iterrows():
+                appointment = {}
+                for field in fields:
+                    field_slug = fields_slugs[field]
+                    appointment[field_slug] = row[field]
+                appointments.append(appointment)
+            return appointments
+        
+        result['appointments'] = summarize_appointments(df, globals.omni_datasets.timesheets.get_all_fields())
 
     return result
 

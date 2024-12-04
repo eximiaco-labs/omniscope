@@ -2,7 +2,7 @@ import { RevenueTrackingQuery } from "@/app/financial/revenue-tracking/types";
 import { gql } from "@apollo/client";
 
 export const GET_ACCOUNT_MANAGER = gql`
-  query GetAccountManager($slug: String!, $dataset: String!) {
+  query GetAccountManager($slug: String!, $dataset: String!, $dataset1: String!, $dataset2: String!) {
     accountManager(slug: $slug) {
       photoUrl
       name
@@ -34,6 +34,45 @@ export const GET_ACCOUNT_MANAGER = gql`
         client { name }
         isStale
       }
+
+      timesheet1: timesheet(slug: $dataset1) {
+        appointments {
+          kind
+          date
+          workerName
+          clientName
+          comment
+          timeInHs
+        }
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+
+      timesheet2: timesheet(slug: $dataset2) {
+        appointments {
+          kind
+          date
+          workerName
+          clientName
+          comment
+          timeInHs
+        }
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+
       timesheet(slug: $dataset) {
         byKind {
           consulting {
@@ -152,7 +191,9 @@ export interface AccountManager {
   activeDeals: Array<{
     title: string;
     clientOrProspectName: string;
-    client: { id: number };
+    client: {
+      id: string;
+    };
     stageName: string;
     stageOrderNr: number;
     daysSinceLastUpdate: number;
@@ -166,13 +207,53 @@ export interface AccountManager {
     hasDescription: boolean;
     lastUpdate: {
       status: string;
-      date: Date;
+      date: string;
       author: string;
       observations: string;
     };
-    client: { name: string; accountManager: { name: string } };
+    client: {
+      name: string;
+    };
     isStale: boolean;
   }>;
+
+  timesheet1: {
+    appointments: Array<{
+      kind: string;
+      date: string;
+      workerName: string;
+      clientName: string;
+      comment: string;
+      timeInHs: number;
+    }>;
+    byDate: Array<{
+      date: string;
+      totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
+    }>;
+  };
+
+  timesheet2: {
+    appointments: Array<{
+      kind: string;
+      date: string;
+      workerName: string;
+      clientName: string;
+      comment: string;
+      timeInHs: number;
+    }>;
+    byDate: Array<{
+      date: string;
+      totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
+    }>;
+  };
 
   timesheet: {
     byKind: {
@@ -208,7 +289,12 @@ export interface AccountManager {
     byCase: Array<{
       title: string;
       caseDetails: {
-        client: { name: string, accountManager: { name: string } };
+        client: {
+          name: string;
+          accountManager: {
+            name: string;
+          };
+        };
         sponsor: string;
       };
       byWorker: Array<{
@@ -219,5 +305,56 @@ export interface AccountManager {
         totalInternalHours: number;
       }>;
     }>;
+  };
+
+  revenueTracking: {
+    year: number;
+    month: number;
+    summaries: {
+      byMode: {
+        regular: number;
+        preContracted: number;
+        total: number;
+      };
+      byKind: Array<{
+        name: string;
+        regular: number;
+        preContracted: number;
+        total: number;
+      }>;
+      byAccountManager: Array<{
+        name: string;
+        slug: string;
+        regular: number;
+        preContracted: number;
+        total: number;
+        consultingFee: number;
+        consultingPreFee: number;
+        handsOnFee: number;
+        squadFee: number;
+      }>;
+      byClient: Array<{
+        name: string;
+        slug: string;
+        regular: number;
+        preContracted: number;
+        total: number;
+        consultingFee: number;
+        consultingPreFee: number;
+        handsOnFee: number;
+        squadFee: number;
+      }>;
+      bySponsor: Array<{
+        name: string;
+        slug: string;
+        regular: number;
+        preContracted: number;
+        total: number;
+        consultingFee: number;
+        consultingPreFee: number;
+        handsOnFee: number;
+        squadFee: number;
+      }>;
+    };
   };
 }

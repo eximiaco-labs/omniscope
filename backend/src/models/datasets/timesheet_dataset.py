@@ -143,6 +143,7 @@ class TimesheetDataset(OmniDataset):
                 'DayOfWeek',
                 'Month',
                 'Year',
+                'Comment',
                 'YearMonth',
                 'UserId',
                 'Time',
