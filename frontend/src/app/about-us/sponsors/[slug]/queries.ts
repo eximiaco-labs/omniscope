@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_SPONSOR_BY_SLUG = gql`
-  query GetSponsorBySlug($slug: String!) {
+  query GetSponsorBySlug($slug: String!, $dataset1: String!, $dataset2: String!) {
     sponsor(slug: $slug) {
       name
       photoUrl
@@ -10,6 +10,48 @@ export const GET_SPONSOR_BY_SLUG = gql`
       client {
         id
         name
+      }
+
+      timesheet1: timesheet(slug: $dataset1) {
+        appointments {
+          kind
+          date
+          workerSlug
+          workerName
+          caseTitle
+          caseId
+          comment
+          timeInHs
+        }
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+
+      timesheet2: timesheet(slug: $dataset2) {
+        appointments {
+          kind
+          date
+          workerSlug
+          workerName
+          caseTitle
+          caseId
+          comment
+          timeInHs
+        }
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
       }
     }
   }
