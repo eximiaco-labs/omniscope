@@ -1,4 +1,5 @@
 from api.utils.fields import build_fields_map
+from backend.src.api.datasets.timesheets import compute_timesheet
 import globals
 
 
@@ -87,3 +88,17 @@ def build_case_dictionary(map, case):
             }
 
     return result
+
+def resolve_case_timesheet(case, info, slug, filters=None):
+    if filters is None:
+        filters = []
+    
+    client_filters = [
+        {
+            'field': 'CaseTitle',
+            'selected_values': [case["title"]]
+        }
+    ] + filters
+    
+    map_ = build_fields_map(info)
+    return compute_timesheet(map_, slug, filters=client_filters)
