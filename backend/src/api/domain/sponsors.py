@@ -1,4 +1,4 @@
-from backend.src.api.datasets.timesheets import compute_timesheet
+from api.datasets.timesheets import compute_timesheet
 import globals
 from api.utils.fields import build_fields_map, get_requested_fields_from
 
