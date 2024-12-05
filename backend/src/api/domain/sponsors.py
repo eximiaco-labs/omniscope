@@ -1,5 +1,6 @@
+from backend.src.api.datasets.timesheets import compute_timesheet
 import globals
-from api.utils.fields import get_requested_fields_from
+from api.utils.fields import build_fields_map, get_requested_fields_from
 
 def _add_client(original):
     result = dict(original)
@@ -27,3 +28,17 @@ def resolve_sponsor(_, info, slug=None):
         return result
 
     return None
+
+def resolve_sponsor_timesheet(sponsor, info, slug, filters=None):
+    if filters is None:
+        filters = []
+    
+    client_filters = [
+        {
+            'field': 'Sponsor',
+            'selected_values': [sponsor.name]
+        }
+    ] + filters
+    
+    map_ = build_fields_map(info)
+    return compute_timesheet(map_, slug, filters=client_filters)
