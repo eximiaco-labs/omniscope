@@ -101,6 +101,7 @@ class TimesheetDataset(OmniDataset):
             if case:
                 row['case_id'] = case.id
                 row['case_title'] = case.title
+                row['case_slug'] = case.slug
                 row['sponsor'] = case.sponsor if case.sponsor else "N/A"
                 row['sponsor_slug'] = slugify(case.sponsor)
                 row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
@@ -123,7 +124,7 @@ class TimesheetDataset(OmniDataset):
                     row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = row['sponsor_slug'] = "N/A"
                     row['account_manager_name'] = row['account_manager_slug'] = "N/A"
             else:
-                row['case_id'] = row['case_title'] = row['sponsor'] = row['case'] = "N/A"
+                row['case_id'] = row['case_title'] = row['case_slug'] = row['sponsor'] = row['case'] = "N/A"
                 row['products_or_services'] = "N/A"
                 row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = row['client_slug'] = "N/A"
                 row['account_manager_name'] = row['account_manager_slug'] = "N/A"
@@ -164,6 +165,7 @@ class TimesheetDataset(OmniDataset):
                 'WorkerOmniUrl',
                 'Worker',
                 'CaseId',
+                'CaseSlug',
                 'CaseTitle',
                 'Sponsor',
                 'SponsorSlug',
