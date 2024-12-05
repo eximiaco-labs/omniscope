@@ -6,6 +6,19 @@ export const GET_CASE_BY_SLUG = gql`
       id
       slug
       title
+      ontologyUrl
+      startOfContract
+      endOfContract
+      weeklyApprovedHours
+      preContractedValue
+      isActive
+      sponsor
+      
+      client {
+        logoUrl
+        name
+      }
+
       tracker {
         id
         name

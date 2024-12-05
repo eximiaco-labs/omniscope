@@ -6,11 +6,18 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { GET_CASE_BY_SLUG } from "./queries";
 import { CaseHeader } from "./CaseHeader";
-import { CaseTimeline } from "./CaseTimeline"; 
+import { CaseTimeline } from "./CaseTimeline";
 import { WeeklyHoursTable } from "./WeeklyHoursTable";
 import { AllocationCalendar } from "@/app/components/AllocationCalendar";
 import SectionHeader from "@/components/SectionHeader";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { TrackingProjects } from "./TrackingProjects";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -32,7 +39,7 @@ interface WorkerSummary {
 const SummarySection = ({
   summaries,
   selectedStatType,
-  dataset
+  dataset,
 }: {
   summaries: WorkerSummary[] | null;
   selectedStatType: StatType;
@@ -40,7 +47,7 @@ const SummarySection = ({
 }) => {
   if (!summaries) return null;
 
-  const filteredSummaries = summaries.filter(summary => summary.hours > 0);
+  const filteredSummaries = summaries.filter((summary) => summary.hours > 0);
 
   if (filteredSummaries.length === 0) return null;
 
@@ -48,7 +55,10 @@ const SummarySection = ({
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <h3 className="font-semibold mb-2">Worker Summary:</h3>
       {filteredSummaries.map((summary) => (
-        <div key={summary.worker} className="flex justify-between items-center py-1">
+        <div
+          key={summary.worker}
+          className="flex justify-between items-center py-1"
+        >
           <Link
             href={`/about-us/consultants-and-engineers/${summary.workerSlug}`}
             className="text-blue-600 hover:text-blue-800 hover:underline"
@@ -64,7 +74,10 @@ const SummarySection = ({
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>
-                    {summary.worker} - {selectedStatType.charAt(0).toUpperCase() + selectedStatType.slice(1)} Hours ({dataset})
+                    {summary.worker} -{" "}
+                    {selectedStatType.charAt(0).toUpperCase() +
+                      selectedStatType.slice(1)}{" "}
+                    Hours ({dataset})
                   </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 max-h-[60vh] overflow-y-auto">
@@ -78,15 +91,26 @@ const SummarySection = ({
                     </TableHeader>
                     <TableBody>
                       {summary.appointments
-                        .filter(apt => apt.kind.toLowerCase() === selectedStatType.toLowerCase() || 
-                          (selectedStatType === "handsOn" && apt.kind.toLowerCase() === "handson"))
+                        .filter(
+                          (apt) =>
+                            apt.kind.toLowerCase() ===
+                              selectedStatType.toLowerCase() ||
+                            (selectedStatType === "handsOn" &&
+                              apt.kind.toLowerCase() === "handson")
+                        )
                         .map((apt, idx) => (
                           <TableRow key={idx}>
-                            <TableCell className="font-medium text-xs">{apt.date}</TableCell>
-                            <TableCell className="text-xs">{apt.timeInHs}h</TableCell>
-                            <TableCell className="text-gray-600 text-xs">{apt.comment}</TableCell>
+                            <TableCell className="font-medium text-xs">
+                              {apt.date}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {apt.timeInHs}h
+                            </TableCell>
+                            <TableCell className="text-gray-600 text-xs">
+                              {apt.comment}
+                            </TableCell>
                           </TableRow>
-                      ))}
+                        ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -138,33 +162,39 @@ export default function CasePage() {
 
     return `${formatDate(firstVisibleDate)}-${formatDate(lastVisibleDate)}`;
   };
-  
+
   // Previous month states
   const [selectedDatePrev, setSelectedDatePrev] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
   );
   const [selectedDayPrev, setSelectedDayPrev] = useState<number | null>(null);
   const [selectedRowPrev, setSelectedRowPrev] = useState<number | null>(null);
-  const [selectedColumnPrev, setSelectedColumnPrev] = useState<number | null>(null);
+  const [selectedColumnPrev, setSelectedColumnPrev] = useState<number | null>(
+    null
+  );
   const [isAllSelectedPrev, setIsAllSelectedPrev] = useState(false);
-  const [selectedStatTypePrev, setSelectedStatTypePrev] = useState<StatType>("consulting");
+  const [selectedStatTypePrev, setSelectedStatTypePrev] =
+    useState<StatType>("consulting");
 
   // Current month states
   const [selectedDateCurr, setSelectedDateCurr] = useState(new Date());
   const [selectedDayCurr, setSelectedDayCurr] = useState<number | null>(null);
   const [selectedRowCurr, setSelectedRowCurr] = useState<number | null>(null);
-  const [selectedColumnCurr, setSelectedColumnCurr] = useState<number | null>(null);
+  const [selectedColumnCurr, setSelectedColumnCurr] = useState<number | null>(
+    null
+  );
   const [isAllSelectedCurr, setIsAllSelectedCurr] = useState(false);
-  const [selectedStatTypeCurr, setSelectedStatTypeCurr] = useState<StatType>("consulting");
+  const [selectedStatTypeCurr, setSelectedStatTypeCurr] =
+    useState<StatType>("consulting");
 
   const currentMonthDataset = getVisibleDates(selectedDateCurr);
   const previousMonthDataset = getVisibleDates(selectedDatePrev);
 
   const { loading, error, data } = useQuery(GET_CASE_BY_SLUG, {
-    variables: { 
+    variables: {
       slug,
       dataset1: previousMonthDataset,
-      dataset2: currentMonthDataset
+      dataset2: currentMonthDataset,
     },
   });
 
@@ -184,9 +214,13 @@ export default function CasePage() {
     selectedDate: Date,
     selectedStatType: StatType
   ): WorkerSummary[] | null => {
-    if (!timesheet?.appointments || (!selectedDay && !selectedRow && !selectedColumn && !isAllSelected)) return null;
+    if (
+      !timesheet?.appointments ||
+      (!selectedDay && !selectedRow && !selectedColumn && !isAllSelected)
+    )
+      return null;
 
-    const workerSummaryData: {[key: string]: WorkerSummary} = {};
+    const workerSummaryData: { [key: string]: WorkerSummary } = {};
 
     timesheet.appointments.forEach((appointment: any) => {
       const appointmentDate = new Date(appointment.date);
@@ -218,18 +252,23 @@ export default function CasePage() {
             worker: appointment.workerName,
             workerSlug: appointment.workerSlug,
             hours: 0,
-            appointments: []
+            appointments: [],
           };
         }
 
-        if (appointment.kind.toLowerCase() === selectedStatType.toLowerCase() ||
-            (selectedStatType === "handsOn" && appointment.kind.toLowerCase() === "handson")) {
+        if (
+          appointment.kind.toLowerCase() === selectedStatType.toLowerCase() ||
+          (selectedStatType === "handsOn" &&
+            appointment.kind.toLowerCase() === "handson")
+        ) {
           workerSummaryData[workerKey].hours += appointment.timeInHs;
 
           const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
           const formattedAppointment = {
             ...appointment,
-            date: `${days[appointmentDate.getUTCDay()]} ${appointmentDate.getUTCDate()}`
+            date: `${
+              days[appointmentDate.getUTCDay()]
+            } ${appointmentDate.getUTCDate()}`,
           };
           workerSummaryData[workerKey].appointments.push(formattedAppointment);
         }
@@ -237,7 +276,7 @@ export default function CasePage() {
     });
 
     return Object.values(workerSummaryData)
-      .filter(summary => summary.hours > 0)
+      .filter((summary) => summary.hours > 0)
       .sort((a, b) => b.hours - a.hours);
   };
 
@@ -283,12 +322,21 @@ export default function CasePage() {
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
+      <TrackingProjects
+          tracker={caseItem.tracker}
+          workersByTrackingProject={
+            caseItem.timesheets.lastSixWeeks.byCase?.[0]
+              ?.workersByTrackingProject || []
+          }
+      />
 
-      <SectionHeader title="Side by Side Analysis" subtitle="" />
+      <div className="mt-4">
+        <SectionHeader title="Side by Side Analysis" subtitle="" />
+      </div>
       <div className="ml-2 mr-2">
+        
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <h3 className="font-semibold mb-4">Last Month</h3>
             <AllocationCalendar
               selectedDate={selectedDatePrev}
               setSelectedDate={setSelectedDatePrev}
@@ -304,14 +352,13 @@ export default function CasePage() {
               selectedStatType={selectedStatTypePrev}
               setSelectedStatType={setSelectedStatTypePrev}
             />
-            <SummarySection 
-              summaries={prevSummaries} 
+            <SummarySection
+              summaries={prevSummaries}
               selectedStatType={selectedStatTypePrev}
-              dataset="Last Month" 
+              dataset="Last Month"
             />
           </div>
           <div>
-            <h3 className="font-semibold mb-4">Current Month</h3>
             <AllocationCalendar
               selectedDate={selectedDateCurr}
               setSelectedDate={setSelectedDateCurr}
@@ -327,75 +374,20 @@ export default function CasePage() {
               selectedStatType={selectedStatTypeCurr}
               setSelectedStatType={setSelectedStatTypeCurr}
             />
-            <SummarySection 
-              summaries={currSummaries} 
+            <SummarySection
+              summaries={currSummaries}
               selectedStatType={selectedStatTypeCurr}
-              dataset="Current Month" 
+              dataset="Current Month"
             />
           </div>
         </div>
       </div>
 
       {caseItem.updates && caseItem.updates.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-8 mb-8">
           <SectionHeader title="Case Updates" subtitle="" />
           <div className="ml-4 mr-4">
             <CaseTimeline updates={caseItem.updates} />
-          </div>
-        </div>
-      )}
-
-      <TrackingProjects
-        tracker={caseItem.tracker}
-        workersByTrackingProject={
-          caseItem.timesheets.lastSixWeeks.byCase?.[0]?.workersByTrackingProject || []
-        }
-      />
-
-      {byKind.consulting?.byWorker?.length > 0 && (
-        <div className="mt-8">
-          <SectionHeader title="Consulting Hours" subtitle="" />
-          <div className="ml-4 mr-4">
-            <WeeklyHoursTable
-              weeks={weeks}
-              consultingWorkers={byKind.consulting.byWorker}
-            />
-          </div>
-        </div>
-      )}
-
-      {byKind.handsOn?.byWorker?.length > 0 && (
-        <div className="mt-8">
-          <SectionHeader title="Hands-on Hours" subtitle="" />
-          <div className="ml-4 mr-4">
-            <WeeklyHoursTable
-              weeks={weeks}
-              consultingWorkers={byKind.handsOn.byWorker}
-            />
-          </div>
-        </div>
-      )}
-
-      {byKind.squad?.byWorker?.length > 0 && (
-        <div className="mt-8">
-          <SectionHeader title="Squad Hours" subtitle="" />
-          <div className="ml-4 mr-4">
-            <WeeklyHoursTable
-              weeks={weeks}
-              consultingWorkers={byKind.squad.byWorker}
-            />
-          </div>
-        </div>
-      )}
-
-      {byKind.internal?.byWorker?.length > 0 && (
-        <div className="mt-8">
-          <SectionHeader title="Internal Hours" subtitle="" />
-          <div className="ml-4 mr-4">
-            <WeeklyHoursTable
-              weeks={weeks}
-              consultingWorkers={byKind.internal.byWorker}
-            />
           </div>
         </div>
       )}
