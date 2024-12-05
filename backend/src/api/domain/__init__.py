@@ -5,7 +5,7 @@ from .account_managers import resolve_account_manager_cases, resolve_account_man
 from .consultants_engineers import resolve_consultants_and_engineers, resolve_consultant_or_engineer, resolve_consultant_or_engineer_timesheet
 from .clients import resolve_client_timesheet, resolve_clients, resolve_client
 from .sponsors import resolve_sponsor_timesheet, resolve_sponsors, resolve_sponsor
-from .cases import resolve_cases, resolve_case
+from .cases import resolve_case_timesheet, resolve_cases, resolve_case
 from .offers import resolve_offers, resolve_offer
 from .projects import resolve_projects
 from .active_deals import resolve_active_deals, resolve_active_deal, compute_active_deals
@@ -42,4 +42,7 @@ def setup_query_for_domain(query: QueryType):
     sponsor_type = ObjectType('Sponsor')
     sponsor_type.set_field('timesheet', resolve_sponsor_timesheet)
     
-    return [client_type, account_manager_type, consultant_or_engineer_type, sponsor_type]
+    case_type = ObjectType('Case')
+    case_type.set_field('timesheet', resolve_case_timesheet)
+    
+    return [client_type, account_manager_type, consultant_or_engineer_type, sponsor_type, case_type]

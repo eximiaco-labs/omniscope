@@ -105,6 +105,8 @@ type Case {
   timesheets: Timesheets
   isStale: Boolean!
   ontologyUrl: String
+  
+  timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
 }
 
 type TrackerProjectBudget {
