@@ -39,8 +39,12 @@ export const GET_ACCOUNT_MANAGER = gql`
         appointments {
           kind
           date
+          workerSlug
           workerName
+          clientSlug
           clientName
+          sponsorSlug
+          sponsor
           comment
           timeInHs
         }
@@ -58,8 +62,12 @@ export const GET_ACCOUNT_MANAGER = gql`
         appointments {
           kind
           date
+          workerSlug
           workerName
+          clientSlug
           clientName
+          sponsorSlug
+          sponsor
           comment
           timeInHs
         }
@@ -222,7 +230,11 @@ export interface AccountManager {
       kind: string;
       date: string;
       workerName: string;
+      workerSlug: string;
       clientName: string;
+      clientSlug: string;
+      sponsor: string;
+      sponsorSlug: string;
       comment: string;
       timeInHs: number;
     }>;
@@ -241,7 +253,11 @@ export interface AccountManager {
       kind: string;
       date: string;
       workerName: string;
+      workerSlug: string;
       clientName: string;
+      clientSlug: string;
+      sponsor: string;
+      sponsorSlug: string;
       comment: string;
       timeInHs: number;
     }>;

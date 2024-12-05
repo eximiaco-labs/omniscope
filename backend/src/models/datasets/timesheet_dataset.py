@@ -9,6 +9,7 @@ from decorators import cache
 from models.base.powerdataframe import SummarizablePowerDataFrame
 from models.datasets.omni_dataset import OmniDataset
 from models.helpers.weeks import Weeks
+from models.helpers.slug import slugify
 from models.omnimodels import OmniModels
 
 
@@ -100,7 +101,9 @@ class TimesheetDataset(OmniDataset):
             if case:
                 row['case_id'] = case.id
                 row['case_title'] = case.title
-                row['sponsor'] = case.sponsor
+                row['case_slug'] = case.slug
+                row['sponsor'] = case.sponsor if case.sponsor else "N/A"
+                row['sponsor_slug'] = slugify(case.sponsor)
                 row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
 
                 # Obter produtos ou serviços associados
@@ -112,17 +115,18 @@ class TimesheetDataset(OmniDataset):
                 if client:
                     row['client_id'] = client.id
                     row['client_name'] = client.name
+                    row['client_slug'] = client.slug
                     row['client_omni_url'] = client.omni_url
                     row['client'] = f"<a href='{client.omni_url}'>{client.name}</a>"
                     row['account_manager_name'] = client.account_manager.name if client.account_manager else "N/A"
                     row['account_manager_slug'] = client.account_manager.slug if client.account_manager else "N/A"
                 else:
-                    row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = "N/A"
+                    row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = row['sponsor_slug'] = "N/A"
                     row['account_manager_name'] = row['account_manager_slug'] = "N/A"
             else:
-                row['case_id'] = row['case_title'] = row['sponsor'] = row['case'] = "N/A"
+                row['case_id'] = row['case_title'] = row['case_slug'] = row['sponsor'] = row['case'] = "N/A"
                 row['products_or_services'] = "N/A"
-                row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = "N/A"
+                row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = row['client_slug'] = "N/A"
                 row['account_manager_name'] = row['account_manager_slug'] = "N/A"
             #except Exception as e:
             #    self.logger.error(f'Failed to enrich row for timesheet. ({e})')
@@ -161,11 +165,14 @@ class TimesheetDataset(OmniDataset):
                 'WorkerOmniUrl',
                 'Worker',
                 'CaseId',
+                'CaseSlug',
                 'CaseTitle',
                 'Sponsor',
+                'SponsorSlug',
                 'Case',
                 'ClientId',
                 'ClientName',
+                'ClientSlug',
                 'ClientOmniUrl',
                 'ProductsOrServices',
                 'Client',

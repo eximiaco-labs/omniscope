@@ -294,7 +294,7 @@ def compute_pre_contracted_revenue_tracking(
                 
                 if project.kind != "consulting":    
                     is_last_day_of_month = date_of_interest.month != (date_of_interest + timedelta(days=1)).month
-                    client = globals.omni_models.clients.get_by_id(case.client_id)
+                    client = globals.omni_models.clients.get_by_id(case.client_id) if case.client_id else None
                     if not client:
                         client_name = "N/A"
                         account_manager_name = "N/A"

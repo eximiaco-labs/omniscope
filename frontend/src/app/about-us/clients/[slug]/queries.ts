@@ -11,8 +11,10 @@ export const GET_CLIENT_BY_SLUG = gql`
         appointments {
           kind
           date
+          workerSlug
           workerName
-          clientName
+          sponsorSlug
+          sponsor
           comment
           timeInHs
         }
@@ -30,8 +32,10 @@ export const GET_CLIENT_BY_SLUG = gql`
         appointments {
           kind
           date
+          workerSlug
           workerName
-          clientName
+          sponsorSlug
+          sponsor
           comment
           timeInHs
         }

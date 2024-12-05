@@ -73,6 +73,7 @@ type Sponsor {
   linkedinUrl: String
   omniUrl: String
   client: Client
+  timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
 }
 
 type Case {
