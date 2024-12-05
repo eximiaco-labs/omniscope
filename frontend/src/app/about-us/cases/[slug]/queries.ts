@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_CASE_BY_SLUG = gql`
-  query GetCaseBySlug($slug: String!) {
+  query GetCaseBySlug($slug: String!, $dataset1: String!, $dataset2: String!) {
     case(slug: $slug) {
       id
       slug
@@ -15,6 +15,45 @@ export const GET_CASE_BY_SLUG = gql`
           period
         }
       }
+
+      timesheet1: timesheet(slug: $dataset1) {
+        appointments {
+          kind
+          date
+          workerSlug
+          workerName
+          comment
+          timeInHs
+        }
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+
+      timesheet2: timesheet(slug: $dataset2) {
+        appointments {
+          kind
+          date
+          workerSlug
+          workerName
+          comment
+          timeInHs
+        }
+        byDate {
+          date
+          totalHours
+          totalConsultingHours
+          totalHandsOnHours
+          totalSquadHours
+          totalInternalHours
+        }
+      }
+
       updates {
         author
         date
