@@ -167,9 +167,14 @@ type Appointment {
   workerName: String!
   workerSlug: String!
   
+  caseId: String!
   caseTitle: String!
+  caseSlug: String!
   
   sponsor: String!
+  sponsorSlug: String!
+
+  clientSlug: String!
   clientName: String!
   
   accountManagerName: String!
