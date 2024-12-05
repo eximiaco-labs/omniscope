@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { GET_CLIENT_BY_SLUG, GET_CLIENT_TIMESHEET } from "./queries";
 import { ClientHeader } from "./ClientHeader";
 import { AllocationSection } from "./AllocationSection";
@@ -28,12 +29,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface WorkerSummary {
   worker: string;
+  workerSlug: string;
   hours: number;
   appointments: any[];
 }
 
 interface SponsorSummary {
   sponsor: string;
+  sponsorSlug: string;
   hours: number;
   appointments: any[];
 }
@@ -75,11 +78,18 @@ const SummarySection = ({
           }
           className="flex justify-between items-center py-1"
         >
-          <span>
+          <Link
+            href={
+              type === "worker"
+                ? `/about-us/consultants-and-engineers/${(summary as WorkerSummary).workerSlug}`
+                : `/about-us/sponsors/${(summary as SponsorSummary).sponsorSlug}`
+            }
+            className="text-blue-600 hover:text-blue-800 hover:underline"
+          >
             {type === "worker"
               ? (summary as WorkerSummary).worker
               : (summary as SponsorSummary).sponsor}
-          </span>
+          </Link>
           <div className="flex items-center gap-4">
             <span>{summary.hours.toFixed(1)}h</span>
             <Sheet>
@@ -121,7 +131,12 @@ const SummarySection = ({
                           </TableCell>
                           {type === "sponsor" && (
                             <TableCell className="text-xs">
-                              {apt.workerName}
+                              <Link
+                                href={`/about-us/consultants-and-engineers/${apt.workerSlug}`}
+                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                {apt.workerName}
+                              </Link>
                             </TableCell>
                           )}
                           <TableCell className="text-gray-600 text-xs">
@@ -273,6 +288,7 @@ export default function ClientPage() {
         handsOn: number;
         squad: number;
         internal: number;
+        slug: string;
       };
     } = {};
     const sponsorSummaryData: {
@@ -282,6 +298,7 @@ export default function ClientPage() {
         handsOn: number;
         squad: number;
         internal: number;
+        slug: string;
       };
     } = {};
     const workerAppointments: { [key: string]: any[] } = {};
@@ -291,7 +308,9 @@ export default function ClientPage() {
       (appointment: {
         date: string;
         workerName: string;
+        workerSlug: string;
         sponsor: string;
+        sponsorSlug: string;
         timeInHs: number;
         comment: string;
         kind: string;
@@ -330,6 +349,7 @@ export default function ClientPage() {
               handsOn: 0,
               squad: 0,
               internal: 0,
+              slug: appointment.workerSlug,
             };
           }
 
@@ -341,6 +361,7 @@ export default function ClientPage() {
               handsOn: 0,
               squad: 0,
               internal: 0,
+              slug: appointment.sponsorSlug,
             };
           }
 
@@ -402,9 +423,9 @@ export default function ClientPage() {
         type === "worker" ? workerAppointments : sponsorAppointments;
 
       return Object.entries(data)
-        .map(([key, hours]) => {
+        .map(([key, value]) => {
           const summary = {
-            hours: hours[selectedStatType],
+            hours: value[selectedStatType],
             appointments:
               appointments[key]?.filter(
                 (apt) =>
@@ -415,9 +436,17 @@ export default function ClientPage() {
           };
 
           if (type === "worker") {
-            return { ...summary, worker: key } as WorkerSummary;
+            return {
+              ...summary,
+              worker: key,
+              workerSlug: value.slug,
+            } as WorkerSummary;
           } else {
-            return { ...summary, sponsor: key } as SponsorSummary;
+            return {
+              ...summary,
+              sponsor: key,
+              sponsorSlug: value.slug,
+            } as SponsorSummary;
           }
         })
         .filter((summary) => summary.hours > 0)
