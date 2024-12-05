@@ -1,5 +1,5 @@
 from api.utils.fields import build_fields_map
-from backend.src.api.datasets.timesheets import compute_timesheet
+from src.api.datasets.timesheets import compute_timesheet
 import globals
 
 
