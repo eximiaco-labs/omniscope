@@ -92,11 +92,13 @@ def build_case_dictionary(map, case):
 def resolve_case_timesheet(case, info, slug, filters=None):
     if filters is None:
         filters = []
+        
+    title = case["title"]
     
     client_filters = [
         {
             'field': 'CaseTitle',
-            'selected_values': [case["title"]]
+            'selected_values': [title]
         }
     ] + filters
     
