@@ -11,8 +11,10 @@ export const GET_CONSULTANT = gql`
         appointments {
           kind
           date
-          workerName
+          clientSlug
           clientName
+          sponsorSlug
+          sponsor
           comment
           timeInHs
         }
@@ -30,7 +32,10 @@ export const GET_CONSULTANT = gql`
         appointments {
           kind
           date
+          clientSlug
           clientName
+          sponsorSlug
+          sponsor
           comment
           timeInHs
         }
@@ -54,11 +59,14 @@ export interface Consultant {
 
   timesheet1: {
     appointments: Array<{
+      kind: string;
       date: string;
+      clientSlug: string;
       clientName: string;
+      sponsorSlug: string;
+      sponsor: string;
       comment: string;
       timeInHs: number;
-      kind: string;
     }>;
     byDate: Array<{
       date: string;
@@ -72,11 +80,14 @@ export interface Consultant {
 
   timesheet2: {
     appointments: Array<{
+      kind: string;
       date: string;
+      clientSlug: string;
       clientName: string;
+      sponsorSlug: string;
+      sponsor: string;
       comment: string;
       timeInHs: number;
-      kind: string;
     }>;
     byDate: Array<{
       date: string;
