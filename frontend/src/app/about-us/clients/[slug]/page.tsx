@@ -5,14 +5,13 @@ import { useQuery } from "@apollo/client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { GET_CLIENT_BY_SLUG, GET_CLIENT_TIMESHEET } from "./queries";
 import { ClientHeader } from "./ClientHeader";
-import { Divider } from "@/components/catalyst/divider";
-import { CasesGallery } from "../../cases/CasesGallery";
 import { AllocationSection } from "./AllocationSection";
 import { AllocationCalendar } from "@/app/components/AllocationCalendar";
 import SectionHeader from "@/components/SectionHeader";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatType } from "@/app/constants/colors";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface WorkerSummary {
   worker: string;
@@ -20,21 +19,41 @@ interface WorkerSummary {
   appointments: any[];
 }
 
-const WorkerSummarySection = ({ 
+interface SponsorSummary {
+  sponsor: string;
+  hours: number;
+  appointments: any[];
+}
+
+const SummarySection = ({ 
   summaries, 
-  selectedStatType 
+  selectedStatType,
+  type
 }: {
-  summaries: WorkerSummary[] | null;
+  summaries: (WorkerSummary | SponsorSummary)[] | null;
   selectedStatType: StatType;
+  type: 'worker' | 'sponsor';
 }) => {
   if (!summaries) return null;
 
+  const filteredSummaries = summaries.filter(summary => {
+    if (type === 'worker' && 'worker' in summary) {
+      return summary.hours > 0;
+    }
+    if (type === 'sponsor' && 'sponsor' in summary) {
+      return summary.hours > 0;
+    }
+    return false;
+  });
+
+  if (filteredSummaries.length === 0) return null;
+
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-      <h3 className="font-semibold mb-2">Worker Summary:</h3>
-      {summaries.map((summary) => (
-        <div key={summary.worker} className="flex justify-between items-center py-1">
-          <span>{summary.worker}</span>
+      <h3 className="font-semibold mb-2">{type === 'worker' ? 'Worker' : 'Sponsor'} Summary:</h3>
+      {filteredSummaries.map((summary) => (
+        <div key={type === 'worker' ? (summary as WorkerSummary).worker : (summary as SponsorSummary).sponsor} className="flex justify-between items-center py-1">
+          <span>{type === 'worker' ? (summary as WorkerSummary).worker : (summary as SponsorSummary).sponsor}</span>
           <div className="flex items-center gap-4">
             <span>{summary.hours.toFixed(1)}h</span>
             <Sheet>
@@ -43,7 +62,9 @@ const WorkerSummarySection = ({
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle>{summary.worker} - {selectedStatType.charAt(0).toUpperCase() + selectedStatType.slice(1)} Hours</SheetTitle>
+                  <SheetTitle>
+                    {type === 'worker' ? (summary as WorkerSummary).worker : (summary as SponsorSummary).sponsor} - {selectedStatType.charAt(0).toUpperCase() + selectedStatType.slice(1)} Hours
+                  </SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 max-h-[60vh] overflow-y-auto">
                   <Table>
@@ -51,6 +72,7 @@ const WorkerSummarySection = ({
                       <TableRow>
                         <TableHead className="text-xs">Date</TableHead>
                         <TableHead className="text-xs">Hours</TableHead>
+                        {type === 'sponsor' && <TableHead className="text-xs">Worker</TableHead>}
                         <TableHead className="text-xs">Comment</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -59,6 +81,7 @@ const WorkerSummarySection = ({
                         <TableRow key={idx}>
                           <TableCell className="font-medium text-xs">{apt.date}</TableCell>
                           <TableCell className="text-xs">{apt.timeInHs}h</TableCell>
+                          {type === 'sponsor' && <TableCell className="text-xs">{apt.workerName}</TableCell>}
                           <TableCell className="text-gray-600 text-xs">{apt.comment}</TableCell>
                         </TableRow>
                       ))}
@@ -181,15 +204,18 @@ export default function ClientPage() {
     setSelectedStat(statName === selectedStat ? "total" : statName);
   };
 
-  const getSelectedWorkerSummary = (timesheet: any, selectedDay: number | null, selectedRow: number | null, selectedColumn: number | null, isAllSelected: boolean, selectedDate: Date, selectedStatType: StatType) => {
+  const getSelectedSummary = (timesheet: any, selectedDay: number | null, selectedRow: number | null, selectedColumn: number | null, isAllSelected: boolean, selectedDate: Date, selectedStatType: StatType): (WorkerSummary | SponsorSummary)[] | null => {
     if (!selectedDay && !selectedRow && !selectedColumn && !isAllSelected) return null;
 
-    const workerHours: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number } } = {};
+    const workerSummaryData: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number } } = {};
+    const sponsorSummaryData: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number } } = {};
     const workerAppointments: { [key: string]: any[] } = {};
+    const sponsorAppointments: { [key: string]: any[] } = {};
     
-    timesheet.appointments.forEach((appointment: {
+    timesheet?.appointments?.forEach((appointment: {
       date: string;
       workerName: string;
+      sponsor: string;
       timeInHs: number;
       comment: string;
       kind: string;
@@ -211,9 +237,13 @@ export default function ClientPage() {
         appointmentMonth === selectedDate.getMonth();
 
       if (shouldInclude) {
-        const workerName = appointment.workerName;
-        if (!workerHours[workerName]) {
-          workerHours[workerName] = {
+        const workerKey = appointment.workerName;
+        const sponsorKey = appointment.sponsor;
+        if (!workerKey || !sponsorKey) return;
+
+        // Worker summary
+        if (!workerSummaryData[workerKey]) {
+          workerSummaryData[workerKey] = {
             total: 0,
             consulting: 0,
             handsOn: 0,
@@ -222,53 +252,89 @@ export default function ClientPage() {
           };
         }
 
-        const dayData = timesheet.byDate.find((d: any) => 
+        // Sponsor summary
+        if (!sponsorSummaryData[sponsorKey]) {
+          sponsorSummaryData[sponsorKey] = {
+            total: 0,
+            consulting: 0,
+            handsOn: 0,
+            squad: 0,
+            internal: 0
+          };
+        }
+
+        const dayData = timesheet?.byDate?.find((d: any) => 
           new Date(d.date).getUTCDate() === dayOfMonth && 
           new Date(d.date).getUTCMonth() === appointmentMonth
         );
 
         if (dayData) {
-          workerHours[workerName].total += appointment.timeInHs;
+          workerSummaryData[workerKey].total += appointment.timeInHs;
+          sponsorSummaryData[sponsorKey].total += appointment.timeInHs;
           
           switch(appointment.kind.toLowerCase()) {
             case 'consulting':
-              workerHours[workerName].consulting += appointment.timeInHs;
+              workerSummaryData[workerKey].consulting += appointment.timeInHs;
+              sponsorSummaryData[sponsorKey].consulting += appointment.timeInHs;
               break;
             case 'handson':
-              workerHours[workerName].handsOn += appointment.timeInHs;
+              workerSummaryData[workerKey].handsOn += appointment.timeInHs;
+              sponsorSummaryData[sponsorKey].handsOn += appointment.timeInHs;
               break;
             case 'squad':
-              workerHours[workerName].squad += appointment.timeInHs;
+              workerSummaryData[workerKey].squad += appointment.timeInHs;
+              sponsorSummaryData[sponsorKey].squad += appointment.timeInHs;
               break;
             case 'internal':
-              workerHours[workerName].internal += appointment.timeInHs;
+              workerSummaryData[workerKey].internal += appointment.timeInHs;
+              sponsorSummaryData[sponsorKey].internal += appointment.timeInHs;
               break;
           }
 
-          if (!workerAppointments[workerName]) {
-            workerAppointments[workerName] = [];
+          if (!workerAppointments[workerKey]) {
+            workerAppointments[workerKey] = [];
+          }
+          if (!sponsorAppointments[sponsorKey]) {
+            sponsorAppointments[sponsorKey] = [];
           }
 
           const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-          workerAppointments[workerName].push({
+          const formattedAppointment = {
             ...appointment,
             date: `${days[appointmentDate.getUTCDay()]} ${appointmentDate.getUTCDate()}`
-          });
+          };
+          
+          workerAppointments[workerKey].push(formattedAppointment);
+          sponsorAppointments[sponsorKey].push(formattedAppointment);
         }
       }
     });
 
-    return Object.entries(workerHours)
-      .map(([worker, hours]) => ({
-        worker,
-        hours: hours[selectedStatType],
-        appointments: workerAppointments[worker].filter(apt => 
-          apt.kind.toLowerCase() === selectedStatType ||
-          (selectedStatType === 'handsOn' && apt.kind.toLowerCase() === 'handson')
-        )
-      }))
-      .filter(summary => summary.hours > 0)
-      .sort((a, b) => a.worker.localeCompare(b.worker)); // Changed this line to sort alphabetically by worker name
+    const createSummaries = (type: 'worker' | 'sponsor') => {
+      const data = type === 'worker' ? workerSummaryData : sponsorSummaryData;
+      const appointments = type === 'worker' ? workerAppointments : sponsorAppointments;
+
+      return Object.entries(data)
+        .map(([key, hours]) => {
+          const summary = {
+            hours: hours[selectedStatType],
+            appointments: appointments[key]?.filter(apt => 
+              apt.kind.toLowerCase() === selectedStatType ||
+              (selectedStatType === 'handsOn' && apt.kind.toLowerCase() === 'handson')
+            ) || []
+          };
+          
+          if (type === 'worker') {
+            return { ...summary, worker: key } as WorkerSummary;
+          } else {
+            return { ...summary, sponsor: key } as SponsorSummary;
+          }
+        })
+        .filter(summary => summary.hours > 0)
+        .sort((a, b) => b.hours - a.hours);
+    };
+
+    return [...createSummaries('worker'), ...createSummaries('sponsor')];
   };
 
   if (clientLoading) return <p>Loading client data...</p>;
@@ -301,18 +367,42 @@ export default function ClientPage() {
               selectedStatType={selectedStatTypePrev}
               setSelectedStatType={setSelectedStatTypePrev}
             />
-            <WorkerSummarySection
-              summaries={getSelectedWorkerSummary(
-                timesheet1,
-                selectedDayPrev,
-                selectedRowPrev,
-                selectedColumnPrev,
-                isAllSelectedPrev,
-                selectedDatePrev,
-                selectedStatTypePrev
-              )}
-              selectedStatType={selectedStatTypePrev}
-            />
+            <Tabs defaultValue="worker" className="mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="worker">By Worker</TabsTrigger>
+                <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
+              </TabsList>
+              <TabsContent value="worker">
+                <SummarySection
+                  summaries={getSelectedSummary(
+                    timesheet1,
+                    selectedDayPrev,
+                    selectedRowPrev,
+                    selectedColumnPrev,
+                    isAllSelectedPrev,
+                    selectedDatePrev,
+                    selectedStatTypePrev
+                  )?.filter(s => 'worker' in s) || null}
+                  selectedStatType={selectedStatTypePrev}
+                  type="worker"
+                />
+              </TabsContent>
+              <TabsContent value="sponsor">
+                <SummarySection
+                  summaries={getSelectedSummary(
+                    timesheet1,
+                    selectedDayPrev,
+                    selectedRowPrev,
+                    selectedColumnPrev,
+                    isAllSelectedPrev,
+                    selectedDatePrev,
+                    selectedStatTypePrev
+                  )?.filter(s => 'sponsor' in s) || null}
+                  selectedStatType={selectedStatTypePrev}
+                  type="sponsor"
+                />
+              </TabsContent>
+            </Tabs>
           </div>
           <div>
             <AllocationCalendar
@@ -330,18 +420,42 @@ export default function ClientPage() {
               selectedStatType={selectedStatTypeCurr}
               setSelectedStatType={setSelectedStatTypeCurr}
             />
-            <WorkerSummarySection
-              summaries={getSelectedWorkerSummary(
-                timesheet2,
-                selectedDayCurr,
-                selectedRowCurr,
-                selectedColumnCurr,
-                isAllSelectedCurr,
-                selectedDateCurr,
-                selectedStatTypeCurr
-              )}
-              selectedStatType={selectedStatTypeCurr}
-            />
+            <Tabs defaultValue="worker" className="mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="worker">By Worker</TabsTrigger>
+                <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
+              </TabsList>
+              <TabsContent value="worker">
+                <SummarySection
+                  summaries={getSelectedSummary(
+                    timesheet2,
+                    selectedDayCurr,
+                    selectedRowCurr,
+                    selectedColumnCurr,
+                    isAllSelectedCurr,
+                    selectedDateCurr,
+                    selectedStatTypeCurr
+                  )?.filter(s => 'worker' in s) || null}
+                  selectedStatType={selectedStatTypeCurr}
+                  type="worker"
+                />
+              </TabsContent>
+              <TabsContent value="sponsor">
+                <SummarySection
+                  summaries={getSelectedSummary(
+                    timesheet2,
+                    selectedDayCurr,
+                    selectedRowCurr,
+                    selectedColumnCurr,
+                    isAllSelectedCurr,
+                    selectedDateCurr,
+                    selectedStatTypeCurr
+                  )?.filter(s => 'sponsor' in s) || null}
+                  selectedStatType={selectedStatTypeCurr}
+                  type="sponsor"
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
@@ -355,7 +469,6 @@ export default function ClientPage() {
         selectedStat={selectedStat}
         handleStatClick={handleStatClick}
       />
-
     </div>
   );
 }

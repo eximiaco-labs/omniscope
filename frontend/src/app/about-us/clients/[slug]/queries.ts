@@ -13,6 +13,7 @@ export const GET_CLIENT_BY_SLUG = gql`
           date
           workerName
           clientName
+          sponsor
           comment
           timeInHs
         }
@@ -32,6 +33,7 @@ export const GET_CLIENT_BY_SLUG = gql`
           date
           workerName
           clientName
+          sponsor
           comment
           timeInHs
         }
