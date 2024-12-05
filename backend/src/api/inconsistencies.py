@@ -136,5 +136,12 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
                         'Missing contract dates for fixed fee project',
                         f'The case "{case.title}" contains a fixed fee project "{project.name}" but is missing contract start/end dates. These dates are required to properly distribute the fixed fee across months.'
                     ))
+                    
+    for case in cases:
+        if case.has_description and not case.client_id:
+            result.append(Inconsistency(
+                'Case with description but no client',
+                f'The case "{case.title}" has no client associated.'
+            ))
         
     return result
