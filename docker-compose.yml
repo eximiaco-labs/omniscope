@@ -4,7 +4,6 @@ services:
   backend:
     build: 
       context: ./backend
-    env_file: ./backend/.env
     ports:
       - "8099:5001"
     environment:
