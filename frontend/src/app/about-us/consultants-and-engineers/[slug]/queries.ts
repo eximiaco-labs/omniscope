@@ -6,6 +6,14 @@ export const GET_CONSULTANT = gql`
       photoUrl
       name
       position
+      ontologyUrl
+
+      timelinessReview {
+        earlyPercentage
+        okPercentage
+        acceptablePercentage
+        latePercentage
+      }
 
       timesheet1: timesheet(slug: $dataset1) {
         appointments {
@@ -56,7 +64,12 @@ export interface Consultant {
   photoUrl: string;
   name: string;
   position: string;
-
+  ontologyUrl: string;
+  timelinessReview: {
+    okPercentage: number;
+    acceptablePercentage: number;
+    latePercentage: number;
+  };
   timesheet1: {
     appointments: Array<{
       kind: string;

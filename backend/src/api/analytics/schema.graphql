@@ -282,10 +282,13 @@ type TimelinessReview {
 
   minDate: Date!
   maxDate: Date!
+
+  filterableFields: [FilterableField]!
 }
 
 type WorkerSummary {
   worker: String!
+  workerSlug: String!
   entries: Int!
   timeInHours: Float!
 }

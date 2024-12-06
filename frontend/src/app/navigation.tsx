@@ -15,6 +15,7 @@ import {
   DollarSignIcon,
   TrendingUpIcon,
   PercentIcon,
+  CheckCheckIcon,
 } from "lucide-react";
 
 import { getFlag } from './flags';
@@ -67,6 +68,11 @@ export function getAnalyticsSidebarItems(userEmail?: string | null) {
       title: "Approved vs Actual",
       url: "/analytics/approved-vs-actual",
       icon: TargetIcon,
+    },
+    {
+      title: "Timeliness Review",
+      url: "/analytics/timeliness-review", 
+      icon: CheckCheckIcon,
     },
   ];
 }

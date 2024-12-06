@@ -28,6 +28,7 @@ type AccountManager {
 type Worker {
   id: Int!
   slug: String!
+  ontologyUrl: String
   name: String!
   email: String
   kind: WorkerKind!
@@ -48,6 +49,7 @@ type Worker {
 
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
   cases(onlyActives: Boolean): [Case!]!
+  timelinessReview(date_of_interest: Date, filters: [FilterInput]): TimelinessReview!
 }
 
 type Client {

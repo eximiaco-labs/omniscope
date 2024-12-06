@@ -1,6 +1,8 @@
+from datetime import datetime
 from api.datasets.timesheets import compute_timesheet
 from api.domain.cases import compute_cases
 from api.utils.fields import build_fields_map
+from backend.src.models.analytics.timeliness_review import compute_timeliness_review
 from models.domain import WorkerKind
 import globals
 
@@ -39,6 +41,23 @@ def resolve_consultant_or_engineer_timesheet(consultant_or_engineer, info, slug,
     
     map_ = build_fields_map(info)
     return compute_timesheet(map_, slug, filters=client_filters)
+
+def resolve_consultant_or_engineer_timeliness_review(consultant_or_engineer, info, date_of_interest=None, filters=None):
+    if filters is None:
+        filters = []
+        
+    if not date_of_interest:
+        date_of_interest = datetime.now().date()
+        
+    client_filters = [
+        {
+            'field': 'WorkerName',
+            'selected_values': [consultant_or_engineer.name]
+        }
+    ] + filters
+    
+    return compute_timeliness_review(date_of_interest, filters=client_filters)
+
 
 # def resolve_account_manager_cases(account_manager, info, only_actives: bool = False):
 #     all_cases = globals.omni_models.cases.get_all().values()
