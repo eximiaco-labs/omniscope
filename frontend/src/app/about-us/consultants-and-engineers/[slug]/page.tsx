@@ -12,6 +12,7 @@ import { StatType } from "@/app/constants/colors";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
+import { Heading } from "@/components/catalyst/heading";
 
 interface ClientSummary {
   client: string;
@@ -174,7 +175,7 @@ export default function ConsultantPage() {
   if (error) return <div>Error loading data</div>;
   if (!data?.consultantOrEngineer) return <div>Consultant not found</div>;
 
-  const { name, position, photoUrl, timesheet1, timesheet2 } =
+  const { name, position, photoUrl, timesheet1, timesheet2, ontologyUrl, timelinessReview } =
     data.consultantOrEngineer;
 
   const getSelectedSummary = (timesheet: any, selectedDay: number | null, selectedRow: number | null, selectedColumn: number | null, isAllSelected: boolean, selectedDate: Date, selectedStatType: StatType) => {
@@ -317,14 +318,52 @@ export default function ConsultantPage() {
 
   return (
     <div className="w-full p-2">
-      <div className="flex items-center gap-6 mb-8">
-        <Avatar className="w-24 h-24">
-          <AvatarImage src={photoUrl} alt={name} />
-          <AvatarFallback>{name[0]}</AvatarFallback>
-        </Avatar>
-        <div>
-          <h1 className="text-3xl font-bold">{name}</h1>
-          <p className="text-gray-600">{position}</p>
+      <div className="bg-white p-6 mb-8">
+        <div className="flex items-center">
+          <div className="flex items-center justify-center h-full mr-8 border-r pr-8 border-gray-200">
+            <Avatar className="w-24 h-24">
+              <AvatarImage src={photoUrl} alt={name} />
+              <AvatarFallback>{name[0]}</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex flex-col flex-grow space-y-3">
+            <div>
+              <div className="flex flex-col lg:max-w-[80%]">
+                <Heading className="text-2xl font-bold text-gray-900">{name}</Heading>
+                <p className="text-gray-600">{position}</p>
+                {ontologyUrl && (
+                  <span className="text-xs mt-2">
+                    <a
+                      href={ontologyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      View Ontology
+                    </a>
+                  </span>
+                )}
+              </div>
+            </div>
+            {timelinessReview && (
+              <div className="flex flex-col gap-2 text-xs">
+                <p className="text-gray-700 flex items-center">
+                  <svg className="w-4 h-4 mr-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="mr-2">Last weeks timeliness review:</span>
+                  {timelinessReview.okPercentage > 0 && <span className="text-green-600">{timelinessReview.okPercentage.toFixed(1)}% on-time</span>}
+                  {timelinessReview.okPercentage > 0 && (timelinessReview.acceptablePercentage > 0 || timelinessReview.latePercentage > 0) && <span className="mx-2">•</span>}
+                  {timelinessReview.acceptablePercentage > 0 && <span className="text-yellow-600">{timelinessReview.acceptablePercentage.toFixed(1)}% acceptable</span>}
+                  {timelinessReview.acceptablePercentage > 0 && timelinessReview.latePercentage > 0 && <span className="mx-2">•</span>}
+                  {timelinessReview.latePercentage > 0 && <span className="text-red-600">{timelinessReview.latePercentage.toFixed(1)}% late</span>}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
