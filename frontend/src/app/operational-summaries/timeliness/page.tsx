@@ -255,17 +255,19 @@ export default function TimelinessReviewPage() {
 
   return (
     <div className="container">
-      <div className="mb-2 flex items-center">
-        <DatePicker date={date} onSelectedDateChange={setDate} />
-        <div className="flex-grow h-px bg-gray-200 ml-4"></div>
-      </div>
+      <div className="relative z-[60]">
+        <div className="mb-2 flex items-center">
+          <DatePicker date={date} onSelectedDateChange={setDate} />
+          <div className="flex-grow h-px bg-gray-200 ml-4"></div>
+        </div>
 
-      <div className="mb-4">
-        <FilterFieldsSelect
-          data={data?.timelinessReview}
-          selectedFilters={selectedFilters}
-          handleFilterChange={handleFilterChange}
-        />
+        <div className="mb-4">
+          <FilterFieldsSelect
+            data={data?.timelinessReview}
+            selectedFilters={selectedFilters}
+            handleFilterChange={handleFilterChange}
+          />
+        </div>
       </div>
 
       <NavBar sections={sectionsWithPercentages} />
