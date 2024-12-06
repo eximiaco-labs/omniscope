@@ -138,9 +138,20 @@ export default function TimelinessReviewPage() {
       0
     );
 
+    // Calculate total hours across all sections
+    const allSectionsHours = sections.reduce((total, section) => {
+      return total + data.timelinessReview[`${section.id}Workers`].reduce(
+        (sum: number, worker: any) => sum + worker.timeInHours,
+        0
+      );
+    }, 0);
+
+    // Calculate percentage of total hours
+    const percentageOfTotal = ((totalHours / allSectionsHours) * 100).toFixed(1);
+
     return (
       <div id={tableType} className="mt-4 scroll-mt-[68px] sm:scroll-mt-[68px]">
-        <SectionHeader title={title} subtitle={""} />
+        <SectionHeader title={title} subtitle={`${percentageOfTotal}% of total hours`} />
         <div className="ml-2 mr-2">
           <Table>
             <TableHeader>
