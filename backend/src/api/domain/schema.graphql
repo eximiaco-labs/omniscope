@@ -28,6 +28,7 @@ type AccountManager {
 type Worker {
   id: Int!
   slug: String!
+  ontologyUrl: String
   name: String!
   email: String
   kind: WorkerKind!

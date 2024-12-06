@@ -63,6 +63,12 @@ class Worker(BaseModel):
         )
     
     @property
+    def ontology_url(self) -> str:
+        if not self.ontology_info:
+            return None
+        return self.ontology_info.link
+    
+    @property
     def omni_url(self) -> str:
         if self.kind == WorkerKind.ACCOUNT_MANAGER:
             return f'account-managers/{self.slug}'
