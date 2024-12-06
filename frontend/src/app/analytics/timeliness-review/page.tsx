@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { TIMELINESS_REVIEW_QUERY } from "./query";
-import { Heading } from "@/components/catalyst/heading";
 import {
   Table,
   TableBody,
@@ -17,7 +16,7 @@ import { Option } from "react-tailwindcss-select/dist/components/type";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { format } from "date-fns";
 import SectionHeader from "@/components/SectionHeader";
-import { NavBar } from "./NavBar";
+import { NavBar } from "../../components/NavBar";
 
 const sections = [
   { id: 'early', title: 'Early Submissions' },
