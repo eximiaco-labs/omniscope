@@ -7,6 +7,7 @@ import clsx from 'clsx'
 interface Section {
   id: string
   title: string
+  subtitle?: string
 }
 
 interface NavBarProps {
@@ -104,12 +105,18 @@ export function NavBar({ sections }: NavBarProps) {
             >
               {!open && (
                 <>
-                  <span
-                    aria-hidden="true"
-                    className="font-mono text-sm text-gray-900 uppercase font-semibold"
-                  >
-                    {sections[mobileActiveIndex].title}
-                  </span>
+                  <div>
+                    <span
+                      className="font-mono text-sm text-gray-900 uppercase font-semibold"
+                    >
+                      {sections[mobileActiveIndex].title}
+                    </span>
+                    {sections[mobileActiveIndex].subtitle && (
+                      <span className="text-xs text-gray-600 ml-2">
+                        {sections[mobileActiveIndex].subtitle}
+                      </span>
+                    )}
+                  </div>
                 </>
               )}
               <PopoverButton
@@ -137,6 +144,11 @@ export function NavBar({ sections }: NavBarProps) {
                 >
                   <span className="text-sm font-semibold text-gray-900 uppercase">
                     {section.title}
+                    {section.subtitle && (
+                      <span className="text-xs text-gray-600 ml-2">
+                        {section.subtitle}
+                      </span>
+                    )}
                   </span>
                 </PopoverButton>
               ))}
@@ -162,6 +174,11 @@ export function NavBar({ sections }: NavBarProps) {
                 )}
               >
                 {section.title}
+                {section.subtitle && (
+                  <span className="text-xs text-gray-600">
+                    {section.subtitle}
+                  </span>
+                )}
               </a>
             </li>
           ))}

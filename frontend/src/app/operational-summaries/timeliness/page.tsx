@@ -20,10 +20,10 @@ import { NavBar } from "../../components/NavBar";
 import Link from "next/link";
 
 const sections = [
-  { id: 'early', title: 'Early Submissions' },
-  { id: 'ok', title: 'On-Time Submissions' },
-  { id: 'acceptable', title: 'Acceptable Submissions' },
-  { id: 'late', title: 'Late Submissions' },
+  { id: 'early', title: 'Early Submissions', subtitle: '0%' },
+  { id: 'ok', title: 'On-Time Submissions', subtitle: '0%' },
+  { id: 'acceptable', title: 'Acceptable Submissions', subtitle: '0%' },
+  { id: 'late', title: 'Late Submissions', subtitle: '0%' },
 ]
 
 export default function TimelinessReviewPage() {
@@ -38,6 +38,7 @@ export default function TimelinessReviewPage() {
     acceptable: { key: "timeInHours", direction: "desc" as "asc" | "desc" },
     late: { key: "timeInHours", direction: "desc" as "asc" | "desc" },
   });
+  const [sectionsWithPercentages, setSectionsWithPercentages] = useState(sections);
 
   useEffect(() => {
     const today = new Date();
@@ -51,6 +52,33 @@ export default function TimelinessReviewPage() {
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
   });
+
+  useEffect(() => {
+    if (data?.timelinessReview) {
+      // Calculate total hours across all sections
+      const allSectionsHours = sections.reduce((total, section) => {
+        return total + data.timelinessReview[`${section.id}Workers`].reduce(
+          (sum: number, worker: any) => sum + worker.timeInHours,
+          0
+        );
+      }, 0);
+
+      // Update sections with percentages
+      const updatedSections = sections.map(section => {
+        const sectionHours = data.timelinessReview[`${section.id}Workers`].reduce(
+          (sum: number, worker: any) => sum + worker.timeInHours,
+          0
+        );
+        const percentage = ((sectionHours / allSectionsHours) * 100).toFixed(1);
+        return {
+          ...section,
+          subtitle: `${percentage}%`
+        };
+      });
+
+      setSectionsWithPercentages(updatedSections);
+    }
+  }, [data]);
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
     const newSelectedValues = Array.isArray(value)
@@ -240,7 +268,7 @@ export default function TimelinessReviewPage() {
         />
       </div>
 
-      <NavBar sections={sections} />
+      <NavBar sections={sectionsWithPercentages} />
 
       <div className="ml-2 mr-2">
         {sections.map((section) => (
