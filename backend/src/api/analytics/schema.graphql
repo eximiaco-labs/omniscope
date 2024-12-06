@@ -288,6 +288,7 @@ type TimelinessReview {
 
 type WorkerSummary {
   worker: String!
+  workerSlug: String!
   entries: Int!
   timeInHours: Float!
 }

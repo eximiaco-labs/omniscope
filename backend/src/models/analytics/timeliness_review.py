@@ -52,7 +52,7 @@ def compute_timeliness_review(date_of_interest, filters=None):
 
     # Função auxiliar para criar resumos de trabalhadores
     def create_worker_summary(filter_condition):
-        worker_group = df[filter_condition].groupby('WorkerName').agg(
+        worker_group = df[filter_condition].groupby(['WorkerName', 'WorkerSlug']).agg(
             entries=('WorkerName', 'size'),
             time_in_hours=('TimeInHs', 'sum')
         ).reset_index()
@@ -60,6 +60,7 @@ def compute_timeliness_review(date_of_interest, filters=None):
         return [
             {
                 'worker': row['WorkerName'],
+                'workerSlug': row['WorkerSlug'],
                 'entries': row['entries'],
                 'time_in_hours': row['time_in_hours']
             }
