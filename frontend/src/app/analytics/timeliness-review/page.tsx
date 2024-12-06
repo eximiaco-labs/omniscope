@@ -17,6 +17,7 @@ import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { format } from "date-fns";
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "../../components/NavBar";
+import Link from "next/link";
 
 const sections = [
   { id: 'early', title: 'Early Submissions' },
@@ -178,7 +179,9 @@ export default function TimelinessReviewPage() {
                     {index + 1}
                   </TableCell>
                   <TableCell className="w-[calc(100%-300px)]">
-                    {worker.worker}
+                    <Link href={`/about-us/consultants-and-engineers/${worker.workerSlug}`} className="text-blue-600 hover:text-blue-800">
+                      {worker.worker}
+                    </Link>
                   </TableCell>
                   <TableCell className="w-[125px] text-right relative">
                     {worker.timeInHours.toFixed(2)}
