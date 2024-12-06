@@ -1,4 +1,5 @@
 from datetime import datetime
+import pandas as pd
 from models.helpers.weeks import Weeks
 import globals
 
@@ -60,7 +61,7 @@ def compute_timeliness_review(date_of_interest, filters=None):
         return [
             {
                 'worker': row['WorkerName'],
-                'workerSlug': row['WorkerSlug'],
+                'worker_slug': row['WorkerSlug'] if pd.notna(row['WorkerSlug']) else None,
                 'entries': row['entries'],
                 'time_in_hours': row['time_in_hours']
             }
@@ -103,7 +104,7 @@ def compute_timeliness_review(date_of_interest, filters=None):
     }
 
 def _create_worker_summary(self, df, filter_condition):
-    worker_group = df[filter_condition].groupby('WorkerName').agg(
+    worker_group = df[filter_condition].groupby(['WorkerName', 'WorkerSlug']).agg(
         entries=('WorkerName', 'size'),
         time_in_hours=('TimeInHs', 'sum')
     ).reset_index()
@@ -111,6 +112,7 @@ def _create_worker_summary(self, df, filter_condition):
     worker_list = [
         {
             'worker': row['WorkerName'],
+            'worker_slug': row['WorkerSlug'] if pd.notna(row['WorkerSlug']) else None,
             'entries': row['entries'],
             'time_in_hours': row['time_in_hours']
         }
