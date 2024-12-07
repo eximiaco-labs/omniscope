@@ -2,7 +2,7 @@ from datetime import datetime
 from api.datasets.timesheets import compute_timesheet
 from api.domain.cases import compute_cases
 from api.utils.fields import build_fields_map
-from backend.src.models.analytics.timeliness_review import compute_timeliness_review
+from models.analytics.timeliness_review import compute_timeliness_review
 from models.domain import WorkerKind
 import globals
 
