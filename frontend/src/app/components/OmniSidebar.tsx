@@ -11,7 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { DollarSignIcon, BarChart3Icon, UsersIcon, SettingsIcon } from "lucide-react";
+import { DollarSignIcon, BarChart3Icon, UsersIcon, SettingsIcon, CheckCheckIcon } from "lucide-react";
 
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
@@ -23,6 +23,7 @@ import {
   getAboutUsSidebarItems,
   getAdministrativeSidebarItems,
   getFinancialSidebarItems,
+  getOperationalSummariesSidebarItems,
 } from "@/app/navigation";
 
 import React from "react";
@@ -59,6 +60,9 @@ export function OmniSidebar() {
   const [adminItems, setAdminItems] = React.useState<
     Array<{ title: string; url: string; icon: any }>
   >([]);
+  const [operationalItems, setOperationalItems] = React.useState<
+    Array<{ title: string; url: string; icon: any }>
+  >([]);
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
   const [activeItems, setActiveItems] = React.useState<
@@ -71,6 +75,7 @@ export function OmniSidebar() {
     async function loadItems() {
       const financial = await getFinancialSidebarItems(session?.user?.email);
       const analytics = await getAnalyticsSidebarItems(session?.user?.email);
+      const operationalSummaries = await getOperationalSummariesSidebarItems();
       const aboutUs = await getAboutUsSidebarItems();
       const admin = await getAdministrativeSidebarItems();
 
@@ -78,6 +83,7 @@ export function OmniSidebar() {
       setAnalyticsItems(analytics);
       setAboutUsItems(aboutUs);
       setAdminItems(admin);
+      setOperationalItems(operationalSummaries);
 
       // Determine active section based on current path
       let initialSection = "Analytics";
@@ -95,6 +101,12 @@ export function OmniSidebar() {
       if (isAnalyticsPath) {
         initialSection = "Analytics";
         initialItems = analytics;
+      }
+
+      const isOperationalSummariesPath = operationalSummaries.some(item => pathname.startsWith(item.url));
+      if (isOperationalSummariesPath) {
+        initialSection = "Operational Summaries";
+        initialItems = operationalSummaries;
       }
 
       const isAboutUsPath = aboutUs.some(item => pathname.startsWith(item.url));
@@ -185,6 +197,19 @@ export function OmniSidebar() {
                   >
                     <UsersIcon className="size-4" />
                     <span>About Us</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={activeSection === "Operational Summaries"}
+                    onClick={() => {
+                      setActiveSection("Operational Summaries");
+                      setActiveItems(operationalItems);
+                      setOpen(true);
+                    }}
+                  >
+                    <CheckCheckIcon className="size-4" />
+                    <span>Operational Summaries</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>

@@ -14,7 +14,8 @@ import {
   getAnalyticsSidebarItems,
   getAboutUsSidebarItems,
   getAdministrativeSidebarItems,
-  getFinancialSidebarItems
+  getFinancialSidebarItems,
+  getOperationalSummariesSidebarItems
 } from "@/app/navigation"
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
@@ -85,18 +86,20 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
   const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
-
+  const [operationalSummariesItems, setOperationalSummariesItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
   React.useEffect(() => {
     async function loadItems() {
       const finantials = await getFinancialSidebarItems(session?.user?.email)
       const analytics = await getAnalyticsSidebarItems(session?.user?.email)
       const aboutUs = await getAboutUsSidebarItems()
       const admin = await getAdministrativeSidebarItems()
+      const operationalSummaries = await getOperationalSummariesSidebarItems()
       
       setFinantialsItems(finantials)
       setAnalyticsItems(analytics)
       setAboutUsItems(aboutUs)
       setAdminItems(admin)
+      setOperationalSummariesItems(operationalSummaries)
     }
     loadItems()
   }, [])
@@ -147,6 +150,18 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
 
         <CommandGroup heading="About Us">
           {aboutUsItems.map((item) => (
+            <CommandItem
+              key={item.url}
+              onSelect={() => runCommand(() => router.push(item.url))}
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.title}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandGroup heading="Operational Summaries">
+          {operationalSummariesItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
