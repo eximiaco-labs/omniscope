@@ -48,19 +48,17 @@ export default function StalenessPage() {
       const daysSinceStart = startOfContract ? differenceInDays(now, startOfContract) : null;
 
       // New case (less than 14 days) without updates is considered up to date
-      if (daysSinceStart !== null && daysSinceStart < 14 && !lastUpdated) {
+      if (daysSinceStart !== null && daysSinceStart < 30 && !lastUpdated) {
         acc.upToDate.push({ ...case_, daysSinceUpdate: 0 });
       }
       // No description cases
       else if (!case_.hasDescription) {
         acc.noDescription.push({ ...case_, daysSinceUpdate: daysSinceUpdate || 0 });
       }
-      // Stale cases (>21 days)
-      else if (daysSinceUpdate && daysSinceUpdate > 21) {
+      else if (daysSinceUpdate && daysSinceUpdate > 30) {
         acc.stale.push({ ...case_, daysSinceUpdate });
       }
-      // Will be stale in one week (14-21 days)
-      else if (daysSinceUpdate && daysSinceUpdate >= 14) {
+      else if (daysSinceUpdate && daysSinceUpdate >= 21) {
         acc.staleInOneWeek.push({ ...case_, daysSinceUpdate });
       }
       // Up to date cases
