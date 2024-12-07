@@ -69,25 +69,26 @@ class Case(BaseModel):
         if not self.has_description:
             return 0
 
-        return (datetime.now() - self.ontology_info.last_update_gmt).days
+        if not self.last_updated:
+            if not self.start_of_contract:
+                return True
+            else:
+                return (datetime.now().date() - self.start_of_contract).days
+
+        return (datetime.now() - self.last_updated).days if  not self.last_updated else 0
 
     @property
     def is_stale(self) -> bool:
         if not self.is_active:
             return False
 
-        if not self.has_description:
-            return True
-
-        if self.number_of_days_with_no_updates < 30:
+        if self.number_of_days_with_no_updates <= 30:
             return False
 
         if not self.last_update:
             return True
 
-        diff = (datetime.now() - self.last_updated).days
-
-        return diff > 30
+        return True
 
     @property
     def has_updated_description(self) -> bool:

@@ -58,7 +58,7 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
     if len(stale_cases) > 0:
         result.append(Inconsistency(
             'Stale cases',
-            f'{len(stale_cases)} case(s) have not been updated in over 30 days.'
+            'There are cases that have not been updated in over 30 days.'
         ))
 
     projects = globals.omni_models.projects.get_all().values()
