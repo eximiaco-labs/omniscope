@@ -81,7 +81,7 @@ export default function StalenessPage() {
     const sortedCases = [...cases].sort((a, b) => b.daysSinceUpdate - a.daysSinceUpdate);
     
     return (
-      <div className="mt-4">
+      <div className="mt-4 mb-8">
         <SectionHeader title={title} subtitle={`${cases.length} cases`} />
         <div className="ml-2 mr-2">
           <Table>

@@ -16,6 +16,7 @@ import {
   TrendingUpIcon,
   PercentIcon,
   CheckCheckIcon,
+  ClockIcon,
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -120,6 +121,11 @@ export function getOperationalSummariesSidebarItems() {
       title: "Timeliness",
       url: "/operational-summaries/timeliness",
       icon: CheckCheckIcon,
+    },
+    {
+      title: "Staleliness",
+      url: "/operational-summaries/staleliness",
+      icon: ClockIcon,
     },
   ];
 }
