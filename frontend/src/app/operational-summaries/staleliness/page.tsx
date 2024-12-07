@@ -14,6 +14,7 @@ import {
 import { differenceInDays } from "date-fns";
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "../../components/NavBar";
+import Link from "next/link";
 
 const sections = [
   { id: 'stale', title: 'Stale Cases', subtitle: '0 cases' },
@@ -100,7 +101,14 @@ export default function StalenessPage() {
                   <TableCell className="text-center text-gray-500 text-[10px]">
                     {index + 1}
                   </TableCell>
-                  <TableCell>{case_.title}</TableCell>
+                  <TableCell>
+                    <Link 
+                      href={`/about-us/cases/${case_.slug}`} 
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {case_.title}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <div className="text-sm space-y-1">
                       {case_.timesheet?.byWorker?.map((w: any, i: number) => (
