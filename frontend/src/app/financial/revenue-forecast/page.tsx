@@ -23,6 +23,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
+import { NavBar } from "@/app/components/NavBar";
+
+const sections = [
+  { id: 'consulting', title: 'Consulting' },
+  { id: 'consultingPre', title: 'Consulting Pre' },
+  { id: 'handsOn', title: 'Hands On' },
+  { id: 'squad', title: 'Squad' }
+]
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -404,7 +412,7 @@ export default function RevenueForecastPage() {
     );
 
     return (
-      <div className="mb-8">
+      <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
         <SectionHeader title={title} subtitle={""} />
         <div className="px-2">
           <Table>
@@ -705,7 +713,7 @@ export default function RevenueForecastPage() {
     );
 
     return (
-      <div className="mb-8">
+      <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
         <SectionHeader title={title} subtitle={""} />
         <div className="px-2">
           <Table>
@@ -846,6 +854,7 @@ export default function RevenueForecastPage() {
       </div>
 
       <div className="ml-2 mr-2">
+        <NavBar sections={sections} />
         {renderConsultingTable("Consulting", consultingClients, "consulting")}
         {renderOtherTable(
           "Consulting Pre",
