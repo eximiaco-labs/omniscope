@@ -504,3 +504,36 @@ type RevenueTrackingByProject {
   fee: Float!
   partial: Boolean
 }
+
+# Forecast types
+type Forecast {
+  dateOfInterest: Date!
+  byKind: ForecastByKind!
+}
+
+type ForecastByKind {
+  squad: ForecastByClient!
+  consultingPre: ForecastByClient!
+  handsOn: ForecastByClient!
+}
+
+type ForecastByClient {
+  byClient: [ForecastByClientEntry!]!
+  totals: ForecastTotals!
+}
+
+type ForecastTotals {
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+}
+
+type ForecastByClientEntry {
+  name: String!
+  slug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+} 

@@ -43,6 +43,8 @@ type Query {
 
   activeDeals(accountManagerSlug: String, accountManagerName: String): [ActiveDeal!]!
   activeDeal(id: Int): ActiveDeal
+
+  forecast(date_of_interest: Date): Forecast!
 }
 
 type Mutation {
