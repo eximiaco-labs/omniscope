@@ -1,5 +1,6 @@
 from api.utils.fields import build_fields_map
 from api.datasets.timesheets import compute_timesheet
+from models.analytics.forecast import compute_forecast
 import globals
 
 
@@ -104,3 +105,16 @@ def resolve_case_timesheet(case, info, slug, filters=None):
     
     map_ = build_fields_map(info)
     return compute_timesheet(map_, slug, filters=client_filters)
+
+def resolve_case_forecast(case, info, date_of_interest=None, filters=None):
+    if filters is None:
+        filters = []
+        
+    case_filters = [
+        {
+            'field': 'CaseTitle', 
+            'selected_values': [case["title"]]
+        }
+    ] + filters
+    
+    return compute_forecast(date_of_interest, filters=case_filters)

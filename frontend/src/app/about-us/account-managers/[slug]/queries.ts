@@ -2,12 +2,43 @@ import { RevenueTrackingQuery } from "@/app/financial/revenue-tracking/types";
 import { gql } from "@apollo/client";
 
 export const GET_ACCOUNT_MANAGER = gql`
-  query GetAccountManager($slug: String!, $dataset: String!, $dataset1: String!, $dataset2: String!) {
+  query GetAccountManager(
+    $slug: String!
+    $dataset: String!
+    $dataset1: String!
+    $dataset2: String!
+  ) {
     accountManager(slug: $slug) {
       photoUrl
       name
       position
-  
+      ontologyUrl
+
+      forecast {
+        dateOfInterest
+        filterableFields {
+          field
+          options
+          selectedValues
+        }
+        dates {
+          sameDayOneMonthAgo
+          oneMonthAgo
+          sameDayTwoMonthsAgo
+          twoMonthsAgo
+          sameDayThreeMonthsAgo
+          threeMonthsAgo
+        }
+        summary {
+          realized
+          projected
+          expected
+          oneMonthAgo
+          twoMonthsAgo
+          threeMonthsAgo
+        }
+      }
+
       activeDeals {
         title
         clientOrProspectName
@@ -18,7 +49,7 @@ export const GET_ACCOUNT_MANAGER = gql`
         stageOrderNr
         daysSinceLastUpdate
       }
-  
+
       cases(onlyActives: true) {
         title
         startOfContract
@@ -31,7 +62,9 @@ export const GET_ACCOUNT_MANAGER = gql`
           author
           observations
         }
-        client { name }
+        client {
+          name
+        }
         isStale
       }
 
@@ -195,6 +228,32 @@ export interface AccountManager {
   photoUrl: string;
   name: string;
   position: string;
+  ontologyUrl?: string;
+
+  forecast: {
+    dateOfInterest: string;
+    filterableFields: Array<{
+      field: string;
+      options: string[];
+      selectedValues: string[];
+    }>;
+    dates: {
+      sameDayOneMonthAgo: string;
+      oneMonthAgo: string;
+      sameDayTwoMonthsAgo: string;
+      twoMonthsAgo: string;
+      sameDayThreeMonthsAgo: string;
+      threeMonthsAgo: string;
+    };
+    summary: {
+      realized: number;
+      projected: number;
+      expected: number;
+      oneMonthAgo: number;
+      twoMonthsAgo: number;
+      threeMonthsAgo: number;
+    };
+  };
 
   activeDeals: Array<{
     title: string;

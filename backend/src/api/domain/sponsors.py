@@ -1,4 +1,5 @@
 from api.datasets.timesheets import compute_timesheet
+from models.analytics.forecast import compute_forecast
 import globals
 from api.utils.fields import build_fields_map, get_requested_fields_from
 
@@ -44,3 +45,16 @@ def resolve_sponsor_timesheet(sponsor, info, slug, filters=None):
     
     map_ = build_fields_map(info)
     return compute_timesheet(map_, slug, filters=client_filters)
+
+def resolve_sponsor_forecast(sponsor, info, date_of_interest=None, filters=None):
+    if filters is None:
+        filters = []
+        
+    sponsor_filters = [
+        {
+            'field': 'Sponsor',
+            'selected_values': [sponsor["name"]]
+        }
+    ] + filters
+    
+    return compute_forecast(date_of_interest, filters=sponsor_filters)

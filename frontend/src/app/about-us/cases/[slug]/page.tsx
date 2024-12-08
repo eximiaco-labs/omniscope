@@ -28,6 +28,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { StatType } from "@/app/constants/colors";
+import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
+import { getFlag } from "@/app/flags";
+import { useSession } from "next-auth/react";
 
 interface WorkerSummary {
   worker: string;
@@ -125,6 +128,7 @@ const SummarySection = ({
 
 export default function CasePage() {
   const { slug } = useParams();
+  const { data: session } = useSession();
 
   // Calculate visible dates for both datasets
   const getVisibleDates = (date: Date) => {
@@ -322,19 +326,25 @@ export default function CasePage() {
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
+      
+      {getFlag("is-fin-user", session?.user?.email) && (
+        <div className="mt-4">
+          <RevenueProgression data={caseItem} />
+        </div>
+      )}
+
       <TrackingProjects
-          tracker={caseItem.tracker}
-          workersByTrackingProject={
-            caseItem.timesheets.lastSixWeeks.byCase?.[0]
-              ?.workersByTrackingProject || []
-          }
+        tracker={caseItem.tracker}
+        workersByTrackingProject={
+          caseItem.timesheets.lastSixWeeks.byCase?.[0]
+            ?.workersByTrackingProject || []
+        }
       />
 
       <div className="mt-4">
         <SectionHeader title="Side by Side Analysis" subtitle="" />
       </div>
       <div className="ml-2 mr-2">
-        
         <div className="grid grid-cols-2 gap-4">
           <div>
             <AllocationCalendar
