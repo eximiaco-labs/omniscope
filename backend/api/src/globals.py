@@ -1,5 +1,5 @@
-from models.omnimodels import OmniModels
-from models.omnidatasets import OmniDatasets
+from omni_models.omnimodels import OmniModels
+from omni_models.omnidatasets import OmniDatasets
 from datetime import datetime
 
 omni_models: OmniModels = OmniModels()

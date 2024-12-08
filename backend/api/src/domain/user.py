@@ -1,4 +1,4 @@
-from models.domain import WorkerKind
+from omni_models.domain import WorkerKind
 import globals
 
 

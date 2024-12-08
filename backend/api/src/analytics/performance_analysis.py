@@ -1,9 +1,9 @@
 from datetime import datetime
-import models.analytics.performance_analysis
-from models.analytics.performance_analysis import PerformanceAnalysis, TotalsPreContracted, TotalsRegular
+import omni_models.analytics.performance_analysis
+from omni_models.analytics.performance_analysis import PerformanceAnalysis, TotalsPreContracted, TotalsRegular
 
 def resolve_performance_analysis(_, info, date_of_interest: str | datetime):
-    return models.analytics.performance_analysis.compute_performance_analysis(date_of_interest)
+    return omni_models.analytics.performance_analysis.compute_performance_analysis(date_of_interest)
 
 def resolve_performance_analysis_pivoted(performance_analysis: PerformanceAnalysis, info):
     return {

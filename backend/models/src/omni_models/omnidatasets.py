@@ -2,17 +2,18 @@ import calendar
 from datetime import datetime, timedelta
 from calendar import monthrange
 import pandas as pd
+from typing import Tuple
 
-from models.base.powerdataframe import SummarizablePowerDataFrame
-from models.datasets.insights_dataset import InsightsDataset
-from models.datasets.omni_dataset import OmniDataset
-from models.datasets.ontology_entries_dataset import OntologyEntriesDataset
-from models.datasets.tasks_dataset import TasksDataset
-from models.datasets.timesheet_dataset import TimesheetDataset
-from models.helpers.weeks import Weeks
-from models.omnimodels import OmniModels
+from omni_models.base.powerdataframe import SummarizablePowerDataFrame
+from omni_models.datasets.insights_dataset import InsightsDataset
+from omni_models.datasets.omni_dataset import OmniDataset
+from omni_models.datasets.ontology_entries_dataset import OntologyEntriesDataset
+from omni_models.datasets.tasks_dataset import TasksDataset
+from omni_models.datasets.timesheet_dataset import TimesheetDataset
+from omni_models.omnimodels import OmniModels
 
-import models.helpers.slug as sl
+import omni_utils.helpers.slug as sl
+from omni_utils.helpers.weeks import Weeks
 
 
 def get_time_part_from_slug(slug: str) -> str:
@@ -21,7 +22,7 @@ def get_time_part_from_slug(slug: str) -> str:
     return slug.split('-', 1)[1]
 
 
-def get_quarter_dates(quarter_slug: str) -> (datetime, datetime):
+def get_quarter_dates(quarter_slug: str) -> Tuple[datetime, datetime]:
     q, year = quarter_slug.split('-')
     year = int(year)
     quarter = int(q[1])
@@ -40,7 +41,7 @@ def get_quarter_dates(quarter_slug: str) -> (datetime, datetime):
 
     return start_date, end_date
 
-def get_semester_dates(semester_slug: str) -> (datetime, datetime):
+def get_semester_dates(semester_slug: str) -> Tuple[datetime, datetime]:
     q, year = semester_slug.split('-')
     year = int(year)
     quarter = int(q[1])

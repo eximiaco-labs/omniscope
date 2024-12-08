@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Dict, Any, List, Union
-from api.utils.fields import get_requested_fields_from
+from utils.fields import get_requested_fields_from
 
 import globals
 

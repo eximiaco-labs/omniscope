@@ -1,6 +1,6 @@
-from api.utils.fields import build_fields_map
-from api.datasets.timesheets import compute_timesheet
-from models.analytics.forecast import compute_forecast
+from utils.fields import build_fields_map
+from datasets.timesheets import compute_timesheet
+from omni_models.analytics.forecast import compute_forecast
 import globals
 
 

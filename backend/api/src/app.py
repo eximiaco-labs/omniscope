@@ -14,12 +14,14 @@ from functools import wraps
 from settings import auth_settings 
 from settings import graphql_settings
 
-from api.queries import query_types, type_defs
-from api.mutations import mutation
+
 import logging
 import argparse
 import sys
-from api.execution_stats import ExecutionStatsExtension
+
+from queries import query_types, type_defs
+from mutations import mutation
+from execution_stats import ExecutionStatsExtension
 
 import globals
 

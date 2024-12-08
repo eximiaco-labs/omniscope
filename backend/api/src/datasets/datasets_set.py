@@ -1,6 +1,6 @@
 from .timesheets import resolve_timesheet
 
-from api.utils.fields import get_selections_from_info
+from utils.fields import get_selections_from_info
 
 from typing import Any, Dict, List
 from graphql import GraphQLResolveInfo

@@ -1,6 +1,6 @@
-from models.domain.active_deals import ActiveDealsRepository
-from models.semantic import Insights, Ontology, TimeTracker, TasksManager, SalesFunnelB2B, CRM
-from models.domain import (
+from omni_models.domain.active_deals import ActiveDealsRepository
+from omni_models.semantic import Insights, Ontology, TimeTracker, TasksManager, SalesFunnelB2B, CRM
+from omni_models.domain import (
     WorkersRepository,
     ClientsRepository,
     CasesRepository,
@@ -8,14 +8,13 @@ from models.domain import (
     SponsorsRepository,
     OffersRepository
 )
+from omni_models.base.powerdataframe import SummarizablePowerDataFrame
 
-from models.helpers.weeks import Weeks
+from omni_utils.helpers.weeks import Weeks
+from omni_utils.decorators import cache
 
-import pandas as pd
-from models.base.powerdataframe import SummarizablePowerDataFrame
-
-from decorators import cache
 from datetime import datetime
+import pandas as pd
 
 
 class OmniModels:

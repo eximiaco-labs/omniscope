@@ -1,11 +1,11 @@
-from api.datasets.timesheets import compute_timesheet
-from api.domain.cases import compute_cases
-from api.domain.active_deals import compute_active_deals
+from datasets.timesheets import compute_timesheet
 
-from api.utils.fields import build_fields_map
+from domain.cases import compute_cases
+from domain.active_deals import compute_active_deals
+from utils.fields import build_fields_map
 
-from models.analytics.forecast import compute_forecast
-from models.domain import WorkerKind
+from omni_models.analytics.forecast import compute_forecast
+from omni_models.domain import WorkerKind
 import globals
 
 

@@ -1,10 +1,10 @@
 from ariadne import QueryType, gql
 from pathlib import Path
 
-from api.domain import setup_query_for_domain
-from api.datasets import setup_query_for_datasets
-from api.analytics import setup_query_for_analytics
-from api.inconsistencies import resolve_inconsistencies
+from domain import setup_query_for_domain
+from datasets import setup_query_for_datasets
+from analytics import setup_query_for_analytics
+from inconsistencies import resolve_inconsistencies
 
 def load_schema():
     schema_files = [

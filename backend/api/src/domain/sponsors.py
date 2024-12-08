@@ -1,7 +1,7 @@
-from api.datasets.timesheets import compute_timesheet
-from models.analytics.forecast import compute_forecast
+from datasets.timesheets import compute_timesheet
+from omni_models.analytics.forecast import compute_forecast
 import globals
-from api.utils.fields import build_fields_map, get_requested_fields_from
+from utils.fields import build_fields_map, get_requested_fields_from
 
 def _add_client(original):
     result = dict(original)

@@ -1,6 +1,6 @@
-from api.datasets.timesheets import compute_timesheet
-from api.utils.fields import build_fields_map
-from models.analytics.forecast import compute_forecast
+from datasets.timesheets import compute_timesheet
+from utils.fields import build_fields_map
+from omni_models.analytics.forecast import compute_forecast
 import globals
 
 from ariadne import ObjectType

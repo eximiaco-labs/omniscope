@@ -6,8 +6,8 @@ from typing import Dict, Any, List, Union
 
 from graphql import GraphQLResolveInfo
 
-from api.utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
-from models.helpers.slug import slugify
+from utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
+from omni_utils.helpers.slug import slugify
 
 import globals
 
