@@ -1,5 +1,6 @@
 from api.datasets.timesheets import compute_timesheet
 from api.utils.fields import build_fields_map
+from models.analytics.forecast import compute_forecast
 import globals
 
 from ariadne import ObjectType
@@ -70,3 +71,17 @@ def _make_result_object(map, client):
             }   
 
     return result
+
+def resolve_client_forecast(client, info, date_of_interest=None, filters=None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'ClientName',
+            'selected_values': [client["name"]]
+        }
+    ] + filters
+    
+    return compute_forecast(date_of_interest, filters=client_filters)
+    
