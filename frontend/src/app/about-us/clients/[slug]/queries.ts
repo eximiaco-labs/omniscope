@@ -5,6 +5,7 @@ export const GET_CLIENT_BY_SLUG = gql`
     client(slug: $slug) {
       name
       logoUrl
+      ontologyUrl
       isStrategic
 
         forecast {
