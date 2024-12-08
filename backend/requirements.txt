@@ -11,7 +11,6 @@ pytest-cov
 pytest-mock
 pytest-parametrize
 
-
 pydantic
 pytz
 bokeh

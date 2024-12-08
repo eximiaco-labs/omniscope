@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.append(Path(__file__).parent.parent.parent)
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, snake_case_fallback_resolvers
