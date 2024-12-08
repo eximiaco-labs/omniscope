@@ -508,18 +508,36 @@ type RevenueTrackingByProject {
 # Forecast types
 type Forecast {
   dateOfInterest: Date!
+  dates: ForecastDates!
   byKind: ForecastByKind!
 }
 
+type ForecastDates {
+  sameDayOneMonthAgo: Date!
+  oneMonthAgo: Date!
+  sameDayTwoMonthsAgo: Date!
+  twoMonthsAgo: Date!
+  sameDayThreeMonthsAgo: Date!
+  threeMonthsAgo: Date!
+}
+
 type ForecastByKind {
-  squad: ForecastByClient!
+  consulting: ForecastConsultingByClient!
   consultingPre: ForecastByClient!
   handsOn: ForecastByClient!
+  squad: ForecastByClient!
+  
+  
 }
 
 type ForecastByClient {
   byClient: [ForecastByClientEntry!]!
   totals: ForecastTotals!
+}
+
+type ForecastConsultingByClient {
+  byClient: [ForecastConsultingByClientEntry!]!
+  totals: ForecastConsultingTotals!
 }
 
 type ForecastTotals {
@@ -529,6 +547,16 @@ type ForecastTotals {
   threeMonthsAgo: Float!
 }
 
+type ForecastConsultingTotals {
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+}
+
 type ForecastByClientEntry {
   name: String!
   slug: String
@@ -536,4 +564,16 @@ type ForecastByClientEntry {
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
   threeMonthsAgo: Float!
+} 
+
+type ForecastConsultingByClientEntry {
+  name: String!
+  slug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
 } 

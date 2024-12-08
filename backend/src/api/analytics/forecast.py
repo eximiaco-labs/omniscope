@@ -36,10 +36,10 @@ def resolve_forecast(_, info, date_of_interest = None):
     same_day_last_month = get_same_day_one_month_ago(date_of_interest)
     last_day_of_last_month = get_last_day_of_month(same_day_last_month)
     
-    same_day_two_months_ago = get_same_day_one_month_ago(last_day_of_last_month)
+    same_day_two_months_ago = get_same_day_one_month_ago(same_day_last_month)
     last_day_of_two_months_ago = get_last_day_of_month(same_day_two_months_ago)
     
-    same_day_three_months_ago = get_same_day_one_month_ago(last_day_of_two_months_ago)
+    same_day_three_months_ago = get_same_day_one_month_ago(same_day_two_months_ago)
     last_day_of_three_months_ago = get_last_day_of_month(same_day_three_months_ago)
     
     # Revenue tracking
@@ -54,8 +54,8 @@ def resolve_forecast(_, info, date_of_interest = None):
     
     analysis_same_day_three_months_ago = compute_revenue_tracking(same_day_three_months_ago)
     analysis_last_day_of_three_months_ago = compute_revenue_tracking(last_day_of_three_months_ago)
-    
-    # Forecast
+
+        
     def summarize_forecast(slug):
         clients = {}
         
@@ -74,7 +74,12 @@ def resolve_forecast(_, info, date_of_interest = None):
         add_context(analysis_last_day_of_last_month, 'one_month_ago')
         add_context(analysis_last_day_of_two_months_ago, 'two_months_ago')
         add_context(analysis_last_day_of_three_months_ago, 'three_months_ago')
-
+        
+        if slug == 'consulting':
+            add_context(analysis_same_day_last_month, 'same_day_one_month_ago')
+            add_context(analysis_same_day_two_months_ago, 'same_day_two_months_ago')
+            add_context(analysis_same_day_three_months_ago, 'same_day_three_months_ago')
+            
         by_client = list(clients.values())
         by_client = [
             client for client in by_client 
@@ -89,6 +94,10 @@ def resolve_forecast(_, info, date_of_interest = None):
             client['one_month_ago'] = client.get('one_month_ago', 0)
             client['two_months_ago'] = client.get('two_months_ago', 0)
             client['three_months_ago'] = client.get('three_months_ago', 0)
+            if slug == 'consulting':
+                client['same_day_one_month_ago'] = client.get('same_day_one_month_ago', 0)
+                client['same_day_two_months_ago'] = client.get('same_day_two_months_ago', 0)
+                client['same_day_three_months_ago'] = client.get('same_day_three_months_ago', 0)
         
         totals = {
             'in_analysis': sum(client.get('in_analysis', 0) for client in by_client),
@@ -96,7 +105,11 @@ def resolve_forecast(_, info, date_of_interest = None):
             'two_months_ago': sum(client.get('two_months_ago', 0) for client in by_client),
             'three_months_ago': sum(client.get('three_months_ago', 0) for client in by_client),
         }
-        
+        if slug == 'consulting':
+            totals['same_day_one_month_ago'] = sum(client.get('same_day_one_month_ago', 0) for client in by_client)
+            totals['same_day_two_months_ago'] = sum(client.get('same_day_two_months_ago', 0) for client in by_client)
+            totals['same_day_three_months_ago'] = sum(client.get('same_day_three_months_ago', 0) for client in by_client)
+
         return {
             'slug': slug,
             'by_client': by_client,
@@ -105,10 +118,19 @@ def resolve_forecast(_, info, date_of_interest = None):
     
     return {
         "date_of_interest": date_of_interest,
+        "dates": {
+            "same_day_one_month_ago": same_day_last_month,
+            "one_month_ago": last_day_of_last_month,
+            "same_day_two_months_ago": same_day_two_months_ago,
+            "two_months_ago": last_day_of_two_months_ago,
+            "same_day_three_months_ago": same_day_three_months_ago,
+            "three_months_ago": last_day_of_three_months_ago
+        },
         "by_kind": {
-            "squad": summarize_forecast('squad'),
-            #"consulting": summarize_forecast('consulting', 'consulting_fee'),
+        
+            "consulting": summarize_forecast('consulting'),
             "consulting_pre": summarize_forecast('consulting_pre'),
-            "hands_on": summarize_forecast('hands_on')
+            "hands_on": summarize_forecast('hands_on'),
+            "squad": summarize_forecast('squad')
         }
     }
