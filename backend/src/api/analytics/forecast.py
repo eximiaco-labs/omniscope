@@ -135,6 +135,27 @@ def resolve_forecast(_, info, date_of_interest = None):
             'totals': totals
         }
     
+    filterable_fields = []
+    
+    # Combine all filterable fields from each analysis
+    for field_list in [
+        analysis_date_of_interest['filterable_fields'],
+        analysis_last_day_of_last_month['filterable_fields'],
+        analysis_last_day_of_two_months_ago['filterable_fields'],
+        analysis_last_day_of_three_months_ago['filterable_fields']
+    ]:
+        for field in field_list:
+            # Check if field already exists
+            existing = next((f for f in filterable_fields if f['field'] == field['field']), None)
+            
+            if existing:
+                # Merge options and selected values
+                existing['options'] = sorted(list(set(existing['options'] + field['options'])))
+                existing['selected_values'] = sorted(list(set(existing['selected_values'] + field['selected_values'])))
+            else:
+                # Add new field
+                filterable_fields.append(field.copy())
+    
     return {
         "date_of_interest": date_of_interest,
         "dates": {
@@ -151,5 +172,6 @@ def resolve_forecast(_, info, date_of_interest = None):
             "consulting_pre": summarize_forecast('consulting_pre'),
             "hands_on": summarize_forecast('hands_on'),
             "squad": summarize_forecast('squad')
-        }
+        },
+        "filterable_fields": filterable_fields
     }

@@ -510,6 +510,7 @@ type Forecast {
   dateOfInterest: Date!
   dates: ForecastDates!
   byKind: ForecastByKind!
+  filterableFields: [FilterableField]!
 }
 
 type ForecastDates {
