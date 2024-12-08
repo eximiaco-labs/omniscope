@@ -114,6 +114,7 @@ type Case {
   ontologyUrl: String
   
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
+  forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
 }
 
 type TrackerProjectBudget {
