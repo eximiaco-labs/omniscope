@@ -1,14 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
-import {
-  format,
-  endOfMonth,
-  subMonths,
-  isSameDay,
-  getDaysInMonth,
-  getDate,
-} from "date-fns";
+import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { REVENUE_FORECAST_QUERY } from "./query";
@@ -20,7 +13,6 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "@/app/components/NavBar";
@@ -34,8 +26,6 @@ const sections = [
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
-  const [showPartialPreviousMonth, setShowPartialPreviousMonth] =
-    useState(false);
   const [sortConfigs, setSortConfigs] = useState<
     Record<
       string,
@@ -56,279 +46,15 @@ export default function RevenueForecastPage() {
     setDate(today);
   }, []);
 
-  const previousMonthDate = endOfMonth(subMonths(date, 1));
-  const twoMonthsAgoDate = endOfMonth(subMonths(date, 2));
-  const threeMonthsAgoDate = endOfMonth(subMonths(date, 3));
-
-  const getPreviousMonthPartialDate = () => {
-    const previousMonth = subMonths(date, 1);
-    const currentDay = date.getDate();
-    const daysInPreviousMonth = getDaysInMonth(previousMonth);
-    const targetDay = Math.min(currentDay, daysInPreviousMonth);
-    return new Date(
-      previousMonth.getFullYear(),
-      previousMonth.getMonth(),
-      targetDay
-    );
-  };
-
-  const getTwoMonthsAgoPartialDate = () => {
-    const twoMonthsAgo = subMonths(date, 2);
-    const currentDay = date.getDate();
-    const daysInTwoMonthsAgo = getDaysInMonth(twoMonthsAgo);
-    const targetDay = Math.min(currentDay, daysInTwoMonthsAgo);
-    return new Date(
-      twoMonthsAgo.getFullYear(),
-      twoMonthsAgo.getMonth(),
-      targetDay
-    );
-  };
-
-  const getThreeMonthsAgoPartialDate = () => {
-    const threeMonthsAgo = subMonths(date, 3);
-    const currentDay = date.getDate();
-    const daysInThreeMonthsAgo = getDaysInMonth(threeMonthsAgo);
-    const targetDay = Math.min(currentDay, daysInThreeMonthsAgo);
-    return new Date(
-      threeMonthsAgo.getFullYear(),
-      threeMonthsAgo.getMonth(),
-      targetDay
-    );
-  };
-
-  const previousMonthPartialDate = getPreviousMonthPartialDate();
-  const twoMonthsAgoPartialDate = getTwoMonthsAgoPartialDate();
-  const threeMonthsAgoPartialDate = getThreeMonthsAgoPartialDate();
-
   const { loading, error, data } = useQuery(REVENUE_FORECAST_QUERY, {
     variables: {
-      inAnalysisDate: format(date, "yyyy-MM-dd"),
-      previousMonthDate: format(previousMonthDate, "yyyy-MM-dd"),
-      previousMonthPartialDate: format(previousMonthPartialDate, "yyyy-MM-dd"),
-      twoMonthsAgoDate: format(twoMonthsAgoDate, "yyyy-MM-dd"),
-      twoMonthsAgoPartialDate: format(twoMonthsAgoPartialDate, "yyyy-MM-dd"),
-      threeMonthsAgoDate: format(threeMonthsAgoDate, "yyyy-MM-dd"),
-      threeMonthsAgoPartialDate: format(
-        threeMonthsAgoPartialDate,
-        "yyyy-MM-dd"
-      ),
+      dateOfInterest: format(date, "yyyy-MM-dd"),
     },
   });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-
-  // Process data for each service type
-  const processServiceData = (
-    type:
-      | "regular"
-      | "preContracted"
-      | "consultingFee"
-      | "consultingPreFee"
-      | "handsOnFee"
-      | "squadFee"
-  ) => {
-    const clients = new Map();
-
-    data.three_months_ago.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        clients.set(client.slug, {
-          name: client.name,
-          slug: client.slug,
-          threeMonthsAgoFull: client[type],
-          threeMonthsAgoPartial: 0,
-          twoMonthsAgoFull: 0,
-          twoMonthsAgoPartial: 0,
-          previousFull: 0,
-          previousPartial: 0,
-          current: 0,
-          projected: 0,
-          expected: 0,
-        });
-      }
-    });
-
-    data.three_months_ago_partial.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        if (clients.has(client.slug)) {
-          clients.get(client.slug).threeMonthsAgoPartial = client[type];
-        } else {
-          clients.set(client.slug, {
-            name: client.name,
-            slug: client.slug,
-            threeMonthsAgoFull: 0,
-            threeMonthsAgoPartial: client[type],
-            twoMonthsAgoFull: 0,
-            twoMonthsAgoPartial: 0,
-            previousFull: 0,
-            previousPartial: 0,
-            current: 0,
-            projected: 0,
-            expected: 0,
-          });
-        }
-      }
-    });
-
-    data.two_months_ago.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        if (clients.has(client.slug)) {
-          clients.get(client.slug).twoMonthsAgoFull = client[type];
-        } else {
-          clients.set(client.slug, {
-            name: client.name,
-            slug: client.slug,
-            threeMonthsAgoFull: 0,
-            threeMonthsAgoPartial: 0,
-            twoMonthsAgoFull: client[type],
-            twoMonthsAgoPartial: 0,
-            previousFull: 0,
-            previousPartial: 0,
-            current: 0,
-            projected: 0,
-            expected: 0,
-          });
-        }
-      }
-    });
-
-    data.two_months_ago_partial.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        if (clients.has(client.slug)) {
-          clients.get(client.slug).twoMonthsAgoPartial = client[type];
-        } else {
-          clients.set(client.slug, {
-            name: client.name,
-            slug: client.slug,
-            threeMonthsAgoFull: 0,
-            threeMonthsAgoPartial: 0,
-            twoMonthsAgoFull: 0,
-            twoMonthsAgoPartial: client[type],
-            previousFull: 0,
-            previousPartial: 0,
-            current: 0,
-            projected: 0,
-            expected: 0,
-          });
-        }
-      }
-    });
-
-    data.previous_month.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        if (clients.has(client.slug)) {
-          clients.get(client.slug).previousFull = client[type];
-        } else {
-          clients.set(client.slug, {
-            name: client.name,
-            slug: client.slug,
-            threeMonthsAgoFull: 0,
-            threeMonthsAgoPartial: 0,
-            twoMonthsAgoFull: 0,
-            twoMonthsAgoPartial: 0,
-            previousFull: client[type],
-            previousPartial: 0,
-            current: 0,
-            projected: 0,
-            expected: 0,
-          });
-        }
-      }
-    });
-
-    data.previous_month_partial.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        if (clients.has(client.slug)) {
-          clients.get(client.slug).previousPartial = client[type];
-        } else {
-          clients.set(client.slug, {
-            name: client.name,
-            slug: client.slug,
-            threeMonthsAgoFull: 0,
-            threeMonthsAgoPartial: 0,
-            twoMonthsAgoFull: 0,
-            twoMonthsAgoPartial: 0,
-            previousFull: 0,
-            previousPartial: client[type],
-            current: 0,
-            projected: 0,
-            expected: 0,
-          });
-        }
-      }
-    });
-
-    data.in_analysis.summaries.byClient.forEach((client: any) => {
-      if (client[type]) {
-        if (clients.has(client.slug)) {
-          const currentValue = client[type];
-          const clientData = clients.get(client.slug);
-          clientData.current = currentValue;
-
-          // Calculate projected value based on current day of month
-          const currentDay = getDate(date);
-          const daysInMonth = getDaysInMonth(date);
-          const projectedValue = (currentValue / currentDay) * daysInMonth;
-          clientData.projected = projectedValue;
-
-          // Calculate expected value (60% previous month + 25% two months ago + 15% three months ago)
-          const previousValue = clientData.previousFull || 0;
-          const twoMonthsAgoValue = clientData.twoMonthsAgoFull || 0;
-          const threeMonthsAgoValue = clientData.threeMonthsAgoFull || 0;
-
-          // If there's no history, use projected value as expected
-          if (
-            previousValue === 0 &&
-            twoMonthsAgoValue === 0 &&
-            threeMonthsAgoValue === 0
-          ) {
-            clientData.expected = projectedValue;
-          }
-          // If only has previous month
-          else if (twoMonthsAgoValue === 0 && threeMonthsAgoValue === 0) {
-            clientData.expected = previousValue;
-          }
-          // If has previous and two months ago
-          else if (threeMonthsAgoValue === 0) {
-            clientData.expected = previousValue * 0.8 + twoMonthsAgoValue * 0.2;
-          }
-          // If has all three months
-          else {
-            clientData.expected =
-              previousValue * 0.6 +
-              twoMonthsAgoValue * 0.25 +
-              threeMonthsAgoValue * 0.15;
-          }
-        } else {
-          const currentValue = client[type];
-          const currentDay = getDate(date);
-          const daysInMonth = getDaysInMonth(date);
-          const projectedValue = (currentValue / currentDay) * daysInMonth;
-
-          clients.set(client.slug, {
-            name: client.name,
-            slug: client.slug,
-            threeMonthsAgoFull: 0,
-            threeMonthsAgoPartial: 0,
-            twoMonthsAgoFull: 0,
-            twoMonthsAgoPartial: 0,
-            previousFull: 0,
-            previousPartial: 0,
-            current: currentValue,
-            projected: projectedValue,
-            expected: projectedValue, // Use projected value as expected when no history
-          });
-        }
-      }
-    });
-
-    return clients;
-  };
-
-  const consultingClients = processServiceData("consultingFee");
-  const consultingPreClients = processServiceData("consultingPreFee");
-  const handsOnClients = processServiceData("handsOnFee");
-  const squadClients = processServiceData("squadFee");
+  if (!data?.forecast?.dates) return <div>No data available</div>;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -358,12 +84,11 @@ export default function RevenueForecastPage() {
     });
   };
 
-  const getSortedClients = (clients: Map<string, any>, tableId: string) => {
-    const clientsArray = Array.from(clients.values());
+  const getSortedClients = (clients: any[], tableId: string) => {
     const sortConfig = sortConfigs[tableId];
-    if (!sortConfig?.key) return clientsArray;
+    if (!sortConfig?.key) return clients;
 
-    return clientsArray.sort((a, b) => {
+    return [...clients].sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
@@ -379,37 +104,13 @@ export default function RevenueForecastPage() {
 
   const renderConsultingTable = (
     title: string,
-    clients: Map<string, any>,
+    tableData: any,
     tableId: string
   ) => {
-    const sortedClients = getSortedClients(clients, tableId);
+    const sortedClients = getSortedClients(tableData.clients, tableId);
     const sortConfig = sortConfigs[tableId];
-    const total = sortedClients.reduce(
-      (acc, client) => ({
-        threeMonthsAgoFull: acc.threeMonthsAgoFull + client.threeMonthsAgoFull,
-        threeMonthsAgoPartial:
-          acc.threeMonthsAgoPartial + client.threeMonthsAgoPartial,
-        twoMonthsAgoFull: acc.twoMonthsAgoFull + client.twoMonthsAgoFull,
-        twoMonthsAgoPartial:
-          acc.twoMonthsAgoPartial + client.twoMonthsAgoPartial,
-        previousFull: acc.previousFull + client.previousFull,
-        previousPartial: acc.previousPartial + client.previousPartial,
-        current: acc.current + client.current,
-        projected: acc.projected + client.projected,
-        expected: acc.expected + client.expected,
-      }),
-      {
-        threeMonthsAgoFull: 0,
-        threeMonthsAgoPartial: 0,
-        twoMonthsAgoFull: 0,
-        twoMonthsAgoPartial: 0,
-        previousFull: 0,
-        previousPartial: 0,
-        current: 0,
-        projected: 0,
-        expected: 0,
-      }
-    );
+    const total = tableData.totals;
+    const dates = data.forecast.dates;
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
@@ -428,82 +129,82 @@ export default function RevenueForecastPage() {
                   colSpan={2}
                   className="text-center border-x border-gray-400"
                 >
-                  {format(threeMonthsAgoDate, "MMM yyyy")}
+                  {format(new Date(dates.threeMonthsAgo), "MMM yyyy")}
                 </TableHead>
                 <TableHead
                   colSpan={2}
                   className="text-center border-x border-gray-400"
                 >
-                  {format(twoMonthsAgoDate, "MMM yyyy")}
+                  {format(new Date(dates.twoMonthsAgo), "MMM yyyy")}
                 </TableHead>
                 <TableHead
                   colSpan={2}
                   className="text-center border-x border-gray-400"
                 >
-                  {format(previousMonthDate, "MMM yyyy")}
+                  {format(new Date(dates.oneMonthAgo), "MMM yyyy")}
                 </TableHead>
                 <TableHead
                   colSpan={3}
                   className="text-center border-x border-gray-400"
                 >
-                  {format(date, "MMM yyyy")}
+                  {format(new Date(data.forecast.dateOfInterest), "MMM yyyy")}
                 </TableHead>
               </TableRow>
               <TableRow>
                 <TableHead
-                  onClick={() => requestSort("threeMonthsAgoPartial", tableId)}
+                  onClick={() => requestSort("sameDayThreeMonthsAgo", tableId)}
                   className="text-right w-[95px] border-x border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
-                  Until {format(threeMonthsAgoPartialDate, "dd")}{" "}
-                  {sortConfig.key === "threeMonthsAgoPartial" &&
+                  Until {format(new Date(dates.sameDayThreeMonthsAgo), "dd")}{" "}
+                  {sortConfig.key === "sameDayThreeMonthsAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("threeMonthsAgoFull", tableId)}
+                  onClick={() => requestSort("threeMonthsAgo", tableId)}
                   className="text-right w-[95px] border-r border-gray-400 cursor-pointer hover:bg-gray-100"
                 >
                   Full Month{" "}
-                  {sortConfig.key === "threeMonthsAgoFull" &&
+                  {sortConfig.key === "threeMonthsAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("twoMonthsAgoPartial", tableId)}
+                  onClick={() => requestSort("sameDayTwoMonthsAgo", tableId)}
                   className="text-right w-[95px] border-x border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
-                  Until {format(twoMonthsAgoPartialDate, "dd")}{" "}
-                  {sortConfig.key === "twoMonthsAgoPartial" &&
+                  Until {format(new Date(dates.sameDayTwoMonthsAgo), "dd")}{" "}
+                  {sortConfig.key === "sameDayTwoMonthsAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("twoMonthsAgoFull", tableId)}
+                  onClick={() => requestSort("twoMonthsAgo", tableId)}
                   className="text-right w-[95px] border-r border-gray-400 cursor-pointer hover:bg-gray-100"
                 >
                   Full Month{" "}
-                  {sortConfig.key === "twoMonthsAgoFull" &&
+                  {sortConfig.key === "twoMonthsAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("previousPartial", tableId)}
+                  onClick={() => requestSort("sameDayOneMonthAgo", tableId)}
                   className="text-right w-[95px] border-x border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
-                  Until {format(previousMonthPartialDate, "dd")}{" "}
-                  {sortConfig.key === "previousPartial" &&
+                  Until {format(new Date(dates.sameDayOneMonthAgo), "dd")}{" "}
+                  {sortConfig.key === "sameDayOneMonthAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("previousFull", tableId)}
+                  onClick={() => requestSort("oneMonthAgo", tableId)}
                   className="text-right w-[95px] border-r border-gray-400 cursor-pointer hover:bg-gray-100"
                 >
                   Full Month{" "}
-                  {sortConfig.key === "previousFull" &&
+                  {sortConfig.key === "oneMonthAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("current", tableId)}
+                  onClick={() => requestSort("realized", tableId)}
                   className="text-right cursor-pointer hover:bg-gray-100 w-[120px] border-x border-gray-200"
                 >
                   Realized{" "}
-                  {sortConfig.key === "current" &&
+                  {sortConfig.key === "realized" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
@@ -531,103 +232,94 @@ export default function RevenueForecastPage() {
                     {index + 1}
                   </TableCell>
                   <TableCell className="border-r border-gray-400">
-                    {client.slug ? (
-                      <Link
-                        href={`/about-us/clients/${client.slug}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {client.name}
-                      </Link>
-                    ) : (
-                      <span>{client.name}</span>
-                    )}
+                    <span>{client.name}</span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x border-gray-200 text-[12px] ${
-                      client.threeMonthsAgoPartial === 0 ? "text-gray-300" : ""
+                      client.sameDayThreeMonthsAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.threeMonthsAgoPartial)}
+                    {formatCurrency(client.sameDayThreeMonthsAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.threeMonthsAgoPartial,
-                        total.threeMonthsAgoPartial
+                        client.sameDayThreeMonthsAgo,
+                        total.sameDayThreeMonthsAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-r border-gray-400 text-[12px] ${
-                      client.threeMonthsAgoFull === 0 ? "text-gray-300" : ""
+                      client.threeMonthsAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.threeMonthsAgoFull)}
+                    {formatCurrency(client.threeMonthsAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.threeMonthsAgoFull,
-                        total.threeMonthsAgoFull
+                        client.threeMonthsAgo,
+                        total.threeMonthsAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x border-gray-200 text-[12px] ${
-                      client.twoMonthsAgoPartial === 0 ? "text-gray-300" : ""
+                      client.sameDayTwoMonthsAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.twoMonthsAgoPartial)}
+                    {formatCurrency(client.sameDayTwoMonthsAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.twoMonthsAgoPartial,
-                        total.twoMonthsAgoPartial
+                        client.sameDayTwoMonthsAgo,
+                        total.sameDayTwoMonthsAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-r border-gray-400 text-[12px] ${
-                      client.twoMonthsAgoFull === 0 ? "text-gray-300" : ""
+                      client.twoMonthsAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.twoMonthsAgoFull)}
+                    {formatCurrency(client.twoMonthsAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.twoMonthsAgoFull,
-                        total.twoMonthsAgoFull
+                        client.twoMonthsAgo,
+                        total.twoMonthsAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x border-gray-200 text-[12px] ${
-                      client.previousPartial === 0 ? "text-gray-300" : ""
+                      client.sameDayOneMonthAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.previousPartial)}
+                    {formatCurrency(client.sameDayOneMonthAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.previousPartial,
-                        total.previousPartial
+                        client.sameDayOneMonthAgo,
+                        total.sameDayOneMonthAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-r border-gray-400 text-[12px] ${
-                      client.previousFull === 0 ? "text-gray-300" : ""
+                      client.oneMonthAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.previousFull)}
+                    {formatCurrency(client.oneMonthAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.previousFull,
-                        total.previousFull
+                        client.oneMonthAgo,
+                        total.oneMonthAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x border-gray-200 ${
-                      client.current === 0 ? "text-gray-300" : ""
+                      client.realized === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.current)}
+                    {formatCurrency(client.realized)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(client.current, total.current)}
+                      {formatPercentage(client.realized, total.realized)}
                     </span>
                   </TableCell>
                   <TableCell
@@ -656,25 +348,25 @@ export default function RevenueForecastPage() {
                   Total
                 </TableCell>
                 <TableCell className="text-right border-x border-gray-200 text-[12px]">
-                  {formatCurrency(total.threeMonthsAgoPartial)}
+                  {formatCurrency(total.sameDayThreeMonthsAgo)}
                 </TableCell>
                 <TableCell className="text-right border-r border-gray-400 text-[12px]">
-                  {formatCurrency(total.threeMonthsAgoFull)}
+                  {formatCurrency(total.threeMonthsAgo)}
                 </TableCell>
                 <TableCell className="text-right border-x border-gray-200 text-[12px]">
-                  {formatCurrency(total.twoMonthsAgoPartial)}
+                  {formatCurrency(total.sameDayTwoMonthsAgo)}
                 </TableCell>
                 <TableCell className="text-right border-r border-gray-400 text-[12px]">
-                  {formatCurrency(total.twoMonthsAgoFull)}
+                  {formatCurrency(total.twoMonthsAgo)}
                 </TableCell>
                 <TableCell className="text-right border-x border-gray-200 text-[12px]">
-                  {formatCurrency(total.previousPartial)}
+                  {formatCurrency(total.sameDayOneMonthAgo)}
                 </TableCell>
                 <TableCell className="text-right border-r border-gray-400 text-[12px]">
-                  {formatCurrency(total.previousFull)}
+                  {formatCurrency(total.oneMonthAgo)}
                 </TableCell>
                 <TableCell className="text-right border-x border-gray-200">
-                  {formatCurrency(total.current)}
+                  {formatCurrency(total.realized)}
                 </TableCell>
                 <TableCell className="text-right border-x border-gray-200">
                   {formatCurrency(total.projected)}
@@ -692,25 +384,13 @@ export default function RevenueForecastPage() {
 
   const renderOtherTable = (
     title: string,
-    clients: Map<string, any>,
+    tableData: any,
     tableId: string
   ) => {
-    const sortedClients = getSortedClients(clients, tableId);
+    const sortedClients = getSortedClients(tableData.clients, tableId);
     const sortConfig = sortConfigs[tableId];
-    const total = sortedClients.reduce(
-      (acc, client) => ({
-        threeMonthsAgoFull: acc.threeMonthsAgoFull + client.threeMonthsAgoFull,
-        twoMonthsAgoFull: acc.twoMonthsAgoFull + client.twoMonthsAgoFull,
-        previousFull: acc.previousFull + client.previousFull,
-        current: acc.current + client.current,
-      }),
-      {
-        threeMonthsAgoFull: 0,
-        twoMonthsAgoFull: 0,
-        previousFull: 0,
-        current: 0,
-      }
-    );
+    const total = tableData.totals;
+    const dates = data.forecast.dates;
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
@@ -722,34 +402,34 @@ export default function RevenueForecastPage() {
                 <TableHead className="w-[50px] text-center">#</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead
-                  onClick={() => requestSort("threeMonthsAgoFull", tableId)}
+                  onClick={() => requestSort("threeMonthsAgo", tableId)}
                   className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
                 >
-                  {format(threeMonthsAgoDate, "MMM yyyy")}{" "}
-                  {sortConfig.key === "threeMonthsAgoFull" &&
+                  {format(new Date(dates.threeMonthsAgo), "MMM yyyy")}{" "}
+                  {sortConfig.key === "threeMonthsAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("twoMonthsAgoFull", tableId)}
+                  onClick={() => requestSort("twoMonthsAgo", tableId)}
                   className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
                 >
-                  {format(twoMonthsAgoDate, "MMM yyyy")}{" "}
-                  {sortConfig.key === "twoMonthsAgoFull" &&
+                  {format(new Date(dates.twoMonthsAgo), "MMM yyyy")}{" "}
+                  {sortConfig.key === "twoMonthsAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  onClick={() => requestSort("previousFull", tableId)}
+                  onClick={() => requestSort("oneMonthAgo", tableId)}
                   className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
                 >
-                  {format(previousMonthDate, "MMM yyyy")}{" "}
-                  {sortConfig.key === "previousFull" &&
+                  {format(new Date(dates.oneMonthAgo), "MMM yyyy")}{" "}
+                  {sortConfig.key === "oneMonthAgo" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
                   onClick={() => requestSort("current", tableId)}
                   className="text-center border-x w-[120px] cursor-pointer hover:bg-gray-100"
                 >
-                  {format(date, "MMM yyyy")}{" "}
+                  {format(new Date(data.forecast.dateOfInterest), "MMM yyyy")}{" "}
                   {sortConfig.key === "current" &&
                     (sortConfig.direction === "asc" ? "↑" : "↓")}
                 </TableHead>
@@ -762,53 +442,44 @@ export default function RevenueForecastPage() {
                     {index + 1}
                   </TableCell>
                   <TableCell>
-                    {client.slug ? (
-                      <Link
-                        href={`/about-us/clients/${client.slug}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {client.name}
-                      </Link>
-                    ) : (
-                      <span>{client.name}</span>
-                    )}
+                    <span>{client.name}</span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x text-[12px] ${
-                      client.threeMonthsAgoFull === 0 ? "text-gray-300" : ""
+                      client.threeMonthsAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.threeMonthsAgoFull)}
+                    {formatCurrency(client.threeMonthsAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.threeMonthsAgoFull,
-                        total.threeMonthsAgoFull
+                        client.threeMonthsAgo,
+                        total.threeMonthsAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x text-[12px] ${
-                      client.twoMonthsAgoFull === 0 ? "text-gray-300" : ""
+                      client.twoMonthsAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.twoMonthsAgoFull)}
+                    {formatCurrency(client.twoMonthsAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.twoMonthsAgoFull,
-                        total.twoMonthsAgoFull
+                        client.twoMonthsAgo,
+                        total.twoMonthsAgo
                       )}
                     </span>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x text-[12px] ${
-                      client.previousFull === 0 ? "text-gray-300" : ""
+                      client.oneMonthAgo === 0 ? "text-gray-300" : ""
                     } relative`}
                   >
-                    {formatCurrency(client.previousFull)}
+                    {formatCurrency(client.oneMonthAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
                       {formatPercentage(
-                        client.previousFull,
-                        total.previousFull
+                        client.oneMonthAgo,
+                        total.oneMonthAgo
                       )}
                     </span>
                   </TableCell>
@@ -828,13 +499,13 @@ export default function RevenueForecastPage() {
                 <TableCell></TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell className="text-right border-x text-[12px]">
-                  {formatCurrency(total.threeMonthsAgoFull)}
+                  {formatCurrency(total.threeMonthsAgo)}
                 </TableCell>
                 <TableCell className="text-right border-x text-[12px]">
-                  {formatCurrency(total.twoMonthsAgoFull)}
+                  {formatCurrency(total.twoMonthsAgo)}
                 </TableCell>
                 <TableCell className="text-right border-x text-[12px]">
-                  {formatCurrency(total.previousFull)}
+                  {formatCurrency(total.oneMonthAgo)}
                 </TableCell>
                 <TableCell className="text-right border-x">
                   {formatCurrency(total.current)}
@@ -847,6 +518,79 @@ export default function RevenueForecastPage() {
     );
   };
 
+  const forecastData = {
+    consulting: {
+      clients: data.forecast.byKind.consulting.byClient.map((client: any) => ({
+        name: client.name,
+        sameDayThreeMonthsAgo: client.sameDayThreeMonthsAgo,
+        threeMonthsAgo: client.threeMonthsAgo,
+        sameDayTwoMonthsAgo: client.sameDayTwoMonthsAgo,
+        twoMonthsAgo: client.twoMonthsAgo,
+        sameDayOneMonthAgo: client.sameDayOneMonthAgo,
+        oneMonthAgo: client.oneMonthAgo,
+        realized: client.inAnalysis,
+        projected: client.projected,
+        expected: client.expected,
+      })),
+      totals: {
+        sameDayThreeMonthsAgo: data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
+        threeMonthsAgo: data.forecast.byKind.consulting.totals.threeMonthsAgo,
+        sameDayTwoMonthsAgo: data.forecast.byKind.consulting.totals.sameDayTwoMonthsAgo,
+        twoMonthsAgo: data.forecast.byKind.consulting.totals.twoMonthsAgo,
+        sameDayOneMonthAgo: data.forecast.byKind.consulting.totals.sameDayOneMonthAgo,
+        oneMonthAgo: data.forecast.byKind.consulting.totals.oneMonthAgo,
+        realized: data.forecast.byKind.consulting.totals.inAnalysis,
+        projected: data.forecast.byKind.consulting.totals.projected,
+        expected: data.forecast.byKind.consulting.totals.expected,
+      },
+    },
+    consultingPre: {
+      clients: data.forecast.byKind.consultingPre.byClient.map((client: any) => ({
+        name: client.name,
+        threeMonthsAgo: client.threeMonthsAgo,
+        twoMonthsAgo: client.twoMonthsAgo,
+        oneMonthAgo: client.oneMonthAgo,
+        current: client.inAnalysis,
+      })),
+      totals: {
+        threeMonthsAgo: data.forecast.byKind.consultingPre.totals.threeMonthsAgo,
+        twoMonthsAgo: data.forecast.byKind.consultingPre.totals.twoMonthsAgo,
+        oneMonthAgo: data.forecast.byKind.consultingPre.totals.oneMonthAgo,
+        current: data.forecast.byKind.consultingPre.totals.inAnalysis,
+      },
+    },
+    handsOn: {
+      clients: data.forecast.byKind.handsOn.byClient.map((client: any) => ({
+        name: client.name,
+        threeMonthsAgo: client.threeMonthsAgo,
+        twoMonthsAgo: client.twoMonthsAgo,
+        oneMonthAgo: client.oneMonthAgo,
+        current: client.inAnalysis,
+      })),
+      totals: {
+        threeMonthsAgo: data.forecast.byKind.handsOn.totals.threeMonthsAgo,
+        twoMonthsAgo: data.forecast.byKind.handsOn.totals.twoMonthsAgo,
+        oneMonthAgo: data.forecast.byKind.handsOn.totals.oneMonthAgo,
+        current: data.forecast.byKind.handsOn.totals.inAnalysis,
+      },
+    },
+    squad: {
+      clients: data.forecast.byKind.squad.byClient.map((client: any) => ({
+        name: client.name,
+        threeMonthsAgo: client.threeMonthsAgo,
+        twoMonthsAgo: client.twoMonthsAgo,
+        oneMonthAgo: client.oneMonthAgo,
+        current: client.inAnalysis,
+      })),
+      totals: {
+        threeMonthsAgo: data.forecast.byKind.squad.totals.threeMonthsAgo,
+        twoMonthsAgo: data.forecast.byKind.squad.totals.twoMonthsAgo,
+        oneMonthAgo: data.forecast.byKind.squad.totals.oneMonthAgo,
+        current: data.forecast.byKind.squad.totals.inAnalysis,
+      },
+    },
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center">
@@ -855,14 +599,26 @@ export default function RevenueForecastPage() {
 
       <div className="ml-2 mr-2">
         <NavBar sections={sections} />
-        {renderConsultingTable("Consulting", consultingClients, "consulting")}
+        {renderConsultingTable(
+          "Consulting",
+          forecastData.consulting,
+          "consulting"
+        )}
         {renderOtherTable(
           "Consulting Pre",
-          consultingPreClients,
+          forecastData.consultingPre,
           "consultingPre"
         )}
-        {renderOtherTable("Hands On", handsOnClients, "handsOn")}
-        {renderOtherTable("Squad", squadClients, "squad")}
+        {renderOtherTable(
+          "Hands On",
+          forecastData.handsOn,
+          "handsOn"
+        )}
+        {renderOtherTable(
+          "Squad",
+          forecastData.squad,
+          "squad"
+        )}
       </div>
     </div>
   );
