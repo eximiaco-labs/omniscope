@@ -26,6 +26,9 @@ import {
 } from "@/components/ui/table";
 import { StatType } from "@/app/constants/colors";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
+import { getFlag } from "@/app/flags";
+import { useSession } from "next-auth/react";
 
 interface WorkerSummary {
   worker: string;
@@ -164,6 +167,7 @@ export default function ClientPage() {
     "timesheet-last-six-weeks"
   );
   const [selectedStat, setSelectedStat] = useState("total");
+  const { data: session } = useSession();
 
   // Previous month states
   const [selectedDatePrev, setSelectedDatePrev] = useState(
@@ -485,6 +489,12 @@ export default function ClientPage() {
   return (
     <div>
       <ClientHeader client={clientData.client} />
+
+      {getFlag("is-fin-user", session?.user?.email) && (
+        <div className="mt-4">
+          <RevenueProgression data={clientData.client} />
+        </div>
+      )}
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 
