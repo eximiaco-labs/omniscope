@@ -25,6 +25,12 @@ class Client(BaseModel):
             p.id
             for p in self.tracker_info
         ]
+        
+    @property
+    def ontology_url(self) -> str:
+        if not self.ontology_info:
+            return None
+        return self.ontology_info.link
 
     @property
     def is_recognized(self):

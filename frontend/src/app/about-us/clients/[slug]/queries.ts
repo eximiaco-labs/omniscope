@@ -7,6 +7,31 @@ export const GET_CLIENT_BY_SLUG = gql`
       logoUrl
       isStrategic
 
+        forecast {
+        dateOfInterest
+        filterableFields {
+          field
+          options
+          selectedValues
+        }
+        dates {
+          sameDayOneMonthAgo
+          oneMonthAgo
+          sameDayTwoMonthsAgo
+          twoMonthsAgo
+          sameDayThreeMonthsAgo
+          threeMonthsAgo
+        }
+        summary {
+          realized
+          projected
+          expected
+          oneMonthAgo
+          twoMonthsAgo
+          threeMonthsAgo
+        }
+      }
+
       timesheet1: timesheet(slug: $dataset1) {
         appointments {
           kind
