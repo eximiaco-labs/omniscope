@@ -4,6 +4,7 @@ from api.domain.active_deals import compute_active_deals
 
 from api.utils.fields import build_fields_map
 
+from models.analytics.forecast import compute_forecast
 from models.domain import WorkerKind
 import globals
 
@@ -52,3 +53,16 @@ def resolve_account_manager_cases(account_manager, info, only_actives: bool = Fa
 
 def resolve_account_manager_active_deals(account_manager, info):
     return compute_active_deals(account_manager.slug)
+
+def resolve_account_manager_forecast(account_manager, info, date_of_interest=None, filters=None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'AccountManagerName',
+            'selected_values': [account_manager.name]
+        }
+    ] + filters
+    
+    return compute_forecast(date_of_interest, filters=client_filters)

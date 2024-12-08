@@ -23,6 +23,7 @@ type AccountManager {
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
   cases(onlyActives: Boolean): [Case!]!
   activeDeals: [ActiveDeal!]!
+  forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
 }
 
 type Worker {
