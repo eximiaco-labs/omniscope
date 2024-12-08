@@ -28,23 +28,145 @@ const formatCurrency = (value: number) => {
 };
 
 const sections = [
-  { 
-    id: "consulting", 
+  {
+    id: "consulting",
     title: "Consulting",
   },
-  { 
-    id: "consultingPre", 
+  {
+    id: "consultingPre",
     title: "Consulting Pre",
   },
-  { 
-    id: "handsOn", 
+  {
+    id: "handsOn",
     title: "Hands On",
   },
-  { 
-    id: "squad", 
+  {
+    id: "squad",
     title: "Squad",
   },
 ];
+
+const renderRevenueProgression = (data: any) => {
+  return (
+    <>
+      <SectionHeader title="Revenue Progression" subtitle=" " />
+      <div className="flex items-center justify-between">
+        <div className="text-center">
+          <SectionHeader 
+            title={format(new Date(data.forecast.dates.threeMonthsAgo), "MMM yyyy")}
+            subtitle=" " 
+          />
+          <div className="text-2xl font-semibold text-gray-900">
+            {formatCurrency(data.forecast.summary.threeMonthsAgo)}
+          </div>
+        </div>
+        <div className="text-center">
+          <SectionHeader 
+            title={format(new Date(data.forecast.dates.twoMonthsAgo), "MMM yyyy")}
+            subtitle=" " 
+          />
+          <div className="text-2xl font-semibold text-gray-900">
+            {formatCurrency(data.forecast.summary.twoMonthsAgo)}
+          </div>
+          <div
+            className={`text-xs flex items-center justify-center gap-1 ${
+              data.forecast.summary.twoMonthsAgo >
+              data.forecast.summary.threeMonthsAgo
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {data.forecast.summary.twoMonthsAgo >
+            data.forecast.summary.threeMonthsAgo
+              ? "▲"
+              : "▼"}
+            {Math.abs(
+              (data.forecast.summary.twoMonthsAgo /
+                data.forecast.summary.threeMonthsAgo -
+                1) *
+                100
+            ).toFixed(1)}
+            % vs {format(new Date(data.forecast.dates.threeMonthsAgo), "MMM yyyy")}
+          </div>
+        </div>
+        <div className="text-center">
+          <SectionHeader 
+            title={format(new Date(data.forecast.dates.oneMonthAgo), "MMM yyyy")}
+            subtitle=" " 
+          />
+          <div className="text-2xl font-semibold text-gray-900">
+            {formatCurrency(data.forecast.summary.oneMonthAgo)}
+          </div>
+          <div
+            className={`text-xs flex items-center justify-center gap-1 ${
+              data.forecast.summary.oneMonthAgo >
+              data.forecast.summary.twoMonthsAgo
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {data.forecast.summary.oneMonthAgo >
+            data.forecast.summary.twoMonthsAgo
+              ? "▲"
+              : "▼"}
+            {Math.abs(
+              (data.forecast.summary.oneMonthAgo /
+                data.forecast.summary.twoMonthsAgo -
+                1) *
+                100
+            ).toFixed(1)}
+            % vs {format(new Date(data.forecast.dates.twoMonthsAgo), "MMM yyyy")}
+          </div>
+        </div>
+        <div className="border-l-4 border-blue-200 pl-4">
+          <SectionHeader title="Current" subtitle=" " />
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="text-3xl font-semibold text-gray-900">
+                {formatCurrency(data.forecast.summary.realized)}
+              </div>
+              <div className="text-sm text-gray-500">Realized</div>
+              <div
+                className={`text-xs flex items-center gap-1 ${
+                  data.forecast.summary.realized >
+                  data.forecast.summary.oneMonthAgo
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
+                }`}
+              >
+                {data.forecast.summary.realized >
+                data.forecast.summary.oneMonthAgo
+                  ? "▲"
+                  : "▼"}
+                {Math.abs(
+                  (data.forecast.summary.realized /
+                    data.forecast.summary.oneMonthAgo -
+                    1) *
+                    100
+                ).toFixed(1)}
+                % vs {format(new Date(data.forecast.dates.oneMonthAgo), "MMM yyyy")}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <div>
+                <div className="text-lg font-medium text-gray-700">
+                  {formatCurrency(data.forecast.summary.expected)}
+                </div>
+                <div className="text-xs text-gray-500">Expected</div>
+              </div>
+              <div>
+                <div className="text-lg font-medium text-gray-700">
+                  {formatCurrency(data.forecast.summary.projected)}
+                </div>
+                <div className="text-xs text-gray-500">Projected</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -172,9 +294,11 @@ export default function RevenueForecastPage() {
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
-        <SectionHeader 
-          title={title} 
-          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(total.expected)}`} 
+        <SectionHeader
+          title={title}
+          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(
+            total.expected
+          )}`}
         />
         <div className="px-2">
           <Table>
@@ -448,10 +572,7 @@ export default function RevenueForecastPage() {
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
-        <SectionHeader 
-          title={title} 
-          subtitle={formatCurrency(total.current)} 
-        />
+        <SectionHeader title={title} subtitle={formatCurrency(total.current)} />
         <div className="px-2">
           <Table>
             <TableHeader className="bg-gray-50">
@@ -669,28 +790,37 @@ export default function RevenueForecastPage() {
       </div>
 
       <div className="ml-2 mr-2">
-        <NavBar sections={[
-          {
-            id: "consulting",
-            title: "Consulting",
-            subtitle: formatCurrency(forecastData.consulting.totals.realized) + " / " + formatCurrency(forecastData.consulting.totals.expected)
-          },
-          {
-            id: "consultingPre",
-            title: "Consulting Pre", 
-            subtitle: formatCurrency(forecastData.consultingPre.totals.current)
-          },
-          {
-            id: "handsOn",
-            title: "Hands On",
-            subtitle: formatCurrency(forecastData.handsOn.totals.current)
-          },
-          {
-            id: "squad", 
-            title: "Squad",
-            subtitle: formatCurrency(forecastData.squad.totals.current)
-          }
-        ]} />
+        {renderRevenueProgression(data)}
+
+        <NavBar
+          sections={[
+            {
+              id: "consulting",
+              title: "Consulting",
+              subtitle:
+                formatCurrency(forecastData.consulting.totals.realized) +
+                " / " +
+                formatCurrency(forecastData.consulting.totals.expected),
+            },
+            {
+              id: "consultingPre",
+              title: "Consulting Pre",
+              subtitle: formatCurrency(
+                forecastData.consultingPre.totals.current
+              ),
+            },
+            {
+              id: "handsOn",
+              title: "Hands On",
+              subtitle: formatCurrency(forecastData.handsOn.totals.current),
+            },
+            {
+              id: "squad",
+              title: "Squad",
+              subtitle: formatCurrency(forecastData.squad.totals.current),
+            },
+          ]}
+        />
         {renderConsultingTable(
           "Consulting",
           forecastData.consulting,

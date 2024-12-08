@@ -17,6 +17,14 @@ export const REVENUE_FORECAST_QUERY = gql`
         sameDayThreeMonthsAgo
         threeMonthsAgo
       }
+      summary {
+        realized
+        projected
+        expected
+        oneMonthAgo
+        twoMonthsAgo
+        threeMonthsAgo
+      }
       byKind {
         consulting {
           totals {
