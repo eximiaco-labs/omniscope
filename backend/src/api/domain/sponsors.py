@@ -53,7 +53,7 @@ def resolve_sponsor_forecast(sponsor, info, date_of_interest=None, filters=None)
     sponsor_filters = [
         {
             'field': 'Sponsor',
-            'selected_values': [sponsor.name]
+            'selected_values': [sponsor["name"]]
         }
     ] + filters
     

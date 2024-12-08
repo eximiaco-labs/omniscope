@@ -32,6 +32,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
+import { getFlag } from "@/app/flags";
+import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
+import { useSession } from "next-auth/react";
 
 interface WorkerSummary {
   worker: string;
@@ -160,6 +163,8 @@ export default function SponsorPage() {
   const { slug } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  
   const [selectedDataset, setSelectedDataset] = useState<string>(
     "timesheet-last-six-weeks"
   );
@@ -493,6 +498,12 @@ export default function SponsorPage() {
             },
           }}
         />
+      )}
+
+      {getFlag("is-fin-user", session?.user?.email) && (
+        <div className="mt-4">
+          <RevenueProgression data={sponsorData.sponsor} />
+        </div>
       )}
 
       <div className="mt-4">

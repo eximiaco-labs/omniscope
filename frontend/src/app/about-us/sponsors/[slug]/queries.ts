@@ -1,7 +1,11 @@
 import { gql } from "@apollo/client";
 
 export const GET_SPONSOR_BY_SLUG = gql`
-  query GetSponsorBySlug($slug: String!, $dataset1: String!, $dataset2: String!) {
+  query GetSponsorBySlug(
+    $slug: String!
+    $dataset1: String!
+    $dataset2: String!
+  ) {
     sponsor(slug: $slug) {
       name
       photoUrl
@@ -10,6 +14,31 @@ export const GET_SPONSOR_BY_SLUG = gql`
       client {
         id
         name
+      }
+
+      forecast {
+        dateOfInterest
+        filterableFields {
+          field
+          options
+          selectedValues
+        }
+        dates {
+          sameDayOneMonthAgo
+          oneMonthAgo
+          sameDayTwoMonthsAgo
+          twoMonthsAgo
+          sameDayThreeMonthsAgo
+          threeMonthsAgo
+        }
+        summary {
+          realized
+          projected
+          expected
+          oneMonthAgo
+          twoMonthsAgo
+          threeMonthsAgo
+        }
       }
 
       timesheet1: timesheet(slug: $dataset1) {
@@ -59,12 +88,15 @@ export const GET_SPONSOR_BY_SLUG = gql`
 
 export const GET_SPONSOR_TIMESHEET = gql`
   query GetSponsorTimesheet($sponsorName: String!, $datasetSlug: String!) {
-    timesheet(slug: $datasetSlug, filters: [{ field: "Sponsor", selectedValues: [$sponsorName] }]) {
+    timesheet(
+      slug: $datasetSlug
+      filters: [{ field: "Sponsor", selectedValues: [$sponsorName] }]
+    ) {
       uniqueClients
       uniqueCases
       uniqueWorkers
       totalHours
-      
+
       byKind {
         consulting {
           uniqueClients
@@ -187,4 +219,4 @@ export const GET_SPONSOR_TIMESHEET = gql`
       }
     }
   }
-`; 
+`;
