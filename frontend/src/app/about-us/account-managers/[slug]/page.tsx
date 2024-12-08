@@ -28,6 +28,7 @@ import {
 import { StatType } from "@/app/constants/colors";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
+import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
 
 interface Summary {
   hours: number;
@@ -389,6 +390,10 @@ export default function AccountManagerPage() {
           <p className="text-gray-600">{position}</p>
         </div>
       </header>
+
+      <div className="mt-4">
+        <RevenueProgression data={data.accountManager} />
+      </div>
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 
