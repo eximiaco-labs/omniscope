@@ -10,6 +10,9 @@ import { CasesSummary } from "./CasesSummary";
 import { ActiveDealsSummary } from "./ActiveDealsSummary";
 import { AllocationCalendar } from "@/app/components/AllocationCalendar";
 import SectionHeader from "@/components/SectionHeader";
+
+import { getFlag } from "@/app/flags";
+
 import {
   Sheet,
   SheetContent,
@@ -29,6 +32,7 @@ import { StatType } from "@/app/constants/colors";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
+import { useSession } from "next-auth/react";
 
 interface Summary {
   hours: number;
@@ -152,6 +156,7 @@ const SummarySection = ({
 
 export default function AccountManagerPage() {
   const params = useParams();
+  const { data: session } = useSession();
   const slug = params.slug as string;
   const [selectedDataset, setSelectedDataset] = useState(
     "timesheet-last-six-weeks"
@@ -391,9 +396,11 @@ export default function AccountManagerPage() {
         </div>
       </header>
 
-      <div className="mt-4">
-        <RevenueProgression data={data.accountManager} />
-      </div>
+      {getFlag("is-fin-user", session?.user?.email) && (
+        <div className="mt-4">
+          <RevenueProgression data={data.accountManager} />
+        </div>
+      )}
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 
