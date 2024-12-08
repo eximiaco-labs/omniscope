@@ -13,10 +13,35 @@ export const GET_CASE_BY_SLUG = gql`
       preContractedValue
       isActive
       sponsor
-      
+
       client {
         logoUrl
         name
+      }
+
+      forecast {
+        dateOfInterest
+        filterableFields {
+          field
+          options
+          selectedValues
+        }
+        dates {
+          sameDayOneMonthAgo
+          oneMonthAgo
+          sameDayTwoMonthsAgo
+          twoMonthsAgo
+          sameDayThreeMonthsAgo
+          threeMonthsAgo
+        }
+        summary {
+          realized
+          projected
+          expected
+          oneMonthAgo
+          twoMonthsAgo
+          threeMonthsAgo
+        }
       }
 
       tracker {
