@@ -12,6 +12,7 @@ export const GET_ACCOUNT_MANAGER = gql`
       photoUrl
       name
       position
+      ontologyUrl
 
       forecast {
         dateOfInterest
@@ -227,6 +228,7 @@ export interface AccountManager {
   photoUrl: string;
   name: string;
   position: string;
+  ontologyUrl?: string;
 
   forecast: {
     dateOfInterest: string;

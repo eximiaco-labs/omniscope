@@ -33,6 +33,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
 import { useSession } from "next-auth/react";
+import { Heading } from "@/components/catalyst/heading";
 
 interface Summary {
   hours: number;
@@ -385,16 +386,39 @@ export default function AccountManagerPage() {
 
   return (
     <div className="w-full p-2">
-      <header className="flex items-center gap-6 mb-8">
-        <Avatar className="w-24 h-24">
-          <AvatarImage src={photoUrl} alt={name} />
-          <AvatarFallback>{name[0]}</AvatarFallback>
-        </Avatar>
-        <div>
-          <h1 className="text-3xl font-bold">{name}</h1>
-          <p className="text-gray-600">{position}</p>
+      <div className="bg-white p-6 mb-8">
+        <div className="flex items-center">
+          <div className="flex items-center justify-center h-full mr-8 border-r pr-8 border-gray-200">
+            <Avatar className="w-24 h-24">
+              <AvatarImage src={photoUrl} alt={name} />
+              <AvatarFallback>{name[0]}</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex flex-col flex-grow space-y-3">
+            <div>
+              <div className="flex flex-col lg:max-w-[80%]">
+                <Heading className="text-2xl font-bold text-gray-900">{name}</Heading>
+                <p className="text-gray-600">{position}</p>
+                {data.accountManager.ontologyUrl && (
+                  <span className="text-xs mt-2">
+                    <a
+                      href={data.accountManager.ontologyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      View Ontology
+                    </a>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
       {getFlag("is-fin-user", session?.user?.email) && (
         <div className="mt-4">
