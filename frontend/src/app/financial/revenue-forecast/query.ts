@@ -1,117 +1,100 @@
 import { gql } from "@apollo/client";
 
 export const REVENUE_FORECAST_QUERY = gql`
-  query RevenueForecast($inAnalysisDate: Date!, $previousMonthDate: Date!, $previousMonthPartialDate: Date!, $twoMonthsAgoDate: Date!, $twoMonthsAgoPartialDate: Date!, $threeMonthsAgoDate: Date!, $threeMonthsAgoPartialDate: Date!) {
-    in_analysis: revenueTracking(dateOfInterest: $inAnalysisDate) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
-        }
+  query RevenueForecast($dateOfInterest: Date!, $filters: [FilterInput]) {
+    forecast(dateOfInterest: $dateOfInterest, filters: $filters) {
+      dateOfInterest
+      filterableFields {
+        field
+        options
+        selectedValues
       }
-    }
-
-    previous_month: revenueTracking(dateOfInterest: $previousMonthDate) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
-        }
+      dates {
+        sameDayOneMonthAgo
+        oneMonthAgo
+        sameDayTwoMonthsAgo
+        twoMonthsAgo
+        sameDayThreeMonthsAgo
+        threeMonthsAgo
       }
-    }
-
-    previous_month_partial: revenueTracking(
-      dateOfInterest: $previousMonthPartialDate
-    ) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
-        }
+      summary {
+        realized
+        projected
+        expected
+        oneMonthAgo
+        twoMonthsAgo
+        threeMonthsAgo
       }
-    }
-
-    two_months_ago: revenueTracking(dateOfInterest: $twoMonthsAgoDate) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
+      byKind {
+        consulting {
+          totals {
+            inAnalysis
+            projected
+            expected
+            oneMonthAgo
+            sameDayOneMonthAgo
+            twoMonthsAgo
+            sameDayTwoMonthsAgo
+            threeMonthsAgo
+            sameDayThreeMonthsAgo
+          }
+          byClient {
+            name
+            inAnalysis
+            projected
+            expected
+            oneMonthAgo
+            sameDayOneMonthAgo
+            twoMonthsAgo
+            sameDayTwoMonthsAgo
+            threeMonthsAgo
+            sameDayThreeMonthsAgo
+          }
         }
-      }
-    }
-
-    two_months_ago_partial: revenueTracking(dateOfInterest: $twoMonthsAgoPartialDate) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
+        consultingPre {
+          totals {
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
+          byClient {
+            name
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
         }
-      }
-    }
-
-    three_months_ago: revenueTracking(dateOfInterest: $threeMonthsAgoDate) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
+        handsOn {
+          totals {
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
+          byClient {
+            name
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
         }
-      }
-    }
-
-    three_months_ago_partial: revenueTracking(dateOfInterest: $threeMonthsAgoPartialDate) {
-      summaries {
-        byClient {
-          name
-          slug
-          regular
-          preContracted
-          consultingFee
-          consultingPreFee
-          handsOnFee
-          squadFee
-          total
+        squad {
+          totals {
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
+          byClient {
+            name
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
         }
       }
     }

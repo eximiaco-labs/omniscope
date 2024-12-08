@@ -538,6 +538,18 @@ class ClientSummary:
     hands_on_fee: float
     squad_fee: float
     
+    def get_fee(self, kind):
+        if kind == "consulting":
+            return self.consulting_fee
+        elif kind == "consulting_pre":
+            return self.consulting_pre_fee
+        elif kind == "hands_on":
+            return self.hands_on_fee
+        elif kind == "squad":
+            return self.squad_fee
+        else:
+            return 0
+    
     @staticmethod
     def build(client_name, pre_contracted, regular):
         pre_contracted_fee = sum(

@@ -355,6 +355,8 @@ export default function ConsultantPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="mr-2">Last weeks timeliness review:</span>
+                  {timelinessReview.earlyPercentage > 0 && <span className="text-blue-600">{timelinessReview.earlyPercentage.toFixed(1)}% early</span>}
+                  {timelinessReview.earlyPercentage > 0 && (timelinessReview.okPercentage > 0 || timelinessReview.acceptablePercentage > 0 || timelinessReview.latePercentage > 0) && <span className="mx-2">•</span>}
                   {timelinessReview.okPercentage > 0 && <span className="text-green-600">{timelinessReview.okPercentage.toFixed(1)}% on-time</span>}
                   {timelinessReview.okPercentage > 0 && (timelinessReview.acceptablePercentage > 0 || timelinessReview.latePercentage > 0) && <span className="mx-2">•</span>}
                   {timelinessReview.acceptablePercentage > 0 && <span className="text-yellow-600">{timelinessReview.acceptablePercentage.toFixed(1)}% acceptable</span>}

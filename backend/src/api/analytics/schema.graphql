@@ -504,3 +504,90 @@ type RevenueTrackingByProject {
   fee: Float!
   partial: Boolean
 }
+
+# Forecast types
+type Forecast {
+  dateOfInterest: Date!
+  dates: ForecastDates!
+  byKind: ForecastByKind!
+  summary: ForecastSummary!
+  filterableFields: [FilterableField]!
+}
+
+type ForecastDates {
+  sameDayOneMonthAgo: Date!
+  oneMonthAgo: Date!
+  sameDayTwoMonthsAgo: Date!
+  twoMonthsAgo: Date!
+  sameDayThreeMonthsAgo: Date!
+  threeMonthsAgo: Date!
+}
+
+type ForecastSummary {
+  realized: Float!
+  projected: Float!
+  expected: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+}
+
+type ForecastByKind {
+  consulting: ForecastConsultingByClient!
+  consultingPre: ForecastByClient!
+  handsOn: ForecastByClient!
+  squad: ForecastByClient!
+}
+
+type ForecastByClient {
+  byClient: [ForecastByClientEntry!]!
+  totals: ForecastTotals!
+}
+
+type ForecastConsultingByClient {
+  byClient: [ForecastConsultingByClientEntry!]!
+  totals: ForecastConsultingTotals!
+}
+
+type ForecastTotals {
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+}
+
+type ForecastConsultingTotals {
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  projected: Float!
+  expected: Float!
+}
+
+type ForecastByClientEntry {
+  name: String!
+  slug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+} 
+
+type ForecastConsultingByClientEntry {
+  name: String!
+  slug: String
+  
+  inAnalysis: Float!
+  projected: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  expected: Float!
+} 

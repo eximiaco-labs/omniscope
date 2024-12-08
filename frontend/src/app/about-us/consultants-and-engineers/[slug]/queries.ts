@@ -66,6 +66,7 @@ export interface Consultant {
   position: string;
   ontologyUrl: string;
   timelinessReview: {
+    earlyPercentage: number;
     okPercentage: number;
     acceptablePercentage: number;
     latePercentage: number;
