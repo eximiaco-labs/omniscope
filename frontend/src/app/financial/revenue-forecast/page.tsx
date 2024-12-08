@@ -19,11 +19,31 @@ import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "decimal",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
 const sections = [
-  { id: "consulting", title: "Consulting" },
-  { id: "consultingPre", title: "Consulting Pre" },
-  { id: "handsOn", title: "Hands On" },
-  { id: "squad", title: "Squad" },
+  { 
+    id: "consulting", 
+    title: "Consulting",
+  },
+  { 
+    id: "consultingPre", 
+    title: "Consulting Pre",
+  },
+  { 
+    id: "handsOn", 
+    title: "Hands On",
+  },
+  { 
+    id: "squad", 
+    title: "Squad",
+  },
 ];
 
 export default function RevenueForecastPage() {
@@ -152,7 +172,10 @@ export default function RevenueForecastPage() {
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
-        <SectionHeader title={title} subtitle={""} />
+        <SectionHeader 
+          title={title} 
+          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(total.expected)}`} 
+        />
         <div className="px-2">
           <Table>
             <TableHeader className="bg-gray-50">
@@ -425,7 +448,10 @@ export default function RevenueForecastPage() {
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
-        <SectionHeader title={title} subtitle={""} />
+        <SectionHeader 
+          title={title} 
+          subtitle={formatCurrency(total.current)} 
+        />
         <div className="px-2">
           <Table>
             <TableHeader className="bg-gray-50">
@@ -643,7 +669,28 @@ export default function RevenueForecastPage() {
       </div>
 
       <div className="ml-2 mr-2">
-        <NavBar sections={sections} />
+        <NavBar sections={[
+          {
+            id: "consulting",
+            title: "Consulting",
+            subtitle: formatCurrency(forecastData.consulting.totals.realized) + " / " + formatCurrency(forecastData.consulting.totals.expected)
+          },
+          {
+            id: "consultingPre",
+            title: "Consulting Pre", 
+            subtitle: formatCurrency(forecastData.consultingPre.totals.current)
+          },
+          {
+            id: "handsOn",
+            title: "Hands On",
+            subtitle: formatCurrency(forecastData.handsOn.totals.current)
+          },
+          {
+            id: "squad", 
+            title: "Squad",
+            subtitle: formatCurrency(forecastData.squad.totals.current)
+          }
+        ]} />
         {renderConsultingTable(
           "Consulting",
           forecastData.consulting,
