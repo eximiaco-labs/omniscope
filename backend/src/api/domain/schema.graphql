@@ -57,6 +57,7 @@ type Client {
   id: Int!
   slug: String!
   name: String!
+  ontologyUrl: String
   isStrategic: Boolean!
   accountManager: AccountManager
   isRecognized: Boolean!
@@ -64,7 +65,7 @@ type Client {
   logoUrl: String!
   timesheets: Timesheets
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
-  
+
   forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
 }
 
