@@ -98,6 +98,10 @@ def resolve_forecast(_, info, date_of_interest = None):
                 client['same_day_one_month_ago'] = client.get('same_day_one_month_ago', 0)
                 client['same_day_two_months_ago'] = client.get('same_day_two_months_ago', 0)
                 client['same_day_three_months_ago'] = client.get('same_day_three_months_ago', 0)
+                
+                current_day = date_of_interest.day
+                days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
+                client['projected'] = (client['in_analysis'] / current_day) * days_in_month
         
         totals = {
             'in_analysis': sum(client.get('in_analysis', 0) for client in by_client),
@@ -109,6 +113,7 @@ def resolve_forecast(_, info, date_of_interest = None):
             totals['same_day_one_month_ago'] = sum(client.get('same_day_one_month_ago', 0) for client in by_client)
             totals['same_day_two_months_ago'] = sum(client.get('same_day_two_months_ago', 0) for client in by_client)
             totals['same_day_three_months_ago'] = sum(client.get('same_day_three_months_ago', 0) for client in by_client)
+            totals['projected'] = sum(client.get('projected', 0) for client in by_client)
 
         return {
             'slug': slug,

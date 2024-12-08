@@ -526,8 +526,6 @@ type ForecastByKind {
   consultingPre: ForecastByClient!
   handsOn: ForecastByClient!
   squad: ForecastByClient!
-  
-  
 }
 
 type ForecastByClient {
@@ -555,6 +553,7 @@ type ForecastConsultingTotals {
   sameDayOneMonthAgo: Float!
   sameDayTwoMonthsAgo: Float!
   sameDayThreeMonthsAgo: Float!
+  projected: Float!
 }
 
 type ForecastByClientEntry {
@@ -569,7 +568,9 @@ type ForecastByClientEntry {
 type ForecastConsultingByClientEntry {
   name: String!
   slug: String
+  
   inAnalysis: Float!
+  projected: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
   threeMonthsAgo: Float!
