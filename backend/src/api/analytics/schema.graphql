@@ -510,6 +510,7 @@ type Forecast {
   dateOfInterest: Date!
   dates: ForecastDates!
   byKind: ForecastByKind!
+  summary: ForecastSummary!
   filterableFields: [FilterableField]!
 }
 
@@ -520,6 +521,15 @@ type ForecastDates {
   twoMonthsAgo: Date!
   sameDayThreeMonthsAgo: Date!
   threeMonthsAgo: Date!
+}
+
+type ForecastSummary {
+  realized: Float!
+  projected: Float!
+  expected: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
 }
 
 type ForecastByKind {

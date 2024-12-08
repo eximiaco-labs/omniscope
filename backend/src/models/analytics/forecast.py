@@ -24,6 +24,21 @@ def get_last_day_of_month(date_of_interest):
     last_day = calendar.monthrange(y, m)[1]
     return datetime(y, m, last_day, 23, 59, 59, 999999)
 
+def merge_filterable_fields(analysis_lists):
+    filterable_fields = []
+    
+    for field_list in analysis_lists:
+        for field in field_list['filterable_fields']:
+            existing = next((f for f in filterable_fields if f['field'] == field['field']), None)
+            
+            if existing:
+                existing['options'] = sorted(list(set(existing['options'] + field['options'])))
+                existing['selected_values'] = sorted(list(set(existing['selected_values'] + field['selected_values'])))
+            else:
+                filterable_fields.append(field.copy())
+    
+    return filterable_fields
+
 def compute_forecast(date_of_interest = None, filters = None):
     if date_of_interest is None:
         date_of_interest = datetime.now()
@@ -135,28 +150,14 @@ def compute_forecast(date_of_interest = None, filters = None):
             'totals': totals
         }
     
-    filterable_fields = []
+    filterable_fields = merge_filterable_fields([
+        analysis_date_of_interest,
+        analysis_last_day_of_last_month,
+        analysis_last_day_of_two_months_ago,
+        analysis_last_day_of_three_months_ago
+    ])
     
-    # Combine all filterable fields from each analysis
-    for field_list in [
-        analysis_date_of_interest['filterable_fields'],
-        analysis_last_day_of_last_month['filterable_fields'],
-        analysis_last_day_of_two_months_ago['filterable_fields'],
-        analysis_last_day_of_three_months_ago['filterable_fields']
-    ]:
-        for field in field_list:
-            # Check if field already exists
-            existing = next((f for f in filterable_fields if f['field'] == field['field']), None)
-            
-            if existing:
-                # Merge options and selected values
-                existing['options'] = sorted(list(set(existing['options'] + field['options'])))
-                existing['selected_values'] = sorted(list(set(existing['selected_values'] + field['selected_values'])))
-            else:
-                # Add new field
-                filterable_fields.append(field.copy())
-    
-    return {
+    result = {
         "date_of_interest": date_of_interest,
         "dates": {
             "same_day_one_month_ago": same_day_last_month,
@@ -175,6 +176,18 @@ def compute_forecast(date_of_interest = None, filters = None):
         },
         "filterable_fields": filterable_fields
     }
+    
+    summary = {
+        "realized": sum(result["by_kind"][kind]["totals"]["in_analysis"] for kind in result["by_kind"]),
+        "projected": sum(result["by_kind"][kind]["totals"].get("projected", 0) for kind in result["by_kind"]),
+        "expected": sum(result["by_kind"][kind]["totals"].get("expected", 0) for kind in result["by_kind"]),
+        "one_month_ago": sum(result["by_kind"][kind]["totals"]["one_month_ago"] for kind in result["by_kind"]),
+        "two_months_ago": sum(result["by_kind"][kind]["totals"]["two_months_ago"] for kind in result["by_kind"]),
+        "three_months_ago": sum(result["by_kind"][kind]["totals"]["three_months_ago"] for kind in result["by_kind"]),
+    }
+    
+    result["summary"] = summary
+    return result
 
 
     
