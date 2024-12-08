@@ -171,8 +171,8 @@ type Appointment {
   caseTitle: String!
   caseSlug: String!
   
-  sponsor: String!
-  sponsorSlug: String!
+  sponsor: String
+  sponsorSlug: String
 
   clientSlug: String!
   clientName: String!
