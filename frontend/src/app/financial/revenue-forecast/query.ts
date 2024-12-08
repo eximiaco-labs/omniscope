@@ -1,9 +1,14 @@
 import { gql } from "@apollo/client";
 
 export const REVENUE_FORECAST_QUERY = gql`
-  query RevenueForecast($dateOfInterest: Date!) {
-    forecast(dateOfInterest: $dateOfInterest) {
+  query RevenueForecast($dateOfInterest: Date!, $filters: [FilterInput]) {
+    forecast(dateOfInterest: $dateOfInterest, filters: $filters) {
       dateOfInterest
+      filterableFields {
+        field
+        options
+        selectedValues
+      }
       dates {
         sameDayOneMonthAgo
         oneMonthAgo

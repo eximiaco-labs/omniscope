@@ -3,6 +3,7 @@
 import { useQuery } from "@apollo/client";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
+import { Option } from "react-tailwindcss-select/dist/components/type";
 import { DatePicker } from "@/components/DatePicker";
 import { REVENUE_FORECAST_QUERY } from "./query";
 import {
@@ -16,16 +17,21 @@ import {
 import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "@/app/components/NavBar";
+import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 
 const sections = [
-  { id: 'consulting', title: 'Consulting' },
-  { id: 'consultingPre', title: 'Consulting Pre' },
-  { id: 'handsOn', title: 'Hands On' },
-  { id: 'squad', title: 'Squad' }
-]
+  { id: "consulting", title: "Consulting" },
+  { id: "consultingPre", title: "Consulting Pre" },
+  { id: "handsOn", title: "Hands On" },
+  { id: "squad", title: "Squad" },
+];
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
+  const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [formattedSelectedValues, setFormattedSelectedValues] = useState<
+    Array<{ field: string; selectedValues: string[] }>
+  >([]);
   const [sortConfigs, setSortConfigs] = useState<
     Record<
       string,
@@ -46,9 +52,41 @@ export default function RevenueForecastPage() {
     setDate(today);
   }, []);
 
+  const handleFilterChange = (value: Option | Option[] | null): void => {
+    const newSelectedValues = Array.isArray(value)
+      ? value
+      : value
+      ? [value]
+      : [];
+    setSelectedFilters(newSelectedValues);
+
+    const formattedValues =
+      data?.forecast?.filterableFields?.reduce((acc: any[], field: any) => {
+        const fieldValues = newSelectedValues
+          .filter(
+            (v) =>
+              typeof v.value === "string" &&
+              v.value.startsWith(`${field.field}:`)
+          )
+          .map((v) => (v.value as string).split(":")[1]);
+
+        if (fieldValues.length > 0) {
+          acc.push({
+            field: field.field,
+            selectedValues: fieldValues,
+          });
+        }
+        return acc;
+      }, []) || [];
+
+    setFormattedSelectedValues(formattedValues);
+  };
+
   const { loading, error, data } = useQuery(REVENUE_FORECAST_QUERY, {
     variables: {
       dateOfInterest: format(date, "yyyy-MM-dd"),
+      filters:
+        formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
   });
 
@@ -306,10 +344,7 @@ export default function RevenueForecastPage() {
                   >
                     {formatCurrency(client.oneMonthAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.oneMonthAgo,
-                        total.oneMonthAgo
-                      )}
+                      {formatPercentage(client.oneMonthAgo, total.oneMonthAgo)}
                     </span>
                   </TableCell>
                   <TableCell
@@ -382,11 +417,7 @@ export default function RevenueForecastPage() {
     );
   };
 
-  const renderOtherTable = (
-    title: string,
-    tableData: any,
-    tableId: string
-  ) => {
+  const renderOtherTable = (title: string, tableData: any, tableId: string) => {
     const sortedClients = getSortedClients(tableData.clients, tableId);
     const sortConfig = sortConfigs[tableId];
     const total = tableData.totals;
@@ -477,10 +508,7 @@ export default function RevenueForecastPage() {
                   >
                     {formatCurrency(client.oneMonthAgo)}
                     <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.oneMonthAgo,
-                        total.oneMonthAgo
-                      )}
+                      {formatPercentage(client.oneMonthAgo, total.oneMonthAgo)}
                     </span>
                   </TableCell>
                   <TableCell
@@ -533,11 +561,14 @@ export default function RevenueForecastPage() {
         expected: client.expected,
       })),
       totals: {
-        sameDayThreeMonthsAgo: data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
+        sameDayThreeMonthsAgo:
+          data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
         threeMonthsAgo: data.forecast.byKind.consulting.totals.threeMonthsAgo,
-        sameDayTwoMonthsAgo: data.forecast.byKind.consulting.totals.sameDayTwoMonthsAgo,
+        sameDayTwoMonthsAgo:
+          data.forecast.byKind.consulting.totals.sameDayTwoMonthsAgo,
         twoMonthsAgo: data.forecast.byKind.consulting.totals.twoMonthsAgo,
-        sameDayOneMonthAgo: data.forecast.byKind.consulting.totals.sameDayOneMonthAgo,
+        sameDayOneMonthAgo:
+          data.forecast.byKind.consulting.totals.sameDayOneMonthAgo,
         oneMonthAgo: data.forecast.byKind.consulting.totals.oneMonthAgo,
         realized: data.forecast.byKind.consulting.totals.inAnalysis,
         projected: data.forecast.byKind.consulting.totals.projected,
@@ -545,15 +576,18 @@ export default function RevenueForecastPage() {
       },
     },
     consultingPre: {
-      clients: data.forecast.byKind.consultingPre.byClient.map((client: any) => ({
-        name: client.name,
-        threeMonthsAgo: client.threeMonthsAgo,
-        twoMonthsAgo: client.twoMonthsAgo,
-        oneMonthAgo: client.oneMonthAgo,
-        current: client.inAnalysis,
-      })),
+      clients: data.forecast.byKind.consultingPre.byClient.map(
+        (client: any) => ({
+          name: client.name,
+          threeMonthsAgo: client.threeMonthsAgo,
+          twoMonthsAgo: client.twoMonthsAgo,
+          oneMonthAgo: client.oneMonthAgo,
+          current: client.inAnalysis,
+        })
+      ),
       totals: {
-        threeMonthsAgo: data.forecast.byKind.consultingPre.totals.threeMonthsAgo,
+        threeMonthsAgo:
+          data.forecast.byKind.consultingPre.totals.threeMonthsAgo,
         twoMonthsAgo: data.forecast.byKind.consultingPre.totals.twoMonthsAgo,
         oneMonthAgo: data.forecast.byKind.consultingPre.totals.oneMonthAgo,
         current: data.forecast.byKind.consultingPre.totals.inAnalysis,
@@ -592,9 +626,20 @@ export default function RevenueForecastPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center">
-        <DatePicker date={date} onSelectedDateChange={setDate} />
+    <>
+      <div className="relative z-[60]">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center">
+            <DatePicker date={date} onSelectedDateChange={setDate} />
+            <div className="flex-grow h-px bg-gray-200 ml-2"></div>
+          </div>
+
+          <FilterFieldsSelect
+            data={data?.forecast}
+            selectedFilters={selectedFilters}
+            handleFilterChange={handleFilterChange}
+          />
+        </div>
       </div>
 
       <div className="ml-2 mr-2">
@@ -609,17 +654,9 @@ export default function RevenueForecastPage() {
           forecastData.consultingPre,
           "consultingPre"
         )}
-        {renderOtherTable(
-          "Hands On",
-          forecastData.handsOn,
-          "handsOn"
-        )}
-        {renderOtherTable(
-          "Squad",
-          forecastData.squad,
-          "squad"
-        )}
+        {renderOtherTable("Hands On", forecastData.handsOn, "handsOn")}
+        {renderOtherTable("Squad", forecastData.squad, "squad")}
       </div>
-    </div>
+    </>
   );
 }
