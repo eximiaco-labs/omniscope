@@ -554,6 +554,7 @@ type ForecastConsultingTotals {
   sameDayTwoMonthsAgo: Float!
   sameDayThreeMonthsAgo: Float!
   projected: Float!
+  expected: Float!
 }
 
 type ForecastByClientEntry {
@@ -577,4 +578,5 @@ type ForecastConsultingByClientEntry {
   sameDayOneMonthAgo: Float!
   sameDayTwoMonthsAgo: Float!
   sameDayThreeMonthsAgo: Float!
+  expected: Float!
 } 
