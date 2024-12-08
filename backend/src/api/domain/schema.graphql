@@ -80,6 +80,7 @@ type Sponsor {
   omniUrl: String
   client: Client
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
+  forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
 }
 
 type Case {
