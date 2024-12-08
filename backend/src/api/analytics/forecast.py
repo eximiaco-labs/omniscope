@@ -24,7 +24,7 @@ def get_last_day_of_month(date_of_interest):
     last_day = calendar.monthrange(y, m)[1]
     return datetime(y, m, last_day, 23, 59, 59, 999999)
 
-def resolve_forecast(_, info, date_of_interest = None):
+def resolve_forecast(_, info, date_of_interest = None, filters = None):
     if date_of_interest is None:
         date_of_interest = datetime.now()
 
@@ -44,16 +44,16 @@ def resolve_forecast(_, info, date_of_interest = None):
     
     # Revenue tracking
     
-    analysis_date_of_interest = compute_revenue_tracking(date_of_interest)
+    analysis_date_of_interest = compute_revenue_tracking(date_of_interest, filters)
     
-    analysis_same_day_last_month = compute_revenue_tracking(same_day_last_month)
-    analysis_last_day_of_last_month = compute_revenue_tracking(last_day_of_last_month)
+    analysis_same_day_last_month = compute_revenue_tracking(same_day_last_month, filters)
+    analysis_last_day_of_last_month = compute_revenue_tracking(last_day_of_last_month, filters)
     
-    analysis_same_day_two_months_ago = compute_revenue_tracking(same_day_two_months_ago)
-    analysis_last_day_of_two_months_ago = compute_revenue_tracking(last_day_of_two_months_ago)
+    analysis_same_day_two_months_ago = compute_revenue_tracking(same_day_two_months_ago, filters)
+    analysis_last_day_of_two_months_ago = compute_revenue_tracking(last_day_of_two_months_ago, filters)
     
-    analysis_same_day_three_months_ago = compute_revenue_tracking(same_day_three_months_ago)
-    analysis_last_day_of_three_months_ago = compute_revenue_tracking(last_day_of_three_months_ago)
+    analysis_same_day_three_months_ago = compute_revenue_tracking(same_day_three_months_ago, filters)
+    analysis_last_day_of_three_months_ago = compute_revenue_tracking(last_day_of_three_months_ago, filters)
 
         
     def summarize_forecast(slug):
