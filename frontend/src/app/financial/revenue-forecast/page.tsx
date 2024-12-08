@@ -18,6 +18,7 @@ import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
+import { RevenueProgression } from "./RevenueProgression";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -45,128 +46,6 @@ const sections = [
     title: "Squad",
   },
 ];
-
-const renderRevenueProgression = (data: any) => {
-  return (
-    <>
-      <SectionHeader title="Revenue Progression" subtitle=" " />
-      <div className="flex items-center justify-between">
-        <div className="text-center">
-          <SectionHeader 
-            title={format(new Date(data.forecast.dates.threeMonthsAgo), "MMM yyyy")}
-            subtitle=" " 
-          />
-          <div className="text-2xl font-semibold text-gray-900">
-            {formatCurrency(data.forecast.summary.threeMonthsAgo)}
-          </div>
-        </div>
-        <div className="text-center">
-          <SectionHeader 
-            title={format(new Date(data.forecast.dates.twoMonthsAgo), "MMM yyyy")}
-            subtitle=" " 
-          />
-          <div className="text-2xl font-semibold text-gray-900">
-            {formatCurrency(data.forecast.summary.twoMonthsAgo)}
-          </div>
-          <div
-            className={`text-xs flex items-center justify-center gap-1 ${
-              data.forecast.summary.twoMonthsAgo >
-              data.forecast.summary.threeMonthsAgo
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            {data.forecast.summary.twoMonthsAgo >
-            data.forecast.summary.threeMonthsAgo
-              ? "▲"
-              : "▼"}
-            {Math.abs(
-              (data.forecast.summary.twoMonthsAgo /
-                data.forecast.summary.threeMonthsAgo -
-                1) *
-                100
-            ).toFixed(1)}
-            % vs {format(new Date(data.forecast.dates.threeMonthsAgo), "MMM yyyy")}
-          </div>
-        </div>
-        <div className="text-center">
-          <SectionHeader 
-            title={format(new Date(data.forecast.dates.oneMonthAgo), "MMM yyyy")}
-            subtitle=" " 
-          />
-          <div className="text-2xl font-semibold text-gray-900">
-            {formatCurrency(data.forecast.summary.oneMonthAgo)}
-          </div>
-          <div
-            className={`text-xs flex items-center justify-center gap-1 ${
-              data.forecast.summary.oneMonthAgo >
-              data.forecast.summary.twoMonthsAgo
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            {data.forecast.summary.oneMonthAgo >
-            data.forecast.summary.twoMonthsAgo
-              ? "▲"
-              : "▼"}
-            {Math.abs(
-              (data.forecast.summary.oneMonthAgo /
-                data.forecast.summary.twoMonthsAgo -
-                1) *
-                100
-            ).toFixed(1)}
-            % vs {format(new Date(data.forecast.dates.twoMonthsAgo), "MMM yyyy")}
-          </div>
-        </div>
-        <div className="border-l-4 border-blue-200 pl-4">
-          <SectionHeader title="Current" subtitle=" " />
-          <div className="flex items-center gap-4">
-            <div>
-              <div className="text-3xl font-semibold text-gray-900">
-                {formatCurrency(data.forecast.summary.realized)}
-              </div>
-              <div className="text-sm text-gray-500">Realized</div>
-              <div
-                className={`text-xs flex items-center gap-1 ${
-                  data.forecast.summary.realized >
-                  data.forecast.summary.oneMonthAgo
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {data.forecast.summary.realized >
-                data.forecast.summary.oneMonthAgo
-                  ? "▲"
-                  : "▼"}
-                {Math.abs(
-                  (data.forecast.summary.realized /
-                    data.forecast.summary.oneMonthAgo -
-                    1) *
-                    100
-                ).toFixed(1)}
-                % vs {format(new Date(data.forecast.dates.oneMonthAgo), "MMM yyyy")}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <div>
-                <div className="text-lg font-medium text-gray-700">
-                  {formatCurrency(data.forecast.summary.expected)}
-                </div>
-                <div className="text-xs text-gray-500">Expected</div>
-              </div>
-              <div>
-                <div className="text-lg font-medium text-gray-700">
-                  {formatCurrency(data.forecast.summary.projected)}
-                </div>
-                <div className="text-xs text-gray-500">Projected</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -790,7 +669,10 @@ export default function RevenueForecastPage() {
       </div>
 
       <div className="ml-2 mr-2">
-        {renderRevenueProgression(data)}
+
+        <div className="mt-4">
+          <RevenueProgression data={data} />
+        </div>
 
         <NavBar
           sections={[
