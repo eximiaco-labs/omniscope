@@ -1,6 +1,6 @@
 from datetime import datetime
 from datasets.timesheets import compute_timesheet
-from omni_models.domain.cases import compute_cases
+from domain.cases import compute_cases
 from utils.fields import build_fields_map
 from omni_models.analytics.timeliness_review import compute_timeliness_review
 from omni_models.domain import WorkerKind

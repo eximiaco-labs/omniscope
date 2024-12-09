@@ -11,7 +11,7 @@ from typing import Optional, Dict
 from omni_models.syntactic import Everhour, User, Client
 import omni_models.syntactic.everhour as e
 
-from omni_utils.decorators import c4_external_system
+from omni_utils.decorators.c4 import c4_external_system
 from omni_shared.settings import api_settings
 
 import pytz

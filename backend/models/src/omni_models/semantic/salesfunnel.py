@@ -9,7 +9,7 @@ from omni_models.syntactic import Pipedrive
 from omni_utils.helpers.weeks import Weeks
 import omni_utils.helpers.slug as slug
 
-from omni_utils.decorators import c4_external_system
+from omni_utils.decorators.c4 import c4_external_system
 from omni_shared.settings import api_settings
 
 

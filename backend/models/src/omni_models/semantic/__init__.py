@@ -1,24 +1,24 @@
-from models.semantic.insights import (
+from omni_models.semantic.insights import (
     Insight, Insights,
 )
 
-from models.semantic.ontology import (
+from omni_models.semantic.ontology import (
     Case, Class, Client, Entry, Ontology, Worker, WorkerPost,
 )
 
-from models.semantic.salesfunnel import (
+from omni_models.semantic.salesfunnel import (
     AccountManager, Activity, Deal, SalesFunnelB2B, Stage,
 )
 
-from models.semantic.tasksmanager import (
+from omni_models.semantic.tasksmanager import (
     Project, ProjectsDataFrame, Task, TasksManager,
 )
 
-from models.semantic.timetracker import (
+from omni_models.semantic.timetracker import (
     Appointment, AppointmentsDataFrame, Project, TimeTracker,
 )
 
-from models.semantic.crm import (
+from omni_models.semantic.crm import (
     CRM, Person
 )
 

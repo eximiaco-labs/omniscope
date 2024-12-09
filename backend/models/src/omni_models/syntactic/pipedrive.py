@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional, List, Dict
-from omni_utils.decorators import cache
+from omni_utils.decorators.cache import cache
 
 import requests
 from pydantic import BaseModel, validator, HttpUrl

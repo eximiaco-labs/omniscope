@@ -6,7 +6,7 @@ from omni_models.syntactic import Pipedrive, Person as PipedrivePerson
 
 from omni_shared.settings import api_settings
 
-from omni_utils.decorators import c4_external_system
+from omni_utils.decorators.c4 import c4_external_system
 
 
 class Person(BaseModel):

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from models.helpers.weeks import Weeks
+from omni_utils.helpers.weeks import Weeks
 
 
 class PowerDataFrame:

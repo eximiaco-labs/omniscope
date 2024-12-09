@@ -6,7 +6,7 @@ from pydantic import BaseModel, HttpUrl
 from omni_models.base.semanticmodel import SemanticModel
 from omni_models.syntactic import Wordpress, User, Post
 
-from omni_utils.decorators import c4_external_system
+from omni_utils.decorators.c4 import c4_external_system
 
 
 class Insight(BaseModel):

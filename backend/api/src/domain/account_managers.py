@@ -6,7 +6,7 @@ from utils.fields import build_fields_map
 
 from omni_models.analytics.forecast import compute_forecast
 from omni_models.domain import WorkerKind
-import globals
+from omni_shared import globals
 
 
 def resolve_account_managers(_, info):

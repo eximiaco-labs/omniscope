@@ -3,7 +3,7 @@ from datetime import datetime
 from omni_models.base.semanticmodel import SemanticModel
 from omni_models.syntactic import Todoist
 from omni_models.base.powerdataframe import PowerDataFrame
-from omni_utils.decorators import c4_external_system
+from omni_utils.decorators.c4 import c4_external_system
 
 import omni_models.syntactic.todoist as t
 

@@ -8,7 +8,7 @@ from typing import Union, Dict, List, Any, Optional, Type, TypeVar
 from enum import Enum
 
 from omni_utils.helpers.weeks import Weeks
-from omni_utils.decorators import cache
+from omni_utils.decorators.cache import cache
 
 import logging
 

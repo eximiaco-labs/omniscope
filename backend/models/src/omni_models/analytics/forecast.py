@@ -1,7 +1,7 @@
 from datetime import datetime
 import calendar
 
-from models.analytics.revenue_tracking import compute_revenue_tracking
+from omni_models.analytics.revenue_tracking import compute_revenue_tracking
 
 def get_same_day_one_month_ago(date_of_interest):
     d = date_of_interest.day

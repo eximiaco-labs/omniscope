@@ -6,13 +6,16 @@ from datasets import setup_query_for_datasets
 from analytics import setup_query_for_analytics
 from inconsistencies import resolve_inconsistencies
 
+
+BASE_DIR = Path(__file__).parent
+
 def load_schema():
     schema_files = [
-        "api/schema/common.graphql",
-        "api/domain/schema.graphql", 
-        "api/datasets/schema.graphql",
-        "api/analytics/schema.graphql",
-        "api/schema.graphql",
+        BASE_DIR / "schema/common.graphql",
+        BASE_DIR / "domain/schema.graphql", 
+        BASE_DIR / "datasets/schema.graphql",
+        BASE_DIR / "analytics/schema.graphql",
+        BASE_DIR / "schema.graphql",
     ]
     schemas = []
     for file in schema_files:

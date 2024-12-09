@@ -1,8 +1,8 @@
 from typing import Optional, Dict
 from pydantic import BaseModel
 
-import models.helpers.slug as slug
-from models.semantic import Ontology
+import omni_utils.helpers.slug as slug
+from omni_models.semantic import Ontology
 
 class Offer(BaseModel):
     id: int

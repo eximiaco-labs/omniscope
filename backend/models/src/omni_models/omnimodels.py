@@ -11,7 +11,7 @@ from omni_models.domain import (
 from omni_models.base.powerdataframe import SummarizablePowerDataFrame
 
 from omni_utils.helpers.weeks import Weeks
-from omni_utils.decorators import cache
+from omni_utils.decorators.cache import cache
 
 from datetime import datetime
 import pandas as pd

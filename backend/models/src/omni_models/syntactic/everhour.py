@@ -7,7 +7,7 @@ from datetime import datetime
 
 import pytz
 
-from omni_utils.decorators import cache
+from omni_utils.decorators.cache import cache
 import omni_utils.helpers.slug as slug
 
 
