@@ -11,8 +11,9 @@ from ariadne.explorer import ExplorerGraphiQL
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from functools import wraps
-from settings import auth_settings 
-from settings import graphql_settings
+
+from omni_shared.settings import auth_settings 
+from omni_shared.settings import graphql_settings
 
 
 import logging
@@ -23,7 +24,7 @@ from queries import query_types, type_defs
 from mutations import mutation
 from execution_stats import ExecutionStatsExtension
 
-import globals
+from omni_shared import globals
 
 
 def verify_token(token):

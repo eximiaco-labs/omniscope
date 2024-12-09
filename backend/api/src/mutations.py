@@ -1,5 +1,5 @@
 from ariadne import MutationType
-import globals
+from omni_shared import globals
 
 mutation = MutationType()
 

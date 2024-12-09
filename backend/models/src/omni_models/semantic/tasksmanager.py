@@ -9,7 +9,7 @@ import omni_models.syntactic.todoist as t
 
 from typing import List, Optional
 from pydantic import BaseModel
-from settings import api_settings
+from omni_shared.settings import api_settings
 
 
 class Task(BaseModel):

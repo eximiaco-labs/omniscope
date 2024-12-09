@@ -2,7 +2,8 @@
     "include": [
         "api/src",
         "utils/src",
-        "models/src"
+        "models/src",
+        "shared/src"
     ],
     "extraPaths": [
         "."

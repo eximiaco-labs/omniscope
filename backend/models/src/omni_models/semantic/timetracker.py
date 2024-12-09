@@ -12,7 +12,7 @@ from omni_models.syntactic import Everhour, User, Client
 import omni_models.syntactic.everhour as e
 
 from omni_utils.decorators import c4_external_system
-from settings import api_settings
+from omni_shared.settings import api_settings
 
 import pytz
 

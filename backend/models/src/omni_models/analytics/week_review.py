@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from omni_utils.helpers import beauty
 from omni_utils.helpers.weeks import Weeks
-import globals
+from omni_shared import globals
 
 import pandas as pd
 import numpy as np

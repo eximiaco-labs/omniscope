@@ -1,5 +1,5 @@
 from omni_models.domain import WorkerKind
-import globals
+from omni_shared import globals
 
 
 def resolve_user(_, info, email=None, slug=None):

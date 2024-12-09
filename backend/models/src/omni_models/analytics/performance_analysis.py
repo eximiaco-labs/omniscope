@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from omni_models.domain.cases import Case
 
-import globals
+from omni_shared import globals
 
 from omni_utils.helpers.weeks import Weeks
 

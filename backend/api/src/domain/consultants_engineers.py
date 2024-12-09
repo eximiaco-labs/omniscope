@@ -5,7 +5,7 @@ from utils.fields import build_fields_map
 from omni_models.analytics.timeliness_review import compute_timeliness_review
 from omni_models.domain import WorkerKind
 
-import globals
+from omni_shared import globals
 
 def resolve_consultants_and_engineers(_, info):
     all_workers = sorted(globals.omni_models.workers.get_all().values(), key=lambda worker: worker.name)

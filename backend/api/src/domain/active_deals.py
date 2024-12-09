@@ -1,4 +1,4 @@
-import globals
+from omni_shared import globals
 
 
 def resolve_active_deals(_, info, account_manager_slug=None, account_manager_name=None):

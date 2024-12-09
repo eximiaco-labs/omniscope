@@ -1,4 +1,4 @@
-import globals
+from omni_shared import globals
 
 
 def resolve_datasets(_, info, kind: str = None):

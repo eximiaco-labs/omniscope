@@ -1,6 +1,6 @@
 import re
 
-from settings import api_settings
+from omni_shared.settings import api_settings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date
 from typing import List, Optional, Dict

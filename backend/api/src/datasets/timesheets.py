@@ -9,7 +9,7 @@ from graphql import GraphQLResolveInfo
 from utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
 from omni_utils.helpers.slug import slugify
 
-import globals
+from omni_shared import globals
 
 
 def summarize(df: pd.DataFrame) -> Dict[str, Any]:

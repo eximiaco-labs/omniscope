@@ -2,7 +2,7 @@ from typing import Dict, List, Any
 import pandas as pd
 from datetime import datetime, date
 from omni_utils.helpers.weeks import Weeks
-import globals
+from omni_shared import globals
 from dataclasses import dataclass
 
 @dataclass

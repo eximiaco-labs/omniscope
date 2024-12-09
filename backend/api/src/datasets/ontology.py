@@ -2,7 +2,7 @@ import pandas as pd
 from typing import Dict, Any, List, Union
 from utils.fields import get_requested_fields_from
 
-import globals
+from omni_shared import globals
 
 
 def summarize(df: pd.DataFrame) -> Dict[str, Any]:

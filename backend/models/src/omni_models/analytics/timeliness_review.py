@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
 from omni_utils.helpers.weeks import Weeks
-import globals
+from omni_shared import globals
 
 def compute_timeliness_review(date_of_interest, filters=None):
     if isinstance(date_of_interest, str):

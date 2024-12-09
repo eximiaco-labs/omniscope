@@ -6,6 +6,7 @@ setup(
     packages=find_namespace_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
+        "omni-shared",
         "omni-utils",
         "omni-models"
     ],

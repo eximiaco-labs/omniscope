@@ -1,7 +1,7 @@
 from datasets.timesheets import compute_timesheet
 from utils.fields import build_fields_map
 from omni_models.analytics.forecast import compute_forecast
-import globals
+from omni_shared import globals
 
 from ariadne import ObjectType
 

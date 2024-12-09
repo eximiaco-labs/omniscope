@@ -1,5 +1,5 @@
 import calendar
-import globals
+from omni_shared import globals
 
 from datetime import date, datetime, timedelta
 from omni_utils.helpers.slug import slugify

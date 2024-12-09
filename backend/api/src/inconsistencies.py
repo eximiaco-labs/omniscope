@@ -1,5 +1,5 @@
 from datetime import datetime
-import globals
+from omni_shared import globals
 
 
 class Inconsistency:

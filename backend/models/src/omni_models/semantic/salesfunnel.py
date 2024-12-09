@@ -10,7 +10,7 @@ from omni_utils.helpers.weeks import Weeks
 import omni_utils.helpers.slug as slug
 
 from omni_utils.decorators import c4_external_system
-from settings import api_settings
+from omni_shared.settings import api_settings
 
 
 class Stage(BaseModel):

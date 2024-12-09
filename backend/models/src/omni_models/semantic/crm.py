@@ -4,6 +4,8 @@ from typing import Optional, Dict
 from omni_models.base.semanticmodel import SemanticModel
 from omni_models.syntactic import Pipedrive, Person as PipedrivePerson
 
+from omni_shared.settings import api_settings
+
 from omni_utils.decorators import c4_external_system
 
 

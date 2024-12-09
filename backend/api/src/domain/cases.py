@@ -1,7 +1,7 @@
 from utils.fields import build_fields_map
 from datasets.timesheets import compute_timesheet
 from omni_models.analytics.forecast import compute_forecast
-import globals
+from omni_shared import globals
 
 
 def resolve_cases(_, info, only_actives: bool = False):
