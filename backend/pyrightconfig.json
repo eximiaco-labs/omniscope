@@ -1,0 +1,11 @@
+{
+    "include": [
+        "api/src",
+        "utils/src",
+        "models/src",
+        "shared/src"
+    ],
+    "extraPaths": [
+        "."
+    ]
+} 
