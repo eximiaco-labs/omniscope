@@ -152,7 +152,7 @@ def summarize_by_group(df: pd.DataFrame, group_column: str, name_key: str = "nam
             summary['by_week'] = summarize_by_week(group_df, map['byWeek']) if map and 'byWeek' in map else None
 
         if group_column == 'CaseTitle' and 'caseDetails' in map:
-            from api.domain.cases import build_case_dictionary
+            from domain.cases import build_case_dictionary
             
             details_obj = globals.omni_models.cases.get_by_title(group_value)
             if details_obj:

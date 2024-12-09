@@ -49,11 +49,13 @@ def resolve_sponsor_timesheet(sponsor, info, slug, filters=None):
 def resolve_sponsor_forecast(sponsor, info, date_of_interest=None, filters=None):
     if filters is None:
         filters = []
+
+    sponsor_name = sponsor["name"] if isinstance(sponsor, dict) else sponsor.name
         
     sponsor_filters = [
         {
             'field': 'Sponsor',
-            'selected_values': [sponsor["name"]]
+            'selected_values': [sponsor_name]
         }
     ] + filters
     
