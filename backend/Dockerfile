@@ -7,15 +7,15 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY backend/api/requirements.txt ./api/
-COPY backend/shared/requirements.txt ./shared/
-COPY backend/utils/requirements.txt ./utils/
-COPY backend/models/requirements.txt ./models/
+COPY api/requirements.txt ./api/
+COPY shared/requirements.txt ./shared/
+COPY utils/requirements.txt ./utils/
+COPY models/requirements.txt ./models/
 
-COPY backend/api ./api
-COPY backend/shared ./shared
-COPY backend/utils ./utils
-COPY backend/models ./models
+COPY api ./api
+COPY shared ./shared
+COPY utils ./utils
+COPY models ./models
 
 RUN pip install --no-cache-dir -r api/requirements.txt \
     && pip install --no-cache-dir -r shared/requirements.txt \
