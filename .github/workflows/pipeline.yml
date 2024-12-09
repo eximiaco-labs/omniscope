@@ -24,15 +24,18 @@ jobs:
 
     - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v3
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       with:
         role-to-assume: arn:aws:iam::339713015367:role/GithubIdentityProviderRole
         role-session-name: GithubSession
         aws-region: us-east-1
 
     - name: Amazon ECR Login
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: aws-actions/amazon-ecr-login@v2
 
     - name: Push Docker images
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: |
         docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend:${{ github.run_id }}
         docker image push 339713015367.dkr.ecr.us-east-1.amazonaws.com/omniscope/frontend:latest
