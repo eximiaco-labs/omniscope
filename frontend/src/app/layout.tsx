@@ -1,5 +1,4 @@
 "use client";
-
 import "./globals.css";
 import {
   ApolloProvider,
@@ -24,6 +23,17 @@ import { SessionComponent } from "./components/SessionComponent";
 import { InconsistencyAlerts } from "./components/InconsistencyAlerts";
 import { OmniCommandsButton } from "./components/OmniCommands";
 import { Analytics } from "@/components/Analytics";
+
+// Disable auto-refresh on focus and tab visibility change
+if (typeof window !== 'undefined') {
+  // @ts-ignore - Next.js internal property
+  window._nextClearAutoFocus = true;
+  
+  // Disable auto-refresh on tab visibility change
+  window.addEventListener('visibilitychange', (e) => {
+    e.stopPropagation();
+  }, true);
+}
 
 function createApolloClient(session: any) {
   const httpLink = createHttpLink({
