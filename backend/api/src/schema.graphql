@@ -3,6 +3,7 @@
 #import "./domain/schema.graphql"
 #import "./datasets/schema.graphql"
 #import "./analytics/schema.graphql"
+#import "./operational-summaries/schema.graphql"
 
 type Inconsistency {
   title: String!
@@ -45,6 +46,8 @@ type Query {
   activeDeal(id: Int): ActiveDeal
 
   forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
+
+  staleliness: Staleliness!
 }
 
 type Mutation {
