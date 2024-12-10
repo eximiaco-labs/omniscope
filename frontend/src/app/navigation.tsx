@@ -17,6 +17,7 @@ import {
   PercentIcon,
   CheckCheckIcon,
   ClockIcon,
+  ClipboardListIcon,
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -134,8 +135,13 @@ export function getAdministrativeSidebarItems() {
   return [
     {
       title: "Refresh data",
-      url: "/management/hit-refresh",
+      url: "/admnistrative/hit-refresh",
       icon: RefreshCwIcon,
+    },
+    {
+      title: "Changelog",
+      url: "/admnistrative/changelog",
+      icon: ClipboardListIcon,
     },
   ];
 }
