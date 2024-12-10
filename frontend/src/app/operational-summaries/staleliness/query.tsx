@@ -1,16 +1,46 @@
 import { gql } from "@apollo/client";
 
 export const STALELINESS_QUERY = gql`
-  query StalenessQuery {
-    cases(onlyActives: true) {
-      slug
-      title
-      startOfContract
-      hasDescription
-      lastUpdated
-      timesheet(slug: "last-six-weeks") {
-        byWorker {
+  query StalelinessQuery {
+    staleliness {
+      staleCases {
+        title
+        slug
+        lastUpdated
+        daysSinceUpdate
+        workers {
           name
+          slug
+        }
+      }
+      staleInOneWeekCases {
+        title
+        slug
+        lastUpdated
+        daysSinceUpdate
+        workers {
+          name
+          slug
+        }
+      }
+      noDescriptionCases {
+        title
+        slug
+        lastUpdated
+        daysSinceUpdate
+        workers {
+          name
+          slug
+        }
+      }
+      upToDateCases {
+        title
+        slug
+        lastUpdated
+        daysSinceUpdate
+        workers {
+          name
+          slug
         }
       }
     }
