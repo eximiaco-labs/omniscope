@@ -1,6 +1,6 @@
 from omni_shared import globals
 
-def resolve_staleliness(root, info):
+def compute_staleliness(workerSlug: str = None):
     cases = globals.omni_models.cases.get_all().values()
     cases = [case for case in cases if case.is_active]
     
@@ -39,6 +39,10 @@ def resolve_staleliness(root, info):
                 } for _, row in workers.iterrows()
             ]
             
+        # Skip if workerSlug is provided and worker is not in case
+        if workerSlug and not any(w['slug'] == workerSlug for w in case_dict['workers']):
+            continue
+            
         days_since_update = None
         days_since_start = None
         
@@ -67,3 +71,6 @@ def resolve_staleliness(root, info):
             
     return result
 
+def resolve_staleliness(root, info):
+    return compute_staleliness()
+    
