@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import { Heading } from "@/components/catalyst/heading";
+import { Card } from "@/components/ui/card";
 
 interface ClientSummary {
   client: string;
@@ -33,6 +34,54 @@ type Summary = ClientSummary | SponsorSummary;
 function isClientSummary(summary: Summary): summary is ClientSummary {
   return 'client' in summary;
 }
+
+const CaseStatusCard = ({ title, cases, color }: { title: string, cases: { title: string, slug: string }[], color: string }) => (
+  <div>
+    <div>
+      <SectionHeader title={title} subtitle={`${cases.length} ${cases.length === 1 ? 'case' : 'cases'}`} />
+    </div>
+    <ol className="list-decimal pl-4 space-y-1 text-[10px]">
+      {cases.map((c, i) => (
+        <li key={i} className="leading-[1.25]">
+          <Link 
+            href={`/cases/${c.slug}`}
+            className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            {c.title}
+          </Link>
+        </li>
+      ))}
+    </ol>
+  </div>
+);
+
+const CaseStatusOverview = ({ staleliness }: { staleliness: any }) => (
+  <div className="mb-8">
+    <SectionHeader title="Cases Status Overview" subtitle="" />
+    <div className="ml-2 mr-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <CaseStatusCard 
+        title="Up to Date Cases" 
+        cases={staleliness.upToDateCases}
+        color="text-green-600"
+      />
+      <CaseStatusCard 
+        title="Stale in One Week" 
+        cases={staleliness.staleInOneWeekCases}
+        color="text-yellow-600"
+      />
+      <CaseStatusCard 
+        title="Stale Cases" 
+        cases={staleliness.staleCases}
+        color="text-red-600"
+      />
+      <CaseStatusCard 
+        title="No Description" 
+        cases={staleliness.noDescriptionCases}
+        color="text-gray-600"
+      />
+    </div>
+  </div>
+);
 
 const SummarySection = ({ 
   summaries, 
@@ -175,7 +224,7 @@ export default function ConsultantPage() {
   if (error) return <div>Error loading data</div>;
   if (!data?.consultantOrEngineer) return <div>Consultant not found</div>;
 
-  const { name, position, photoUrl, timesheet1, timesheet2, ontologyUrl, timelinessReview } =
+  const { name, position, photoUrl, timesheet1, timesheet2, ontologyUrl, timelinessReview, staleliness } =
     data.consultantOrEngineer;
 
   const getSelectedSummary = (timesheet: any, selectedDay: number | null, selectedRow: number | null, selectedColumn: number | null, isAllSelected: boolean, selectedDate: Date, selectedStatType: StatType) => {
@@ -368,6 +417,8 @@ export default function ConsultantPage() {
           </div>
         </div>
       </div>
+
+      {staleliness && <CaseStatusOverview staleliness={staleliness} />}
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 

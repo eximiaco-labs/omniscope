@@ -653,7 +653,7 @@ export default function RevenueForecastPage() {
 
   return (
     <>
-      <div className="relative z-[60]">
+      <div className="relative z-[40]">
         <div className="flex flex-col gap-4">
           <div className="flex items-center">
             <DatePicker date={date} onSelectedDateChange={setDate} />

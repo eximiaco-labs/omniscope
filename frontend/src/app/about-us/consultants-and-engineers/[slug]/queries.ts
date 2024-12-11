@@ -15,6 +15,25 @@ export const GET_CONSULTANT = gql`
         latePercentage
       }
 
+      staleliness {
+        staleCases {
+          title
+          slug
+        }
+        noDescriptionCases {
+          title
+          slug
+        }
+        upToDateCases {
+          title
+          slug
+        }
+        staleInOneWeekCases {
+          title
+          slug
+        }
+      }
+
       timesheet1: timesheet(slug: $dataset1) {
         appointments {
           kind
@@ -70,6 +89,24 @@ export interface Consultant {
     okPercentage: number;
     acceptablePercentage: number;
     latePercentage: number;
+  };
+  staleliness: {
+    staleCases: Array<{
+      title: string;
+      slug: string;
+    }>;
+    noDescriptionCases: Array<{
+      title: string;
+      slug: string;
+    }>;
+    upToDateCases: Array<{
+      title: string;
+      slug: string;
+    }>;
+    staleInOneWeekCases: Array<{
+      title: string;
+      slug: string;
+    }>;
   };
   timesheet1: {
     appointments: Array<{
