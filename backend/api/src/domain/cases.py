@@ -75,7 +75,7 @@ def build_case_dictionary(map, case):
     if 'timesheets' in map:
         timesheets_map = map['timesheets']
         if 'lastSixWeeks' in timesheets_map:
-            from api.datasets.timesheets import compute_timesheet
+            from datasets.timesheets import compute_timesheet
             last_six_weeks_map = timesheets_map['lastSixWeeks']
             filters = [
                 {

@@ -1,0 +1,19 @@
+type Staleliness {
+    staleCases: [StalelinessCase!]!
+    staleInOneWeekCases: [StalelinessCase!]!
+    noDescriptionCases: [StalelinessCase!]!
+    upToDateCases: [StalelinessCase!]!
+}
+
+type StalelinessCase {
+  title: String!
+  slug: String!
+  lastUpdated: Date
+  daysSinceUpdate: Int!
+  workers: [StalenessWorker!]!
+}
+
+type StalenessWorker {
+  name: String!
+  slug: String!
+}
