@@ -59,6 +59,34 @@ type SortField =
   | "totalHours"
   | "hoursPercentage";
 
+interface WorkerStats {
+  count: number;
+  slug: string;
+  total: number;
+  unspecifiedHours: number;
+  totalHours: number;
+}
+
+interface WorkerStatsWithPercentages extends WorkerStats {
+  worker: string;
+  percentage: number;
+  hoursPercentage: number;
+}
+
+interface Stats {
+  total: number;
+  unspecified: number;
+  percentage: number;
+  byWorker: Record<string, WorkerStats>;
+}
+
+interface Appointment {
+  workerName: string;
+  workerSlug: string;
+  timeInHs: number;
+  comment: string;
+}
+
 export default function UnspecifiedWorkHoursPage() {
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -147,27 +175,13 @@ export default function UnspecifiedWorkHoursPage() {
   const stats = useMemo(() => {
     if (!data?.timesheet?.appointments) return null;
 
-    const appointments = data.timesheet.appointments;
+    const appointments = data.timesheet.appointments as Appointment[];
     const total = appointments.length;
-    const unspecified = appointments.filter(
-      (a: { comment: string }) => !a.comment
-    ).length;
+    const unspecified = appointments.filter((a) => !a.comment).length;
     const percentage = (unspecified / total) * 100;
 
-    const byWorker = appointments.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            count: number;
-            slug: string;
-            total: number;
-            unspecifiedHours: number;
-            totalHours: number;
-          }
-        >,
-        curr: any
-      ) => {
+    const byWorker = appointments.reduce<Record<string, WorkerStats>>(
+      (acc, curr) => {
         if (!acc[curr.workerName]) {
           acc[curr.workerName] = {
             count: 0,
@@ -190,17 +204,19 @@ export default function UnspecifiedWorkHoursPage() {
       {}
     );
 
-    return { total, unspecified, percentage, byWorker };
+    return { total, unspecified, percentage, byWorker } as Stats;
   }, [data]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
+  if (!stats) return null;
 
-  const totalUnspecifiedHours = Object.values(stats?.byWorker || {}).reduce(
+  const totalUnspecifiedHours = Object.values(stats.byWorker).reduce(
     (sum, worker) => sum + worker.unspecifiedHours,
     0
   );
-  const totalHours = Object.values(stats?.byWorker || {}).reduce(
+
+  const totalHours = Object.values(stats.byWorker).reduce(
     (sum, worker) => sum + worker.totalHours,
     0
   );
@@ -311,9 +327,9 @@ export default function UnspecifiedWorkHoursPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Object.entries(stats.byWorker)
+                    {(Object.entries(stats.byWorker) as [string, WorkerStats][])
                       .filter(([, data]) => data.count > 0)
-                      .map(([worker, data]) => ({
+                      .map(([worker, data]): WorkerStatsWithPercentages => ({
                         worker,
                         ...data,
                         percentage: (data.count / data.total) * 100,
