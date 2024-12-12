@@ -18,6 +18,7 @@ import {
   CheckCheckIcon,
   ClockIcon,
   ClipboardListIcon,
+  AlertCircleIcon,
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -127,6 +128,11 @@ export function getOperationalSummariesSidebarItems() {
       title: "Staleliness",
       url: "/operational-summaries/staleliness",
       icon: ClockIcon,
+    },
+    {
+      title: "Unspecified Work Hours",
+      url: "/operational-summaries/unspecified-work-hours", 
+      icon: AlertCircleIcon,
     },
   ];
 }
