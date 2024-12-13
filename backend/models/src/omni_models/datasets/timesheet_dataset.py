@@ -26,121 +26,181 @@ class TimesheetDataset(OmniDataset):
 
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
-        # Obter compromissos brutos e converter para DataFrame
+        
         start_time = datetime.now()
         self.logger.info(f"Getting appointments from {after} to {before}")
         raw = self.models.tracker.get_appointments(after, before)
+        elapsed_time = datetime.now() - start_time
+        self.logger.info(f"Time to get appointments: {elapsed_time.total_seconds():.2f} seconds")
+        
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
-        elapsed_time = datetime.now() - start_time
-        self.logger.info(f"Time to get and process appointments: {elapsed_time.total_seconds():.2f} seconds")
-
+        
+        
+        start_time = datetime.now()
+        self.logger.info(f"Enriching timesheet data")
+        
+        
         # Check if df is empty
         if df.empty:
             return SummarizablePowerDataFrame(pd.DataFrame())
 
-        # Criação de cache para evitar múltiplas consultas repetidas
+        # Create caches
         workers_cache = {}
         cases_cache = {}
         clients_cache = {}
         offers_cache = {}
         eh_projects_cache = self.models.tracker.all_projects
 
-        # Função para obter trabalhador e usar cache
-        def get_worker(user_id):
-            if user_id not in workers_cache:
-                workers_cache[user_id] = self.models.workers.get_by_everhour_id(user_id)
-            return workers_cache[user_id]
-
-        # Função para obter caso e usar cache
-        def get_case(project_id):
-            if project_id not in cases_cache:
-                cases_cache[project_id] = self.models.cases.get_by_everhour_project_id(project_id)
-            return cases_cache[project_id]
-
-        # Função para obter cliente e usar cache
-        def get_client(client_id):
-            if client_id not in clients_cache and client_id is not None:
-                clients_cache[client_id] = self.models.clients.get_by_id(client_id)
-            return clients_cache.get(client_id)
-
-        # Função para obter produto ou serviço e usar cache
-        def get_offer_name(offer_id):
-            if offer_id not in offers_cache:
-                offer = self.models.products_or_services.get_by_id(offer_id)
-                offers_cache[offer_id] = offer.name if offer else None
-            return offers_cache[offer_id]
+        # Pre-fetch all needed data
+        unique_user_ids = df['user_id'].unique()
+        unique_project_ids = df['project_id'].unique()
         
-        def get_billing_information(project_id):
-            project = eh_projects_cache.get(project_id)
-            return project.billing if project else None
-
-        # Transformações vetorizadas para dados de data
-        df['date'] = pd.to_datetime(df['date']).dt.date
-        df['day_of_week'] = df['date'].apply(lambda x: x.strftime('%A'))
-        df['n_day_of_week'] = df['date'].apply(lambda x: (x.weekday() + 1) % 7)
-        df['month'] = df['date'].apply(lambda x: x.strftime('%B'))
-        df['year'] = df['date'].apply(lambda x: x.strftime('%Y'))
-        df['year_month'] = df['date'].apply(lambda x: x.strftime('%Y-%m'))
-
-        # Função para enriquecer as linhas
-        def enrich_row(row):
-            # try:
-            billing = get_billing_information(row['project_id'])
-            row['billing_type'] = billing.type if billing else None
-            row['billing_fee'] = billing.fee if billing else None
-
-            # Enriquecer com dados do trabalhador
-            worker = get_worker(row['user_id'])
-            if worker:
-                row['worker_name'] = worker.name
-                row['worker_slug'] = worker.slug
-                row['worker_omni_url'] = worker.omni_url
-                row['worker'] = f"<a href='{worker.omni_url}'>{worker.name}</a>"
-            else:
-                row['worker_name'] = row['worker_slug'] = row['worker_omni_url'] = row['worker'] = None
-
-            # Enriquecer com dados do caso
-            case = get_case(row['project_id'])
+        # Bulk load workers
+        for user_id in unique_user_ids:
+            workers_cache[user_id] = self.models.workers.get_by_everhour_id(user_id)
+        
+        # Bulk load cases
+        for project_id in unique_project_ids:
+            cases_cache[project_id] = self.models.cases.get_by_everhour_project_id(project_id)
+        
+        # Bulk load clients and offers
+        unique_client_ids = set()
+        unique_offer_ids = set()
+        for case in cases_cache.values():
             if case:
-                row['case_id'] = case.id
-                row['case_title'] = case.title
-                row['case_slug'] = case.slug
-                row['sponsor'] = case.sponsor if case.sponsor else "N/A"
-                row['sponsor_slug'] = slugify(case.sponsor)
-                row['case'] = f"<a href='{case.omni_url}'>{case.title}</a>"
+                if case.client_id:
+                    unique_client_ids.add(case.client_id)
+                if hasattr(case, 'offers_ids'):
+                    unique_offer_ids.update(case.offers_ids)
+        
+        for client_id in unique_client_ids:
+            clients_cache[client_id] = self.models.clients.get_by_id(client_id)
+        
+        for offer_id in unique_offer_ids:
+            offer = self.models.products_or_services.get_by_id(offer_id)
+            offers_cache[offer_id] = offer.name if offer else None
 
-                # Obter produtos ou serviços associados
-                products_or_services = [get_offer_name(offer) for offer in case.offers_ids]
-                row['products_or_services'] = ';'.join(filter(None, products_or_services))
+        # Optimize by pre-allocating arrays for better memory usage
+        n_rows = len(df)
+        
+        # Create typed arrays for better performance
+        client_data = {
+            'client_id': np.full(n_rows, "N/A", dtype=object),
+            'client_name': np.full(n_rows, "N/A", dtype=object),
+            'client_slug': np.full(n_rows, "N/A", dtype=object),
+            'client_omni_url': np.full(n_rows, "N/A", dtype=object),
+            'client': np.full(n_rows, "N/A", dtype=object),
+            'account_manager_name': np.full(n_rows, "N/A", dtype=object),
+            'account_manager_slug': np.full(n_rows, "N/A", dtype=object)
+        }
 
-                # Enriquecer com dados do cliente
-                client = get_client(case.client_id)
-                if client:
-                    row['client_id'] = client.id
-                    row['client_name'] = client.name
-                    row['client_slug'] = client.slug
-                    row['client_omni_url'] = client.omni_url
-                    row['client'] = f"<a href='{client.omni_url}'>{client.name}</a>"
-                    row['account_manager_name'] = client.account_manager.name if client.account_manager else "N/A"
-                    row['account_manager_slug'] = client.account_manager.slug if client.account_manager else "N/A"
-                else:
-                    row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = row['sponsor_slug'] = "N/A"
-                    row['account_manager_name'] = row['account_manager_slug'] = "N/A"
-            else:
-                row['case_id'] = row['case_title'] = row['case_slug'] = row['sponsor'] = row['case'] = "N/A"
-                row['products_or_services'] = "N/A"
-                row['client_id'] = row['client_name'] = row['client_omni_url'] = row['client'] = row['client_slug'] = "N/A"
-                row['account_manager_name'] = row['account_manager_slug'] = "N/A"
-            #except Exception as e:
-            #    self.logger.error(f'Failed to enrich row for timesheet. ({e})')
+        # Optimize date operations using pandas
+        date_series = pd.to_datetime(df['date'])
+        df = df.assign(
+            date=date_series.dt.date,
+            day_of_week=date_series.dt.strftime('%A'),
+            n_day_of_week=date_series.dt.weekday.apply(lambda x: (x + 1) % 7),
+            month=date_series.dt.strftime('%B'),
+            year=date_series.dt.strftime('%Y'),
+            year_month=date_series.dt.strftime('%Y-%m')
+        )
 
-            return row
+        # Create numpy arrays for project and user IDs for faster lookups
+        project_ids = df['project_id'].values
+        user_ids = df['user_id'].values
 
-        # Aplicar enriquecimento nas linhas
-        df = df.apply(enrich_row, axis=1)
+        # Vectorized billing information using numpy masks
+        billing_type = np.full(n_rows, None, dtype=object)
+        billing_fee = np.full(n_rows, None, dtype=object)
+        
+        for pid in np.unique(project_ids):
+            mask = project_ids == pid
+            project = eh_projects_cache.get(pid)
+            if project and project.billing:
+                billing_type[mask] = project.billing.type
+                billing_fee[mask] = project.billing.fee
+        
+        df['billing_type'] = billing_type
+        df['billing_fee'] = billing_fee
 
-        return SummarizablePowerDataFrame(df.copy())
+        # Vectorized worker information
+        worker_data = {field: np.full(n_rows, None, dtype=object) for field in ['worker_name', 'worker_slug', 'worker_omni_url']}
+        
+        for uid in np.unique(user_ids):
+            mask = user_ids == uid
+            worker = workers_cache.get(uid)
+            if worker:
+                worker_data['worker_name'][mask] = worker.name
+                worker_data['worker_slug'][mask] = worker.slug
+                worker_data['worker_omni_url'][mask] = worker.omni_url
+        
+        df = df.assign(**worker_data)
+        
+        # Create worker links using pandas operations instead of numpy char operations
+        valid_worker_mask = df['worker_name'].notna() & df['worker_omni_url'].notna()
+        df['worker'] = None
+        df.loc[valid_worker_mask, 'worker'] = (
+            '<a href="' + 
+            df.loc[valid_worker_mask, 'worker_omni_url'] + 
+            '">' + 
+            df.loc[valid_worker_mask, 'worker_name'] + 
+            '</a>'
+        )
+
+        # Vectorized case information using numpy operations
+        case_data = {
+            'case_id': np.full(n_rows, "N/A", dtype=object),
+            'case_title': np.full(n_rows, "N/A", dtype=object),
+            'case_slug': np.full(n_rows, "N/A", dtype=object),
+            'sponsor': np.full(n_rows, "N/A", dtype=object),
+            'case_omni_url': np.full(n_rows, "N/A", dtype=object)
+        }
+        
+        for pid in np.unique(project_ids):
+            mask = project_ids == pid
+            case = cases_cache.get(pid)
+            if case:
+                case_data['case_id'][mask] = case.id
+                case_data['case_title'][mask] = case.title
+                case_data['case_slug'][mask] = case.slug
+                case_data['sponsor'][mask] = case.sponsor or "N/A"
+                case_data['case_omni_url'][mask] = case.omni_url
+                
+                # Update client data in the same loop to avoid multiple iterations
+                if case.client_id:
+                    client = clients_cache.get(case.client_id)
+                    if client:
+                        client_data['client_id'][mask] = client.id
+                        client_data['client_name'][mask] = client.name
+                        client_data['client_slug'][mask] = client.slug
+                        client_data['client_omni_url'][mask] = client.omni_url
+                        client_data['client'][mask] = f"<a href='{client.omni_url}'>{client.name}</a>"
+                        if client.account_manager:
+                            client_data['account_manager_name'][mask] = client.account_manager.name
+                            client_data['account_manager_slug'][mask] = client.account_manager.slug
+        
+        df = df.assign(**case_data)
+        df = df.assign(**client_data)
+        
+        # Optimize sponsor_slug creation using numpy
+        df['sponsor_slug'] = np.vectorize(slugify)(df['sponsor'].values)
+
+        # Optimize products_or_services using numpy operations
+        products = np.full(n_rows, "N/A", dtype=object)
+        for pid in np.unique(project_ids):
+            mask = project_ids == pid
+            case = cases_cache.get(pid)
+            if case and hasattr(case, 'offers_ids'):
+                products[mask] = ';'.join(filter(None, [offers_cache.get(oid) for oid in case.offers_ids]))
+        
+        df['products_or_services'] = products
+
+        elapsed_time = datetime.now() - start_time
+        self.logger.info(f"Time to enrich timesheet data: {elapsed_time.total_seconds():.2f} seconds")
+
+        return SummarizablePowerDataFrame(df)
+    
     def get_common_fields(self):
         return ['Kind', 'ClientName', 'Sponsor', 'WorkerName', 'TimeInHs', 'Date', 'Week', 'IsLte']
 
@@ -173,7 +233,7 @@ class TimesheetDataset(OmniDataset):
                 'CaseTitle',
                 'Sponsor',
                 'SponsorSlug',
-                'Case',
+                #'Case',
                 'ClientId',
                 'ClientName',
                 'ClientSlug',
