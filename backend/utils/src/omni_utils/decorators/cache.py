@@ -3,6 +3,7 @@ import hashlib
 import logging
 import os
 import pickle
+from typing import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -67,3 +68,24 @@ def invalidate_cache(instance, func=None, args=None, kwargs=None):
             for file in os.listdir('cache'):
                 os.remove(os.path.join('cache', file))
             # logger.info("All cache files removed")
+
+
+@staticmethod
+def memoize(key: str, func: Callable):
+    cache_dir = 'cache'
+    cache_file = os.path.join(cache_dir, f"{key}.cache")
+
+    if os.path.isfile(cache_file):
+        with open(cache_file, 'rb') as f:
+            return pickle.load(f)
+    
+    result = func()
+    
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+        
+    with open(cache_file, 'wb') as f:
+        pickle.dump(result, f)
+        
+    return result
+    

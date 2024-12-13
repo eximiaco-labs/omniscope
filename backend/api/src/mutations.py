@@ -11,5 +11,6 @@ def resolve_refresh_data(_, info):
     except Exception as e:
         print(f"Error refreshing data: {str(e)}")
         return False
+    
 
 __all__ = ['mutation']

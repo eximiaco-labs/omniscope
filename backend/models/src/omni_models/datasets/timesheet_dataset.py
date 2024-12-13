@@ -27,9 +27,13 @@ class TimesheetDataset(OmniDataset):
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
         # Obter compromissos brutos e converter para DataFrame
+        start_time = datetime.now()
+        self.logger.info(f"Getting appointments from {after} to {before}")
         raw = self.models.tracker.get_appointments(after, before)
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
+        elapsed_time = datetime.now() - start_time
+        self.logger.info(f"Time to get and process appointments: {elapsed_time.total_seconds():.2f} seconds")
 
         # Check if df is empty
         if df.empty:
