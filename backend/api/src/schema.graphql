@@ -48,8 +48,16 @@ type Query {
   forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
 
   staleliness: Staleliness!
+
+  cache: [CacheItem!]!
+}
+
+type CacheItem {
+  key: String!
+  createdAt: Date!
 }
 
 type Mutation {
   refreshData: Boolean!
+  invalidateCache(key: String!): Boolean!
 }

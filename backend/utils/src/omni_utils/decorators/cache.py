@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import functools
 import hashlib
 import logging
@@ -88,4 +89,28 @@ def memoize(key: str, func: Callable):
         pickle.dump(result, f)
         
     return result
+
+@staticmethod
+def forget(key: str):
+    cache_dir = 'cache'
+    cache_file = os.path.join(cache_dir, f"{key}.cache")
+    if os.path.isfile(cache_file):
+        os.remove(cache_file)
+        logger.info(f"Cache file removed for {key}")
+        
+@staticmethod
+def list_cache():
+    cache_dir = 'cache'
+    cache_files = []
+    for file in os.listdir(cache_dir):
+        if file.endswith('.cache'):
+            path = os.path.join(cache_dir, file)
+            created = datetime.fromtimestamp(os.path.getctime(path))
+            # Adjust for GMT-3 timezone
+            created = created + timedelta(hours=3)
+            cache_files.append({
+                'key': os.path.splitext(file)[0],
+                'created_at': created
+            })
+    return cache_files
     

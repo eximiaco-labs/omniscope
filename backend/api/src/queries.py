@@ -5,6 +5,7 @@ from domain import setup_query_for_domain
 from datasets import setup_query_for_datasets
 from analytics import setup_query_for_analytics
 from inconsistencies import resolve_inconsistencies
+from omni_utils.decorators.cache import list_cache
 from operational_summaries import setup_query_for_operational_summaries
 
 
@@ -33,7 +34,11 @@ setup_query_for_datasets(query)
 additional_types_for_analytics = setup_query_for_analytics(query)
 additional_types_for_operational_summaries = setup_query_for_operational_summaries(query)
 
+def resolve_cache(_, info):
+    return list_cache()
+
 query.set_field('inconsistencies', resolve_inconsistencies)
+query.set_field('cache', resolve_cache)
 query_types = [query] + additional_types_for_domain + additional_types_for_analytics + additional_types_for_operational_summaries
 type_defs = load_schema()
 
