@@ -1,7 +1,7 @@
 "use client";
 
 import { Heading } from "@/components/catalyst/heading";
-import { gql, HttpLink, useQuery, useMutation } from "@apollo/client";
+import { gql, HttpLink, useQuery } from "@apollo/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,25 +12,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/catalyst/badge";
 import { print } from "graphql";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw } from "lucide-react";
+import { Search } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-
-const INVALIDATE_CACHE_MUTATION = gql`
-  mutation InvalidateCache($key: String!) {
-    invalidateCache(key: $key)
-  }
-`;
-
-const GET_CACHE_QUERY = gql`
-  query GetCache {
-    cache {
-      key
-      createdAt
-    }
-  }
-`;
 
 const GET_OFFERS_AND_TIMESHEET = gql`
   query GetOffersAndTimesheet {
@@ -69,35 +52,15 @@ const GET_OFFERS_AND_TIMESHEET = gql`
 `;
 
 export default function ProductsOrServices() {
-  const { loading, error, data, refetch } = useQuery(GET_OFFERS_AND_TIMESHEET, {
+  const { loading, error, data } = useQuery(GET_OFFERS_AND_TIMESHEET, {
     ssr: true,
   });
-  const { data: cacheData } = useQuery(GET_CACHE_QUERY);
-  const [invalidateCache] = useMutation(INVALIDATE_CACHE_MUTATION);
   const [selectedStat, setSelectedStat] = useState<string>("allOffers");
   const [searchTerm, setSearchTerm] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   const queryString = print(GET_OFFERS_AND_TIMESHEET);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await invalidateCache({ variables: { key: "offers" } });
-      const { data: newData } = await refetch();
-      if (newData) {
-        window.location.reload();
-        toast.success("Offers data refreshed successfully");
-      }
-    } catch (err) {
-      toast.error("Failed to refresh offers data");
-      console.error(err);
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
@@ -227,30 +190,8 @@ export default function ProductsOrServices() {
       }
     });
 
-  const offersCacheInfo = cacheData?.cache?.find((item: { key: string; }) => item.key === "offers");
-  
-  const formatLastUpdated = (dateStr: string) => {
-    if (!dateStr) return "Never";
-    const date = new Date(dateStr);
-    return date.toLocaleString('pt-BR', { 
-      timeZone: 'America/Sao_Paulo'
-    });
-  };
-
   return (
     <>
-      <div className="flex justify-end items-center gap-2 py-1 text-xs text-muted-foreground">
-        <span>Last updated: {formatLastUpdated(offersCacheInfo?.createdAt)}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
-
       <div className="grid grid-cols-6 gap-4 mb-4">
         <div className="col-span-6">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">

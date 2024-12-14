@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/catalyst/badge";
 import { Heading } from "@/components/catalyst/heading";
-import { useQuery, useMutation, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,25 +13,8 @@ import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
 import { Option } from "react-tailwindcss-select/dist/components/type";
 import { CasesGallery } from "./CasesGallery";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw } from "lucide-react";
+import { Search } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-
-const INVALIDATE_CACHE_MUTATION = gql`
-  mutation InvalidateCache($key: String!) {
-    invalidateCache(key: $key)
-  }
-`;
-
-const GET_CACHE_QUERY = gql`
-  query GetCache {
-    cache {
-      key
-      createdAt
-    }
-  }
-`;
 
 export default function Cases() {
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
@@ -39,35 +22,15 @@ export default function Cases() {
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >([]);
-  const [refreshing, setRefreshing] = useState(false);
 
-  const { loading, error, data, refetch } = useQuery(GET_CASES_AND_TIMESHEET, {
+  const { loading, error, data } = useQuery(GET_CASES_AND_TIMESHEET, {
     variables: {
       filters:
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
     ssr: true
   });
-  const { data: cacheData } = useQuery(GET_CACHE_QUERY);
-  const [invalidateCache] = useMutation(INVALIDATE_CACHE_MUTATION);
   const [selectedStat, setSelectedStat] = useState<string>("allCases");
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await invalidateCache({ variables: { key: "cases" } });
-      const { data: newData } = await refetch();
-      if (newData) {
-        window.location.reload();
-        toast.success("Case data refreshed successfully");
-      }
-    } catch (err) {
-      toast.error("Failed to refresh case data");
-      console.error(err);
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
     const newSelectedValues = Array.isArray(value)
@@ -139,30 +102,8 @@ export default function Cases() {
       }
     });
 
-  const casesCacheInfo = cacheData?.cache?.find((item: { key: string; }) => item.key === "cases");
-  
-  const formatLastUpdated = (dateStr: string) => {
-    if (!dateStr) return "Never";
-    const date = new Date(dateStr);
-    return date.toLocaleString('pt-BR', { 
-      timeZone: 'America/Sao_Paulo'
-    });
-  };
-
   return (
     <>
-      <div className="flex justify-end items-center gap-2 py-1 text-xs text-muted-foreground">
-        <span>Last updated: {formatLastUpdated(casesCacheInfo?.createdAt)}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
-
       <div className="grid grid-cols-6 gap-4 mb-4">
         <div className="col-span-1"></div>
         <div className="col-span-5">

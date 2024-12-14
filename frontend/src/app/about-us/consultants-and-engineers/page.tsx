@@ -4,16 +4,14 @@ import { useState } from "react";
 import { Avatar } from "@/components/catalyst/avatar";
 import { Badge } from "@/components/catalyst/badge";
 import { Heading } from "@/components/catalyst/heading";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { Stat } from "@/app/components/analytics/stat";
 import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { WorkerCard } from "./WorkerCard";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw } from "lucide-react";
+import { Search } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
@@ -58,21 +56,6 @@ const GET_CONSULTANTS_AND_TIMESHEET = gql`
   }
 `;
 
-const INVALIDATE_CACHE_MUTATION = gql`
-  mutation InvalidateCache($key: String!) {
-    invalidateCache(key: $key)
-  }
-`;
-
-const GET_CACHE_QUERY = gql`
-  query GetCache {
-    cache {
-      key
-      createdAt
-    }
-  }
-`;
-
 interface TimesheetWorker {
   name: string;
   totalHours: number;
@@ -113,36 +96,16 @@ interface QueryData {
 }
 
 export default function ConsultantsAndEngineers() {
-  const { loading, error, data, refetch } = useQuery<QueryData>(
+  const { loading, error, data } = useQuery<QueryData>(
     GET_CONSULTANTS_AND_TIMESHEET,
     { ssr: true }
   );
-  const { data: cacheData } = useQuery(GET_CACHE_QUERY);
-  const [invalidateCache] = useMutation(INVALIDATE_CACHE_MUTATION);
   const [selectedStat, setSelectedStat] = useState<string>("allWorkers");
   const [searchTerm, setSearchTerm] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   if (!data) return null;
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await invalidateCache({ variables: { key: "workers" } });
-      const { data: newData } = await refetch();
-      if (newData) {
-        window.location.reload();
-        toast.success("Worker data refreshed successfully");
-      }
-    } catch (err) {
-      toast.error("Failed to refresh worker data");
-      console.error(err);
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const handleStatClick = (statName: string) => {
     setSelectedStat(statName);
@@ -183,32 +146,8 @@ export default function ConsultantsAndEngineers() {
       }
     });
 
-  const workersCacheInfo = cacheData?.cache?.find((item: { key: string; }) => item.key === "workers");
-  
-  const formatLastUpdated = (dateStr: string) => {
-    if (!dateStr) return "Never";
-    const date = new Date(dateStr);
-    // Adjust for GMT-3
-    // date.setHours(date.getHours() - 3);
-    return date.toLocaleString('pt-BR', { 
-      timeZone: 'America/Sao_Paulo'
-    });
-  };
-
   return (
     <>
-      <div className="flex justify-end items-center gap-2 py-1 text-xs text-muted-foreground">
-        <span>Last updated: {formatLastUpdated(workersCacheInfo?.createdAt)}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
-
       <div className="grid grid-cols-6 gap-4 mb-4">
         <div className="col-span-6">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
