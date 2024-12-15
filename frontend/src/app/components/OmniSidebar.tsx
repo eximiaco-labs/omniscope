@@ -30,6 +30,8 @@ import React from "react";
 import { NavUser } from "./NavUser";
 import { getFlag } from "@/app/flags";
 import { usePathname } from "next/navigation";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -160,70 +162,105 @@ export function OmniSidebar() {
               <SidebarMenu>
                 {hasFinancialAccess && financialItems.length > 0 && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton
-                      isActive={activeSection === "Financial"}
-                      onClick={() => {
-                        setActiveSection("Financial");
-                        setActiveItems(financialItems);
-                        setOpen(true);
-                      }}
-                    >
-                      <DollarSignIcon className="size-4" />
-                      <span>Financial</span>
-                    </SidebarMenuButton>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            isActive={activeSection === "Financial"}
+                            onClick={() => {
+                              setActiveSection("Financial");
+                              setActiveItems(financialItems);
+                              setOpen(true);
+                            }}
+                          >
+                            <DollarSignIcon className="size-4" />
+                            <span>Financial</span>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">Financial Reports & Data</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </SidebarMenuItem>
                 )}
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={activeSection === "Analytics"}
-                    onClick={() => {
-                      setActiveSection("Analytics");
-                      setActiveItems(analyticsItems);
-                      setOpen(true);
-                    }}
-                  >
-                    <BarChart3Icon className="size-4" />
-                    <span>Analytics</span>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          isActive={activeSection === "Analytics"}
+                          onClick={() => {
+                            setActiveSection("Analytics");
+                            setActiveItems(analyticsItems);
+                            setOpen(true);
+                          }}
+                        >
+                          <BarChart3Icon className="size-4" />
+                          <span>Analytics</span>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">Analytics & Insights</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={activeSection === "About Us"}
-                    onClick={() => {
-                      setActiveSection("About Us");
-                      setActiveItems(aboutUsItems);
-                      setOpen(true);
-                    }}
-                  >
-                    <UsersIcon className="size-4" />
-                    <span>About Us</span>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          isActive={activeSection === "About Us"}
+                          onClick={() => {
+                            setActiveSection("About Us");
+                            setActiveItems(aboutUsItems);
+                            setOpen(true);
+                          }}
+                        >
+                          <UsersIcon className="size-4" />
+                          <span>About Us</span>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">Company Information</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={activeSection === "Operational Summaries"}
-                    onClick={() => {
-                      setActiveSection("Operational Summaries");
-                      setActiveItems(operationalItems);
-                      setOpen(true);
-                    }}
-                  >
-                    <CheckCheckIcon className="size-4" />
-                    <span>Operational Summaries</span>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          isActive={activeSection === "Operational Summaries"}
+                          onClick={() => {
+                            setActiveSection("Operational Summaries");
+                            setActiveItems(operationalItems);
+                            setOpen(true);
+                          }}
+                        >
+                          <CheckCheckIcon className="size-4" />
+                          <span>Operational Summaries</span>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">Operational Reports & Summaries</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={activeSection === "Administrative"}
-                    onClick={() => {
-                      setActiveSection("Administrative");
-                      setActiveItems(adminItems);
-                      setOpen(true);
-                    }}
-                  >
-                    <SettingsIcon className="size-4" />
-                    <span>Administrative</span>
-                  </SidebarMenuButton>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          isActive={activeSection === "Administrative"}
+                          onClick={() => {
+                            setActiveSection("Administrative");
+                            setActiveItems(adminItems);
+                            setOpen(true);
+                          }}
+                        >
+                          <SettingsIcon className="size-4" />
+                          <span>Administrative</span>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">Administrative Settings</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
