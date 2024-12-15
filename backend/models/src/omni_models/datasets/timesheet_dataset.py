@@ -29,16 +29,50 @@ class TimesheetMemoryCache:
         self.cache.append({
             "after": after,
             "before": before,
-            "result": result
+            "result": result, 
+            "created_at": datetime.now()
         })
 
-    def list_cache(self):
+    def list_cache(self, after, before):
+        if after:
+            if isinstance(after, str):
+                after = datetime.strptime(after, '%Y-%m-%d').date()
+            elif isinstance(after, datetime):
+                after = after.date()
+                
+        if before:
+            if isinstance(before, str):
+                before = datetime.strptime(before, '%Y-%m-%d').date()
+            elif isinstance(before, datetime):
+                before = before.date()
+        
         return [
             {
                 "after": m['after'],
                 "before": m['before'],
+                "created_at": m['created_at']
             }
             for m in self.cache
+            if (after is None or after >= m['after']) and (before is None or before <= m['before'])
+        ]
+        
+    def invalidate(self, after, before):
+        if after:
+            if isinstance(after, str):
+                after = datetime.strptime(after, '%Y-%m-%d').date()
+            elif isinstance(after, datetime):
+                after = after.date()
+                
+        if before:
+            if isinstance(before, str):
+                before = datetime.strptime(before, '%Y-%m-%d').date()
+            elif isinstance(before, datetime):
+                before = before.date()
+                
+        self.cache = [
+            m 
+            for m in self.cache 
+            if (after is None or after >= m['after']) and (before is None or before <= m['before'])
         ]
 
 class TimesheetDataset(OmniDataset):

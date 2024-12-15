@@ -23,4 +23,13 @@ def resolve_invalidate_cache(_, info, key: str):
         print(f"Error invalidating cache: {str(e)}")
         return False
 
+@mutation.field("invalidateTimesheetCache")
+def resolve_invalidate_timesheet_cache(_, info, after = None, before = None):
+    try:
+        globals.omni_datasets.timesheets.memory.invalidate(after, before)
+        return True
+    except Exception as e:
+        print(f"Error invalidating timesheet cache: {str(e)}")
+        return False
+
 __all__ = ['mutation']
