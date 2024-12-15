@@ -1,5 +1,6 @@
 from datetime import datetime
 from omni_shared import globals
+from operational_summaries.staleliness import compute_staleliness
 
 
 class Inconsistency:
@@ -50,15 +51,13 @@ def resolve_inconsistencies(_, info) -> list[Inconsistency]:
             f'{len(projects_with_hours_recorded_without_case)} Everhour projects had hours listed but did not have a formal description in a "case"'
         ))
         
-    stale_cases = [
-        case 
-        for case in cases
-        if case.is_active and case.is_stale
-    ]
+    staleliness = compute_staleliness()
+    stale_cases = staleliness['stale_cases']
+    
     if len(stale_cases) > 0:
         result.append(Inconsistency(
             'Stale cases',
-            'There are cases that have not been updated in over 30 days.'
+            f'There are {len(stale_cases)} cases that have not been updated in over 30 days.'
         ))
 
     projects = globals.omni_models.projects.get_all().values()

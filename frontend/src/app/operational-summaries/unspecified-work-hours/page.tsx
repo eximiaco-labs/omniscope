@@ -26,6 +26,7 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
+import { DateRangePicker } from "@/components/DateRangePicker";
 
 const TIMESHEET_QUERY = gql`
   query Timesheet($slug: String!, $filters: [FilterInput]) {
@@ -151,18 +152,6 @@ export default function UnspecifiedWorkHoursPage() {
     skip: !slug,
   });
 
-  const handleThisWeek = () => {
-    const start = startOfWeek(today, { weekStartsOn: 1 }); // Week starts on Monday
-    const end = endOfWeek(today, { weekStartsOn: 1 });
-    setDateRange({ from: start, to: end });
-  };
-
-  const handleThisMonth = () => {
-    const start = startOfMonth(today);
-    const end = endOfMonth(today);
-    setDateRange({ from: start, to: end });
-  };
-
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -225,12 +214,12 @@ export default function UnspecifiedWorkHoursPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
-          <DatePickerWithRange
+          <DateRangePicker
             date={{
               from: dateRange.from,
               to: dateRange.to,
             }}
-            setDate={(newDateRange) => {
+            onDateRangeChange={(newDateRange) => {
               if (newDateRange) {
                 setDateRange({
                   from: newDateRange.from || dateRange.from,
@@ -239,12 +228,6 @@ export default function UnspecifiedWorkHoursPage() {
               }
             }}
           />
-          <Button variant="outline" onClick={handleThisWeek}>
-            This Week
-          </Button>
-          <Button variant="outline" onClick={handleThisMonth}>
-            This Month
-          </Button>
           <div className="flex-grow border-t border-gray-300" />
         </div>
 

@@ -52,8 +52,9 @@ class CRM(SemanticModel):
         }
 
     def find_person_by_name(self, name: str) -> Optional[Person]:
+        p = self.people.values()
         return next((
             person
-            for person in self.people.values()
+            for person in p
             if person.name == name
         ), None)

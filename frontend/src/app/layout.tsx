@@ -23,6 +23,7 @@ import { SessionComponent } from "./components/SessionComponent";
 import { InconsistencyAlerts } from "./components/InconsistencyAlerts";
 import { OmniCommandsButton } from "./components/OmniCommands";
 import { Analytics } from "@/components/Analytics";
+import { OmniHitRefresh } from "./components/OmniHitRefresh";
 
 // Disable auto-refresh on focus and tab visibility change
 if (typeof window !== 'undefined') {
@@ -112,6 +113,7 @@ export default function RootLayout({
                         <main>
                           <div className="container mx-auto px-4">
                             <InconsistencyAlerts />
+                            <OmniHitRefresh />
                             {children}
                           </div>
                         </main>

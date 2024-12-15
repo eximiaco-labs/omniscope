@@ -48,8 +48,24 @@ type Query {
   forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
 
   staleliness: Staleliness!
+
+  cache: [CacheItem!]!
+  timesheetCache(after: Date, before: Date): [TimesheetCacheItem!]!
+}
+
+type CacheItem {
+  key: String!
+  createdAt: Date!
+}
+
+type TimesheetCacheItem {
+  after: Date!
+  before: Date!
+  createdAt: Date!
 }
 
 type Mutation {
   refreshData: Boolean!
+  invalidateCache(key: String!): Boolean!
+  invalidateTimesheetCache(after: Date, before: Date): Boolean!
 }

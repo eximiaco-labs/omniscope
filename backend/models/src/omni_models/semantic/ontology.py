@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date
 from typing import List, Optional, Dict
 
+from omni_utils.decorators.cache import memoize
 import validators
 from pydantic import BaseModel, HttpUrl
 
@@ -242,11 +243,13 @@ class Ontology(SemanticModel):
 
     @property
     def workers(self) -> Dict[int, Worker]:
-        posts = self.wp.fetch_posts('consultores', cls=WorkerPost)
-        relations = self.worker_clients_relations
-        return {post.id: Worker.from_wordpress_post(post, relations) for post in posts}
-
+        def fetch_workers():
+            posts = self.wp.fetch_posts('consultores', cls=WorkerPost)
+            relations = self.worker_clients_relations
+            return {post.id: Worker.from_wordpress_post(post, relations) for post in posts}
+        return memoize('workers', fetch_workers)
     @property
+    
     def account_managers(self) -> Dict[int, Worker]:
         workers = self.workers.values()
         return {
@@ -287,12 +290,13 @@ class Ontology(SemanticModel):
 
     @property
     def clients(self):
-        posts = self.wp.fetch_posts('clientes')
-
-        return {
-            post.id: Client.from_wordpress_post(post, self)
-            for post in posts
-        }
+        def fetch_clients():
+            posts = self.wp.fetch_posts('clientes')
+            return {
+                post.id: Client.from_wordpress_post(post, self)
+                for post in posts
+            }
+        return memoize('clients', fetch_clients)
 
     @property
     def offers_cases_relations(self) -> Dict[int, list[int]]:
@@ -313,22 +317,26 @@ class Ontology(SemanticModel):
 
     @property
     def cases(self) -> Dict[int, Case]:
-        cases_offers = self.cases_offers_relations
-        cases_clients = self.cases_clients_relations
-        posts = self.wp.fetch_posts('cases')
-        return {
-            post.id: Case.from_wordpress_post(post, cases_offers, cases_clients)
-            for post in posts
-        }
-
+        def fetch_cases():
+            cases_offers = self.cases_offers_relations
+            cases_clients = self.cases_clients_relations
+            posts = self.wp.fetch_posts('cases')
+            return {
+                post.id: Case.from_wordpress_post(post, cases_offers, cases_clients)
+                for post in posts
+            }
+        return memoize('cases', fetch_cases)
+    
     @property
     def offers(self) -> Dict[int, Entry]:
-        posts = self.wp.fetch_posts('ofertas')
-        authors = self.authors
-        return {
-            post.id: Entry.from_wordpress_post(post, 'ofertas', authors[post.author])
-            for post in posts
-        }
+        def fetch_offers():
+            posts = self.wp.fetch_posts('ofertas')
+            authors = self.authors
+            return {
+                post.id: Entry.from_wordpress_post(post, 'ofertas', authors[post.author])
+                for post in posts
+            }
+        return memoize('offers', fetch_offers)
 
     def fetch_entries(self, after: datetime, before: datetime) -> List[Entry]:
         classes = self.classes
