@@ -152,8 +152,8 @@ export default function UnspecifiedWorkHoursPage() {
   });
 
   const handleThisWeek = () => {
-    const start = startOfWeek(today, { weekStartsOn: 1 }); // Week starts on Monday
-    const end = endOfWeek(today, { weekStartsOn: 1 });
+    const start = startOfWeek(today, { weekStartsOn: 0 }); // Week starts on Sunday
+    const end = endOfWeek(today, { weekStartsOn: 0 });
     setDateRange({ from: start, to: end });
   };
 
