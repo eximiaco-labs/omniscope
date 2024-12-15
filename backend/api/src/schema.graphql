@@ -50,11 +50,17 @@ type Query {
   staleliness: Staleliness!
 
   cache: [CacheItem!]!
+  timesheetCache: [TimesheetCacheItem!]!
 }
 
 type CacheItem {
   key: String!
   createdAt: Date!
+}
+
+type TimesheetCacheItem {
+  after: Date!
+  before: Date!
 }
 
 type Mutation {

@@ -8,6 +8,7 @@ from inconsistencies import resolve_inconsistencies
 from omni_utils.decorators.cache import list_cache
 from operational_summaries import setup_query_for_operational_summaries
 
+from omni_shared import globals
 
 BASE_DIR = Path(__file__).parent
 
@@ -37,8 +38,12 @@ additional_types_for_operational_summaries = setup_query_for_operational_summari
 def resolve_cache(_, info):
     return list_cache()
 
+def resolve_timesheet_cache(_, info):
+    return globals.omni_datasets.timesheets.memory.list_cache()
+
 query.set_field('inconsistencies', resolve_inconsistencies)
 query.set_field('cache', resolve_cache)
+query.set_field('timesheetCache', resolve_timesheet_cache)
 query_types = [query] + additional_types_for_domain + additional_types_for_analytics + additional_types_for_operational_summaries
 type_defs = load_schema()
 

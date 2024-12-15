@@ -32,11 +32,20 @@ class TimesheetMemoryCache:
             "result": result
         })
 
+    def list_cache(self):
+        return [
+            {
+                "after": m['after'],
+                "before": m['before'],
+            }
+            for m in self.cache
+        ]
+
 class TimesheetDataset(OmniDataset):
     def __init__(self, models: OmniModels = None):
         self.models = models or OmniModels()
         self.logger = logging.getLogger(self.__class__.__name__)
-        self._memory = TimesheetMemoryCache()
+        self.memory = TimesheetMemoryCache()
 
     def get_treemap_path(self):
         return 'TimeInHs', ['Kind', 'ClientName', 'WorkerName']
@@ -47,7 +56,7 @@ class TimesheetDataset(OmniDataset):
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
         
-        result = self._memory.get(after, before)
+        result = self.memory.get(after, before)
         if result:
             self.logger.info(f"Getting appointments from cache from {after} to {before}.")
             return result
@@ -226,7 +235,7 @@ class TimesheetDataset(OmniDataset):
         
         result = SummarizablePowerDataFrame(df)
         
-        self._memory.add(after, before, result)
+        self.memory.add(after, before, result)
 
         return result
     
