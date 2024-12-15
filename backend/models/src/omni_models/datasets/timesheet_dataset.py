@@ -12,11 +12,31 @@ from omni_utils.helpers.weeks import Weeks
 from omni_utils.helpers.slug import slugify
 from omni_models.omnimodels import OmniModels
 
+class TimesheetMemoryCache:
+    def __init__(self):
+        self.cache = []
+
+    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
+        for m in self.cache:
+            if m['after'] <= after and m['before'] >= before:
+                df = m['result'].data
+                df = df[df['Date'] >= after.date()]
+                df = df[df['Date'] <= before.date()]
+                return SummarizablePowerDataFrame(df)
+        return None
+    
+    def add(self, after: datetime, before: datetime, result: SummarizablePowerDataFrame):
+        self.cache.append({
+            "after": after,
+            "before": before,
+            "result": result
+        })
 
 class TimesheetDataset(OmniDataset):
     def __init__(self, models: OmniModels = None):
         self.models = models or OmniModels()
         self.logger = logging.getLogger(self.__class__.__name__)
+        self._memory = TimesheetMemoryCache()
 
     def get_treemap_path(self):
         return 'TimeInHs', ['Kind', 'ClientName', 'WorkerName']
@@ -26,6 +46,11 @@ class TimesheetDataset(OmniDataset):
 
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
+        
+        result = self._memory.get(after, before)
+        if result:
+            self.logger.info(f"Getting appointments from cache from {after} to {before}.")
+            return result
         
         start_time = datetime.now()
         self.logger.info(f"Getting appointments from {after} to {before}")
@@ -198,8 +223,12 @@ class TimesheetDataset(OmniDataset):
 
         elapsed_time = datetime.now() - start_time
         self.logger.info(f"Time to enrich timesheet data: {elapsed_time.total_seconds():.2f} seconds")
+        
+        result = SummarizablePowerDataFrame(df)
+        
+        self._memory.add(after, before, result)
 
-        return SummarizablePowerDataFrame(df)
+        return result
     
     def get_common_fields(self):
         return ['Kind', 'ClientName', 'Sponsor', 'WorkerName', 'TimeInHs', 'Date', 'Week', 'IsLte']
