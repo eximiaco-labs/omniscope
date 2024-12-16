@@ -651,10 +651,10 @@ export default function RevenueForecastPage() {
                       {index + 1}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center">
                         <button 
                           onClick={() => toggleClient(client.slug, tableId)}
-                          className="w-4 h-4 flex items-center justify-center text-gray-500"
+                          className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                         >
                           {expandedClients[tableId]?.includes(client.slug) ? '−' : '+'}
                         </button>
@@ -714,63 +714,136 @@ export default function RevenueForecastPage() {
                     tableData.sponsors
                       .filter((sponsor: any) => sponsor.clientSlug === client.slug)
                       .map((sponsor: any) => (
-                        <TableRow key={sponsor.name} className="h-[57px] bg-gray-50">
-                          <TableCell></TableCell>
-                          <TableCell className="pl-8">
-                            <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:text-blue-800">
-                              {sponsor.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell
-                            className={`text-right border-x text-[12px] ${
-                              sponsor.threeMonthsAgo === 0 ? "text-gray-300" : ""
-                            } relative`}
-                          >
-                            {formatCurrency(sponsor.threeMonthsAgo)}
-                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                              {formatPercentage(
-                                sponsor.threeMonthsAgo,
-                                total.threeMonthsAgo
-                              )}
-                            </span>
-                          </TableCell>
-                          <TableCell
-                            className={`text-right border-x text-[12px] ${
-                              sponsor.twoMonthsAgo === 0 ? "text-gray-300" : ""
-                            } relative`}
-                          >
-                            {formatCurrency(sponsor.twoMonthsAgo)}
-                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                              {formatPercentage(
-                                sponsor.twoMonthsAgo,
-                                total.twoMonthsAgo
-                              )}
-                            </span>
-                          </TableCell>
-                          <TableCell
-                            className={`text-right border-x text-[12px] ${
-                              sponsor.oneMonthAgo === 0 ? "text-gray-300" : ""
-                            } relative`}
-                          >
-                            {formatCurrency(sponsor.oneMonthAgo)}
-                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                              {formatPercentage(
-                                sponsor.oneMonthAgo,
-                                total.oneMonthAgo
-                              )}
-                            </span>
-                          </TableCell>
-                          <TableCell
-                            className={`text-right border-x ${
-                              sponsor.current === 0 ? "text-gray-300" : ""
-                            } relative`}
-                          >
-                            {formatCurrency(sponsor.current)}
-                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                              {formatPercentage(sponsor.current, total.current)}
-                            </span>
-                          </TableCell>
-                        </TableRow>
+                        <>
+                          <TableRow key={sponsor.name} className="h-[57px] bg-gray-50">
+                            <TableCell></TableCell>
+                            <TableCell className="pl-4">
+                              <div className="flex items-center">
+                                <button 
+                                  onClick={() => toggleClient(sponsor.slug, tableId)}
+                                  className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
+                                >
+                                  {expandedClients[tableId]?.includes(sponsor.slug) ? '−' : '+'}
+                                </button>
+                                <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:text-blue-800 text-[14px]">
+                                  {sponsor.name}
+                                </Link>
+                              </div>
+                            </TableCell>
+                            <TableCell
+                              className={`text-right border-x text-[12px] ${
+                                sponsor.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                              } relative`}
+                            >
+                              {formatCurrency(sponsor.threeMonthsAgo)}
+                              <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                {formatPercentage(
+                                  sponsor.threeMonthsAgo,
+                                  total.threeMonthsAgo
+                                )}
+                              </span>
+                            </TableCell>
+                            <TableCell
+                              className={`text-right border-x text-[12px] ${
+                                sponsor.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                              } relative`}
+                            >
+                              {formatCurrency(sponsor.twoMonthsAgo)}
+                              <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                {formatPercentage(
+                                  sponsor.twoMonthsAgo,
+                                  total.twoMonthsAgo
+                                )}
+                              </span>
+                            </TableCell>
+                            <TableCell
+                              className={`text-right border-x text-[12px] ${
+                                sponsor.oneMonthAgo === 0 ? "text-gray-300" : ""
+                              } relative`}
+                            >
+                              {formatCurrency(sponsor.oneMonthAgo)}
+                              <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                {formatPercentage(
+                                  sponsor.oneMonthAgo,
+                                  total.oneMonthAgo
+                                )}
+                              </span>
+                            </TableCell>
+                            <TableCell
+                              className={`text-right border-x ${
+                                sponsor.current === 0 ? "text-gray-300" : ""
+                              } relative`}
+                            >
+                              {formatCurrency(sponsor.current)}
+                              <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                {formatPercentage(sponsor.current, total.current)}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                          {expandedClients[tableId]?.includes(sponsor.slug) &&
+                            tableData.cases
+                              .filter((caseItem: any) => caseItem.sponsorSlug === sponsor.slug)
+                              .map((caseItem: any) => (
+                                <TableRow key={caseItem.title} className="h-[57px] bg-gray-100">
+                                  <TableCell></TableCell>
+                                  <TableCell className="pl-9">
+                                    <Link href={`/cases/${caseItem.slug}`} className="text-blue-600 hover:text-blue-800 text-[12px]">
+                                      {caseItem.title}
+                                    </Link>
+                                  </TableCell>
+                                  <TableCell
+                                    className={`text-right border-x text-[12px] ${
+                                      caseItem.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                                    } relative`}
+                                  >
+                                    {formatCurrency(caseItem.threeMonthsAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(
+                                        caseItem.threeMonthsAgo,
+                                        total.threeMonthsAgo
+                                      )}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell
+                                    className={`text-right border-x text-[12px] ${
+                                      caseItem.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                                    } relative`}
+                                  >
+                                    {formatCurrency(caseItem.twoMonthsAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(
+                                        caseItem.twoMonthsAgo,
+                                        total.twoMonthsAgo
+                                      )}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell
+                                    className={`text-right border-x text-[12px] ${
+                                      caseItem.oneMonthAgo === 0 ? "text-gray-300" : ""
+                                    } relative`}
+                                  >
+                                    {formatCurrency(caseItem.oneMonthAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(
+                                        caseItem.oneMonthAgo,
+                                        total.oneMonthAgo
+                                      )}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell
+                                    className={`text-right border-x ${
+                                      caseItem.current === 0 ? "text-gray-300" : ""
+                                    } relative`}
+                                  >
+                                    {formatCurrency(caseItem.current)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.current, total.current)}
+                                    </span>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                          }
+                        </>
                       ))
                   }
                 </>
@@ -827,6 +900,21 @@ export default function RevenueForecastPage() {
         projected: sponsor.projected,
         expected: sponsor.expected,
       })),
+      cases: data.forecast.byKind.consulting.byCase.map((caseItem: any) => ({
+        title: caseItem.title,
+        slug: caseItem.slug,
+        sponsorSlug: caseItem.sponsorSlug,
+        clientSlug: caseItem.clientSlug,
+        sameDayThreeMonthsAgo: caseItem.sameDayThreeMonthsAgo,
+        threeMonthsAgo: caseItem.threeMonthsAgo,
+        sameDayTwoMonthsAgo: caseItem.sameDayTwoMonthsAgo,
+        twoMonthsAgo: caseItem.twoMonthsAgo,
+        sameDayOneMonthAgo: caseItem.sameDayOneMonthAgo,
+        oneMonthAgo: caseItem.oneMonthAgo,
+        realized: caseItem.inAnalysis,
+        projected: caseItem.projected,
+        expected: caseItem.expected,
+      })),
       totals: {
         sameDayThreeMonthsAgo:
           data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
@@ -864,6 +952,18 @@ export default function RevenueForecastPage() {
           current: sponsor.inAnalysis,
         })
       ),
+      cases: data.forecast.byKind.consultingPre.byCase.map(
+        (caseItem: any) => ({
+          title: caseItem.title,
+          slug: caseItem.slug,
+          sponsorSlug: caseItem.sponsorSlug,
+          clientSlug: caseItem.clientSlug,
+          threeMonthsAgo: caseItem.threeMonthsAgo,
+          twoMonthsAgo: caseItem.twoMonthsAgo,
+          oneMonthAgo: caseItem.oneMonthAgo,
+          current: caseItem.inAnalysis,
+        })
+      ),
       totals: {
         threeMonthsAgo:
           data.forecast.byKind.consultingPre.totals.threeMonthsAgo,
@@ -890,6 +990,16 @@ export default function RevenueForecastPage() {
         oneMonthAgo: sponsor.oneMonthAgo,
         current: sponsor.inAnalysis,
       })),
+      cases: data.forecast.byKind.handsOn.byCase.map((caseItem: any) => ({
+        title: caseItem.title,
+        slug: caseItem.slug,
+        sponsorSlug: caseItem.sponsorSlug,
+        clientSlug: caseItem.clientSlug,
+        threeMonthsAgo: caseItem.threeMonthsAgo,
+        twoMonthsAgo: caseItem.twoMonthsAgo,
+        oneMonthAgo: caseItem.oneMonthAgo,
+        current: caseItem.inAnalysis,
+      })),
       totals: {
         threeMonthsAgo: data.forecast.byKind.handsOn.totals.threeMonthsAgo,
         twoMonthsAgo: data.forecast.byKind.handsOn.totals.twoMonthsAgo,
@@ -914,6 +1024,16 @@ export default function RevenueForecastPage() {
         twoMonthsAgo: sponsor.twoMonthsAgo,
         oneMonthAgo: sponsor.oneMonthAgo,
         current: sponsor.inAnalysis,
+      })),
+      cases: data.forecast.byKind.squad.byCase.map((caseItem: any) => ({
+        title: caseItem.title,
+        slug: caseItem.slug,
+        sponsorSlug: caseItem.sponsorSlug,
+        clientSlug: caseItem.clientSlug,
+        threeMonthsAgo: caseItem.threeMonthsAgo,
+        twoMonthsAgo: caseItem.twoMonthsAgo,
+        oneMonthAgo: caseItem.oneMonthAgo,
+        current: caseItem.inAnalysis,
       })),
       totals: {
         threeMonthsAgo: data.forecast.byKind.squad.totals.threeMonthsAgo,
