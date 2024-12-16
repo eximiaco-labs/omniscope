@@ -896,63 +896,134 @@ export default function RevenueForecastPage() {
                             tableData.cases
                               .filter((caseItem: any) => caseItem.sponsorSlug === sponsor.slug)
                               .map((caseItem: any) => (
-                                <TableRow key={caseItem.title} className="h-[57px] bg-gray-100">
-                                  <TableCell></TableCell>
-                                  <TableCell className="pl-9">
-                                    <Link href={`/cases/${caseItem.slug}`} className="text-blue-600 hover:text-blue-800 text-[12px]">
-                                      {caseItem.title}
-                                    </Link>
-                                  </TableCell>
-                                  <TableCell
-                                    className={`text-right border-x text-[12px] ${
-                                      caseItem.threeMonthsAgo === 0 ? "text-gray-300" : ""
-                                    } relative`}
-                                  >
-                                    {formatCurrency(caseItem.threeMonthsAgo)}
-                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                                      {formatPercentage(
-                                        caseItem.threeMonthsAgo,
-                                        total.threeMonthsAgo
-                                      )}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell
-                                    className={`text-right border-x text-[12px] ${
-                                      caseItem.twoMonthsAgo === 0 ? "text-gray-300" : ""
-                                    } relative`}
-                                  >
-                                    {formatCurrency(caseItem.twoMonthsAgo)}
-                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                                      {formatPercentage(
-                                        caseItem.twoMonthsAgo,
-                                        total.twoMonthsAgo
-                                      )}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell
-                                    className={`text-right border-x text-[12px] ${
-                                      caseItem.oneMonthAgo === 0 ? "text-gray-300" : ""
-                                    } relative`}
-                                  >
-                                    {formatCurrency(caseItem.oneMonthAgo)}
-                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                                      {formatPercentage(
-                                        caseItem.oneMonthAgo,
-                                        total.oneMonthAgo
-                                      )}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell
-                                    className={`text-right border-x ${
-                                      caseItem.current === 0 ? "text-gray-300" : ""
-                                    } relative`}
-                                  >
-                                    {formatCurrency(caseItem.current)}
-                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                                      {formatPercentage(caseItem.current, total.current)}
-                                    </span>
-                                  </TableCell>
-                                </TableRow>
+                                <>
+                                  <TableRow key={caseItem.title} className="h-[57px] bg-gray-100">
+                                    <TableCell></TableCell>
+                                    <TableCell className="pl-9">
+                                      <div className="flex items-center">
+                                        <button 
+                                          onClick={() => toggleClient(caseItem.slug, tableId)}
+                                          className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
+                                        >
+                                          {expandedClients[tableId]?.includes(caseItem.slug) ? '−' : '+'}
+                                        </button>
+                                        <Link href={`/cases/${caseItem.slug}`} className="text-blue-600 hover:text-blue-800 text-[12px]">
+                                          {caseItem.title}
+                                        </Link>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell
+                                      className={`text-right border-x text-[12px] ${
+                                        caseItem.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                                      } relative`}
+                                    >
+                                      {formatCurrency(caseItem.threeMonthsAgo)}
+                                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                        {formatPercentage(
+                                          caseItem.threeMonthsAgo,
+                                          total.threeMonthsAgo
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell
+                                      className={`text-right border-x text-[12px] ${
+                                        caseItem.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                                      } relative`}
+                                    >
+                                      {formatCurrency(caseItem.twoMonthsAgo)}
+                                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                        {formatPercentage(
+                                          caseItem.twoMonthsAgo,
+                                          total.twoMonthsAgo
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell
+                                      className={`text-right border-x text-[12px] ${
+                                        caseItem.oneMonthAgo === 0 ? "text-gray-300" : ""
+                                      } relative`}
+                                    >
+                                      {formatCurrency(caseItem.oneMonthAgo)}
+                                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                        {formatPercentage(
+                                          caseItem.oneMonthAgo,
+                                          total.oneMonthAgo
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell
+                                      className={`text-right border-x ${
+                                        caseItem.current === 0 ? "text-gray-300" : ""
+                                      } relative`}
+                                    >
+                                      {formatCurrency(caseItem.current)}
+                                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                        {formatPercentage(caseItem.current, total.current)}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                  {expandedClients[tableId]?.includes(caseItem.slug) &&
+                                    tableData.projects
+                                      .filter((project: any) => project.caseSlug === caseItem.slug)
+                                      .map((project: any) => (
+                                        <TableRow key={project.name} className="h-[57px] bg-gray-200">
+                                          <TableCell></TableCell>
+                                          <TableCell className="pl-14 text-[12px]">
+                                            {project.name}
+                                          </TableCell>
+                                          <TableCell
+                                            className={`text-right border-x text-[12px] ${
+                                              project.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                                            } relative`}
+                                          >
+                                            {formatCurrency(project.threeMonthsAgo)}
+                                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                              {formatPercentage(
+                                                project.threeMonthsAgo,
+                                                total.threeMonthsAgo
+                                              )}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell
+                                            className={`text-right border-x text-[12px] ${
+                                              project.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                                            } relative`}
+                                          >
+                                            {formatCurrency(project.twoMonthsAgo)}
+                                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                              {formatPercentage(
+                                                project.twoMonthsAgo,
+                                                total.twoMonthsAgo
+                                              )}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell
+                                            className={`text-right border-x text-[12px] ${
+                                              project.oneMonthAgo === 0 ? "text-gray-300" : ""
+                                            } relative`}
+                                          >
+                                            {formatCurrency(project.oneMonthAgo)}
+                                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                              {formatPercentage(
+                                                project.oneMonthAgo,
+                                                total.oneMonthAgo
+                                              )}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell
+                                            className={`text-right border-x ${
+                                              project.current === 0 ? "text-gray-300" : ""
+                                            } relative`}
+                                          >
+                                            {formatCurrency(project.current)}
+                                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                              {formatPercentage(project.current, total.current)}
+                                            </span>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))
+                                  }
+                                </>
                               ))
                           }
                         </>
@@ -1027,6 +1098,20 @@ export default function RevenueForecastPage() {
         projected: caseItem.projected,
         expected: caseItem.expected,
       })),
+      projects: data.forecast.byKind.consulting.byProject.map((project: any) => ({
+        name: project.name,
+        slug: project.slug,
+        caseSlug: project.caseSlug,
+        sameDayThreeMonthsAgo: project.sameDayThreeMonthsAgo,
+        threeMonthsAgo: project.threeMonthsAgo,
+        sameDayTwoMonthsAgo: project.sameDayTwoMonthsAgo,
+        twoMonthsAgo: project.twoMonthsAgo,
+        sameDayOneMonthAgo: project.sameDayOneMonthAgo,
+        oneMonthAgo: project.oneMonthAgo,
+        realized: project.inAnalysis,
+        projected: project.projected,
+        expected: project.expected,
+      })),
       totals: {
         sameDayThreeMonthsAgo:
           data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
@@ -1076,6 +1161,17 @@ export default function RevenueForecastPage() {
           current: caseItem.inAnalysis,
         })
       ),
+      projects: data.forecast.byKind.consultingPre.byProject.map(
+        (project: any) => ({
+          name: project.name,
+          slug: project.slug,
+          caseSlug: project.caseSlug,
+          threeMonthsAgo: project.threeMonthsAgo,
+          twoMonthsAgo: project.twoMonthsAgo,
+          oneMonthAgo: project.oneMonthAgo,
+          current: project.inAnalysis,
+        })
+      ),
       totals: {
         threeMonthsAgo:
           data.forecast.byKind.consultingPre.totals.threeMonthsAgo,
@@ -1112,6 +1208,15 @@ export default function RevenueForecastPage() {
         oneMonthAgo: caseItem.oneMonthAgo,
         current: caseItem.inAnalysis,
       })),
+      projects: data.forecast.byKind.handsOn.byProject.map((project: any) => ({
+        name: project.name,
+        slug: project.slug,
+        caseSlug: project.caseSlug,
+        threeMonthsAgo: project.threeMonthsAgo,
+        twoMonthsAgo: project.twoMonthsAgo,
+        oneMonthAgo: project.oneMonthAgo,
+        current: project.inAnalysis,
+      })),
       totals: {
         threeMonthsAgo: data.forecast.byKind.handsOn.totals.threeMonthsAgo,
         twoMonthsAgo: data.forecast.byKind.handsOn.totals.twoMonthsAgo,
@@ -1146,6 +1251,15 @@ export default function RevenueForecastPage() {
         twoMonthsAgo: caseItem.twoMonthsAgo,
         oneMonthAgo: caseItem.oneMonthAgo,
         current: caseItem.inAnalysis,
+      })),
+      projects: data.forecast.byKind.squad.byProject.map((project: any) => ({
+        name: project.name,
+        slug: project.slug,
+        caseSlug: project.caseSlug,
+        threeMonthsAgo: project.threeMonthsAgo,
+        twoMonthsAgo: project.twoMonthsAgo,
+        oneMonthAgo: project.oneMonthAgo,
+        current: project.inAnalysis,
       })),
       totals: {
         threeMonthsAgo: data.forecast.byKind.squad.totals.threeMonthsAgo,
