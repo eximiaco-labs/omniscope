@@ -543,6 +543,7 @@ type ForecastByClient {
   byClient: [ForecastByClientEntry!]!
   bySponsor: [ForecastBySponsorEntry!]!
   byCase: [ForecastByCaseEntry!]!
+  byProject: [ForecastByProjectEntry!]!
   totals: ForecastTotals!
 }
 
@@ -550,6 +551,7 @@ type ForecastConsultingByClient {
   byClient: [ForecastConsultingByClientEntry!]!
   bySponsor: [ForecastConsultingBySponsorEntry!]!
   byCase: [ForecastConsultingByCaseEntry!]!
+  byProject: [ForecastConsultingByProjectEntry!]!
   totals: ForecastConsultingTotals!
 }
 
@@ -587,6 +589,16 @@ type ForecastByCaseEntry {
   slug: String!
   sponsorSlug: String
   clientSlug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+}
+
+type ForecastByProjectEntry {
+  name: String!
+  slug: String!
+  caseSlug: String!
   inAnalysis: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
@@ -637,6 +649,21 @@ type ForecastConsultingByCaseEntry {
   slug: String!
   sponsorSlug: String
   clientSlug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  projected: Float!
+  expected: Float!
+}
+
+type ForecastConsultingByProjectEntry {
+  name: String!
+  slug: String!
+  caseSlug: String!
   inAnalysis: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
