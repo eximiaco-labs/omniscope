@@ -73,18 +73,30 @@ def compute_forecast(date_of_interest = None, filters = None):
         
     def summarize_forecast(slug):
         clients = {}
+        sponsors = {}
         
         def add_context(context, context_slug):
             for client in context['summaries']['by_client']:
                 if client.slug not in clients:
                     clients[client.slug] = {
                         'name': client.name,
-                        'slug': client.slug,
+                        'slug': client.slug
                     }
 
                 working_client = clients[client.slug]
                 working_client[context_slug] = client.get_fee(slug)
-        
+                
+                for sponsor in client.by_sponsor:
+                    if sponsor.name not in sponsors:
+                        sponsors[sponsor.name] = {
+                            'name': sponsor.name,
+                            'slug': sponsor.slug,
+                            'client_slug': client.slug
+                        }
+                    
+                    working_sponsor = sponsors[sponsor.name]
+                    working_sponsor[context_slug] = sponsor.get_fee(slug)
+                    
         add_context(analysis_date_of_interest, 'in_analysis')
         add_context(analysis_last_day_of_last_month, 'one_month_ago')
         add_context(analysis_last_day_of_two_months_ago, 'two_months_ago')
@@ -104,32 +116,49 @@ def compute_forecast(date_of_interest = None, filters = None):
             or client.get('three_months_ago', 0) > 0
         ]
         
-        for client in by_client:
-            client['in_analysis'] = client.get('in_analysis', 0)
-            client['one_month_ago'] = client.get('one_month_ago', 0)
-            client['two_months_ago'] = client.get('two_months_ago', 0)
-            client['three_months_ago'] = client.get('three_months_ago', 0)
+        by_sponsor = list(sponsors.values())
+        by_sponsor = [
+            sponsor for sponsor in by_sponsor
+            if sponsor.get('in_analysis', 0) > 0
+            or sponsor.get('one_month_ago', 0) > 0
+            or sponsor.get('two_months_ago', 0) > 0
+            or sponsor.get('three_months_ago', 0) > 0
+        ]
+        
+        def adjust_entity(entity):
+            entity['in_analysis'] = entity.get('in_analysis', 0)
+            entity['one_month_ago'] = entity.get('one_month_ago', 0)
+            entity['two_months_ago'] = entity.get('two_months_ago', 0)
+            entity['three_months_ago'] = entity.get('three_months_ago', 0)
             if slug == 'consulting':
-                client['same_day_one_month_ago'] = client.get('same_day_one_month_ago', 0)
-                client['same_day_two_months_ago'] = client.get('same_day_two_months_ago', 0)
-                client['same_day_three_months_ago'] = client.get('same_day_three_months_ago', 0)
+                entity['same_day_one_month_ago'] = entity.get('same_day_one_month_ago', 0)
+                entity['same_day_two_months_ago'] = entity.get('same_day_two_months_ago', 0)
+                entity['same_day_three_months_ago'] = entity.get('same_day_three_months_ago', 0)
                 
                 current_day = date_of_interest.day
                 days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
-                client['projected'] = (client['in_analysis'] / current_day) * days_in_month
+                entity['projected'] = (entity['in_analysis'] / current_day) * days_in_month
                 
-                previous_value = client.get('one_month_ago', 0)
-                two_months_ago_value = client.get('two_months_ago', 0)
-                three_months_ago_value = client.get('three_months_ago', 0)
+                previous_value = entity.get('one_month_ago', 0)
+                two_months_ago_value = entity.get('two_months_ago', 0)
+                three_months_ago_value = entity.get('three_months_ago', 0)
                 
                 if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
-                    client['expected'] = client['projected']
+                    entity['expected'] = entity['projected']
                 elif two_months_ago_value == 0 and three_months_ago_value == 0:
-                    client['expected'] = previous_value
+                    entity['expected'] = previous_value
                 elif three_months_ago_value == 0:
-                    client['expected'] = previous_value * 0.8 + two_months_ago_value * 0.2
+                    entity['expected'] = previous_value * 0.8 + two_months_ago_value * 0.2
                 else:
-                    client['expected'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
+                    entity['expected'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
+                
+        
+        for client in by_client:
+            adjust_entity(client)
+        
+        for sponsor in by_sponsor:
+            adjust_entity(sponsor)
+        
         
         totals = {
             'in_analysis': sum(client.get('in_analysis', 0) for client in by_client),
@@ -147,6 +176,7 @@ def compute_forecast(date_of_interest = None, filters = None):
         return {
             'slug': slug,
             'by_client': by_client,
+            'by_sponsor': by_sponsor,
             'totals': totals
         }
     

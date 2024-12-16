@@ -541,11 +541,13 @@ type ForecastByKind {
 
 type ForecastByClient {
   byClient: [ForecastByClientEntry!]!
+  bySponsor: [ForecastBySponsorEntry!]!
   totals: ForecastTotals!
 }
 
 type ForecastConsultingByClient {
   byClient: [ForecastConsultingByClientEntry!]!
+  bySponsor: [ForecastConsultingBySponsorEntry!]!
   totals: ForecastConsultingTotals!
 }
 
@@ -566,6 +568,16 @@ type ForecastConsultingTotals {
   sameDayThreeMonthsAgo: Float!
   projected: Float!
   expected: Float!
+}
+
+type ForecastBySponsorEntry {
+  name: String!
+  slug: String!
+  clientSlug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
 }
 
 type ForecastByClientEntry {
@@ -591,3 +603,18 @@ type ForecastConsultingByClientEntry {
   sameDayThreeMonthsAgo: Float!
   expected: Float!
 } 
+
+type ForecastConsultingBySponsorEntry {
+  name: String!
+  slug: String!
+  clientSlug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  projected: Float!
+  expected: Float!
+}
