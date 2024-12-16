@@ -572,10 +572,13 @@ export default function RevenueForecastPage() {
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-x border-gray-200 text-[12px] ${
-                                      caseItem.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                                      caseItem.sameDayThreeMonthsAgo === 0 ? "text-gray-300" : ""
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.sameDayThreeMonthsAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.sameDayThreeMonthsAgo, total.sameDayThreeMonthsAgo)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-r border-gray-400 text-[12px] ${
@@ -583,13 +586,19 @@ export default function RevenueForecastPage() {
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.threeMonthsAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.threeMonthsAgo, total.threeMonthsAgo)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-x border-gray-200 text-[12px] ${
-                                      caseItem.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                                      caseItem.sameDayTwoMonthsAgo === 0 ? "text-gray-300" : ""
                                     } relative`}
                                   >
-                                    {formatCurrency(caseItem.sameDayOneMonthAgo)}
+                                    {formatCurrency(caseItem.sameDayTwoMonthsAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.sameDayTwoMonthsAgo, total.sameDayTwoMonthsAgo)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-r border-gray-400 text-[12px] ${
@@ -597,13 +606,19 @@ export default function RevenueForecastPage() {
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.twoMonthsAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.twoMonthsAgo, total.twoMonthsAgo)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-x border-gray-200 text-[12px] ${
-                                      caseItem.oneMonthAgo === 0 ? "text-gray-300" : ""
+                                      caseItem.sameDayOneMonthAgo === 0 ? "text-gray-300" : ""
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.sameDayOneMonthAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.sameDayOneMonthAgo, total.sameDayOneMonthAgo)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-r border-gray-400 text-[12px] ${
@@ -611,25 +626,37 @@ export default function RevenueForecastPage() {
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.oneMonthAgo)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.oneMonthAgo, total.oneMonthAgo)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-x border-gray-200 ${
-                                      caseItem.current === 0 ? "text-gray-300" : ""
+                                      caseItem.realized === 0 ? "text-gray-300" : ""
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.realized)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.realized, total.realized)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-x border-gray-200 ${
-                                      caseItem.current === 0 ? "text-gray-300" : ""
+                                      caseItem.projected === 0 ? "text-gray-300" : ""
                                     } relative`}
                                   >
                                     {formatCurrency(caseItem.projected)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.projected, total.projected)}
+                                    </span>
                                   </TableCell>
                                   <TableCell
                                     className={`text-right border-r border-gray-400 relative`}
                                   >
                                     {formatCurrency(caseItem.expected)}
+                                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                                      {formatPercentage(caseItem.expected, total.expected)}
+                                    </span>
                                   </TableCell>
                                 </TableRow>
                               ))
