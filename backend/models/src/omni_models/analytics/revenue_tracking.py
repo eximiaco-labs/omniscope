@@ -527,6 +527,140 @@ class AccountManagerSummary:
         ]
         
 @dataclass
+class ProjectSummary:
+    name: str
+    slug: str
+    case_title: str
+    pre_contracted: float
+    regular: float
+    total: float
+    consulting_fee: float
+    consulting_pre_fee: float
+    hands_on_fee: float
+    squad_fee: float
+    
+    def get_fee(self, kind):
+        if kind == "consulting":
+            return self.consulting_fee
+        elif kind == "consulting_pre":
+            return self.consulting_pre_fee
+        elif kind == "hands_on":
+            return self.hands_on_fee
+        elif kind == "squad":
+            return self.squad_fee
+        else:
+            return 0
+        
+    @staticmethod
+    def build(project_name, pre_contracted, regular):
+        pre_contracted_fee = sum(
+            project["fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]  
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name
+        )
+        
+        regular_fee = sum(
+            project["fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name
+        )
+        
+        total_consulting_fee = sum(
+            project["fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name and project["kind"] == "consulting"
+        )
+        
+        total_consulting_pre_fee = sum(
+            project["fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name and project["kind"] == "consulting"
+        ) + sum(
+            project["fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name and project["kind"] == "consulting"
+        )
+        
+        total_hands_on_fee = sum(
+            project["fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name and project["kind"] == "hands_on"
+        )
+        
+        total_squad_fee = sum(
+            project["fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name and project["kind"] == "squad"
+        )
+        
+        case_title = globals.omni_models.cases.get_by_everhour_project_name(project_name).title
+        
+        return ProjectSummary(
+            name=project_name,
+            case_title=case_title,
+            slug=slugify(project_name),
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee,
+            consulting_fee=total_consulting_fee,
+            consulting_pre_fee=total_consulting_pre_fee,
+            hands_on_fee=total_hands_on_fee,
+            squad_fee=total_squad_fee,
+        )   
+        
+    @staticmethod
+    def build_list(pre_contracted, regular, case_title = None):
+        # First filter cases if needed to avoid unnecessary iterations
+        def get_projects(data):
+            projects = set()
+            for account_manager in data["monthly"]["by_account_manager"]:
+                for client in account_manager["by_client"]:
+                    for sponsor in client["by_sponsor"]:
+                        for case in sponsor["by_case"]:
+                            if case_title is None or case["title"] == case_title:
+                                for project in case["by_project"]:
+                                    projects.add(project["name"])
+            return projects
+            
+        # Combine projects from both sources
+        project_names = sorted(
+            get_projects(pre_contracted) | get_projects(regular)
+        )
+        
+        return [
+            ProjectSummary.build(project_name, pre_contracted, regular)
+            for project_name in project_names
+        ]
+        
+@dataclass
 class CaseSummary:
     title: str
     slug: str
@@ -537,6 +671,8 @@ class CaseSummary:
     consulting_pre_fee: float
     hands_on_fee: float
     squad_fee: float
+    
+    by_project: list[ProjectSummary]
     
     def get_fee(self, kind):
         if kind == "consulting":
@@ -612,6 +748,8 @@ class CaseSummary:
             if case["title"] == case_title
         )
         
+        by_project = ProjectSummary.build_list(pre_contracted, regular, case_title)
+        
         return CaseSummary(
             title=case_title,
             slug=slugify(case_title),
@@ -621,7 +759,8 @@ class CaseSummary:
             consulting_fee=total_consulting_fee,
             consulting_pre_fee=total_consulting_pre_fee,
             hands_on_fee=total_hands_on_fee,
-            squad_fee=total_squad_fee
+            squad_fee=total_squad_fee,
+            by_project=by_project
         )
         
     @staticmethod

@@ -75,6 +75,7 @@ def compute_forecast(date_of_interest = None, filters = None):
         clients = {}
         sponsors = {}
         cases = {}
+        projects = {}
         
         def add_context(context, context_slug):
             for client in context['summaries']['by_client']:
@@ -109,6 +110,17 @@ def compute_forecast(date_of_interest = None, filters = None):
                             
                         working_case = cases[case.title]
                         working_case[context_slug] = case.get_fee(slug)
+                        
+                        for project in case.by_project:
+                            if project.name not in projects:
+                                projects[project.name] = {
+                                    'name': project.name,
+                                    'slug': project.slug,
+                                    'case_slug': case.slug
+                                }
+                            
+                            working_project = projects[project.name]
+                            working_project[context_slug] = project.get_fee(slug)
                     
         add_context(analysis_date_of_interest, 'in_analysis')
         add_context(analysis_last_day_of_last_month, 'one_month_ago')
@@ -147,6 +159,15 @@ def compute_forecast(date_of_interest = None, filters = None):
             or case.get('three_months_ago', 0) > 0
         ]
         
+        by_project = list(projects.values())
+        by_project = [
+            project for project in by_project
+            if project.get('in_analysis', 0) > 0
+            or project.get('one_month_ago', 0) > 0
+            or project.get('two_months_ago', 0) > 0
+            or project.get('three_months_ago', 0) > 0
+        ]
+        
         def adjust_entity(entity):
             entity['in_analysis'] = entity.get('in_analysis', 0)
             entity['one_month_ago'] = entity.get('one_month_ago', 0)
@@ -183,6 +204,9 @@ def compute_forecast(date_of_interest = None, filters = None):
             
         for case in by_case:
             adjust_entity(case)
+            
+        for project in by_project:
+            adjust_entity(project)
         
         
         totals = {
@@ -203,6 +227,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             'by_client': by_client,
             'by_sponsor': by_sponsor,
             'by_case': by_case,
+            'by_project': by_project,
             'totals': totals
         }
     
