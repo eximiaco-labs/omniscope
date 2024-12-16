@@ -310,119 +310,249 @@ export default function RevenueForecastPage() {
             </TableHeader>
             <TableBody>
               {sortedClients.map((client: any, index: number) => (
-                <TableRow key={client.name} className="h-[57px] border-b-[1px]">
-                  <TableCell className="text-center text-gray-500 text-[10px]">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="border-r border-gray-400">
-                    <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:text-blue-800">
-                      {client.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-x border-gray-200 text-[12px] ${
-                      client.sameDayThreeMonthsAgo === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.sameDayThreeMonthsAgo)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.sameDayThreeMonthsAgo,
-                        total.sameDayThreeMonthsAgo
-                      )}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-r border-gray-400 text-[12px] ${
-                      client.threeMonthsAgo === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.threeMonthsAgo)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.threeMonthsAgo,
-                        total.threeMonthsAgo
-                      )}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-x border-gray-200 text-[12px] ${
-                      client.sameDayTwoMonthsAgo === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.sameDayTwoMonthsAgo)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.sameDayTwoMonthsAgo,
-                        total.sameDayTwoMonthsAgo
-                      )}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-r border-gray-400 text-[12px] ${
-                      client.twoMonthsAgo === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.twoMonthsAgo)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.twoMonthsAgo,
-                        total.twoMonthsAgo
-                      )}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-x border-gray-200 text-[12px] ${
-                      client.sameDayOneMonthAgo === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.sameDayOneMonthAgo)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(
-                        client.sameDayOneMonthAgo,
-                        total.sameDayOneMonthAgo
-                      )}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-r border-gray-400 text-[12px] ${
-                      client.oneMonthAgo === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.oneMonthAgo)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(client.oneMonthAgo, total.oneMonthAgo)}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-x border-gray-200 ${
-                      client.realized === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.realized)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(client.realized, total.realized)}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-x border-gray-200 ${
-                      client.projected === 0 ? "text-gray-300" : ""
-                    } relative`}
-                  >
-                    {formatCurrency(client.projected)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(client.projected, total.projected)}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className={`text-right border-r border-gray-400 relative`}
-                  >
-                    {formatCurrency(client.expected)}
-                    <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-                      {formatPercentage(client.expected, total.expected)}
-                    </span>
-                  </TableCell>
-                </TableRow>
+                <>
+                  <TableRow key={client.name} className="h-[57px] border-b-[1px]">
+                    <TableCell className="text-center text-gray-500 text-[10px]">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="border-r border-gray-400">
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => toggleClient(client.slug, tableId)}
+                          className="w-4 h-4 flex items-center justify-center text-gray-500"
+                        >
+                          {expandedClients[tableId]?.includes(client.slug) ? '−' : '+'}
+                        </button>
+                        <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:text-blue-800">
+                          {client.name}
+                        </Link>
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-x border-gray-200 text-[12px] ${
+                        client.sameDayThreeMonthsAgo === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.sameDayThreeMonthsAgo)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(
+                          client.sameDayThreeMonthsAgo,
+                          total.sameDayThreeMonthsAgo
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-r border-gray-400 text-[12px] ${
+                        client.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.threeMonthsAgo)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(
+                          client.threeMonthsAgo,
+                          total.threeMonthsAgo
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-x border-gray-200 text-[12px] ${
+                        client.sameDayTwoMonthsAgo === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.sameDayTwoMonthsAgo)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(
+                          client.sameDayTwoMonthsAgo,
+                          total.sameDayTwoMonthsAgo
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-r border-gray-400 text-[12px] ${
+                        client.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.twoMonthsAgo)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(
+                          client.twoMonthsAgo,
+                          total.twoMonthsAgo
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-x border-gray-200 text-[12px] ${
+                        client.sameDayOneMonthAgo === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.sameDayOneMonthAgo)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(
+                          client.sameDayOneMonthAgo,
+                          total.sameDayOneMonthAgo
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-r border-gray-400 text-[12px] ${
+                        client.oneMonthAgo === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.oneMonthAgo)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(client.oneMonthAgo, total.oneMonthAgo)}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-x border-gray-200 ${
+                        client.realized === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.realized)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(client.realized, total.realized)}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-x border-gray-200 ${
+                        client.projected === 0 ? "text-gray-300" : ""
+                      } relative`}
+                    >
+                      {formatCurrency(client.projected)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(client.projected, total.projected)}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className={`text-right border-r border-gray-400 relative`}
+                    >
+                      {formatCurrency(client.expected)}
+                      <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                        {formatPercentage(client.expected, total.expected)}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                  {expandedClients[tableId]?.includes(client.slug) && 
+                    tableData.sponsors
+                      .filter((sponsor: any) => sponsor.clientSlug === client.slug)
+                      .map((sponsor: any) => (
+                        <TableRow key={sponsor.name} className="h-[57px] bg-gray-50">
+                          <TableCell></TableCell>
+                          <TableCell className="pl-8 border-r border-gray-400">
+                            <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:text-blue-800">
+                              {sponsor.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-x border-gray-200 text-[12px] ${
+                              sponsor.sameDayThreeMonthsAgo === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.sameDayThreeMonthsAgo)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(
+                                sponsor.sameDayThreeMonthsAgo,
+                                total.sameDayThreeMonthsAgo
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-r border-gray-400 text-[12px] ${
+                              sponsor.threeMonthsAgo === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.threeMonthsAgo)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(
+                                sponsor.threeMonthsAgo,
+                                total.threeMonthsAgo
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-x border-gray-200 text-[12px] ${
+                              sponsor.sameDayTwoMonthsAgo === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.sameDayTwoMonthsAgo)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(
+                                sponsor.sameDayTwoMonthsAgo,
+                                total.sameDayTwoMonthsAgo
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-r border-gray-400 text-[12px] ${
+                              sponsor.twoMonthsAgo === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.twoMonthsAgo)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(
+                                sponsor.twoMonthsAgo,
+                                total.twoMonthsAgo
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-x border-gray-200 text-[12px] ${
+                              sponsor.sameDayOneMonthAgo === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.sameDayOneMonthAgo)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(
+                                sponsor.sameDayOneMonthAgo,
+                                total.sameDayOneMonthAgo
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-r border-gray-400 text-[12px] ${
+                              sponsor.oneMonthAgo === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.oneMonthAgo)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(
+                                sponsor.oneMonthAgo,
+                                total.oneMonthAgo
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-x border-gray-200 ${
+                              sponsor.realized === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.realized)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(sponsor.realized, total.realized)}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-x border-gray-200 ${
+                              sponsor.projected === 0 ? "text-gray-300" : ""
+                            } relative`}
+                          >
+                            {formatCurrency(sponsor.projected)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(sponsor.projected, total.projected)}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right border-r border-gray-400 relative`}
+                          >
+                            {formatCurrency(sponsor.expected)}
+                            <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+                              {formatPercentage(sponsor.expected, total.expected)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  }
+                </>
               ))}
               <TableRow className="font-bold border-t-4 h-[57px]">
                 <TableCell></TableCell>
