@@ -525,7 +525,205 @@ class AccountManagerSummary:
             AccountManagerSummary.build(account_manager_name, pre_contracted, regular) 
             for account_manager_name in account_managers_names
         ]
+        
+@dataclass
+class CaseSummary:
+    title: str
+    pre_contracted: float
+    regular: float
+    total: float
+    consulting_fee: float
+    consulting_pre_fee: float
+    hands_on_fee: float
+    squad_fee: float
     
+    @staticmethod
+    def build(case_title, pre_contracted, regular):
+        pre_contracted_fee = sum(
+            case["fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        regular_fee = sum(
+            case["fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        
+        total_consulting_fee = sum(
+            case["consulting_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        
+        total_consulting_pre_fee = sum(
+            case["consulting_pre_fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        ) + sum(
+            case["consulting_pre_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        
+        total_hands_on_fee = sum(
+            case["hands_on_fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        
+        total_squad_fee = sum(
+            case["squad_fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        
+        return CaseSummary(
+            title=case_title,
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee,
+            consulting_fee=total_consulting_fee,
+            consulting_pre_fee=total_consulting_pre_fee,
+            hands_on_fee=total_hands_on_fee,
+            squad_fee=total_squad_fee
+        )
+        
+    @staticmethod
+    def build_list(pre_contracted, regular, sponsor_name = None):
+        case_titles = sorted(set(
+            case["title"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if sponsor_name is None or sponsor["name"] == sponsor_name
+        ))
+        
+        return [
+            CaseSummary.build(case_title, pre_contracted, regular)
+            for case_title in case_titles
+        ]
+        
+@dataclass
+class SponsorSummary:
+    name: str
+    slug: str
+    pre_contracted: float
+    regular: float
+    total: float
+    consulting_fee: float
+    consulting_pre_fee: float
+    hands_on_fee: float
+    squad_fee: float
+    
+    by_case: list[CaseSummary]
+    
+    @staticmethod
+    def build(sponsor_name, pre_contracted, regular):
+        pre_contracted_fee = sum(
+            sponsor["fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        )
+        regular_fee = sum(
+            sponsor["fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        )
+        total_consulting_fee = sum(
+            sponsor["consulting_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        ) 
+            
+        total_consulting_pre_fee = sum(
+            sponsor["consulting_pre_fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        ) + sum(
+            sponsor["consulting_pre_fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        )
+        
+        total_hands_on_fee = sum(
+            sponsor["hands_on_fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        )
+        total_squad_fee = sum(
+            sponsor["squad_fee"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        )
+        
+        by_case = CaseSummary.build_list(pre_contracted, regular, sponsor_name)
+        
+        return SponsorSummary(
+            name=sponsor_name,
+            slug=slugify(sponsor_name),
+            pre_contracted=pre_contracted_fee,
+            regular=regular_fee,
+            total=pre_contracted_fee + regular_fee,
+            consulting_fee=total_consulting_fee,
+            consulting_pre_fee=total_consulting_pre_fee,
+            hands_on_fee=total_hands_on_fee,
+            squad_fee=total_squad_fee,
+            by_case=by_case
+        )
+    
+    @staticmethod
+    def build_list(pre_contracted, regular, client_name = None):
+        sponsors_names = sorted(set(
+            sponsor["name"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if client_name is None or client["name"] == client_name
+        ))
+        
+        return [
+            SponsorSummary.build(sponsor_name, pre_contracted, regular)
+            for sponsor_name in sponsors_names
+        ]
+
+
 @dataclass
 class ClientSummary:
     name: str
@@ -537,6 +735,7 @@ class ClientSummary:
     consulting_pre_fee: float
     hands_on_fee: float
     squad_fee: float
+    by_sponsor: list[SponsorSummary]
     
     def get_fee(self, kind):
         if kind == "consulting":
@@ -600,6 +799,7 @@ class ClientSummary:
             if client["name"] == client_name
         )
         client = globals.omni_models.clients.get_by_name(client_name)
+        by_sponsor = SponsorSummary.build_list(pre_contracted, regular, client_name)
         
         return ClientSummary(
             name=client_name,
@@ -610,7 +810,8 @@ class ClientSummary:
             consulting_fee=total_consulting_fee,
             consulting_pre_fee=total_consulting_pre_fee,
             hands_on_fee=total_hands_on_fee,
-            squad_fee=total_squad_fee
+            squad_fee=total_squad_fee,
+            by_sponsor=by_sponsor
         )
     
     @staticmethod
@@ -626,98 +827,6 @@ class ClientSummary:
             for client_name in clients_names
         ]
     
-@dataclass
-class SponsorSummary:
-    name: str
-    slug: str
-    pre_contracted: float
-    regular: float
-    total: float
-    consulting_fee: float
-    consulting_pre_fee: float
-    hands_on_fee: float
-    squad_fee: float
-    
-    @staticmethod
-    def build(sponsor_name, pre_contracted, regular):
-        pre_contracted_fee = sum(
-            sponsor["fee"]
-            for account_manager in pre_contracted["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        )
-        regular_fee = sum(
-            sponsor["fee"]
-            for account_manager in regular["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        )
-        total_consulting_fee = sum(
-            sponsor["consulting_fee"]
-            for account_manager in regular["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        ) 
-            
-        total_consulting_pre_fee = sum(
-            sponsor["consulting_pre_fee"]
-            for account_manager in pre_contracted["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        ) + sum(
-            sponsor["consulting_pre_fee"]
-            for account_manager in regular["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        )
-        
-        total_hands_on_fee = sum(
-            sponsor["hands_on_fee"]
-            for account_manager in pre_contracted["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        )
-        total_squad_fee = sum(
-            sponsor["squad_fee"]
-            for account_manager in pre_contracted["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-            if sponsor["name"] == sponsor_name
-        )
-        
-        return SponsorSummary(
-            name=sponsor_name,
-            slug=slugify(sponsor_name),
-            pre_contracted=pre_contracted_fee,
-            regular=regular_fee,
-            total=pre_contracted_fee + regular_fee,
-            consulting_fee=total_consulting_fee,
-            consulting_pre_fee=total_consulting_pre_fee,
-            hands_on_fee=total_hands_on_fee,
-            squad_fee=total_squad_fee
-        )
-    
-    @staticmethod
-    def build_list(pre_contracted, regular):
-        sponsors_names = sorted(set(
-            sponsor["name"]
-            for account_manager in pre_contracted["monthly"]["by_account_manager"] + regular["monthly"]["by_account_manager"]
-            for client in account_manager["by_client"]
-            for sponsor in client["by_sponsor"]
-        ))
-        
-        return [
-            SponsorSummary.build(sponsor_name, pre_contracted, regular)
-            for sponsor_name in sponsors_names
-        ]
-
-
 @dataclass
 class KindSummary:
     name: str
