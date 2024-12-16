@@ -51,6 +51,20 @@ export const REVENUE_FORECAST_QUERY = gql`
             threeMonthsAgo
             sameDayThreeMonthsAgo
           }
+          bySponsor {
+            name
+            slug
+            clientSlug
+            inAnalysis
+            projected
+            expected
+            oneMonthAgo
+            sameDayOneMonthAgo
+            twoMonthsAgo
+            sameDayTwoMonthsAgo
+            threeMonthsAgo
+            sameDayThreeMonthsAgo
+          }
         }
         consultingPre {
           totals {
@@ -62,6 +76,15 @@ export const REVENUE_FORECAST_QUERY = gql`
           byClient {
             name
             slug
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
+          bySponsor {
+            name
+            slug
+            clientSlug
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
@@ -83,6 +106,15 @@ export const REVENUE_FORECAST_QUERY = gql`
             twoMonthsAgo
             threeMonthsAgo
           }
+          bySponsor {
+            name
+            slug
+            clientSlug
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
         }
         squad {
           totals {
@@ -94,6 +126,15 @@ export const REVENUE_FORECAST_QUERY = gql`
           byClient {
             name
             slug
+            inAnalysis
+            oneMonthAgo
+            twoMonthsAgo
+            threeMonthsAgo
+          }
+          bySponsor {
+            name
+            slug
+            clientSlug
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
