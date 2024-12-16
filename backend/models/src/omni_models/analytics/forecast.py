@@ -74,6 +74,7 @@ def compute_forecast(date_of_interest = None, filters = None):
     def summarize_forecast(slug):
         clients = {}
         sponsors = {}
+        cases = {}
         
         def add_context(context, context_slug):
             for client in context['summaries']['by_client']:
@@ -96,6 +97,18 @@ def compute_forecast(date_of_interest = None, filters = None):
                     
                     working_sponsor = sponsors[sponsor.name]
                     working_sponsor[context_slug] = sponsor.get_fee(slug)
+                    
+                    for case in sponsor.by_case:
+                        if case.title not in cases:
+                            cases[case.title] = {
+                                'title': case.title,
+                                'slug': case.slug,
+                                'sponsor_slug': sponsor.slug,
+                                'client_slug': client.slug
+                            }
+                            
+                        working_case = cases[case.title]
+                        working_case[context_slug] = case.get_fee(slug)
                     
         add_context(analysis_date_of_interest, 'in_analysis')
         add_context(analysis_last_day_of_last_month, 'one_month_ago')
@@ -123,6 +136,15 @@ def compute_forecast(date_of_interest = None, filters = None):
             or sponsor.get('one_month_ago', 0) > 0
             or sponsor.get('two_months_ago', 0) > 0
             or sponsor.get('three_months_ago', 0) > 0
+        ]
+        
+        by_case = list(cases.values())
+        by_case = [
+            case for case in by_case
+            if case.get('in_analysis', 0) > 0
+            or case.get('one_month_ago', 0) > 0
+            or case.get('two_months_ago', 0) > 0
+            or case.get('three_months_ago', 0) > 0
         ]
         
         def adjust_entity(entity):
@@ -158,6 +180,9 @@ def compute_forecast(date_of_interest = None, filters = None):
         
         for sponsor in by_sponsor:
             adjust_entity(sponsor)
+            
+        for case in by_case:
+            adjust_entity(case)
         
         
         totals = {
@@ -177,6 +202,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             'slug': slug,
             'by_client': by_client,
             'by_sponsor': by_sponsor,
+            'by_case': by_case,
             'totals': totals
         }
     

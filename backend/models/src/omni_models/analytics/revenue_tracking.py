@@ -529,6 +529,7 @@ class AccountManagerSummary:
 @dataclass
 class CaseSummary:
     title: str
+    slug: str
     pre_contracted: float
     regular: float
     total: float
@@ -536,6 +537,18 @@ class CaseSummary:
     consulting_pre_fee: float
     hands_on_fee: float
     squad_fee: float
+    
+    def get_fee(self, kind):
+        if kind == "consulting":
+            return self.consulting_fee
+        elif kind == "consulting_pre":
+            return self.consulting_pre_fee
+        elif kind == "hands_on":
+            return self.hands_on_fee
+        elif kind == "squad":
+            return self.squad_fee
+        else:
+            return 0
     
     @staticmethod
     def build(case_title, pre_contracted, regular):
@@ -601,6 +614,7 @@ class CaseSummary:
         
         return CaseSummary(
             title=case_title,
+            slug=slugify(case_title),
             pre_contracted=pre_contracted_fee,
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
