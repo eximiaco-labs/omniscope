@@ -296,7 +296,9 @@ export default function RevenueForecastPage() {
                     {index + 1}
                   </TableCell>
                   <TableCell className="border-r border-gray-400">
-                    <span>{client.name}</span>
+                    <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:text-blue-800">
+                      {client.name}
+                    </Link>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x border-gray-200 text-[12px] ${
@@ -499,7 +501,9 @@ export default function RevenueForecastPage() {
                     {index + 1}
                   </TableCell>
                   <TableCell>
-                    <span>{client.name}</span>
+                    <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:text-blue-800">
+                      {client.name}
+                    </Link>
                   </TableCell>
                   <TableCell
                     className={`text-right border-x text-[12px] ${
@@ -576,6 +580,7 @@ export default function RevenueForecastPage() {
     consulting: {
       clients: data.forecast.byKind.consulting.byClient.map((client: any) => ({
         name: client.name,
+        slug: client.slug,
         sameDayThreeMonthsAgo: client.sameDayThreeMonthsAgo,
         threeMonthsAgo: client.threeMonthsAgo,
         sameDayTwoMonthsAgo: client.sameDayTwoMonthsAgo,
@@ -605,6 +610,7 @@ export default function RevenueForecastPage() {
       clients: data.forecast.byKind.consultingPre.byClient.map(
         (client: any) => ({
           name: client.name,
+          slug: client.slug,
           threeMonthsAgo: client.threeMonthsAgo,
           twoMonthsAgo: client.twoMonthsAgo,
           oneMonthAgo: client.oneMonthAgo,
@@ -622,6 +628,7 @@ export default function RevenueForecastPage() {
     handsOn: {
       clients: data.forecast.byKind.handsOn.byClient.map((client: any) => ({
         name: client.name,
+        slug: client.slug,
         threeMonthsAgo: client.threeMonthsAgo,
         twoMonthsAgo: client.twoMonthsAgo,
         oneMonthAgo: client.oneMonthAgo,
@@ -637,6 +644,7 @@ export default function RevenueForecastPage() {
     squad: {
       clients: data.forecast.byKind.squad.byClient.map((client: any) => ({
         name: client.name,
+        slug: client.slug,
         threeMonthsAgo: client.threeMonthsAgo,
         twoMonthsAgo: client.twoMonthsAgo,
         oneMonthAgo: client.oneMonthAgo,

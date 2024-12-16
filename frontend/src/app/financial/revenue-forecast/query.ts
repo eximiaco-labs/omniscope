@@ -40,6 +40,7 @@ export const REVENUE_FORECAST_QUERY = gql`
           }
           byClient {
             name
+            slug
             inAnalysis
             projected
             expected
@@ -60,6 +61,7 @@ export const REVENUE_FORECAST_QUERY = gql`
           }
           byClient {
             name
+            slug
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
@@ -75,6 +77,7 @@ export const REVENUE_FORECAST_QUERY = gql`
           }
           byClient {
             name
+            slug
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
@@ -90,6 +93,7 @@ export const REVENUE_FORECAST_QUERY = gql`
           }
           byClient {
             name
+            slug
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
