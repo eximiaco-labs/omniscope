@@ -194,6 +194,15 @@ class CasesRepository:
             if id in case.everhour_projects_ids:
                 return case
         return None
+    
+    def get_by_everhour_project_name(self, name: str) -> Case:
+        cases = self.get_all().values()
+        for case in cases:
+            for ti in case.tracker_info:
+                if ti.name == name:
+                    return case
+        
+        return None
 
     # def get_by_slug(self, slug: str) -> Case:
     #     return next((worker for worker in self.ontology.workers.values() if worker.slug == slug), None)
