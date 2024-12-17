@@ -542,7 +542,7 @@ export default function RevenueForecastPage() {
                                         >
                                           {expandedClients[tableId]?.includes(caseItem.slug) ? '−' : '+'}
                                         </button>
-                                        <Link href={`/cases/${caseItem.slug}`} className="text-blue-600 hover:text-blue-800 text-[12px]">
+                                        <Link href={`/about-us/cases/${caseItem.slug}`} className="text-blue-600 hover:text-blue-800 text-[12px]">
                                           {caseItem.title}
                                         </Link>
                                       </div>
