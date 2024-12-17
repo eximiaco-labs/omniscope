@@ -220,7 +220,7 @@ export default function RevenueForecastPage() {
     );
 
     const renderRow = (item: any, depth: number = 0) => {
-      const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : "";
+      const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
       const paddingLeft = depth * 4;
       
       return (
@@ -230,7 +230,7 @@ export default function RevenueForecastPage() {
           </TableCell>
           <TableCell className="border-r border-gray-400">
             <div className="flex items-center gap-2" style={{paddingLeft: `${paddingLeft}px`}}>
-              {(depth < 2) && (
+              {(depth < 3) && (
                 <button 
                   onClick={() => toggleClient(item.slug, tableId)}
                   className="w-4 h-4 flex items-center justify-center text-gray-500"
@@ -238,12 +238,16 @@ export default function RevenueForecastPage() {
                   {expandedClients[tableId]?.includes(item.slug) ? '−' : '+'}
                 </button>
               )}
-              <Link 
-                href={`/about-us/${depth === 0 ? 'clients' : depth === 1 ? 'sponsors' : 'cases'}/${item.slug}`} 
-                className={`text-blue-600 hover:text-blue-800 ${depth > 0 ? 'text-[12px]' : ''}`}
-              >
-                {item.name || item.title}
-              </Link>
+              {depth < 3 ? (
+                <Link 
+                  href={`/about-us/${depth === 0 ? 'clients' : depth === 1 ? 'sponsors' : 'cases'}/${item.slug}`} 
+                  className={`text-blue-600 hover:text-blue-800 ${depth > 0 ? 'text-[12px]' : ''}`}
+                >
+                  {item.name || item.title}
+                </Link>
+              ) : (
+                <span className="text-[12px]">{item.name}</span>
+              )}
             </div>
           </TableCell>
           {renderCell(item.sameDayThreeMonthsAgo, total.sameDayThreeMonthsAgo, "border-x border-gray-200 text-[12px]")}
@@ -301,7 +305,16 @@ export default function RevenueForecastPage() {
                           {expandedClients[tableId]?.includes(sponsor.slug) && 
                             tableData.cases
                               .filter((caseItem: any) => caseItem.sponsorSlug === sponsor.slug)
-                              .map((caseItem: any) => renderRow(caseItem, 2))
+                              .map((caseItem: any) => (
+                                <>
+                                  {renderRow(caseItem, 2)}
+                                  {expandedClients[tableId]?.includes(caseItem.slug) &&
+                                    tableData.projects
+                                      .filter((project: any) => project.caseSlug === caseItem.slug)
+                                      .map((project: any) => renderRow(project, 3))
+                                  }
+                                </>
+                              ))
                           }
                         </>
                       ))
