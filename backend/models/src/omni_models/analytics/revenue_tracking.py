@@ -749,10 +749,11 @@ class CaseSummary:
         )
         
         by_project = ProjectSummary.build_list(pre_contracted, regular, case_title)
+        case = globals.omni_models.cases.get_by_title(case_title)
         
         return CaseSummary(
             title=case_title,
-            slug=slugify(case_title),
+            slug=case.slug,
             pre_contracted=pre_contracted_fee,
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
