@@ -91,7 +91,9 @@ def compute_forecast(date_of_interest = None, filters = None):
     
     analysis_same_day_three_months_ago = compute_revenue_tracking(same_day_three_months_ago, filters=filters)
     analysis_last_day_of_three_months_ago = compute_revenue_tracking(last_day_of_three_months_ago, filters=filters)
-
+    
+    number_of_working_days_in_analysis = len(get_working_days_in_month(date_of_interest.year, date_of_interest.month))
+    number_of_working_days_in_analysis_partial = len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day])
         
     def summarize_forecast(slug):
         clients = {}
@@ -249,23 +251,8 @@ def compute_forecast(date_of_interest = None, filters = None):
                 entity['same_day_two_months_ago'] = entity.get('same_day_two_months_ago', 0)
                 entity['same_day_three_months_ago'] = entity.get('same_day_three_months_ago', 0)
                 
-                current_day = date_of_interest.day
-                days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
-                entity['projected'] = (entity['in_analysis'] / current_day) * days_in_month
-                
-                # previous_value = entity.get('one_month_ago', 0)
-                # two_months_ago_value = entity.get('two_months_ago', 0)
-                # three_months_ago_value = entity.get('three_months_ago', 0)
-                
-                # if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
-                #     entity['expected'] = entity['projected']
-                # elif two_months_ago_value == 0 and three_months_ago_value == 0:
-                #     entity['expected'] = previous_value
-                # elif three_months_ago_value == 0:
-                #     entity['expected'] = previous_value * 0.8 + two_months_ago_value * 0.2
-                # else:
-                #     entity['expected'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15    
-        
+                entity['projected'] = (entity['in_analysis'] / number_of_working_days_in_analysis_partial) * number_of_working_days_in_analysis
+               
         for client in by_client:
             adjust_entity(client)
         
@@ -338,12 +325,9 @@ def compute_forecast(date_of_interest = None, filters = None):
     }
     
     result["summary"] = summary
-    
-    
-    
     working_days = {
-        "in_analysis": len(get_working_days_in_month(date_of_interest.year, date_of_interest.month)),
-        "in_analysis_partial": len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day]),
+        "in_analysis": number_of_working_days_in_analysis,
+        "in_analysis_partial": number_of_working_days_in_analysis_partial,
         "one_month_ago": len(get_working_days_in_month(same_day_last_month.year, same_day_last_month.month)),
         "same_day_one_month_ago": len([d for d in get_working_days_in_month(same_day_last_month.year, same_day_last_month.month) if d.day <= date_of_interest.day]),
         "two_months_ago": len(get_working_days_in_month(same_day_two_months_ago.year, same_day_two_months_ago.month)),
