@@ -191,18 +191,23 @@ export default function RevenueForecastPage() {
     const dates = data.forecast.dates;
     const workingDays = data.forecast.workingDays;
 
-    const renderCell = (value: number, totalValue: number, className: string = "") => (
-      <TableCell
-        className={`text-right ${className} ${
-          value === 0 ? "text-gray-300" : ""
-        } relative`}
-      >
-        {formatCurrency(value)}
-        <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-          {formatPercentage(value, totalValue)}
-        </span>
-      </TableCell>
-    );
+    const renderCell = (value: number, totalValue: number, className: string = "", projected?: number, expected?: number) => {
+      const isProjectedLessThanExpected = projected !== undefined && expected !== undefined && projected < expected;
+      const bgColor = isProjectedLessThanExpected ? "bg-red-100" : "";
+
+      return (
+        <TableCell
+          className={`text-right ${className} ${
+            value === 0 ? "text-gray-300" : ""
+          } relative ${bgColor}`}
+        >
+          {formatCurrency(value)}
+          <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
+            {formatPercentage(value, totalValue)}
+          </span>
+        </TableCell>
+      );
+    };
 
     const renderSortHeader = (key: string, label: string, workingDays: number | null = null, className: string = "") => (
       <TableHead
@@ -260,8 +265,8 @@ export default function RevenueForecastPage() {
           {renderCell(item.sameDayOneMonthAgo, total.sameDayOneMonthAgo, "border-x border-gray-200 text-[12px]")}
           {renderCell(item.oneMonthAgo, total.oneMonthAgo, "border-r border-gray-400 text-[12px]")}
           {renderCell(item.realized, total.realized, "border-x border-gray-200")}
-          {renderCell(item.projected, total.projected, "border-x border-gray-200")}
-          {renderCell(item.expected, total.expected, "border-r border-gray-400")}
+          {renderCell(item.projected, total.projected, "border-x border-gray-200", item.projected, item.expected)}
+          {renderCell(item.expected, total.expected, "border-r border-gray-400", item.projected, item.expected)}
         </TableRow>
       );
     };
@@ -334,8 +339,8 @@ export default function RevenueForecastPage() {
                 {renderCell(total.sameDayOneMonthAgo, total.sameDayOneMonthAgo, "border-x border-gray-200 text-[12px]")}
                 {renderCell(total.oneMonthAgo, total.oneMonthAgo, "border-r border-gray-400 text-[12px]")}
                 {renderCell(total.realized, total.realized, "border-x border-gray-200")}
-                {renderCell(total.projected, total.projected, "border-x border-gray-200")}
-                {renderCell(total.expected, total.expected, "border-r border-gray-400")}
+                {renderCell(total.projected, total.projected, "border-x border-gray-200", total.projected, total.expected)}
+                {renderCell(total.expected, total.expected, "border-r border-gray-400", total.projected, total.expected)}
               </TableRow>
             </TableBody>
           </Table>
