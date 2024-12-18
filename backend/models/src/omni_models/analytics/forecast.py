@@ -1,6 +1,7 @@
 from datetime import datetime
 import calendar
 
+from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
 
 def get_same_day_one_month_ago(date_of_interest):
@@ -168,6 +169,55 @@ def compute_forecast(date_of_interest = None, filters = None):
             or project.get('three_months_ago', 0) > 0
         ]
         
+        ### projected and expected revenue
+        if slug == 'consulting':
+            for case in by_case:
+                case_ = globals.omni_models.cases.get_by_title(case['title'])
+                
+                wah = case_.weekly_approved_hours
+                project_ = None
+                for ti in case_.tracker_info:
+                    if ti.kind == 'consulting':
+                        project_ = ti
+                        break
+                    
+                if not project_:
+                    continue
+                
+                # contrato encerra na vigência do mês
+                days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
+                hours_in_month = 0
+                daily_approved_hours = wah / 5
+                for day in range(1, days_in_month + 1):
+                    date = datetime(date_of_interest.year, date_of_interest.month, day)
+                    
+                    if case_.end_of_contract and date.date() > case_.end_of_contract:
+                        break
+                    
+                    week_day = date.weekday()
+                    if week_day > 0 and week_day < 5:
+                        hours_in_month += daily_approved_hours
+                
+                case['expected'] = hours_in_month * (project_.rate.rate / 100)
+                
+
+            for sponsor in by_sponsor:
+                sponsor['expected'] = sum(
+                    case['expected'] 
+                    for case in by_case
+                    if case['sponsor_slug'] == sponsor['slug']
+                )
+                
+            for client in by_client:
+                client['expected'] = sum(
+                    sponsor['expected'] 
+                    for sponsor in by_sponsor
+                    if sponsor['client_slug'] == client['slug']
+                )
+                
+            for project in by_project:
+                project['expected'] = 0
+        
         def adjust_entity(entity):
             entity['in_analysis'] = entity.get('in_analysis', 0)
             entity['one_month_ago'] = entity.get('one_month_ago', 0)
@@ -182,19 +232,18 @@ def compute_forecast(date_of_interest = None, filters = None):
                 days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
                 entity['projected'] = (entity['in_analysis'] / current_day) * days_in_month
                 
-                previous_value = entity.get('one_month_ago', 0)
-                two_months_ago_value = entity.get('two_months_ago', 0)
-                three_months_ago_value = entity.get('three_months_ago', 0)
+                # previous_value = entity.get('one_month_ago', 0)
+                # two_months_ago_value = entity.get('two_months_ago', 0)
+                # three_months_ago_value = entity.get('three_months_ago', 0)
                 
-                if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
-                    entity['expected'] = entity['projected']
-                elif two_months_ago_value == 0 and three_months_ago_value == 0:
-                    entity['expected'] = previous_value
-                elif three_months_ago_value == 0:
-                    entity['expected'] = previous_value * 0.8 + two_months_ago_value * 0.2
-                else:
-                    entity['expected'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
-                
+                # if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
+                #     entity['expected'] = entity['projected']
+                # elif two_months_ago_value == 0 and three_months_ago_value == 0:
+                #     entity['expected'] = previous_value
+                # elif three_months_ago_value == 0:
+                #     entity['expected'] = previous_value * 0.8 + two_months_ago_value * 0.2
+                # else:
+                #     entity['expected'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15    
         
         for client in by_client:
             adjust_entity(client)
