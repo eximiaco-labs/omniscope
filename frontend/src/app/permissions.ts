@@ -5,7 +5,8 @@ export const FINANCIAL_USERS = [
     'me@elemarjr.com',
     'fernando.paiva@eximia.co',
     'guilherme.lemos@eximia.co',
-    'maicon@eximia.co'
+    'maicon@eximia.co',
+    'gabriel@eximia.co'
   ] as const;
   
   export type Permission = 'financial' | 'admin' | 'basic';

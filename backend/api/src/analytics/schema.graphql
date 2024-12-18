@@ -512,6 +512,7 @@ type Forecast {
   byKind: ForecastByKind!
   summary: ForecastSummary!
   filterableFields: [FilterableField]!
+  workingDays: ForecastWorkingDays!
 }
 
 type ForecastDates {
@@ -530,6 +531,17 @@ type ForecastSummary {
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
   threeMonthsAgo: Float!
+}
+
+type ForecastWorkingDays {
+  inAnalysis: Int!
+  inAnalysisPartial: Int!
+  oneMonthAgo: Int!
+  sameDayOneMonthAgo: Int!
+  twoMonthsAgo: Int!
+  sameDayTwoMonthsAgo: Int!
+  threeMonthsAgo: Int!
+  sameDayThreeMonthsAgo: Int!
 }
 
 type ForecastByKind {

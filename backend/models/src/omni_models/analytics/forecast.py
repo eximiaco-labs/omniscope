@@ -1,6 +1,8 @@
 from datetime import datetime
 import calendar
+import pandas as pd
 
+from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
 
 def get_same_day_one_month_ago(date_of_interest):
@@ -23,6 +25,26 @@ def get_last_day_of_month(date_of_interest):
     m = date_of_interest.month
     last_day = calendar.monthrange(y, m)[1]
     return datetime(y, m, last_day, 23, 59, 59, 999999)
+
+def get_working_days_in_month(year, month):
+    import holidays
+    
+    
+    # Get all days in month
+    num_days = calendar.monthrange(year, month)[1]
+    
+    # Get Brazil holidays
+    br_holidays = holidays.BR(years=year)
+    
+    # Create list of all dates in month
+    working_days = []
+    for day in range(1, num_days + 1):
+        date = datetime(year, month, day)
+        # Check if weekday (0=Monday, 6=Sunday) and not a holiday
+        if date.weekday() < 5 and date.date() not in br_holidays:  # 0-4 are weekdays
+            working_days.append(date)
+            
+    return working_days
 
 def merge_filterable_fields(analysis_lists):
     filterable_fields = []
@@ -69,7 +91,9 @@ def compute_forecast(date_of_interest = None, filters = None):
     
     analysis_same_day_three_months_ago = compute_revenue_tracking(same_day_three_months_ago, filters=filters)
     analysis_last_day_of_three_months_ago = compute_revenue_tracking(last_day_of_three_months_ago, filters=filters)
-
+    
+    number_of_working_days_in_analysis = len(get_working_days_in_month(date_of_interest.year, date_of_interest.month))
+    number_of_working_days_in_analysis_partial = len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day])
         
     def summarize_forecast(slug):
         clients = {}
@@ -168,6 +192,55 @@ def compute_forecast(date_of_interest = None, filters = None):
             or project.get('three_months_ago', 0) > 0
         ]
         
+        ### projected and expected revenue
+        if slug == 'consulting':
+            for case in by_case:
+                case_ = globals.omni_models.cases.get_by_title(case['title'])
+                
+                wah = case_.weekly_approved_hours
+                project_ = None
+                for ti in case_.tracker_info:
+                    if ti.kind == 'consulting':
+                        project_ = ti
+                        break
+                    
+                if not project_:
+                    continue
+                
+                # contrato encerra na vigência do mês
+                days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
+                working_days_in_month = get_working_days_in_month(date_of_interest.year, date_of_interest.month)
+                hours_in_month = 0
+                daily_approved_hours = wah / 5
+                for day in range(1, days_in_month + 1):
+                    date = datetime(date_of_interest.year, date_of_interest.month, day)
+                    
+                    if case_.end_of_contract and date.date() > case_.end_of_contract:
+                        break
+                    
+                    if date in working_days_in_month:
+                        hours_in_month += daily_approved_hours
+                
+                case['expected'] = hours_in_month * (project_.rate.rate / 100)
+                
+
+            for sponsor in by_sponsor:
+                sponsor['expected'] = sum(
+                    case['expected'] 
+                    for case in by_case
+                    if case['sponsor_slug'] == sponsor['slug']
+                )
+                
+            for client in by_client:
+                client['expected'] = sum(
+                    sponsor['expected'] 
+                    for sponsor in by_sponsor
+                    if sponsor['client_slug'] == client['slug']
+                )
+                
+            for project in by_project:
+                project['expected'] = 0
+        
         def adjust_entity(entity):
             entity['in_analysis'] = entity.get('in_analysis', 0)
             entity['one_month_ago'] = entity.get('one_month_ago', 0)
@@ -178,24 +251,8 @@ def compute_forecast(date_of_interest = None, filters = None):
                 entity['same_day_two_months_ago'] = entity.get('same_day_two_months_ago', 0)
                 entity['same_day_three_months_ago'] = entity.get('same_day_three_months_ago', 0)
                 
-                current_day = date_of_interest.day
-                days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
-                entity['projected'] = (entity['in_analysis'] / current_day) * days_in_month
-                
-                previous_value = entity.get('one_month_ago', 0)
-                two_months_ago_value = entity.get('two_months_ago', 0)
-                three_months_ago_value = entity.get('three_months_ago', 0)
-                
-                if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
-                    entity['expected'] = entity['projected']
-                elif two_months_ago_value == 0 and three_months_ago_value == 0:
-                    entity['expected'] = previous_value
-                elif three_months_ago_value == 0:
-                    entity['expected'] = previous_value * 0.8 + two_months_ago_value * 0.2
-                else:
-                    entity['expected'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
-                
-        
+                entity['projected'] = (entity['in_analysis'] / number_of_working_days_in_analysis_partial) * number_of_working_days_in_analysis
+               
         for client in by_client:
             adjust_entity(client)
         
@@ -268,6 +325,19 @@ def compute_forecast(date_of_interest = None, filters = None):
     }
     
     result["summary"] = summary
+    working_days = {
+        "in_analysis": number_of_working_days_in_analysis,
+        "in_analysis_partial": number_of_working_days_in_analysis_partial,
+        "one_month_ago": len(get_working_days_in_month(same_day_last_month.year, same_day_last_month.month)),
+        "same_day_one_month_ago": len([d for d in get_working_days_in_month(same_day_last_month.year, same_day_last_month.month) if d.day <= date_of_interest.day]),
+        "two_months_ago": len(get_working_days_in_month(same_day_two_months_ago.year, same_day_two_months_ago.month)),
+        "same_day_two_months_ago": len([d for d in get_working_days_in_month(same_day_two_months_ago.year, same_day_two_months_ago.month) if d.day <= date_of_interest.day]),
+        "three_months_ago": len(get_working_days_in_month(same_day_three_months_ago.year, same_day_three_months_ago.month)),
+        "same_day_three_months_ago": len([d for d in get_working_days_in_month(same_day_three_months_ago.year, same_day_three_months_ago.month) if d.day <= date_of_interest.day]),
+    }
+    
+    result["working_days"] = working_days
+    
     return result
 
 
