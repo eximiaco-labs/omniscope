@@ -1,5 +1,6 @@
 from datetime import datetime
 import calendar
+import pandas as pd
 
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
@@ -24,6 +25,26 @@ def get_last_day_of_month(date_of_interest):
     m = date_of_interest.month
     last_day = calendar.monthrange(y, m)[1]
     return datetime(y, m, last_day, 23, 59, 59, 999999)
+
+def get_working_days_in_month(year, month):
+    import holidays
+    
+    
+    # Get all days in month
+    num_days = calendar.monthrange(year, month)[1]
+    
+    # Get Brazil holidays
+    br_holidays = holidays.BR(years=year)
+    
+    # Create list of all dates in month
+    working_days = []
+    for day in range(1, num_days + 1):
+        date = datetime(year, month, day)
+        # Check if weekday (0=Monday, 6=Sunday) and not a holiday
+        if date.weekday() < 5 and date.date() not in br_holidays:  # 0-4 are weekdays
+            working_days.append(date)
+            
+    return working_days
 
 def merge_filterable_fields(analysis_lists):
     filterable_fields = []
@@ -186,6 +207,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                 
                 # contrato encerra na vigência do mês
                 days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
+                working_days_in_month = get_working_days_in_month(date_of_interest.year, date_of_interest.month)
                 hours_in_month = 0
                 daily_approved_hours = wah / 5
                 for day in range(1, days_in_month + 1):
@@ -194,8 +216,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                     if case_.end_of_contract and date.date() > case_.end_of_contract:
                         break
                     
-                    week_day = date.weekday()
-                    if week_day > 0 and week_day < 5:
+                    if date in working_days_in_month:
                         hours_in_month += daily_approved_hours
                 
                 case['expected'] = hours_in_month * (project_.rate.rate / 100)
@@ -317,6 +338,22 @@ def compute_forecast(date_of_interest = None, filters = None):
     }
     
     result["summary"] = summary
+    
+    
+    
+    working_days = {
+        "in_analysis": len(get_working_days_in_month(date_of_interest.year, date_of_interest.month)),
+        "in_analysis_partial": len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day]),
+        "one_month_ago": len(get_working_days_in_month(same_day_last_month.year, same_day_last_month.month)),
+        "same_day_one_month_ago": len([d for d in get_working_days_in_month(same_day_last_month.year, same_day_last_month.month) if d.day <= date_of_interest.day]),
+        "two_months_ago": len(get_working_days_in_month(same_day_two_months_ago.year, same_day_two_months_ago.month)),
+        "same_day_two_months_ago": len([d for d in get_working_days_in_month(same_day_two_months_ago.year, same_day_two_months_ago.month) if d.day <= date_of_interest.day]),
+        "three_months_ago": len(get_working_days_in_month(same_day_three_months_ago.year, same_day_three_months_ago.month)),
+        "same_day_three_months_ago": len([d for d in get_working_days_in_month(same_day_three_months_ago.year, same_day_three_months_ago.month) if d.day <= date_of_interest.day]),
+    }
+    
+    result["working_days"] = working_days
+    
     return result
 
 
