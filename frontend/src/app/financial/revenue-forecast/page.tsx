@@ -189,6 +189,7 @@ export default function RevenueForecastPage() {
     const sortConfig = sortConfigs[tableId];
     const total = tableData.totals;
     const dates = data.forecast.dates;
+    const workingDays = data.forecast.workingDays;
 
     const renderCell = (value: number, totalValue: number, className: string = "") => (
       <TableCell
@@ -203,19 +204,21 @@ export default function RevenueForecastPage() {
       </TableCell>
     );
 
-    const renderSortHeader = (key: string, label: string, className: string = "") => (
+    const renderSortHeader = (key: string, label: string, workingDays: number | null = null, className: string = "") => (
       <TableHead
         onClick={() => requestSort(key, tableId)}
         className={`text-right cursor-pointer hover:bg-gray-100 ${className}`}
       >
-        {label}{" "}
+        {label}
+        {workingDays !== null && <span className="block text-[10px] text-gray-500">{workingDays} working days</span>}
         {sortConfig.key === key && (sortConfig.direction === "asc" ? "↑" : "↓")}
       </TableHead>
     );
 
-    const renderMonthHeader = (date: string, colSpan: number = 2, className: string = "") => (
+    const renderMonthHeader = (date: string, days: number, colSpan: number = 2, className: string = "") => (
       <TableHead colSpan={colSpan} className={`text-center ${className}`}>
         {format(new Date(date), "MMM yyyy")}
+        <span className="block text-[10px] text-gray-500">{days} working days</span>
       </TableHead>
     );
 
@@ -275,21 +278,21 @@ export default function RevenueForecastPage() {
               <TableRow>
                 <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
                 <TableHead rowSpan={2} className="border-r border-gray-400">Client</TableHead>
-                {renderMonthHeader(dates.threeMonthsAgo, 2, "border-x border-gray-400")}
-                {renderMonthHeader(dates.twoMonthsAgo, 2, "border-x border-gray-400")}
-                {renderMonthHeader(dates.oneMonthAgo, 2, "border-x border-gray-400")}
-                {renderMonthHeader(data.forecast.dateOfInterest, 3, "border-x border-gray-400")}
+                {renderMonthHeader(dates.threeMonthsAgo, workingDays.threeMonthsAgo, 2, "border-x border-gray-400")}
+                {renderMonthHeader(dates.twoMonthsAgo, workingDays.twoMonthsAgo, 2, "border-x border-gray-400")}
+                {renderMonthHeader(dates.oneMonthAgo, workingDays.oneMonthAgo, 2, "border-x border-gray-400")}
+                {renderMonthHeader(data.forecast.dateOfInterest, workingDays.inAnalysis, 3, "border-x border-gray-400")}
               </TableRow>
               <TableRow>
-                {renderSortHeader("sameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, "w-[95px] border-x border-gray-200")}
-                {renderSortHeader("threeMonthsAgo", "Full Month", "w-[95px] border-r border-gray-400")}
-                {renderSortHeader("sameDayTwoMonthsAgo", `Until ${format(new Date(dates.sameDayTwoMonthsAgo), "dd")}`, "w-[95px] border-x border-gray-200")}
-                {renderSortHeader("twoMonthsAgo", "Full Month", "w-[95px] border-r border-gray-400")}
-                {renderSortHeader("sameDayOneMonthAgo", `Until ${format(new Date(dates.sameDayOneMonthAgo), "dd")}`, "w-[95px] border-x border-gray-200")}
-                {renderSortHeader("oneMonthAgo", "Full Month", "w-[95px] border-r border-gray-400")}
-                {renderSortHeader("realized", "Realized", "w-[120px] border-x border-gray-200")}
-                {renderSortHeader("projected", "Projected", "w-[120px] border-x border-gray-200")}
-                {renderSortHeader("expected", "Expected", "w-[120px] border-r border-gray-400")}
+                {renderSortHeader("sameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, workingDays.sameDayThreeMonthsAgo, "w-[95px] border-x border-gray-200")}
+                {renderSortHeader("threeMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+                {renderSortHeader("sameDayTwoMonthsAgo", `Until ${format(new Date(dates.sameDayTwoMonthsAgo), "dd")}`, workingDays.sameDayTwoMonthsAgo, "w-[95px] border-x border-gray-200")}
+                {renderSortHeader("twoMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+                {renderSortHeader("sameDayOneMonthAgo", `Until ${format(new Date(dates.sameDayOneMonthAgo), "dd")}`, workingDays.sameDayOneMonthAgo, "w-[95px] border-x border-gray-200")}
+                {renderSortHeader("oneMonthAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+                {renderSortHeader("realized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
+                {renderSortHeader("projected", "Projected", null, "w-[120px] border-x border-gray-200")}
+                {renderSortHeader("expected", "Expected", null, "w-[120px] border-r border-gray-400")}
               </TableRow>
             </TableHeader>
             <TableBody>

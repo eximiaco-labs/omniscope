@@ -17,6 +17,16 @@ export const REVENUE_FORECAST_QUERY = gql`
         sameDayThreeMonthsAgo
         threeMonthsAgo
       }
+      workingDays {
+        inAnalysisPartial
+        inAnalysis
+        oneMonthAgo
+        sameDayOneMonthAgo
+        twoMonthsAgo
+        sameDayTwoMonthsAgo
+        threeMonthsAgo
+        sameDayThreeMonthsAgo
+      }
       summary {
         realized
         projected
