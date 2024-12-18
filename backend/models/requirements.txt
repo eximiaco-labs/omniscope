@@ -18,3 +18,4 @@ python-dotenv
 validators
 pandas
 jwt
+holidays
