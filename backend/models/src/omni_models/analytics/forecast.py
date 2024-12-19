@@ -290,6 +290,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             totals['same_day_three_months_ago'] = sum(client.get('same_day_three_months_ago', 0) for client in by_client)
             totals['projected'] = sum(client.get('projected', 0) for client in by_client)
             totals['expected'] = sum(client.get('expected', 0) for client in by_client) 
+            totals['expected_historical'] = sum(client.get('expected_historical', 0) for client in by_client)
 
         return {
             'slug': slug,
