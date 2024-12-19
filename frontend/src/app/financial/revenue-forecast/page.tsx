@@ -79,6 +79,12 @@ export default function RevenueForecastPage() {
     handsOn: false,
     squad: false
   });
+  const [normalized, setNormalized] = useState<Record<string, boolean>>({
+    consulting: false,
+    consultingPre: false,
+    handsOn: false,
+    squad: false
+  });
 
   useEffect(() => {
     const today = new Date();
@@ -198,45 +204,35 @@ export default function RevenueForecastPage() {
     const dates = data.forecast.dates;
     const workingDays = data.forecast.workingDays;
 
-    const renderCell = (value: number, totalValue: number, className: string = "", projected?: number, expected?: number) => {
-      const isProjectedLessThanExpected = projected !== undefined && expected !== undefined && projected < expected;
-      const bgColor = isProjectedLessThanExpected ? "bg-red-100" : "";
-
-      return (
-        <TableCell
-          className={`text-right ${className} ${
-            value === 0 ? "text-gray-300" : ""
-          } relative ${bgColor}`}
-        >
-          {formatCurrency(value)}
-          <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-            {formatPercentage(value, totalValue)}
-          </span>
-        </TableCell>
-      );
+    const calculatePercentageChange = (currentValue: number, previousValue: number | null, workingDays: number) => {
+      // If normalized, use normalized values directly
+      const currentComparisonValue = normalized[tableId] ? currentValue : currentValue;
+      const previousComparisonValue = previousValue ? (normalized[tableId] ? previousValue : previousValue) : null;
+      
+      if (!previousComparisonValue || previousComparisonValue === 0) return null;
+      
+      const percentageChange = ((currentComparisonValue - previousComparisonValue) / previousComparisonValue) * 100;
+      return {
+        percentageChange,
+        indicator: percentageChange > 0 ? "↑" : percentageChange < 0 ? "↓" : "",
+        indicatorColor: percentageChange > 0 ? "text-green-600" : "text-red-600"
+      };
     };
 
-    const renderPerWorkingDayCell = (value: number, previousValue: number | null, className: string = "", projected?: number, expected?: number) => {
+    const renderCell = (value: number, normalizedValue: number, totalValue: number, normalizedTotalValue: number, className: string = "", projected?: number, normalizedProjected?: number, expected?: number, normalizedExpected?: number, previousValue: number | null = null, normalizedPreviousValue: number | null = null) => {
       const isProjectedLessThanExpected = projected !== undefined && expected !== undefined && projected < expected;
       const bgColor = isProjectedLessThanExpected ? "bg-red-100" : "";
+      
+      const displayValue = normalized[tableId] ? normalizedValue : value;
+      const displayTotalValue = normalized[tableId] ? normalizedTotalValue : totalValue;
 
-      const valuePerDay = value;
-      const previousValuePerDay = previousValue;
-      
-      let percentageChange = 0;
-      let indicator = "";
-      let indicatorColor = "";
-      
-      if (previousValuePerDay && previousValuePerDay > 0) {
-        percentageChange = ((valuePerDay - previousValuePerDay) / previousValuePerDay) * 100;
-        
-        if (percentageChange > 0) {
-          indicator = "↑";
-          indicatorColor = "text-green-600";
-        } else if (percentageChange < 0) {
-          indicator = "↓";
-          indicatorColor = "text-red-600";
-        }
+      let changeInfo = null;
+      if (previousValue !== null) {
+        changeInfo = calculatePercentageChange(
+          normalized[tableId] ? normalizedValue : value,
+          normalized[tableId] ? normalizedPreviousValue : previousValue,
+          1 // No need for working days since we're using normalized values
+        );
       }
 
       return (
@@ -245,24 +241,29 @@ export default function RevenueForecastPage() {
             value === 0 ? "text-gray-300" : ""
           } relative ${bgColor}`}
         >
-          {formatCurrency(value)}
-          {previousValue !== null && percentageChange !== 0 && (
-            <span className={`absolute bottom-0 right-1 text-[10px] ${indicatorColor}`}>
-              {indicator} {Math.abs(percentageChange).toFixed(1)}%
+          {formatCurrency(displayValue)}
+          <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1 box-border">
+            <span className={changeInfo ? `${changeInfo.indicatorColor}` : ''}>
+              {changeInfo && (
+                <>{changeInfo.indicator} {Math.abs(changeInfo.percentageChange).toFixed(1)}%</>
+              )}
             </span>
-          )}
+            <span className="text-gray-400 truncate mr-2">
+              {formatPercentage(value, totalValue)}
+            </span>
+          </div>
         </TableCell>
       );
     };
 
-    const renderSortHeader = (key: string, label: string, workingDays: number | null = null, className: string = "") => (
+    const renderSortHeader = (key: string, normalizedKey: string, label: string, workingDays: number | null = null, className: string = "") => (
       <TableHead
-        onClick={() => requestSort(key, tableId)}
+        onClick={() => requestSort(normalized[tableId] ? normalizedKey : key, tableId)}
         className={`text-right cursor-pointer hover:bg-gray-100 ${className}`}
       >
         {label}
         {workingDays !== null && <span className="block text-[10px] text-gray-500">{workingDays} working days</span>}
-        {sortConfig.key === key && (sortConfig.direction === "asc" ? "↑" : "↓")}
+        {sortConfig.key === (normalized[tableId] ? normalizedKey : key) && (sortConfig.direction === "asc" ? "↑" : "↓")}
       </TableHead>
     );
 
@@ -277,6 +278,7 @@ export default function RevenueForecastPage() {
       const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
       const paddingLeft = depth * 4;
       const expectedValue = useHistorical[tableId] ? item.expectedHistorical : item.expected;
+      const normalizedExpectedValue = useHistorical[tableId] ? item.normalizedExpectedHistorical : item.normalizedExpected;
       
       return (
         <TableRow key={item.name || item.title} className={`h-[57px] ${baseClasses} ${depth === 0 ? 'border-b-[1px]' : ''}`}>
@@ -305,25 +307,144 @@ export default function RevenueForecastPage() {
               )}
             </div>
           </TableCell>
-          {renderCell(item.sameDayThreeMonthsAgo, total.sameDayThreeMonthsAgo, "border-x border-gray-200 text-[12px]")}
-          {renderCell(item.threeMonthsAgo, total.threeMonthsAgo, "border-r border-gray-400 text-[12px]")}
-          {renderCell(item.sameDayTwoMonthsAgo, total.sameDayTwoMonthsAgo, "border-x border-gray-200 text-[12px]")}
-          {renderCell(item.twoMonthsAgo, total.twoMonthsAgo, "border-r border-gray-400 text-[12px]")}
-          {renderCell(item.sameDayOneMonthAgo, total.sameDayOneMonthAgo, "border-x border-gray-200 text-[12px]")}
-          {renderCell(item.oneMonthAgo, total.oneMonthAgo, "border-r border-gray-400 text-[12px]")}
-          {renderCell(item.realized, total.realized, "border-x border-gray-200")}
-          {renderCell(item.projected, total.projected, "border-x border-gray-200", item.projected, expectedValue)}
-          {renderCell(expectedValue, useHistorical[tableId] ? total.expectedHistorical : total.expected, "border-r border-gray-400", item.projected, expectedValue)}
+          {renderCell(
+            item.sameDayThreeMonthsAgo, 
+            item.normalizedSameDayThreeMonthsAgo,
+            total.sameDayThreeMonthsAgo,
+            total.normalizedSameDayThreeMonthsAgo,
+            "border-x border-gray-200 text-[12px]"
+          )}
+          {renderCell(
+            item.threeMonthsAgo,
+            item.normalizedThreeMonthsAgo,
+            total.threeMonthsAgo,
+            total.normalizedThreeMonthsAgo,
+            "border-r border-gray-400 text-[12px]"
+          )}
+          {renderCell(
+            item.sameDayTwoMonthsAgo,
+            item.normalizedSameDayTwoMonthsAgo,
+            total.sameDayTwoMonthsAgo,
+            total.normalizedSameDayTwoMonthsAgo,
+            "border-x border-gray-200 text-[12px]",
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            item.sameDayThreeMonthsAgo,
+            item.normalizedSameDayThreeMonthsAgo
+          )}
+          {renderCell(
+            item.twoMonthsAgo,
+            item.normalizedTwoMonthsAgo,
+            total.twoMonthsAgo,
+            total.normalizedTwoMonthsAgo,
+            "border-r border-gray-400 text-[12px]",
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            item.threeMonthsAgo,
+            item.normalizedThreeMonthsAgo
+          )}
+          {renderCell(
+            item.sameDayOneMonthAgo,
+            item.normalizedSameDayOneMonthAgo,
+            total.sameDayOneMonthAgo,
+            total.normalizedSameDayOneMonthAgo,
+            "border-x border-gray-200 text-[12px]",
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            item.sameDayTwoMonthsAgo,
+            item.normalizedSameDayTwoMonthsAgo
+          )}
+          {renderCell(
+            item.oneMonthAgo,
+            item.normalizedOneMonthAgo,
+            total.oneMonthAgo,
+            total.normalizedOneMonthAgo,
+            "border-r border-gray-400 text-[12px]",
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            item.twoMonthsAgo,
+            item.normalizedTwoMonthsAgo
+          )}
+          {renderCell(
+            item.realized,
+            item.normalizedRealized,
+            total.realized,
+            total.normalizedRealized,
+            "border-x border-gray-200",
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            item.sameDayOneMonthAgo,
+            item.normalizedSameDayOneMonthAgo
+          )}
+          {renderCell(
+            item.projected,
+            item.normalizedProjected,
+            total.projected,
+            total.normalizedProjected,
+            "border-x border-gray-200",
+            item.projected,
+            item.normalizedProjected,
+            expectedValue,
+            normalizedExpectedValue,
+            item.oneMonthAgo,
+            item.normalizedOneMonthAgo
+          )}
+          {renderCell(
+            expectedValue,
+            normalizedExpectedValue,
+            useHistorical[tableId] ? total.expectedHistorical : total.expected,
+            useHistorical[tableId] ? total.normalizedExpectedHistorical : total.normalizedExpected,
+            "border-r border-gray-400",
+            item.projected,
+            item.normalizedProjected,
+            expectedValue,
+            normalizedExpectedValue,
+            item.oneMonthAgo,
+            item.normalizedOneMonthAgo
+          )}
         </TableRow>
       );
     };
 
     return (
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
-        <SectionHeader
-          title={title}
-          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(useHistorical[tableId] ? total.expectedHistorical : total.expected)}`}
-        />
+        <div className="flex justify-between items-center">
+          <SectionHeader
+            title={title}
+            subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(useHistorical[tableId] ? total.expectedHistorical : total.expected)}`}
+          />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Normalized</span>
+            <button
+              onClick={() => setNormalized(prev => ({
+                ...prev,
+                [tableId]: !prev[tableId]
+              }))}
+              className={`
+                w-12 h-6 rounded-full transition-colors duration-200 ease-in-out
+                ${normalized[tableId] ? 'bg-blue-600' : 'bg-gray-200'}
+                relative
+              `}
+            >
+              <span
+                className={`
+                  absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out
+                  ${normalized[tableId] ? 'transform translate-x-6' : ''}
+                `}
+              />
+            </button>
+          </div>
+        </div>
         <div className="px-2">
           <Table>
             <TableHeader className="bg-gray-50">
@@ -336,18 +457,23 @@ export default function RevenueForecastPage() {
                 {renderMonthHeader(data.forecast.dateOfInterest, workingDays.inAnalysis, 3, "border-x border-gray-400")}
               </TableRow>
               <TableRow>
-                {renderSortHeader("sameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, workingDays.sameDayThreeMonthsAgo, "w-[95px] border-x border-gray-200")}
-                {renderSortHeader("threeMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
-                {renderSortHeader("sameDayTwoMonthsAgo", `Until ${format(new Date(dates.sameDayTwoMonthsAgo), "dd")}`, workingDays.sameDayTwoMonthsAgo, "w-[95px] border-x border-gray-200")}
-                {renderSortHeader("twoMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
-                {renderSortHeader("sameDayOneMonthAgo", `Until ${format(new Date(dates.sameDayOneMonthAgo), "dd")}`, workingDays.sameDayOneMonthAgo, "w-[95px] border-x border-gray-200")}
-                {renderSortHeader("oneMonthAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
-                {renderSortHeader("realized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
-                {renderSortHeader("projected", "Projected", null, "w-[120px] border-x border-gray-200")}
+                {renderSortHeader("sameDayThreeMonthsAgo", "normalizedSameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, workingDays.sameDayThreeMonthsAgo, "w-[95px] border-x border-gray-200")}
+                {renderSortHeader("threeMonthsAgo", "normalizedThreeMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+                {renderSortHeader("sameDayTwoMonthsAgo", "normalizedSameDayTwoMonthsAgo", `Until ${format(new Date(dates.sameDayTwoMonthsAgo), "dd")}`, workingDays.sameDayTwoMonthsAgo, "w-[95px] border-x border-gray-200")}
+                {renderSortHeader("twoMonthsAgo", "normalizedTwoMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+                {renderSortHeader("sameDayOneMonthAgo", "normalizedSameDayOneMonthAgo", `Until ${format(new Date(dates.sameDayOneMonthAgo), "dd")}`, workingDays.sameDayOneMonthAgo, "w-[95px] border-x border-gray-200")}
+                {renderSortHeader("oneMonthAgo", "normalizedOneMonthAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+                {renderSortHeader("realized", "normalizedRealized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
+                {renderSortHeader("projected", "normalizedProjected", "Projected", null, "w-[120px] border-x border-gray-200")}
                 <TableHead className="w-[120px] border-r border-gray-400">
                   <div className="flex flex-col items-end">
                     <span 
-                      onClick={() => requestSort(useHistorical[tableId] ? "expectedHistorical" : "expected", tableId)} 
+                      onClick={() => requestSort(
+                        normalized[tableId] 
+                          ? (useHistorical[tableId] ? "normalizedExpectedHistorical" : "normalizedExpected")
+                          : (useHistorical[tableId] ? "expectedHistorical" : "expected"),
+                        tableId
+                      )} 
                       className="cursor-pointer hover:text-gray-600"
                     >
                       Expected {sortConfig.key === (useHistorical[tableId] ? "expectedHistorical" : "expected") && (sortConfig.direction === "asc" ? "↑" : "↓")}
@@ -406,67 +532,110 @@ export default function RevenueForecastPage() {
               <TableRow className="font-bold border-t-4 h-[57px]">
                 <TableCell></TableCell>
                 <TableCell className="border-r border-gray-400">Total</TableCell>
-                {renderCell(total.sameDayThreeMonthsAgo, total.sameDayThreeMonthsAgo, "border-x border-gray-200 text-[12px]")}
-                {renderCell(total.threeMonthsAgo, total.threeMonthsAgo, "border-r border-gray-400 text-[12px]")}
-                {renderCell(total.sameDayTwoMonthsAgo, total.sameDayTwoMonthsAgo, "border-x border-gray-200 text-[12px]")}
-                {renderCell(total.twoMonthsAgo, total.twoMonthsAgo, "border-r border-gray-400 text-[12px]")}
-                {renderCell(total.sameDayOneMonthAgo, total.sameDayOneMonthAgo, "border-x border-gray-200 text-[12px]")}
-                {renderCell(total.oneMonthAgo, total.oneMonthAgo, "border-r border-gray-400 text-[12px]")}
-                {renderCell(total.realized, total.realized, "border-x border-gray-200")}
-                {renderCell(total.projected, total.projected, "border-x border-gray-200", total.projected, useHistorical[tableId] ? total.expectedHistorical : total.expected)}
-                {renderCell(useHistorical[tableId] ? total.expectedHistorical : total.expected, useHistorical[tableId] ? total.expectedHistorical : total.expected, "border-r border-gray-400", total.projected, useHistorical[tableId] ? total.expectedHistorical : total.expected)}
-              </TableRow>
-              <TableRow className="font-bold text-gray-500 h-[57px]">
-                <TableCell></TableCell>
-                <TableCell className="border-r border-gray-400">Per Working Day</TableCell>
-                {renderPerWorkingDayCell(
-                  total.sameDayThreeMonthsAgo / workingDays.sameDayThreeMonthsAgo,
-                  null,
+                {renderCell(
+                  total.sameDayThreeMonthsAgo,
+                  total.normalizedSameDayThreeMonthsAgo,
+                  total.sameDayThreeMonthsAgo,
+                  total.normalizedSameDayThreeMonthsAgo,
                   "border-x border-gray-200 text-[12px]"
                 )}
-                {renderPerWorkingDayCell(
-                  total.threeMonthsAgo / workingDays.threeMonthsAgo,
-                  null,
+                {renderCell(
+                  total.threeMonthsAgo,
+                  total.normalizedThreeMonthsAgo,
+                  total.threeMonthsAgo,
+                  total.normalizedThreeMonthsAgo,
                   "border-r border-gray-400 text-[12px]"
                 )}
-                {renderPerWorkingDayCell(
-                  total.sameDayTwoMonthsAgo / workingDays.sameDayTwoMonthsAgo,
-                  total.sameDayThreeMonthsAgo / workingDays.sameDayThreeMonthsAgo,
-                  "border-x border-gray-200 text-[12px]"
+                {renderCell(
+                  total.sameDayTwoMonthsAgo,
+                  total.normalizedSameDayTwoMonthsAgo,
+                  total.sameDayTwoMonthsAgo,
+                  total.normalizedSameDayTwoMonthsAgo,
+                  "border-x border-gray-200 text-[12px]",
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  total.sameDayThreeMonthsAgo,
+                  total.normalizedSameDayThreeMonthsAgo
                 )}
-                {renderPerWorkingDayCell(
-                  total.twoMonthsAgo / workingDays.twoMonthsAgo,
-                  total.threeMonthsAgo / workingDays.threeMonthsAgo,
-                  "border-r border-gray-400 text-[12px]"
+                {renderCell(
+                  total.twoMonthsAgo,
+                  total.normalizedTwoMonthsAgo,
+                  total.twoMonthsAgo,
+                  total.normalizedTwoMonthsAgo,
+                  "border-r border-gray-400 text-[12px]",
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  total.threeMonthsAgo,
+                  total.normalizedThreeMonthsAgo
                 )}
-                {renderPerWorkingDayCell(
-                  total.sameDayOneMonthAgo / workingDays.sameDayOneMonthAgo,
-                  total.sameDayTwoMonthsAgo / workingDays.sameDayTwoMonthsAgo,
-                  "border-x border-gray-200 text-[12px]"
+                {renderCell(
+                  total.sameDayOneMonthAgo,
+                  total.normalizedSameDayOneMonthAgo,
+                  total.sameDayOneMonthAgo,
+                  total.normalizedSameDayOneMonthAgo,
+                  "border-x border-gray-200 text-[12px]",
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  total.sameDayTwoMonthsAgo,
+                  total.normalizedSameDayTwoMonthsAgo
                 )}
-                {renderPerWorkingDayCell(
-                  total.oneMonthAgo / workingDays.oneMonthAgo,
-                  total.twoMonthsAgo / workingDays.twoMonthsAgo,
-                  "border-r border-gray-400 text-[12px]"
+                {renderCell(
+                  total.oneMonthAgo,
+                  total.normalizedOneMonthAgo,
+                  total.oneMonthAgo,
+                  total.normalizedOneMonthAgo,
+                  "border-r border-gray-400 text-[12px]",
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  total.twoMonthsAgo,
+                  total.normalizedTwoMonthsAgo
                 )}
-                {renderPerWorkingDayCell(
-                  total.realized / workingDays.inAnalysisPartial,
-                  total.sameDayOneMonthAgo / workingDays.sameDayOneMonthAgo,
-                  "border-x border-gray-200"
-                )}
-                {renderPerWorkingDayCell(
-                  total.projected / workingDays.inAnalysis,
-                  total.oneMonthAgo / workingDays.oneMonthAgo,
+                {renderCell(
+                  total.realized,
+                  total.normalizedRealized,
+                  total.realized,
+                  total.normalizedRealized,
                   "border-x border-gray-200",
-                  total.projected / workingDays.inAnalysis,
-                  (useHistorical[tableId] ? total.expectedHistorical : total.expected) / workingDays.inAnalysis
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  total.sameDayOneMonthAgo,
+                  total.normalizedSameDayOneMonthAgo
                 )}
-                {renderPerWorkingDayCell(
-                  (useHistorical[tableId] ? total.expectedHistorical : total.expected) / workingDays.inAnalysis,
-                  total.oneMonthAgo / workingDays.oneMonthAgo,
+                {renderCell(
+                  total.projected,
+                  total.normalizedProjected,
+                  total.projected,
+                  total.normalizedProjected,
+                  "border-x border-gray-200",
+                  total.projected,
+                  total.normalizedProjected,
+                  useHistorical[tableId] ? total.expectedHistorical : total.expected,
+                  useHistorical[tableId] ? total.normalizedExpectedHistorical : total.normalizedExpected,
+                  total.oneMonthAgo,
+                  total.normalizedOneMonthAgo
+                )}
+                {renderCell(
+                  useHistorical[tableId] ? total.expectedHistorical : total.expected,
+                  useHistorical[tableId] ? total.normalizedExpectedHistorical : total.normalizedExpected,
+                  useHistorical[tableId] ? total.expectedHistorical : total.expected,
+                  useHistorical[tableId] ? total.normalizedExpectedHistorical : total.normalizedExpected,
                   "border-r border-gray-400",
-                  total.projected / workingDays.inAnalysis,
-                  (useHistorical[tableId] ? total.expectedHistorical : total.expected) / workingDays.inAnalysis
+                  total.projected,
+                  total.normalizedProjected,
+                  useHistorical[tableId] ? total.expectedHistorical : total.expected,
+                  useHistorical[tableId] ? total.normalizedExpectedHistorical : total.normalizedExpected,
+                  total.oneMonthAgo,
+                  total.normalizedOneMonthAgo
                 )}
               </TableRow>
             </TableBody>
@@ -830,30 +999,50 @@ export default function RevenueForecastPage() {
         name: client.name,
         slug: client.slug,
         sameDayThreeMonthsAgo: client.sameDayThreeMonthsAgo,
+        normalizedSameDayThreeMonthsAgo: client.sameDayThreeMonthsAgo / data.forecast.workingDays.sameDayThreeMonthsAgo,
         threeMonthsAgo: client.threeMonthsAgo,
+        normalizedThreeMonthsAgo: client.threeMonthsAgo / data.forecast.workingDays.threeMonthsAgo,
         sameDayTwoMonthsAgo: client.sameDayTwoMonthsAgo,
+        normalizedSameDayTwoMonthsAgo: client.sameDayTwoMonthsAgo / data.forecast.workingDays.sameDayTwoMonthsAgo,
         twoMonthsAgo: client.twoMonthsAgo,
+        normalizedTwoMonthsAgo: client.twoMonthsAgo / data.forecast.workingDays.twoMonthsAgo,
         sameDayOneMonthAgo: client.sameDayOneMonthAgo,
+        normalizedSameDayOneMonthAgo: client.sameDayOneMonthAgo / data.forecast.workingDays.sameDayOneMonthAgo,
         oneMonthAgo: client.oneMonthAgo,
+        normalizedOneMonthAgo: client.oneMonthAgo / data.forecast.workingDays.oneMonthAgo,
         realized: client.inAnalysis,
+        normalizedRealized: client.inAnalysis / data.forecast.workingDays.inAnalysisPartial,
         projected: client.projected,
+        normalizedProjected: client.projected / data.forecast.workingDays.inAnalysis,
         expected: client.expected,
+        normalizedExpected: client.expected / data.forecast.workingDays.inAnalysis,
         expectedHistorical: client.expectedHistorical,
+        normalizedExpectedHistorical: client.expectedHistorical / data.forecast.workingDays.inAnalysis,
       })),
       sponsors: data.forecast.byKind.consulting.bySponsor.map((sponsor: any) => ({
         name: sponsor.name,
         slug: sponsor.slug,
         clientSlug: sponsor.clientSlug,
         sameDayThreeMonthsAgo: sponsor.sameDayThreeMonthsAgo,
+        normalizedSameDayThreeMonthsAgo: sponsor.sameDayThreeMonthsAgo / data.forecast.workingDays.sameDayThreeMonthsAgo,
         threeMonthsAgo: sponsor.threeMonthsAgo,
+        normalizedThreeMonthsAgo: sponsor.threeMonthsAgo / data.forecast.workingDays.threeMonthsAgo,
         sameDayTwoMonthsAgo: sponsor.sameDayTwoMonthsAgo,
+        normalizedSameDayTwoMonthsAgo: sponsor.sameDayTwoMonthsAgo / data.forecast.workingDays.sameDayTwoMonthsAgo,
         twoMonthsAgo: sponsor.twoMonthsAgo,
+        normalizedTwoMonthsAgo: sponsor.twoMonthsAgo / data.forecast.workingDays.twoMonthsAgo,
         sameDayOneMonthAgo: sponsor.sameDayOneMonthAgo,
+        normalizedSameDayOneMonthAgo: sponsor.sameDayOneMonthAgo / data.forecast.workingDays.sameDayOneMonthAgo,
         oneMonthAgo: sponsor.oneMonthAgo,
+        normalizedOneMonthAgo: sponsor.oneMonthAgo / data.forecast.workingDays.oneMonthAgo,
         realized: sponsor.inAnalysis,
+        normalizedRealized: sponsor.inAnalysis / data.forecast.workingDays.inAnalysisPartial,
         projected: sponsor.projected,
+        normalizedProjected: sponsor.projected / data.forecast.workingDays.inAnalysis,
         expected: sponsor.expected,
+        normalizedExpected: sponsor.expected / data.forecast.workingDays.inAnalysis,
         expectedHistorical: sponsor.expectedHistorical,
+        normalizedExpectedHistorical: sponsor.expectedHistorical / data.forecast.workingDays.inAnalysis,
       })),
       cases: data.forecast.byKind.consulting.byCase.map((caseItem: any) => ({
         title: caseItem.title,
@@ -861,45 +1050,72 @@ export default function RevenueForecastPage() {
         sponsorSlug: caseItem.sponsorSlug,
         clientSlug: caseItem.clientSlug,
         sameDayThreeMonthsAgo: caseItem.sameDayThreeMonthsAgo,
+        normalizedSameDayThreeMonthsAgo: caseItem.sameDayThreeMonthsAgo / data.forecast.workingDays.sameDayThreeMonthsAgo,
         threeMonthsAgo: caseItem.threeMonthsAgo,
+        normalizedThreeMonthsAgo: caseItem.threeMonthsAgo / data.forecast.workingDays.threeMonthsAgo,
         sameDayTwoMonthsAgo: caseItem.sameDayTwoMonthsAgo,
+        normalizedSameDayTwoMonthsAgo: caseItem.sameDayTwoMonthsAgo / data.forecast.workingDays.sameDayTwoMonthsAgo,
         twoMonthsAgo: caseItem.twoMonthsAgo,
+        normalizedTwoMonthsAgo: caseItem.twoMonthsAgo / data.forecast.workingDays.twoMonthsAgo,
         sameDayOneMonthAgo: caseItem.sameDayOneMonthAgo,
+        normalizedSameDayOneMonthAgo: caseItem.sameDayOneMonthAgo / data.forecast.workingDays.sameDayOneMonthAgo,
         oneMonthAgo: caseItem.oneMonthAgo,
+        normalizedOneMonthAgo: caseItem.oneMonthAgo / data.forecast.workingDays.oneMonthAgo,
         realized: caseItem.inAnalysis,
+        normalizedRealized: caseItem.inAnalysis / data.forecast.workingDays.inAnalysisPartial,
         projected: caseItem.projected,
+        normalizedProjected: caseItem.projected / data.forecast.workingDays.inAnalysis,
         expected: caseItem.expected,
+        normalizedExpected: caseItem.expected / data.forecast.workingDays.inAnalysis,
         expectedHistorical: caseItem.expectedHistorical,
+        normalizedExpectedHistorical: caseItem.expectedHistorical / data.forecast.workingDays.inAnalysis,
       })),
       projects: data.forecast.byKind.consulting.byProject.map((project: any) => ({
         name: project.name,
         slug: project.slug,
         caseSlug: project.caseSlug,
         sameDayThreeMonthsAgo: project.sameDayThreeMonthsAgo,
+        normalizedSameDayThreeMonthsAgo: project.sameDayThreeMonthsAgo / data.forecast.workingDays.sameDayThreeMonthsAgo,
         threeMonthsAgo: project.threeMonthsAgo,
+        normalizedThreeMonthsAgo: project.threeMonthsAgo / data.forecast.workingDays.threeMonthsAgo,
         sameDayTwoMonthsAgo: project.sameDayTwoMonthsAgo,
+        normalizedSameDayTwoMonthsAgo: project.sameDayTwoMonthsAgo / data.forecast.workingDays.sameDayTwoMonthsAgo,
         twoMonthsAgo: project.twoMonthsAgo,
+        normalizedTwoMonthsAgo: project.twoMonthsAgo / data.forecast.workingDays.twoMonthsAgo,
         sameDayOneMonthAgo: project.sameDayOneMonthAgo,
+        normalizedSameDayOneMonthAgo: project.sameDayOneMonthAgo / data.forecast.workingDays.sameDayOneMonthAgo,
         oneMonthAgo: project.oneMonthAgo,
+        normalizedOneMonthAgo: project.oneMonthAgo / data.forecast.workingDays.oneMonthAgo,
         realized: project.inAnalysis,
+        normalizedRealized: project.inAnalysis / data.forecast.workingDays.inAnalysisPartial,
         projected: project.projected,
+        normalizedProjected: project.projected / data.forecast.workingDays.inAnalysis,
         expected: project.expected,
+        normalizedExpected: project.expected / data.forecast.workingDays.inAnalysis,
         expectedHistorical: project.expectedHistorical,
+        normalizedExpectedHistorical: project.expectedHistorical / data.forecast.workingDays.inAnalysis,
       })),
       totals: {
-        sameDayThreeMonthsAgo:
-          data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
+        sameDayThreeMonthsAgo: data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo,
+        normalizedSameDayThreeMonthsAgo: data.forecast.byKind.consulting.totals.sameDayThreeMonthsAgo / data.forecast.workingDays.sameDayThreeMonthsAgo,
         threeMonthsAgo: data.forecast.byKind.consulting.totals.threeMonthsAgo,
-        sameDayTwoMonthsAgo:
-          data.forecast.byKind.consulting.totals.sameDayTwoMonthsAgo,
+        normalizedThreeMonthsAgo: data.forecast.byKind.consulting.totals.threeMonthsAgo / data.forecast.workingDays.threeMonthsAgo,
+        sameDayTwoMonthsAgo: data.forecast.byKind.consulting.totals.sameDayTwoMonthsAgo,
+        normalizedSameDayTwoMonthsAgo: data.forecast.byKind.consulting.totals.sameDayTwoMonthsAgo / data.forecast.workingDays.sameDayTwoMonthsAgo,
         twoMonthsAgo: data.forecast.byKind.consulting.totals.twoMonthsAgo,
-        sameDayOneMonthAgo:
-          data.forecast.byKind.consulting.totals.sameDayOneMonthAgo,
+        normalizedTwoMonthsAgo: data.forecast.byKind.consulting.totals.twoMonthsAgo / data.forecast.workingDays.twoMonthsAgo,
+        sameDayOneMonthAgo: data.forecast.byKind.consulting.totals.sameDayOneMonthAgo,
+        normalizedSameDayOneMonthAgo: data.forecast.byKind.consulting.totals.sameDayOneMonthAgo / data.forecast.workingDays.sameDayOneMonthAgo,
         oneMonthAgo: data.forecast.byKind.consulting.totals.oneMonthAgo,
+        normalizedOneMonthAgo: data.forecast.byKind.consulting.totals.oneMonthAgo / data.forecast.workingDays.oneMonthAgo,
         realized: data.forecast.byKind.consulting.totals.inAnalysis,
+        normalizedRealized: data.forecast.byKind.consulting.totals.inAnalysis / data.forecast.workingDays.inAnalysisPartial,
         projected: data.forecast.byKind.consulting.totals.projected,
+        normalizedProjected: data.forecast.byKind.consulting.totals.projected / data.forecast.workingDays.inAnalysis,
         expected: data.forecast.byKind.consulting.totals.expected,
+        normalizedExpected: data.forecast.byKind.consulting.totals.expected / data.forecast.workingDays.inAnalysis,
         expectedHistorical: data.forecast.byKind.consulting.totals.expectedHistorical,
+        normalizedExpectedHistorical: data.forecast.byKind.consulting.totals.expectedHistorical / data.forecast.workingDays.inAnalysis,
       },
     },
     consultingPre: {
