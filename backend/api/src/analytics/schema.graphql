@@ -533,11 +533,15 @@ type ForecastDates {
 
 type ForecastSummary {
   realized: Float!
+  realizedConsultingHours: Float!
   projected: Float!
   expected: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
 }
 
 type ForecastWorkingDays {
@@ -583,12 +587,19 @@ type ForecastTotals {
 
 type ForecastConsultingTotals {
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
@@ -639,13 +650,20 @@ type ForecastConsultingByClientEntry {
   slug: String
   
   inAnalysis: Float!
-  projected: Float!
+  inAnalysisConsultingHours: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  projected: Float!
   expected: Float!
   expectedHistorical: Float!
 } 
@@ -655,12 +673,19 @@ type ForecastConsultingBySponsorEntry {
   slug: String!
   clientSlug: String
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
@@ -672,12 +697,19 @@ type ForecastConsultingByCaseEntry {
   sponsorSlug: String
   clientSlug: String
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
@@ -688,12 +720,19 @@ type ForecastConsultingByProjectEntry {
   slug: String!
   caseSlug: String!
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
