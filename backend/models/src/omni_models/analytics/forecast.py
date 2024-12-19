@@ -250,8 +250,20 @@ def compute_forecast(date_of_interest = None, filters = None):
                 entity['same_day_one_month_ago'] = entity.get('same_day_one_month_ago', 0)
                 entity['same_day_two_months_ago'] = entity.get('same_day_two_months_ago', 0)
                 entity['same_day_three_months_ago'] = entity.get('same_day_three_months_ago', 0)
-                
                 entity['projected'] = (entity['in_analysis'] / number_of_working_days_in_analysis_partial) * number_of_working_days_in_analysis
+                
+                previous_value = entity.get('one_month_ago', 0)
+                two_months_ago_value = entity.get('two_months_ago', 0)
+                three_months_ago_value = entity.get('three_months_ago', 0)
+                
+                if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
+                    entity['expected_historical'] = entity['projected'] if entity['projected'] else 0
+                elif two_months_ago_value == 0 and three_months_ago_value == 0:
+                    entity['expected_historical'] = previous_value
+                elif three_months_ago_value == 0:
+                    entity['expected_historical'] = previous_value * 0.8 + two_months_ago_value * 0.2
+                else:
+                    entity['expected_historical'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
                
         for client in by_client:
             adjust_entity(client)
@@ -278,6 +290,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             totals['same_day_three_months_ago'] = sum(client.get('same_day_three_months_ago', 0) for client in by_client)
             totals['projected'] = sum(client.get('projected', 0) for client in by_client)
             totals['expected'] = sum(client.get('expected', 0) for client in by_client) 
+            totals['expected_historical'] = sum(client.get('expected_historical', 0) for client in by_client)
 
         return {
             'slug': slug,

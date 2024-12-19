@@ -19,6 +19,7 @@ import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { RevenueProgression } from "./RevenueProgression";
+import { Toggle } from "@/components/ui/toggle";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -71,6 +72,12 @@ export default function RevenueForecastPage() {
     consultingPre: [],
     handsOn: [],
     squad: []
+  });
+  const [useHistorical, setUseHistorical] = useState<Record<string, boolean>>({
+    consulting: false,
+    consultingPre: false,
+    handsOn: false,
+    squad: false
   });
 
   useEffect(() => {
@@ -209,6 +216,45 @@ export default function RevenueForecastPage() {
       );
     };
 
+    const renderPerWorkingDayCell = (value: number, previousValue: number | null, className: string = "", projected?: number, expected?: number) => {
+      const isProjectedLessThanExpected = projected !== undefined && expected !== undefined && projected < expected;
+      const bgColor = isProjectedLessThanExpected ? "bg-red-100" : "";
+
+      const valuePerDay = value;
+      const previousValuePerDay = previousValue;
+      
+      let percentageChange = 0;
+      let indicator = "";
+      let indicatorColor = "";
+      
+      if (previousValuePerDay && previousValuePerDay > 0) {
+        percentageChange = ((valuePerDay - previousValuePerDay) / previousValuePerDay) * 100;
+        
+        if (percentageChange > 0) {
+          indicator = "↑";
+          indicatorColor = "text-green-600";
+        } else if (percentageChange < 0) {
+          indicator = "↓";
+          indicatorColor = "text-red-600";
+        }
+      }
+
+      return (
+        <TableCell
+          className={`text-right ${className} ${
+            value === 0 ? "text-gray-300" : ""
+          } relative ${bgColor}`}
+        >
+          {formatCurrency(value)}
+          {previousValue !== null && percentageChange !== 0 && (
+            <span className={`absolute bottom-0 right-1 text-[10px] ${indicatorColor}`}>
+              {indicator} {Math.abs(percentageChange).toFixed(1)}%
+            </span>
+          )}
+        </TableCell>
+      );
+    };
+
     const renderSortHeader = (key: string, label: string, workingDays: number | null = null, className: string = "") => (
       <TableHead
         onClick={() => requestSort(key, tableId)}
@@ -230,6 +276,7 @@ export default function RevenueForecastPage() {
     const renderRow = (item: any, depth: number = 0) => {
       const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
       const paddingLeft = depth * 4;
+      const expectedValue = useHistorical[tableId] ? item.expectedHistorical : item.expected;
       
       return (
         <TableRow key={item.name || item.title} className={`h-[57px] ${baseClasses} ${depth === 0 ? 'border-b-[1px]' : ''}`}>
@@ -265,8 +312,8 @@ export default function RevenueForecastPage() {
           {renderCell(item.sameDayOneMonthAgo, total.sameDayOneMonthAgo, "border-x border-gray-200 text-[12px]")}
           {renderCell(item.oneMonthAgo, total.oneMonthAgo, "border-r border-gray-400 text-[12px]")}
           {renderCell(item.realized, total.realized, "border-x border-gray-200")}
-          {renderCell(item.projected, total.projected, "border-x border-gray-200", item.projected, item.expected)}
-          {renderCell(item.expected, total.expected, "border-r border-gray-400", item.projected, item.expected)}
+          {renderCell(item.projected, total.projected, "border-x border-gray-200", item.projected, expectedValue)}
+          {renderCell(expectedValue, useHistorical[tableId] ? total.expectedHistorical : total.expected, "border-r border-gray-400", item.projected, expectedValue)}
         </TableRow>
       );
     };
@@ -275,7 +322,7 @@ export default function RevenueForecastPage() {
       <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
         <SectionHeader
           title={title}
-          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(total.expected)}`}
+          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(useHistorical[tableId] ? total.expectedHistorical : total.expected)}`}
         />
         <div className="px-2">
           <Table>
@@ -297,7 +344,34 @@ export default function RevenueForecastPage() {
                 {renderSortHeader("oneMonthAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
                 {renderSortHeader("realized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
                 {renderSortHeader("projected", "Projected", null, "w-[120px] border-x border-gray-200")}
-                {renderSortHeader("expected", "Expected", null, "w-[120px] border-r border-gray-400")}
+                <TableHead className="w-[120px] border-r border-gray-400">
+                  <div className="flex flex-col items-end">
+                    <span 
+                      onClick={() => requestSort(useHistorical[tableId] ? "expectedHistorical" : "expected", tableId)} 
+                      className="cursor-pointer hover:text-gray-600"
+                    >
+                      Expected {sortConfig.key === (useHistorical[tableId] ? "expectedHistorical" : "expected") && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setUseHistorical(prev => ({
+                          ...prev,
+                          [tableId]: !prev[tableId]
+                        }));
+                      }}
+                      className={`
+                        text-[10px] mt-0.5 
+                        ${useHistorical[tableId] 
+                          ? 'text-blue-600' 
+                          : 'text-gray-400 hover:text-gray-600'
+                        }
+                        transition-colors cursor-pointer
+                      `}
+                    >
+                      historical
+                    </button>
+                  </div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -339,8 +413,61 @@ export default function RevenueForecastPage() {
                 {renderCell(total.sameDayOneMonthAgo, total.sameDayOneMonthAgo, "border-x border-gray-200 text-[12px]")}
                 {renderCell(total.oneMonthAgo, total.oneMonthAgo, "border-r border-gray-400 text-[12px]")}
                 {renderCell(total.realized, total.realized, "border-x border-gray-200")}
-                {renderCell(total.projected, total.projected, "border-x border-gray-200", total.projected, total.expected)}
-                {renderCell(total.expected, total.expected, "border-r border-gray-400", total.projected, total.expected)}
+                {renderCell(total.projected, total.projected, "border-x border-gray-200", total.projected, useHistorical[tableId] ? total.expectedHistorical : total.expected)}
+                {renderCell(useHistorical[tableId] ? total.expectedHistorical : total.expected, useHistorical[tableId] ? total.expectedHistorical : total.expected, "border-r border-gray-400", total.projected, useHistorical[tableId] ? total.expectedHistorical : total.expected)}
+              </TableRow>
+              <TableRow className="font-bold text-gray-500 h-[57px]">
+                <TableCell></TableCell>
+                <TableCell className="border-r border-gray-400">Per Working Day</TableCell>
+                {renderPerWorkingDayCell(
+                  total.sameDayThreeMonthsAgo / workingDays.sameDayThreeMonthsAgo,
+                  null,
+                  "border-x border-gray-200 text-[12px]"
+                )}
+                {renderPerWorkingDayCell(
+                  total.threeMonthsAgo / workingDays.threeMonthsAgo,
+                  null,
+                  "border-r border-gray-400 text-[12px]"
+                )}
+                {renderPerWorkingDayCell(
+                  total.sameDayTwoMonthsAgo / workingDays.sameDayTwoMonthsAgo,
+                  total.sameDayThreeMonthsAgo / workingDays.sameDayThreeMonthsAgo,
+                  "border-x border-gray-200 text-[12px]"
+                )}
+                {renderPerWorkingDayCell(
+                  total.twoMonthsAgo / workingDays.twoMonthsAgo,
+                  total.threeMonthsAgo / workingDays.threeMonthsAgo,
+                  "border-r border-gray-400 text-[12px]"
+                )}
+                {renderPerWorkingDayCell(
+                  total.sameDayOneMonthAgo / workingDays.sameDayOneMonthAgo,
+                  total.sameDayTwoMonthsAgo / workingDays.sameDayTwoMonthsAgo,
+                  "border-x border-gray-200 text-[12px]"
+                )}
+                {renderPerWorkingDayCell(
+                  total.oneMonthAgo / workingDays.oneMonthAgo,
+                  total.twoMonthsAgo / workingDays.twoMonthsAgo,
+                  "border-r border-gray-400 text-[12px]"
+                )}
+                {renderPerWorkingDayCell(
+                  total.realized / workingDays.inAnalysisPartial,
+                  total.sameDayOneMonthAgo / workingDays.sameDayOneMonthAgo,
+                  "border-x border-gray-200"
+                )}
+                {renderPerWorkingDayCell(
+                  total.projected / workingDays.inAnalysis,
+                  total.oneMonthAgo / workingDays.oneMonthAgo,
+                  "border-x border-gray-200",
+                  total.projected / workingDays.inAnalysis,
+                  (useHistorical[tableId] ? total.expectedHistorical : total.expected) / workingDays.inAnalysis
+                )}
+                {renderPerWorkingDayCell(
+                  (useHistorical[tableId] ? total.expectedHistorical : total.expected) / workingDays.inAnalysis,
+                  total.oneMonthAgo / workingDays.oneMonthAgo,
+                  "border-r border-gray-400",
+                  total.projected / workingDays.inAnalysis,
+                  (useHistorical[tableId] ? total.expectedHistorical : total.expected) / workingDays.inAnalysis
+                )}
               </TableRow>
             </TableBody>
           </Table>
@@ -711,6 +838,7 @@ export default function RevenueForecastPage() {
         realized: client.inAnalysis,
         projected: client.projected,
         expected: client.expected,
+        expectedHistorical: client.expectedHistorical,
       })),
       sponsors: data.forecast.byKind.consulting.bySponsor.map((sponsor: any) => ({
         name: sponsor.name,
@@ -725,6 +853,7 @@ export default function RevenueForecastPage() {
         realized: sponsor.inAnalysis,
         projected: sponsor.projected,
         expected: sponsor.expected,
+        expectedHistorical: sponsor.expectedHistorical,
       })),
       cases: data.forecast.byKind.consulting.byCase.map((caseItem: any) => ({
         title: caseItem.title,
@@ -740,6 +869,7 @@ export default function RevenueForecastPage() {
         realized: caseItem.inAnalysis,
         projected: caseItem.projected,
         expected: caseItem.expected,
+        expectedHistorical: caseItem.expectedHistorical,
       })),
       projects: data.forecast.byKind.consulting.byProject.map((project: any) => ({
         name: project.name,
@@ -754,6 +884,7 @@ export default function RevenueForecastPage() {
         realized: project.inAnalysis,
         projected: project.projected,
         expected: project.expected,
+        expectedHistorical: project.expectedHistorical,
       })),
       totals: {
         sameDayThreeMonthsAgo:
@@ -768,6 +899,7 @@ export default function RevenueForecastPage() {
         realized: data.forecast.byKind.consulting.totals.inAnalysis,
         projected: data.forecast.byKind.consulting.totals.projected,
         expected: data.forecast.byKind.consulting.totals.expected,
+        expectedHistorical: data.forecast.byKind.consulting.totals.expectedHistorical,
       },
     },
     consultingPre: {

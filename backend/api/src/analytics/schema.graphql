@@ -584,6 +584,7 @@ type ForecastConsultingTotals {
   sameDayThreeMonthsAgo: Float!
   projected: Float!
   expected: Float!
+  expectedHistorical: Float!
 }
 
 type ForecastBySponsorEntry {
@@ -639,6 +640,7 @@ type ForecastConsultingByClientEntry {
   sameDayTwoMonthsAgo: Float!
   sameDayThreeMonthsAgo: Float!
   expected: Float!
+  expectedHistorical: Float!
 } 
 
 type ForecastConsultingBySponsorEntry {
@@ -654,6 +656,7 @@ type ForecastConsultingBySponsorEntry {
   sameDayThreeMonthsAgo: Float!
   projected: Float!
   expected: Float!
+  expectedHistorical: Float!
 }
 
 type ForecastConsultingByCaseEntry {
@@ -670,6 +673,7 @@ type ForecastConsultingByCaseEntry {
   sameDayThreeMonthsAgo: Float!
   projected: Float!
   expected: Float!
+  expectedHistorical: Float!
 }
 
 type ForecastConsultingByProjectEntry {
@@ -685,4 +689,5 @@ type ForecastConsultingByProjectEntry {
   sameDayThreeMonthsAgo: Float!
   projected: Float!
   expected: Float!
+  expectedHistorical: Float!
 }

@@ -41,6 +41,7 @@ export const REVENUE_FORECAST_QUERY = gql`
             inAnalysis
             projected
             expected
+            expectedHistorical
             oneMonthAgo
             sameDayOneMonthAgo
             twoMonthsAgo
@@ -54,6 +55,7 @@ export const REVENUE_FORECAST_QUERY = gql`
             inAnalysis
             projected
             expected
+            expectedHistorical
             oneMonthAgo
             sameDayOneMonthAgo
             twoMonthsAgo
@@ -68,6 +70,7 @@ export const REVENUE_FORECAST_QUERY = gql`
             inAnalysis
             projected
             expected
+            expectedHistorical
             oneMonthAgo
             sameDayOneMonthAgo
             twoMonthsAgo
@@ -83,6 +86,7 @@ export const REVENUE_FORECAST_QUERY = gql`
             inAnalysis
             projected
             expected
+            expectedHistorical
             oneMonthAgo
             sameDayOneMonthAgo
             twoMonthsAgo
@@ -97,6 +101,7 @@ export const REVENUE_FORECAST_QUERY = gql`
             inAnalysis
             projected
             expected
+            expectedHistorical
             oneMonthAgo
             sameDayOneMonthAgo
             twoMonthsAgo
