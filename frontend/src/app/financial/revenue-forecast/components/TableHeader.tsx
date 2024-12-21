@@ -10,6 +10,8 @@ interface TableHeaderProps {
   useHistorical: Record<string, boolean>;
   requestSort: (key: string, tableId: string) => void;
   setUseHistorical: (value: React.SetStateAction<Record<string, boolean>>) => void;
+  columnLabel?: string;
+  hideHistoricalToggle?: boolean;
 }
 
 export function TableHeaderComponent({
@@ -21,6 +23,8 @@ export function TableHeaderComponent({
   useHistorical,
   requestSort,
   setUseHistorical,
+  columnLabel = "Client",
+  hideHistoricalToggle = false,
 }: TableHeaderProps) {
   const sortConfig = sortConfigs[tableId];
 
@@ -54,7 +58,7 @@ export function TableHeaderComponent({
     <TableHeader className="bg-gray-50">
       <TableRow>
         <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
-        <TableHead rowSpan={2} className="border-r border-gray-400">Client</TableHead>
+        <TableHead rowSpan={2} className="border-r border-gray-400">{columnLabel}</TableHead>
         {renderMonthHeader(dates.threeMonthsAgo, workingDays.threeMonthsAgo, 2, "border-x border-gray-400")}
         {renderMonthHeader(dates.twoMonthsAgo, workingDays.twoMonthsAgo, 2, "border-x border-gray-400")}
         {renderMonthHeader(dates.oneMonthAgo, workingDays.oneMonthAgo, 2, "border-x border-gray-400")}
@@ -74,32 +78,34 @@ export function TableHeaderComponent({
             <span 
               onClick={() => requestSort(
                 normalized[tableId] 
-                  ? (useHistorical[tableId] ? "normalizedExpectedHistorical" : "normalizedExpected")
-                  : (useHistorical[tableId] ? "expectedHistorical" : "expected"),
+                  ? "normalizedExpectedHistorical"
+                  : "expectedHistorical",
                 tableId
               )} 
               className="cursor-pointer hover:text-gray-600"
             >
-              Expected {sortConfig.key === (useHistorical[tableId] ? "expectedHistorical" : "expected") && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              Expected {sortConfig.key === "expectedHistorical" && (sortConfig.direction === "asc" ? "↑" : "↓")}
             </span>
-            <button
-              onClick={() => {
-                setUseHistorical(prev => ({
-                  ...prev,
-                  [tableId]: !prev[tableId]
-                }));
-              }}
-              className={`
-                text-[10px] mt-0.5 
-                ${useHistorical[tableId] 
-                  ? 'text-blue-600' 
-                  : 'text-gray-400 hover:text-gray-600'
-                }
-                transition-colors cursor-pointer
-              `}
-            >
-              historical
-            </button>
+            {!hideHistoricalToggle && (
+              <button
+                onClick={() => {
+                  setUseHistorical(prev => ({
+                    ...prev,
+                    [tableId]: !prev[tableId]
+                  }));
+                }}
+                className={`
+                  text-[10px] mt-0.5 
+                  ${useHistorical[tableId] 
+                    ? 'text-blue-600' 
+                    : 'text-gray-400 hover:text-gray-600'
+                  }
+                  transition-colors cursor-pointer
+                `}
+              >
+                historical
+              </button>
+            )}
           </div>
         </TableHead>
       </TableRow>

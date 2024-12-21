@@ -105,10 +105,11 @@ export function ConsultingTable({
             setUseHistorical={setUseHistorical}
           />
           <TableBody>
-            {sortedClients.map((client: any) => (
+            {sortedClients.map((client: any, index: number) => (
               <React.Fragment key={client.slug}>
                 <TableRowComponent 
                   item={client}
+                  index={index + 1}
                   total={total}
                   tableId={tableId}
                   normalized={normalized}
@@ -123,6 +124,7 @@ export function ConsultingTable({
                       <React.Fragment key={sponsor.slug}>
                         <TableRowComponent 
                           item={sponsor}
+                          index={null}
                           depth={1}
                           total={total}
                           tableId={tableId}
@@ -173,7 +175,7 @@ export function ConsultingTable({
               </React.Fragment>
             ))}
             <TableRow className="font-bold border-t-4 h-[57px]">
-              <TableCell></TableCell>
+              <TableCell className="text-right pr-4"></TableCell>
               <TableCell className="border-r border-gray-400">Total</TableCell>
               <TableCellComponent
                 value={total.sameDayThreeMonthsAgo}
@@ -271,7 +273,7 @@ export function ConsultingTable({
               />
             </TableRow>
             <TableRow className="text-gray-600 border-t h-[57px]">
-              <TableCell></TableCell>
+              <TableCell className="text-right pr-4"></TableCell>
               <TableCell className="border-r border-gray-400">New Cases</TableCell>
               <TableCellComponent
                 value={total.sameDayThreeMonthsAgoConsultingFeeNew || 0}

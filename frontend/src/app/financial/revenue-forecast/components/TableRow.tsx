@@ -12,6 +12,7 @@ interface TableRowProps {
   useHistorical: Record<string, boolean>;
   expandedClients: Record<string, string[]>;
   toggleClient: (clientSlug: string, tableId: string) => void;
+  index?: number | null;
 }
 
 export function TableRowComponent({
@@ -23,6 +24,7 @@ export function TableRowComponent({
   useHistorical,
   expandedClients,
   toggleClient,
+  index,
 }: TableRowProps) {
   const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
   const paddingLeft = depth * 4;
@@ -32,7 +34,7 @@ export function TableRowComponent({
   return (
     <TableRow className={`h-[57px] ${baseClasses} ${depth === 0 ? 'border-b-[1px]' : ''}`}>
       <TableCell className="text-center text-gray-500 text-[10px]">
-        {depth === 0 && item.index}
+        {depth === 0 && index}
       </TableCell>
       <TableCell className="border-r border-gray-400">
         <div className="flex items-center gap-2" style={{paddingLeft: `${paddingLeft}px`}}>

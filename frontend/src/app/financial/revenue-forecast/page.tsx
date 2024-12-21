@@ -10,6 +10,7 @@ import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { RevenueProgression } from "./RevenueProgression";
 import { ConsultingTable } from "./ConsultingTable";
+import { ConsultingTableByConsultant } from "./ConsultingTableByConsultant";
 import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
 
@@ -29,6 +30,7 @@ export default function RevenueForecastPage() {
     >
   >({
     consulting: { key: "current", direction: "desc" },
+    consultingByConsultant: { key: "expectedHistorical", direction: "desc" },
     consultingPre: { key: "current", direction: "desc" },
     handsOn: { key: "current", direction: "desc" },
     squad: { key: "current", direction: "desc" },
@@ -46,6 +48,7 @@ export default function RevenueForecastPage() {
   });
   const [normalized, setNormalized] = useState<Record<string, boolean>>({
     consulting: false,
+    consultingByConsultant: false,
     consultingPre: false,
     handsOn: false,
     squad: false
@@ -170,6 +173,14 @@ export default function RevenueForecastPage() {
                 formatCurrency(forecastData.consulting.totals.expected),
             },
             {
+              id: "consultingByConsultant",
+              title: "By Consultant",
+              subtitle:
+                formatCurrency(forecastData.consulting.totals.realized) +
+                " / " +
+                formatCurrency(forecastData.consulting.totals.expectedHistorical),
+            },
+            {
               id: "consultingPre",
               title: "Consulting Pre",
               subtitle: formatCurrency(
@@ -203,6 +214,18 @@ export default function RevenueForecastPage() {
           toggleClient={toggleClient}
           setNormalized={setNormalized}
           setUseHistorical={setUseHistorical}
+        />
+        
+        <ConsultingTableByConsultant
+          title="Consulting by Consultant"
+          tableData={forecastData.consulting}
+          tableId="consultingByConsultant"
+          dates={data.forecast.dates}
+          workingDays={data.forecast.workingDays}
+          sortConfigs={sortConfigs}
+          normalized={normalized}
+          requestSort={requestSort}
+          setNormalized={setNormalized}
         />
         
         <OtherTable
