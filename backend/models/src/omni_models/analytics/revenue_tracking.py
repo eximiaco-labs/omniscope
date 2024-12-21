@@ -219,14 +219,28 @@ def compute_regular_revenue_tracking(
         if project.rate and project.rate.rate:
             project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
             if len(project_df) > 0:
+                by_worker = []
+                for worker_name in project_df["WorkerName"].unique():
+                    worker_df = project_df[project_df["WorkerName"] == worker_name]
+                    worker = globals.omni_models.workers.get_by_name(worker_name)
+                    by_worker.append({
+                        "name": worker_name,
+                        "slug": worker.slug if worker else None,
+                        "hours": worker_df["TimeInHs"].sum(),
+                        "fee": worker_df["Revenue"].sum()
+                    })
+                    
                 return {
                     "kind": project.kind,
                     "name": project.name,
                     "rate": project.rate.rate / 100,
                     "hours": project_df["TimeInHs"].sum(),
                     "fee": project_df["Revenue"].sum(),
-                    "fixed": False
+                    "fixed": False,
+                    "by_worker": by_worker
                 }
+                
+                
         return None
     
     return _compute_revenue_tracking_base(df, date_of_interest, process_project, account_manager_name_or_slug)[0]
@@ -1154,7 +1168,60 @@ class KindSummary:
             KindSummary.build(kind, pre_contracted, regular)
             for kind in PROJECT_KINDS
         ]
-
+        
+@dataclass
+class ConsultantSummary:
+    name: str
+    slug: str
+    consulting_fee: float
+    consulting_hours: float
+    
+    @staticmethod
+    def build(consultant_name, pre_contracted, regular):
+        consulting_fee = sum(
+            worker["fee"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            for worker in project["by_worker"]
+            if worker["name"] == consultant_name
+        )
+        
+        consulting_hours = sum(
+            worker["hours"]
+            for account_manager in regular["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            for worker in project["by_worker"]
+            if worker["name"] == consultant_name
+        )
+       
+        return ConsultantSummary(
+            name=consultant_name,
+            slug=globals.omni_models.workers.get_by_name(consultant_name).slug,
+            consulting_fee=consulting_fee,
+            consulting_hours=consulting_hours,
+        )
+        
+    @staticmethod
+    def build_list(pre_contracted, regular):
+        return [
+            ConsultantSummary.build(consultant_name, pre_contracted, regular)
+            for consultant_name in set(
+                worker["name"]
+                for account_manager in regular["monthly"]["by_account_manager"]
+                for client in account_manager["by_client"]
+                for sponsor in client["by_sponsor"]
+                for case in sponsor["by_case"]
+                for project in case["by_project"]
+                for worker in project["by_worker"]
+            )
+        ]
+    
 def compute_summaries(pre_contracted, regular):
 
     by_mode = {
@@ -1168,6 +1235,7 @@ def compute_summaries(pre_contracted, regular):
         "by_client": ClientSummary.build_list(pre_contracted, regular),
         "by_sponsor": SponsorSummary.build_list(pre_contracted, regular),
         "by_kind": KindSummary.build_list(pre_contracted, regular),
+        "by_consultant": ConsultantSummary.build_list(pre_contracted, regular),
         "by_mode": by_mode,
     }
     

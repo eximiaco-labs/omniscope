@@ -399,6 +399,7 @@ type RevenueTrackingSummaries {
   byClient: [RevenueTrackingByClient!]!
   bySponsor: [RevenueTrackingBySponsor!]!
   byKind: [RevenueTrackingByKind!]!
+  byConsultant: [RevenueTrackingByConsultant!]!
   byMode: RevenueTrackingByMode!
 }
 
@@ -414,6 +415,13 @@ type RevenueTrackingSummary {
   totalConsultingPreFee: Float!
   totalHandsOnFee: Float!
   totalSquadFee: Float!
+}
+
+type RevenueTrackingByConsultant {
+  name: String!
+  slug: String!
+  consultingFee: Float!
+  consultingHours: Float!
 }
 
 type RevenueTrackingByKind {
