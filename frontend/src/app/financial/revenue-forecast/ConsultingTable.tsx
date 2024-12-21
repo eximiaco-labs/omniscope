@@ -1,10 +1,6 @@
-import { format } from "date-fns";
-import Link from "next/link";
 import {
   Table,
-  TableHeader,
   TableBody,
-  TableHead,
   TableRow,
   TableCell,
 } from "@/components/ui/table";
@@ -13,7 +9,7 @@ import React from "react";
 import { TableHeaderComponent } from "./components/TableHeader";
 import { TableRowComponent } from "./components/TableRow";
 import { TableCellComponent } from "./components/TableCell";
-import { formatCurrency, formatPercentage, calculatePercentageChange } from "./utils";
+import { formatCurrency } from "./utils";
 
 interface ConsultingTableProps {
   title: string;
@@ -341,4 +337,4 @@ export function ConsultingTable({
       </div>
     </div>
   );
-} 
+}
