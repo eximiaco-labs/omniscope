@@ -18,6 +18,8 @@ interface TableRowProps {
   expandedClients: Record<string, string[]>;
   toggleClient: (clientSlug: string, tableId: string) => void;
   index?: number | null;
+  hideIndex?: boolean;
+  hideExpansion?: boolean;
 }
 
 export function TableRowComponent({
@@ -30,6 +32,8 @@ export function TableRowComponent({
   expandedClients,
   toggleClient,
   index,
+  hideIndex = false,
+  hideExpansion = false,
 }: TableRowProps) {
   const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
   const paddingLeft = depth * 4;
@@ -39,11 +43,11 @@ export function TableRowComponent({
   return (
     <TableRow className={`h-[57px] ${baseClasses} ${depth === 0 ? 'border-b-[1px]' : ''}`}>
       <TableCell className="text-center text-gray-500 text-[10px]">
-        {depth === 0 && index}
+        {index}
       </TableCell>
       <TableCell className="border-r border-gray-400">
         <div className="flex items-center gap-2" style={{paddingLeft: `${paddingLeft}px`}}>
-          {(depth < 3) && (
+          {!hideExpansion && (depth < 3) && (
             <button 
               onClick={() => toggleClient(item.slug, tableId)}
               className="w-4 h-4 flex items-center justify-center text-gray-500"

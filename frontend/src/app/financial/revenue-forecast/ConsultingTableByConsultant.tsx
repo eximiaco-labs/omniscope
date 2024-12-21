@@ -110,6 +110,7 @@ export function ConsultingTableByConsultant({
                 useHistorical={{ [tableId]: true }}
                 expandedClients={{}}
                 toggleClient={() => {}}
+                hideExpansion={true}
               />
             ))}
             <TableRow className="font-bold border-t-4 h-[57px]">
