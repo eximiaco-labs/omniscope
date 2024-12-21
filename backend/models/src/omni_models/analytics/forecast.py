@@ -100,8 +100,20 @@ def compute_forecast(date_of_interest = None, filters = None):
         sponsors = {}
         cases = {}
         projects = {}
+        consultants = {}
         
         def add_context(context, context_slug):
+            for consultant in context['summaries']['by_consultant']:
+                if consultant.slug not in consultants:
+                    consultants[consultant.slug] = {
+                        'name': consultant.name,
+                        'slug': consultant.slug
+                    }
+                
+                working_consultant = consultants[consultant.slug]
+                working_consultant[context_slug] = consultant.consulting_fee
+                working_consultant[f'{context_slug}_consulting_hours'] = consultant.consulting_hours
+            
             for client in context['summaries']['by_client']:
                 if client.slug not in clients:
                     clients[client.slug] = {
@@ -111,7 +123,10 @@ def compute_forecast(date_of_interest = None, filters = None):
 
                 working_client = clients[client.slug]
                 working_client[context_slug] = client.get_fee(slug)
-                
+                if slug == 'consulting':
+                    working_client[f'{context_slug}_consulting_hours'] = client.consulting_hours
+                    working_client[f'{context_slug}_consulting_fee_new'] = client.consulting_fee_new
+                    
                 for sponsor in client.by_sponsor:
                     if sponsor.name not in sponsors:
                         sponsors[sponsor.name] = {
@@ -123,6 +138,10 @@ def compute_forecast(date_of_interest = None, filters = None):
                     working_sponsor = sponsors[sponsor.name]
                     working_sponsor[context_slug] = sponsor.get_fee(slug)
                     
+                    if slug == 'consulting':
+                        working_sponsor[f'{context_slug}_consulting_hours'] = sponsor.consulting_hours
+                        working_sponsor[f'{context_slug}_consulting_fee_new'] = sponsor.consulting_fee_new
+                        
                     for case in sponsor.by_case:
                         if case.title not in cases:
                             cases[case.title] = {
@@ -135,6 +154,9 @@ def compute_forecast(date_of_interest = None, filters = None):
                         working_case = cases[case.title]
                         working_case[context_slug] = case.get_fee(slug)
                         
+                        if slug == 'consulting':
+                            working_case[f'{context_slug}_consulting_hours'] = case.consulting_hours
+                            working_case['consulting_fee_new'] = case.consulting_fee_new
                         for project in case.by_project:
                             if project.name not in projects:
                                 projects[project.name] = {
@@ -145,7 +167,11 @@ def compute_forecast(date_of_interest = None, filters = None):
                             
                             working_project = projects[project.name]
                             working_project[context_slug] = project.get_fee(slug)
-                    
+                            
+                            if slug == 'consulting':
+                                working_project[f'{context_slug}_consulting_hours'] = project.consulting_hours
+                                working_project[f'{context_slug}_consulting_fee_new'] = project.consulting_fee_new
+                                
         add_context(analysis_date_of_interest, 'in_analysis')
         add_context(analysis_last_day_of_last_month, 'one_month_ago')
         add_context(analysis_last_day_of_two_months_ago, 'two_months_ago')
@@ -156,6 +182,15 @@ def compute_forecast(date_of_interest = None, filters = None):
             add_context(analysis_same_day_two_months_ago, 'same_day_two_months_ago')
             add_context(analysis_same_day_three_months_ago, 'same_day_three_months_ago')
             
+        by_consultant = list(consultants.values())
+        by_consultant = [
+            consultant for consultant in by_consultant
+            if consultant.get('in_analysis', 0) > 0
+            or consultant.get('one_month_ago', 0) > 0
+            or consultant.get('two_months_ago', 0) > 0
+            or consultant.get('three_months_ago', 0) > 0
+        ]
+        
         by_client = list(clients.values())
         by_client = [
             client for client in by_client 
@@ -243,13 +278,30 @@ def compute_forecast(date_of_interest = None, filters = None):
         
         def adjust_entity(entity):
             entity['in_analysis'] = entity.get('in_analysis', 0)
+            entity['in_analysis_consulting_fee_new'] = entity.get('in_analysis_consulting_fee_new', 0)
             entity['one_month_ago'] = entity.get('one_month_ago', 0)
+            entity['one_month_ago_consulting_fee_new'] = entity.get('one_month_ago_consulting_fee_new', 0)
             entity['two_months_ago'] = entity.get('two_months_ago', 0)
+            entity['two_months_ago_consulting_fee_new'] = entity.get('two_months_ago_consulting_fee_new', 0)
             entity['three_months_ago'] = entity.get('three_months_ago', 0)
+            entity['three_months_ago_consulting_fee_new'] = entity.get('three_months_ago_consulting_fee_new', 0)
             if slug == 'consulting':
+                entity['in_analysis_consulting_fee_new'] = entity.get('in_analysis_consulting_fee_new', 0)
+                entity['one_month_ago_consulting_fee_new'] = entity.get('one_month_ago_consulting_fee_new', 0)
+                entity['two_months_ago_consulting_fee_new'] = entity.get('two_months_ago_consulting_fee_new', 0)
+                entity['three_months_ago_consulting_fee_new'] = entity.get('three_months_ago_consulting_fee_new', 0)
+                entity['one_month_ago'] = entity.get('one_month_ago', 0)
+                entity['one_month_ago_consulting_fee_new'] = entity.get('one_month_ago_consulting_fee_new', 0)
+                entity['in_analysis_consulting_hours'] = entity.get('in_analysis_consulting_hours', 0)
+                entity['one_month_ago_consulting_hours'] = entity.get('one_month_ago_consulting_hours', 0)
+                entity['two_months_ago_consulting_hours'] = entity.get('two_months_ago_consulting_hours', 0)
+                entity['three_months_ago_consulting_hours'] = entity.get('three_months_ago_consulting_hours', 0)
                 entity['same_day_one_month_ago'] = entity.get('same_day_one_month_ago', 0)
                 entity['same_day_two_months_ago'] = entity.get('same_day_two_months_ago', 0)
                 entity['same_day_three_months_ago'] = entity.get('same_day_three_months_ago', 0)
+                entity['same_day_one_month_ago_consulting_fee_new'] = entity.get('same_day_one_month_ago_consulting_fee_new', 0)    
+                entity['same_day_two_months_ago_consulting_fee_new'] = entity.get('same_day_two_months_ago_consulting_fee_new', 0)
+                entity['same_day_three_months_ago_consulting_fee_new'] = entity.get('same_day_three_months_ago_consulting_fee_new', 0)
                 entity['projected'] = (entity['in_analysis'] / number_of_working_days_in_analysis_partial) * number_of_working_days_in_analysis
                 
                 previous_value = entity.get('one_month_ago', 0)
@@ -276,6 +328,9 @@ def compute_forecast(date_of_interest = None, filters = None):
             
         for project in by_project:
             adjust_entity(project)
+            
+        for consultant in by_consultant:
+            adjust_entity(consultant)
         
         
         totals = {
@@ -291,6 +346,20 @@ def compute_forecast(date_of_interest = None, filters = None):
             totals['projected'] = sum(client.get('projected', 0) for client in by_client)
             totals['expected'] = sum(client.get('expected', 0) for client in by_client) 
             totals['expected_historical'] = sum(client.get('expected_historical', 0) for client in by_client)
+            totals['in_analysis_consulting_hours'] = sum(client.get('in_analysis_consulting_hours', 0) for client in by_client)
+            totals['one_month_ago_consulting_hours'] = sum(client.get('one_month_ago_consulting_hours', 0) for client in by_client)
+            totals['two_months_ago_consulting_hours'] = sum(client.get('two_months_ago_consulting_hours', 0) for client in by_client)
+            totals['three_months_ago_consulting_hours'] = sum(client.get('three_months_ago_consulting_hours', 0) for client in by_client)
+            totals['same_day_one_month_ago_consulting_hours'] = sum(client.get('same_day_one_month_ago_consulting_hours', 0) for client in by_client)
+            totals['same_day_two_months_ago_consulting_hours'] = sum(client.get('same_day_two_months_ago_consulting_hours', 0) for client in by_client)
+            totals['same_day_three_months_ago_consulting_hours'] = sum(client.get('same_day_three_months_ago_consulting_hours', 0) for client in by_client)
+            totals['in_analysis_consulting_fee_new'] = sum(client.get('in_analysis_consulting_fee_new', 0) for client in by_client)
+            totals['one_month_ago_consulting_fee_new'] = sum(client.get('one_month_ago_consulting_fee_new', 0) for client in by_client)
+            totals['two_months_ago_consulting_fee_new'] = sum(client.get('two_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['three_months_ago_consulting_fee_new'] = sum(client.get('three_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_one_month_ago_consulting_fee_new'] = sum(client.get('same_day_one_month_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_two_months_ago_consulting_fee_new'] = sum(client.get('same_day_two_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_three_months_ago_consulting_fee_new'] = sum(client.get('same_day_three_months_ago_consulting_fee_new', 0) for client in by_client)
 
         return {
             'slug': slug,
@@ -298,6 +367,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             'by_sponsor': by_sponsor,
             'by_case': by_case,
             'by_project': by_project,
+            'by_consultant': by_consultant,
             'totals': totals
         }
     
@@ -311,6 +381,7 @@ def compute_forecast(date_of_interest = None, filters = None):
     result = {
         "date_of_interest": date_of_interest,
         "dates": {
+            "in_analysis": date_of_interest,
             "same_day_one_month_ago": same_day_last_month,
             "one_month_ago": last_day_of_last_month,
             "same_day_two_months_ago": same_day_two_months_ago,

@@ -399,6 +399,7 @@ type RevenueTrackingSummaries {
   byClient: [RevenueTrackingByClient!]!
   bySponsor: [RevenueTrackingBySponsor!]!
   byKind: [RevenueTrackingByKind!]!
+  byConsultant: [RevenueTrackingByConsultant!]!
   byMode: RevenueTrackingByMode!
 }
 
@@ -409,9 +410,18 @@ type RevenueTrackingSummary {
   regular: Float!
   total: Float!
   totalConsultingFee: Float!
+  totalConsultingFeeNew: Float!
+  totalConsultingHours: Float!
   totalConsultingPreFee: Float!
   totalHandsOnFee: Float!
   totalSquadFee: Float!
+}
+
+type RevenueTrackingByConsultant {
+  name: String!
+  slug: String!
+  consultingFee: Float!
+  consultingHours: Float!
 }
 
 type RevenueTrackingByKind {
@@ -430,6 +440,8 @@ type RevenueTrackingByMode {
 type RevenueTrackingMonthly {
   total: Float!
   totalConsultingFee: Float!
+  totalConsultingFeeNew: Float!
+  totalConsultingHours: Float!
   totalConsultingPreFee: Float!
   totalHandsOnFee: Float!
   totalSquadFee: Float!
@@ -441,6 +453,8 @@ type RevenueTrackingByAccountManager {
   slug: String
   fee: Float!
   consultingFee: Float!
+  consultingFeeNew: Float!
+  consultingHours: Float!
   consultingPreFee: Float!
   handsOnFee: Float!
   squadFee: Float!
@@ -456,7 +470,9 @@ type RevenueTrackingByClient {
   slug: String
   fee: Float!
   consultingFee: Float!
+  consultingFeeNew: Float!
   consultingPreFee: Float!
+  consultingHours: Float!
   handsOnFee: Float!
   squadFee: Float!
   regular: Float!
@@ -471,7 +487,9 @@ type RevenueTrackingBySponsor {
   slug: String
   fee: Float!
   consultingFee: Float!
+  consultingFeeNew: Float!
   consultingPreFee: Float!
+  consultingHours: Float!
   handsOnFee: Float!
   squadFee: Float!
   regular: Float!
@@ -486,7 +504,9 @@ type RevenueTrackingByCase {
   slug: String
   fee: Float!
   consultingFee: Float!
+  consultingFeeNew: Float!
   consultingPreFee: Float!
+  consultingHours: Float!
   handsOnFee: Float!
   squadFee: Float!
   regular: Float!
@@ -502,6 +522,8 @@ type RevenueTrackingByProject {
   rate: Float
   hours: Float
   fee: Float!
+  consultingHours: Float!
+  consultingFeeNew: Float!
   partial: Boolean
 }
 
@@ -516,6 +538,7 @@ type Forecast {
 }
 
 type ForecastDates {
+  inAnalysis: Date!
   sameDayOneMonthAgo: Date!
   oneMonthAgo: Date!
   sameDayTwoMonthsAgo: Date!
@@ -526,11 +549,15 @@ type ForecastDates {
 
 type ForecastSummary {
   realized: Float!
+  realizedConsultingHours: Float!
   projected: Float!
   expected: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
 }
 
 type ForecastWorkingDays {
@@ -564,7 +591,34 @@ type ForecastConsultingByClient {
   bySponsor: [ForecastConsultingBySponsorEntry!]!
   byCase: [ForecastConsultingByCaseEntry!]!
   byProject: [ForecastConsultingByProjectEntry!]!
+  byConsultant: [ForecastConsultingByConsultantEntry!]!
   totals: ForecastConsultingTotals!
+}
+
+type ForecastConsultingByConsultantEntry {
+  name: String!
+  slug: String!
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
+  twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
+  threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
+  sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingFeeNew: Float!
+  projected: Float!
+  expectedHistorical: Float!
 }
 
 type ForecastTotals {
@@ -572,16 +626,34 @@ type ForecastTotals {
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
   threeMonthsAgo: Float!
+  inAnalysisConsultingFeeNew: Float!
+  oneMonthAgoConsultingFeeNew: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
 }
 
 type ForecastConsultingTotals {
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
+  inAnalysisConsultingFeeNew: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingFeeNew: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
@@ -632,13 +704,27 @@ type ForecastConsultingByClientEntry {
   slug: String
   
   inAnalysis: Float!
-  projected: Float!
+  inAnalysisConsultingHours: Float!
+  inAnalysisConsultingFeeNew: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingFeeNew: Float!
+  projected: Float!
   expected: Float!
   expectedHistorical: Float!
 } 
@@ -648,12 +734,26 @@ type ForecastConsultingBySponsorEntry {
   slug: String!
   clientSlug: String
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
+  inAnalysisConsultingFeeNew: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingFeeNew: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
@@ -665,12 +765,25 @@ type ForecastConsultingByCaseEntry {
   sponsorSlug: String
   clientSlug: String
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
+  inAnalysisConsultingFeeNew: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
@@ -681,12 +794,26 @@ type ForecastConsultingByProjectEntry {
   slug: String!
   caseSlug: String!
   inAnalysis: Float!
+  inAnalysisConsultingHours: Float!
+  inAnalysisConsultingFeeNew: Float!
   oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
   twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
   threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
   sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
   sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
   sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingFeeNew: Float!
   projected: Float!
   expected: Float!
   expectedHistorical: Float!
