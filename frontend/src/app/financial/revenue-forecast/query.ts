@@ -39,15 +39,22 @@ export const REVENUE_FORECAST_QUERY = gql`
         consulting {
           totals {
             inAnalysis
+            inAnalysisConsultingFeeNew
             projected
             expected
             expectedHistorical
             oneMonthAgo
+            oneMonthAgoConsultingFeeNew
             sameDayOneMonthAgo
+            sameDayOneMonthAgoConsultingFeeNew
             twoMonthsAgo
+            twoMonthsAgoConsultingFeeNew
             sameDayTwoMonthsAgo
+            sameDayTwoMonthsAgoConsultingFeeNew
             threeMonthsAgo
+            threeMonthsAgoConsultingFeeNew
             sameDayThreeMonthsAgo
+            sameDayThreeMonthsAgoConsultingFeeNew
           }
           byClient {
             name

@@ -31,16 +31,22 @@ interface ForecastTotals {
   sameDayThreeMonthsAgo: number;
   normalizedSameDayThreeMonthsAgo: number;
   threeMonthsAgo: number;
+  threeMonthsAgoConsultingFeeNew?: number;
   normalizedThreeMonthsAgo: number;
   sameDayTwoMonthsAgo: number;
+  sameDayTwoMonthsAgoConsultingFeeNew?: number;
   normalizedSameDayTwoMonthsAgo: number;
   twoMonthsAgo: number;
+  twoMonthsAgoConsultingFeeNew?: number;
   normalizedTwoMonthsAgo: number;
   sameDayOneMonthAgo: number;
+  sameDayOneMonthAgoConsultingFeeNew?: number;
   normalizedSameDayOneMonthAgo: number;
   oneMonthAgo: number;
+  oneMonthAgoConsultingFeeNew?: number;
   normalizedOneMonthAgo: number;
   realized: number;
+  realizedConsultingFeeNew?: number;
   normalizedRealized: number;
   projected: number;
   normalizedProjected: number;
@@ -224,6 +230,17 @@ export function getForecastData(data: any): ForecastData {
     normalizedExpectedHistorical: item.expectedHistorical / data.forecast.workingDays.inAnalysis,
   });
 
+  const mapConsultingTotals = (totals: any) => ({
+    ...mapConsultingItem(totals),
+    sameDayThreeMonthsAgoConsultingFeeNew: totals.sameDayThreeMonthsAgoConsultingFeeNew || 0,
+    threeMonthsAgoConsultingFeeNew: totals.threeMonthsAgoConsultingFeeNew || 0,
+    sameDayTwoMonthsAgoConsultingFeeNew: totals.sameDayTwoMonthsAgoConsultingFeeNew || 0,
+    twoMonthsAgoConsultingFeeNew: totals.twoMonthsAgoConsultingFeeNew || 0,
+    sameDayOneMonthAgoConsultingFeeNew: totals.sameDayOneMonthAgoConsultingFeeNew || 0,
+    oneMonthAgoConsultingFeeNew: totals.oneMonthAgoConsultingFeeNew || 0,
+    realizedConsultingFeeNew: totals.inAnalysisConsultingFeeNew || 0,
+  });
+
   const mapOtherItem = (item: any) => ({
     name: item.name,
     title: item.title,
@@ -243,7 +260,7 @@ export function getForecastData(data: any): ForecastData {
       sponsors: data.forecast.byKind.consulting.bySponsor.map(mapConsultingItem),
       cases: data.forecast.byKind.consulting.byCase.map(mapConsultingItem),
       projects: data.forecast.byKind.consulting.byProject.map(mapConsultingItem),
-      totals: mapConsultingItem(data.forecast.byKind.consulting.totals),
+      totals: mapConsultingTotals(data.forecast.byKind.consulting.totals),
     },
     consultingPre: {
       clients: data.forecast.byKind.consultingPre.byClient.map(mapOtherItem),

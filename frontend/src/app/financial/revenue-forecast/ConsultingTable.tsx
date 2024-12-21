@@ -152,6 +152,62 @@ export function ConsultingTable({
     );
   };
 
+  const renderTableHeader = () => (
+    <TableHeader className="bg-gray-50">
+      <TableRow>
+        <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
+        <TableHead rowSpan={2} className="border-r border-gray-400">Client</TableHead>
+        {renderMonthHeader(dates.threeMonthsAgo, workingDays.threeMonthsAgo, 2, "border-x border-gray-400")}
+        {renderMonthHeader(dates.twoMonthsAgo, workingDays.twoMonthsAgo, 2, "border-x border-gray-400")}
+        {renderMonthHeader(dates.oneMonthAgo, workingDays.oneMonthAgo, 2, "border-x border-gray-400")}
+        {renderMonthHeader(dates.dateOfInterest, workingDays.inAnalysis, 3, "border-x border-gray-400")}
+      </TableRow>
+      <TableRow>
+        {renderSortHeader("sameDayThreeMonthsAgo", "normalizedSameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, workingDays.sameDayThreeMonthsAgo, "w-[95px] border-x border-gray-200")}
+        {renderSortHeader("threeMonthsAgo", "normalizedThreeMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+        {renderSortHeader("sameDayTwoMonthsAgo", "normalizedSameDayTwoMonthsAgo", `Until ${format(new Date(dates.sameDayTwoMonthsAgo), "dd")}`, workingDays.sameDayTwoMonthsAgo, "w-[95px] border-x border-gray-200")}
+        {renderSortHeader("twoMonthsAgo", "normalizedTwoMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+        {renderSortHeader("sameDayOneMonthAgo", "normalizedSameDayOneMonthAgo", `Until ${format(new Date(dates.sameDayOneMonthAgo), "dd")}`, workingDays.sameDayOneMonthAgo, "w-[95px] border-x border-gray-200")}
+        {renderSortHeader("oneMonthAgo", "normalizedOneMonthAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
+        {renderSortHeader("realized", "normalizedRealized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
+        {renderSortHeader("projected", "normalizedProjected", "Projected", null, "w-[120px] border-x border-gray-200")}
+        <TableHead className="w-[120px] border-r border-gray-400">
+          <div className="flex flex-col items-end">
+            <span 
+              onClick={() => requestSort(
+                normalized[tableId] 
+                  ? (useHistorical[tableId] ? "normalizedExpectedHistorical" : "normalizedExpected")
+                  : (useHistorical[tableId] ? "expectedHistorical" : "expected"),
+                tableId
+              )} 
+              className="cursor-pointer hover:text-gray-600"
+            >
+              Expected {sortConfig.key === (useHistorical[tableId] ? "expectedHistorical" : "expected") && (sortConfig.direction === "asc" ? "↑" : "↓")}
+            </span>
+            <button
+              onClick={() => {
+                setUseHistorical(prev => ({
+                  ...prev,
+                  [tableId]: !prev[tableId]
+                }));
+              }}
+              className={`
+                text-[10px] mt-0.5 
+                ${useHistorical[tableId] 
+                  ? 'text-blue-600' 
+                  : 'text-gray-400 hover:text-gray-600'
+                }
+                transition-colors cursor-pointer
+              `}
+            >
+              historical
+            </button>
+          </div>
+        </TableHead>
+      </TableRow>
+    </TableHeader>
+  );
+
   const renderRow = (item: any, depth: number = 0) => {
     const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
     const paddingLeft = depth * 4;
@@ -325,59 +381,7 @@ export function ConsultingTable({
       </div>
       <div className="px-2">
         <Table>
-          <TableHeader className="bg-gray-50">
-            <TableRow>
-              <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
-              <TableHead rowSpan={2} className="border-r border-gray-400">Client</TableHead>
-              {renderMonthHeader(dates.threeMonthsAgo, workingDays.threeMonthsAgo, 2, "border-x border-gray-400")}
-              {renderMonthHeader(dates.twoMonthsAgo, workingDays.twoMonthsAgo, 2, "border-x border-gray-400")}
-              {renderMonthHeader(dates.oneMonthAgo, workingDays.oneMonthAgo, 2, "border-x border-gray-400")}
-              {renderMonthHeader(dates.dateOfInterest, workingDays.inAnalysis, 3, "border-x border-gray-400")}
-            </TableRow>
-            <TableRow>
-              {renderSortHeader("sameDayThreeMonthsAgo", "normalizedSameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, workingDays.sameDayThreeMonthsAgo, "w-[95px] border-x border-gray-200")}
-              {renderSortHeader("threeMonthsAgo", "normalizedThreeMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
-              {renderSortHeader("sameDayTwoMonthsAgo", "normalizedSameDayTwoMonthsAgo", `Until ${format(new Date(dates.sameDayTwoMonthsAgo), "dd")}`, workingDays.sameDayTwoMonthsAgo, "w-[95px] border-x border-gray-200")}
-              {renderSortHeader("twoMonthsAgo", "normalizedTwoMonthsAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
-              {renderSortHeader("sameDayOneMonthAgo", "normalizedSameDayOneMonthAgo", `Until ${format(new Date(dates.sameDayOneMonthAgo), "dd")}`, workingDays.sameDayOneMonthAgo, "w-[95px] border-x border-gray-200")}
-              {renderSortHeader("oneMonthAgo", "normalizedOneMonthAgo", "Full Month", null, "w-[95px] border-r border-gray-400")}
-              {renderSortHeader("realized", "normalizedRealized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
-              {renderSortHeader("projected", "normalizedProjected", "Projected", null, "w-[120px] border-x border-gray-200")}
-              <TableHead className="w-[120px] border-r border-gray-400">
-                <div className="flex flex-col items-end">
-                  <span 
-                    onClick={() => requestSort(
-                      normalized[tableId] 
-                        ? (useHistorical[tableId] ? "normalizedExpectedHistorical" : "normalizedExpected")
-                        : (useHistorical[tableId] ? "expectedHistorical" : "expected"),
-                      tableId
-                    )} 
-                    className="cursor-pointer hover:text-gray-600"
-                  >
-                    Expected {sortConfig.key === (useHistorical[tableId] ? "expectedHistorical" : "expected") && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                  </span>
-                  <button
-                    onClick={() => {
-                      setUseHistorical(prev => ({
-                        ...prev,
-                        [tableId]: !prev[tableId]
-                      }));
-                    }}
-                    className={`
-                      text-[10px] mt-0.5 
-                      ${useHistorical[tableId] 
-                        ? 'text-blue-600' 
-                        : 'text-gray-400 hover:text-gray-600'
-                      }
-                      transition-colors cursor-pointer
-                    `}
-                  >
-                    historical
-                  </button>
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
+          {renderTableHeader()}
           <TableBody>
             {sortedClients.map((client: any) => (
               <React.Fragment key={client.slug}>
@@ -519,6 +523,91 @@ export function ConsultingTable({
                 total.oneMonthAgo,
                 total.normalizedOneMonthAgo
               )}
+            </TableRow>
+            <TableRow className="text-gray-600 border-t h-[57px]">
+              <TableCell></TableCell>
+              <TableCell className="border-r border-gray-400">New Cases</TableCell>
+              {renderCell(
+                total.sameDayThreeMonthsAgoConsultingFeeNew || 0,
+                (total.sameDayThreeMonthsAgoConsultingFeeNew || 0) / workingDays.sameDayThreeMonthsAgo,
+                total.sameDayThreeMonthsAgo,
+                total.normalizedSameDayThreeMonthsAgo,
+                "border-x border-gray-200 text-[12px]"
+              )}
+              {renderCell(
+                total.threeMonthsAgoConsultingFeeNew || 0,
+                (total.threeMonthsAgoConsultingFeeNew || 0) / workingDays.threeMonthsAgo,
+                total.threeMonthsAgo,
+                total.normalizedThreeMonthsAgo,
+                "border-r border-gray-400 text-[12px]"
+              )}
+              {renderCell(
+                total.sameDayTwoMonthsAgoConsultingFeeNew || 0,
+                (total.sameDayTwoMonthsAgoConsultingFeeNew || 0) / workingDays.sameDayTwoMonthsAgo,
+                total.sameDayTwoMonthsAgo,
+                total.normalizedSameDayTwoMonthsAgo,
+                "border-x border-gray-200 text-[12px]",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                total.sameDayThreeMonthsAgoConsultingFeeNew || 0,
+                (total.sameDayThreeMonthsAgoConsultingFeeNew || 0) / workingDays.sameDayThreeMonthsAgo
+              )}
+              {renderCell(
+                total.twoMonthsAgoConsultingFeeNew || 0,
+                (total.twoMonthsAgoConsultingFeeNew || 0) / workingDays.twoMonthsAgo,
+                total.twoMonthsAgo,
+                total.normalizedTwoMonthsAgo,
+                "border-r border-gray-400 text-[12px]",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                total.threeMonthsAgoConsultingFeeNew || 0,
+                (total.threeMonthsAgoConsultingFeeNew || 0) / workingDays.threeMonthsAgo
+              )}
+              {renderCell(
+                total.sameDayOneMonthAgoConsultingFeeNew || 0,
+                (total.sameDayOneMonthAgoConsultingFeeNew || 0) / workingDays.sameDayOneMonthAgo,
+                total.sameDayOneMonthAgo,
+                total.normalizedSameDayOneMonthAgo,
+                "border-x border-gray-200 text-[12px]",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                total.sameDayTwoMonthsAgoConsultingFeeNew || 0,
+                (total.sameDayTwoMonthsAgoConsultingFeeNew || 0) / workingDays.sameDayTwoMonthsAgo
+              )}
+              {renderCell(
+                total.oneMonthAgoConsultingFeeNew || 0,
+                (total.oneMonthAgoConsultingFeeNew || 0) / workingDays.oneMonthAgo,
+                total.oneMonthAgo,
+                total.normalizedOneMonthAgo,
+                "border-r border-gray-400 text-[12px]",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                total.twoMonthsAgoConsultingFeeNew || 0,
+                (total.twoMonthsAgoConsultingFeeNew || 0) / workingDays.twoMonthsAgo
+              )}
+              {renderCell(
+                total.realizedConsultingFeeNew || 0,
+                (total.realizedConsultingFeeNew || 0) / workingDays.inAnalysisPartial,
+                total.realized,
+                total.normalizedRealized,
+                "border-x border-gray-200",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                total.sameDayOneMonthAgoConsultingFeeNew || 0,
+                (total.sameDayOneMonthAgoConsultingFeeNew || 0) / workingDays.sameDayOneMonthAgo
+              )}
+              <TableCell className="text-right border-x border-gray-200">-</TableCell>
+              <TableCell className="text-right border-r border-gray-400">-</TableCell>
             </TableRow>
           </TableBody>
         </Table>
