@@ -61,6 +61,7 @@ interface ForecastSection {
   sponsors: ForecastItem[];
   cases: ForecastItem[];
   projects: ForecastItem[];
+  consultants: ForecastItem[];
   totals: ForecastTotals;
 }
 
@@ -260,6 +261,7 @@ export function getForecastData(data: any): ForecastData {
       sponsors: data.forecast.byKind.consulting.bySponsor.map(mapConsultingItem),
       cases: data.forecast.byKind.consulting.byCase.map(mapConsultingItem),
       projects: data.forecast.byKind.consulting.byProject.map(mapConsultingItem),
+      consultants: data.forecast.byKind.consulting.byConsultant.map(mapConsultingItem),
       totals: mapConsultingTotals(data.forecast.byKind.consulting.totals),
     },
     consultingPre: {
@@ -388,6 +390,7 @@ export function processForecastData(data: any): ForecastData {
         sponsors: [],
         cases: [],
         projects: [],
+        consultants: [],
         totals: getDefaultForecastItem(),
       },
       consultingPre: {

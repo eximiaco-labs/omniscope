@@ -56,6 +56,19 @@ export const REVENUE_FORECAST_QUERY = gql`
             sameDayThreeMonthsAgo
             sameDayThreeMonthsAgoConsultingFeeNew
           }
+          byConsultant {
+            name
+            slug
+            inAnalysis
+            expectedHistorical
+            projected
+            oneMonthAgo
+            sameDayOneMonthAgo
+            twoMonthsAgo
+            sameDayTwoMonthsAgo
+            threeMonthsAgo
+            sameDayThreeMonthsAgo
+          }
           byClient {
             name
             slug
