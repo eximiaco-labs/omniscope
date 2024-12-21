@@ -538,6 +538,7 @@ type Forecast {
 }
 
 type ForecastDates {
+  inAnalysis: Date!
   sameDayOneMonthAgo: Date!
   oneMonthAgo: Date!
   sameDayTwoMonthsAgo: Date!

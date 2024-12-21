@@ -10,6 +10,7 @@ export const REVENUE_FORECAST_QUERY = gql`
         selectedValues
       }
       dates {
+        inAnalysis
         sameDayOneMonthAgo
         oneMonthAgo
         sameDayTwoMonthsAgo

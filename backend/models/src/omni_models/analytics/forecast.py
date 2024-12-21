@@ -381,6 +381,7 @@ def compute_forecast(date_of_interest = None, filters = None):
     result = {
         "date_of_interest": date_of_interest,
         "dates": {
+            "in_analysis": date_of_interest,
             "same_day_one_month_ago": same_day_last_month,
             "one_month_ago": last_day_of_last_month,
             "same_day_two_months_ago": same_day_two_months_ago,

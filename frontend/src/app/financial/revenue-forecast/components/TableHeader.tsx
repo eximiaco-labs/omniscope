@@ -40,18 +40,35 @@ export function TableHeaderComponent({
   );
 
   const renderMonthHeader = (date: string, days: number, colSpan: number = 2, className: string = "") => {
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-      console.error('Invalid date:', date);
-      return null;
+    console.log('Date details:', {
+        date,
+        type: typeof date,
+        dateObject: date ? new Date(date) : null,
+        isValidDate: date ? !isNaN(new Date(date).getTime()) : false
+    });
+    
+    if (!date) {
+        console.error('Date is undefined or null');
+        return <TableHead colSpan={colSpan} className={`text-center ${className}`}>Invalid Date</TableHead>;
     }
 
-    return (
-      <TableHead colSpan={colSpan} className={`text-center ${className}`}>
-        {format(parsedDate, "MMM yyyy")}
-        <span className="block text-[10px] text-gray-500">{days} working days</span>
-      </TableHead>
-    );
+    try {
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+            console.error('Invalid date format:', date);
+            return <TableHead colSpan={colSpan} className={`text-center ${className}`}>Invalid Date</TableHead>;
+        }
+
+        return (
+            <TableHead colSpan={colSpan} className={`text-center ${className}`}>
+                {format(parsedDate, "MMM yyyy")}
+                <span className="block text-[10px] text-gray-500">{days} working days</span>
+            </TableHead>
+        );
+    } catch (error) {
+        console.error('Error parsing date:', error);
+        return <TableHead colSpan={colSpan} className={`text-center ${className}`}>Invalid Date</TableHead>;
+    }
   };
 
   return (
@@ -62,7 +79,7 @@ export function TableHeaderComponent({
         {renderMonthHeader(dates.threeMonthsAgo, workingDays.threeMonthsAgo, 2, "border-x border-gray-400")}
         {renderMonthHeader(dates.twoMonthsAgo, workingDays.twoMonthsAgo, 2, "border-x border-gray-400")}
         {renderMonthHeader(dates.oneMonthAgo, workingDays.oneMonthAgo, 2, "border-x border-gray-400")}
-        {renderMonthHeader(dates.dateOfInterest, workingDays.inAnalysis, 3, "border-x border-gray-400")}
+        {renderMonthHeader(dates.inAnalysis, workingDays.inAnalysis, 3, "border-x border-gray-400")}
       </TableRow>
       <TableRow>
         {renderSortHeader("sameDayThreeMonthsAgo", "normalizedSameDayThreeMonthsAgo", `Until ${format(new Date(dates.sameDayThreeMonthsAgo), "dd")}`, workingDays.sameDayThreeMonthsAgo, "w-[95px] border-x border-gray-200")}
