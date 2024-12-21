@@ -3,6 +3,11 @@ import Link from "next/link";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { TableCellComponent } from "./TableCell";
 
+const isSignificantlyHigher = (monthValue: number, sameDayValue: number): boolean => {
+  if (!monthValue || !sameDayValue) return false;
+  return (monthValue - sameDayValue) / sameDayValue > 0.1; // 10% higher
+};
+
 interface TableRowProps {
   item: any;
   depth?: number;
@@ -67,6 +72,7 @@ export function TableRowComponent({
         normalizedTotalValue={total.normalizedSameDayThreeMonthsAgo}
         className="border-x border-gray-200 text-[12px]"
         normalized={normalized[tableId]}
+        highlightYellow={isSignificantlyHigher(item.normalizedThreeMonthsAgo, item.normalizedSameDayThreeMonthsAgo)}
       />
       <TableCellComponent
         value={item.threeMonthsAgo}
@@ -75,6 +81,7 @@ export function TableRowComponent({
         normalizedTotalValue={total.normalizedThreeMonthsAgo}
         className="border-r border-gray-400 text-[12px]"
         normalized={normalized[tableId]}
+        highlightYellow={isSignificantlyHigher(item.normalizedThreeMonthsAgo, item.normalizedSameDayThreeMonthsAgo)}
       />
 
       {/* Two Months Ago */}
@@ -87,6 +94,7 @@ export function TableRowComponent({
         normalized={normalized[tableId]}
         previousValue={item.sameDayThreeMonthsAgo}
         normalizedPreviousValue={item.normalizedSameDayThreeMonthsAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedTwoMonthsAgo, item.normalizedSameDayTwoMonthsAgo)}
       />
       <TableCellComponent
         value={item.twoMonthsAgo}
@@ -97,6 +105,7 @@ export function TableRowComponent({
         normalized={normalized[tableId]}
         previousValue={item.threeMonthsAgo}
         normalizedPreviousValue={item.normalizedThreeMonthsAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedTwoMonthsAgo, item.normalizedSameDayTwoMonthsAgo)}
       />
 
       {/* One Month Ago */}
@@ -109,6 +118,7 @@ export function TableRowComponent({
         normalized={normalized[tableId]}
         previousValue={item.sameDayTwoMonthsAgo}
         normalizedPreviousValue={item.normalizedSameDayTwoMonthsAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedOneMonthAgo, item.normalizedSameDayOneMonthAgo)}
       />
       <TableCellComponent
         value={item.oneMonthAgo}
@@ -119,6 +129,7 @@ export function TableRowComponent({
         normalized={normalized[tableId]}
         previousValue={item.twoMonthsAgo}
         normalizedPreviousValue={item.normalizedTwoMonthsAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedOneMonthAgo, item.normalizedSameDayOneMonthAgo)}
       />
 
       {/* Current Month */}
@@ -131,7 +142,9 @@ export function TableRowComponent({
         normalized={normalized[tableId]}
         previousValue={item.sameDayOneMonthAgo}
         normalizedPreviousValue={item.normalizedSameDayOneMonthAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedRealized, item.normalizedSameDayRealized)}
       />
+
       <TableCellComponent
         value={item.projected}
         normalizedValue={item.normalizedProjected}
@@ -145,7 +158,9 @@ export function TableRowComponent({
         normalizedExpected={normalizedExpectedValue}
         previousValue={item.oneMonthAgo}
         normalizedPreviousValue={item.normalizedOneMonthAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedProjected, item.normalizedSameDayProjected)}
       />
+      
       <TableCellComponent
         value={expectedValue}
         normalizedValue={normalizedExpectedValue}
@@ -159,6 +174,7 @@ export function TableRowComponent({
         normalizedExpected={normalizedExpectedValue}
         previousValue={item.oneMonthAgo}
         normalizedPreviousValue={item.normalizedOneMonthAgo}
+        highlightYellow={isSignificantlyHigher(item.normalizedExpectedValue, item.normalizedSameDayExpectedValue)}
       />
     </TableRow>
   );

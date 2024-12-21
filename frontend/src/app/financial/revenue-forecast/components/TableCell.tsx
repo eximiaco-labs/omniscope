@@ -14,6 +14,7 @@ interface TableCellProps {
   previousValue?: number | null;
   normalizedPreviousValue?: number | null;
   normalized: boolean;
+  highlightYellow?: boolean;
 }
 
 export function TableCellComponent({
@@ -29,6 +30,7 @@ export function TableCellComponent({
   previousValue = null,
   normalizedPreviousValue = null,
   normalized,
+  highlightYellow = false,
 }: TableCellProps) {
   const isProjectedLessThanExpected = projected !== undefined && expected !== undefined && projected < expected;
   const bgColor = isProjectedLessThanExpected ? "bg-red-100" : "";
@@ -49,7 +51,7 @@ export function TableCellComponent({
     <UITableCell
       className={`text-right ${className} ${
         value === 0 ? "text-gray-300" : ""
-      } relative ${bgColor}`}
+      } relative ${bgColor} ${highlightYellow ? 'bg-yellow-50' : ''}`}
     >
       {formatCurrency(displayValue)}
       <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1 box-border">
