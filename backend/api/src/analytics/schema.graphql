@@ -590,7 +590,34 @@ type ForecastConsultingByClient {
   bySponsor: [ForecastConsultingBySponsorEntry!]!
   byCase: [ForecastConsultingByCaseEntry!]!
   byProject: [ForecastConsultingByProjectEntry!]!
+  byConsultant: [ForecastConsultingByConsultantEntry!]!
   totals: ForecastConsultingTotals!
+}
+
+type ForecastConsultingByConsultantEntry {
+  name: String!
+  slug: String!
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  oneMonthAgoConsultingHours: Float!
+  oneMonthAgoConsultingFeeNew: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingFeeNew: Float!
+  twoMonthsAgo: Float!
+  twoMonthsAgoConsultingHours: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingFeeNew: Float!
+  threeMonthsAgo: Float!
+  threeMonthsAgoConsultingHours: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
+  sameDayThreeMonthsAgo: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingFeeNew: Float!
+  projected: Float!
+  expectedHistorical: Float!
 }
 
 type ForecastTotals {
