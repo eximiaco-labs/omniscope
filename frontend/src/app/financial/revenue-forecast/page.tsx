@@ -6,50 +6,12 @@ import { useState, useEffect } from "react";
 import { Option } from "react-tailwindcss-select/dist/components/type";
 import { DatePicker } from "@/components/DatePicker";
 import { REVENUE_FORECAST_QUERY } from "./query";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table";
-import Link from "next/link";
-import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { RevenueProgression } from "./RevenueProgression";
-import { Toggle } from "@/components/ui/toggle";
 import { ConsultingTable } from "./ConsultingTable";
-import { getForecastData, processForecastData } from "./forecastData";
+import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "decimal",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-};
-
-const sections = [
-  {
-    id: "consulting",
-    title: "Consulting",
-  },
-  {
-    id: "consultingPre",
-    title: "Consulting Pre",
-  },
-  {
-    id: "handsOn",
-    title: "Hands On",
-  },
-  {
-    id: "squad",
-    title: "Squad",
-  },
-];
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -146,11 +108,6 @@ export default function RevenueForecastPage() {
     }).format(value);
   };
 
-  const formatPercentage = (value: number, total: number) => {
-    if (total === 0 || value === 0) return "";
-    return `${((value / total) * 100).toFixed(1)}%`;
-  };
-
   const requestSort = (key: string, tableId: string) => {
     setSortConfigs((prevConfigs) => {
       const newConfigs = { ...prevConfigs };
@@ -163,24 +120,6 @@ export default function RevenueForecastPage() {
       }
       newConfigs[tableId] = { key, direction };
       return newConfigs;
-    });
-  };
-
-  const getSortedClients = (clients: any[], tableId: string) => {
-    const sortConfig = sortConfigs[tableId];
-    if (!sortConfig?.key) return clients;
-
-    return [...clients].sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-
-      if (aValue < bValue) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
     });
   };
 
@@ -216,7 +155,6 @@ export default function RevenueForecastPage() {
       </div>
 
       <div className="ml-2 mr-2">
-
         <div className="mt-4">
           <RevenueProgression data={data} />
         </div>
