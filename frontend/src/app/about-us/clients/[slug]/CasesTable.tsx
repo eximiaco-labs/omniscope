@@ -20,13 +20,17 @@ interface TrackingProject {
   id: string;
   name: string;
   kind: string;
+  dueOn?: string;
   budget?: {
     hours: number;
     period: string;
   };
 }
 
-export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTableProps) {
+export function CasesTable({
+  filteredCases,
+  showSponsorColumn = true,
+}: CasesTableProps) {
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "Critical":
@@ -61,28 +65,34 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Not defined";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
     });
   };
 
   // Sort cases alphabetically by title
-  const sortedCases = [...filteredCases].sort((a, b) => 
+  const sortedCases = [...filteredCases].sort((a, b) =>
     a.caseDetails.title.localeCompare(b.caseDetails.title)
   );
 
   return (
-    <Table>
+    <Table className="border-collapse">
       <TableHeader>
-        <TableRow>
-          <TableHead className="w-[360px]">Case</TableHead>
+        <TableRow className="border-b border-gray-200">
+          <TableHead className="w-[360px] border-r border-gray-200">
+            Case
+          </TableHead>
           {showSponsorColumn && (
-            <TableHead>Sponsor</TableHead>
+            <TableHead className="border-r border-gray-200">Sponsor</TableHead>
           )}
-          <TableHead>Contract Period</TableHead>
-          <TableHead>Projects & Team Members</TableHead>
+          <TableHead className="border-r border-gray-200">
+            Contract Period
+          </TableHead>
+          <TableHead className="border-r border-gray-200">
+            Projects & Team Members
+          </TableHead>
           <TableHead>CWH</TableHead>
         </TableRow>
       </TableHeader>
@@ -91,21 +101,34 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
           const daysSinceUpdate = getDaysSinceUpdate(
             caseData.caseDetails.lastUpdate?.date
           );
-          const daysUntilEnd = getDaysUntilEnd(caseData.caseDetails.endOfContract);
+          const daysUntilEnd = getDaysUntilEnd(
+            caseData.caseDetails.endOfContract
+          );
           return (
             <TableRow
               key={caseData.caseDetails.id}
-              className={`hover:bg-gray-50 transition-all duration-300 ease-in-out ${
+              className={`hover:bg-gray-50 transition-all duration-300 ease-in-out border-b border-gray-200 ${
                 index % 2 === 0 ? "bg-white" : "bg-gray-50"
               }`}
             >
-              <TableCell className="w-[330px]">
-                <Link href={`/about-us/cases/${caseData.caseDetails.slug}`}>
+              <TableCell className="w-[330px] border-r border-gray-200">
+                <Link
+                  href={`/about-us/cases/${caseData.caseDetails.slug}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center gap-2">
-                      <div 
-                        className={`w-2 h-2 rounded-full ${caseData.caseDetails.lastUpdate ? getStatusColor(caseData.caseDetails.lastUpdate.status) : 'bg-zinc-500'}`} 
-                        title={caseData.caseDetails.lastUpdate?.status || 'No status'}
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          caseData.caseDetails.lastUpdate
+                            ? getStatusColor(
+                                caseData.caseDetails.lastUpdate.status
+                              )
+                            : "bg-zinc-500"
+                        }`}
+                        title={
+                          caseData.caseDetails.lastUpdate?.status || "No status"
+                        }
                       />
                       <div className="flex items-center gap-2">
                         {caseData.caseDetails.preContractedValue === "PRE" && (
@@ -120,7 +143,13 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                       {caseData.caseDetails.lastUpdate ? (
                         <>
                           {daysSinceUpdate !== null && (
-                            <span className={daysSinceUpdate > 30 ? "text-red-500" : "text-gray-500"}>
+                            <span
+                              className={
+                                daysSinceUpdate > 30
+                                  ? "text-red-500"
+                                  : "text-gray-500"
+                              }
+                            >
                               {daysSinceUpdate} days since last update
                             </span>
                           )}
@@ -135,13 +164,13 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                 </Link>
               </TableCell>
               {showSponsorColumn && (
-                <TableCell>
+                <TableCell className="border-r border-gray-200">
                   <span className="text-xs text-gray-600">
                     {caseData.caseDetails.sponsor || "No sponsor"}
                   </span>
                 </TableCell>
               )}
-              <TableCell>
+              <TableCell className="border-r border-gray-200">
                 <div className="flex flex-col">
                   <span className="text-xs text-green-600">
                     {formatDate(caseData.caseDetails.startOfContract)}
@@ -150,66 +179,102 @@ export function CasesTable({ filteredCases, showSponsorColumn = true }: CasesTab
                     {formatDate(caseData.caseDetails.endOfContract)}
                   </span>
                   {daysUntilEnd !== null && daysUntilEnd > 0 && (
-                    <span className={`text-xs ${daysUntilEnd <= 30 ? "text-red-500" : "text-gray-500"}`}>
+                    <span
+                      className={`text-xs ${
+                        daysUntilEnd <= 30 ? "text-red-500" : "text-gray-500"
+                      }`}
+                    >
                       {daysUntilEnd} days remaining
                     </span>
                   )}
                 </div>
               </TableCell>
-              <TableCell>
-                {caseData.caseDetails.tracker && caseData.caseDetails.tracker.length > 0 ? (
-                  <table className="w-full text-xs border-collapse">
-                    <tbody>
-                      {caseData.caseDetails.tracker.map((track: TrackingProject) => {
-                        const projectWorkers = caseData.workersByTrackingProject?.find(
-                          (project: { projectId: string }) => project.projectId === track.id
-                        )?.workers || [];
-                        
-                        const textColor = STAT_COLORS[track.kind as keyof typeof STAT_COLORS];
-                        const rowSpan = Math.max(1, projectWorkers.length);
-                        
-                        return (
-                          <tr key={track.id} className="border-b border-gray-200">
-                            <td 
-                              rowSpan={rowSpan} 
-                              className="pr-2 w-[210px] break-words border-r border-gray-200 align-top"
-                            >
-                              <div style={{ color: textColor }}>
-                                {track.name}
-                                {track.budget && (
-                                  <div className="text-gray-500 mt-1">
-                                    <span className="inline-block bg-gray-100 px-1 rounded">
-                                      {track.budget.hours}h/{track.budget.period}
-                                    </span>
+              <TableCell className="border-r border-gray-200">
+                {caseData.caseDetails.tracker &&
+                caseData.caseDetails.tracker.length > 0 ? (
+                  <Table className="w-full text-xs">
+                    <TableBody>
+                      {caseData.caseDetails.tracker.map(
+                        (track: TrackingProject) => {
+                          const projectWorkers =
+                            caseData.workersByTrackingProject?.find(
+                              (project: { projectId: string }) =>
+                                project.projectId === track.id
+                            )?.workers || [];
+
+                          const textColor =
+                            STAT_COLORS[track.kind as keyof typeof STAT_COLORS];
+                          const rowSpan = Math.max(1, projectWorkers.length);
+
+                          console.log('Track data:', {
+                            id: track.id,
+                            name: track.name,
+                            dueOn: track.dueOn,
+                            raw: track
+                          });
+
+                          return (
+                            <React.Fragment key={track.id}>
+                              <TableRow>
+                                <TableCell
+                                  rowSpan={rowSpan}
+                                  className="pr-2 w-[210px] break-words border-r border-gray-200 align-top"
+                                >
+                                  <div style={{ color: textColor }}>
+                                    {track.name}
+                                    {track.budget && (
+                                      <div className="text-gray-500 mt-1">
+                                        <span className="inline-block bg-gray-100 px-1 rounded">
+                                          {track.budget.hours}h/
+                                          {track.budget.period}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {track.dueOn && (
+                                      <div
+                                        className={`mt-1 text-xs ${
+                                          new Date(track.dueOn) < new Date()
+                                            ? "text-red-500"
+                                            : "text-muted-foreground"
+                                        }`}
+                                      >
+                                        Due on:{" "}
+                                        {new Date(track.dueOn).toDateString()}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="text-gray-600 pl-2">
-                              {projectWorkers.length > 0 ? (
-                                projectWorkers[0]
-                              ) : (
-                                <span className="text-gray-400">No team members</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {caseData.caseDetails.tracker.map((track: TrackingProject) => {
-                        const projectWorkers = caseData.workersByTrackingProject?.find(
-                          (project: { projectId: string }) => project.projectId === track.id
-                        )?.workers || [];
-                        
-                        return projectWorkers.slice(1).map((worker: string, index: number) => (
-                          <tr key={`${track.id}-${index + 1}`} className="border-b border-gray-200">
-                            <td className="text-gray-600 pl-2">{worker}</td>
-                          </tr>
-                        ));
-                      })}
-                    </tbody>
-                  </table>
+                                </TableCell>
+                                <TableCell className="text-gray-600 pl-2">
+                                  {projectWorkers.length > 0 ? (
+                                    projectWorkers[0]
+                                  ) : (
+                                    <span className="text-gray-400">
+                                      No team members
+                                    </span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                              {projectWorkers
+                                .slice(1)
+                                .map((worker: string, index: number) => (
+                                  <TableRow
+                                    key={`${track.id}-worker-${index + 1}`}
+                                  >
+                                    <TableCell className="text-gray-600 pl-2">
+                                      {worker}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </React.Fragment>
+                          );
+                        }
+                      )}
+                    </TableBody>
+                  </Table>
                 ) : (
-                  <span className="text-xs text-gray-400">No tracking projects</span>
+                  <span className="text-xs text-gray-400">
+                    No tracking projects
+                  </span>
                 )}
               </TableCell>
               <TableCell>
