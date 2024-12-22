@@ -530,11 +530,11 @@ type RevenueTrackingByProject {
 # Forecast types
 type Forecast {
   dateOfInterest: Date!
-  timePeriods: ForecastTimePeriods!
-  revenueByType: ForecastRevenueByType!
-  totals: ForecastTotalMetrics!
+  dates: ForecastTimePeriods!
+  byKind: ForecastRevenueByType!
+  summary: ForecastTotalMetrics!
   filterableFields: [FilterableField]!
-  workingDayMetrics: ForecastWorkingDayMetrics!
+  workingDays: ForecastWorkingDayMetrics!
 }
 
 type ForecastTimePeriods {
@@ -573,25 +573,25 @@ type ForecastWorkingDayMetrics {
 
 type ForecastRevenueByType {
   consulting: ForecastConsultingRevenue!
-  preContractedConsulting: ForecastClientRevenue!
-  handsOnServices: ForecastClientRevenue!
-  squadServices: ForecastClientRevenue!
+  consultingPre: ForecastClientRevenue!
+  handsOn: ForecastClientRevenue!
+  squad: ForecastClientRevenue!
 }
 
 type ForecastClientRevenue {
-  clients: [ForecastClientMetrics!]!
-  sponsors: [ForecastSponsorMetrics!]!
-  cases: [ForecastCaseMetrics!]!
-  projects: [ForecastProjectMetrics!]!
+  byClient: [ForecastClientMetrics!]!
+  bySponsor: [ForecastSponsorMetrics!]!
+  byCase: [ForecastCaseMetrics!]!
+  byProject: [ForecastProjectMetrics!]!
   totals: ForecastRevenueMetrics!
 }
 
 type ForecastConsultingRevenue {
-  clients: [ForecastConsultingClientMetrics!]!
-  sponsors: [ForecastConsultingSponsorMetrics!]!
-  cases: [ForecastConsultingCaseMetrics!]!
-  projects: [ForecastConsultingProjectMetrics!]!
-  consultants: [ForecastConsultantMetrics!]!
+  byClient: [ForecastConsultingClientMetrics!]!
+  bySponsor: [ForecastConsultingSponsorMetrics!]!
+  byCase: [ForecastConsultingCaseMetrics!]!
+  byProject: [ForecastConsultingProjectMetrics!]!
+  byConsultant: [ForecastConsultantMetrics!]!
   totals: ForecastConsultingTotalMetrics!
 }
 

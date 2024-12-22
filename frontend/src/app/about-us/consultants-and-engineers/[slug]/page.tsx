@@ -44,7 +44,7 @@ const CaseStatusCard = ({ title, cases, color }: { title: string, cases: { title
       {cases.map((c, i) => (
         <li key={i} className="leading-[1.25]">
           <Link 
-            href={`/cases/${c.slug}`}
+            href={`/about-us/cases/${c.slug}`}
             className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline"
           >
             {c.title}
