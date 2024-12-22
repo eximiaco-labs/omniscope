@@ -21,6 +21,8 @@ class TimeBudget:
     period: str
 
 class Project(e.Project):
+    due_on: Optional[datetime] = None
+    
     is_squad: Optional[bool] = False
     is_eximiaco: Optional[bool] = False
     is_handson: Optional[bool] = False
@@ -180,13 +182,21 @@ class TimeTracker(SemanticModel):
     @property
     def all_projects(self):
         all_projects = self.everhour.fetch_all_projects()
+        all_endings = self.everhour.search_tasks('Encerramento')
         all_clients = self.all_clients
 
         result = {}
         for p in all_projects:
             client = all_clients[p.client_id] if p.client_id else None
+            
             new_p = Project.from_base_instance(p, client)
             result[new_p.id] = new_p
+            
+        # Set project due dates from ending tasks
+        for task in all_endings:
+            for project_id in task.projects:
+                if project_id in result:
+                    result[project_id].due_on = task.due_on
 
         return result
 
