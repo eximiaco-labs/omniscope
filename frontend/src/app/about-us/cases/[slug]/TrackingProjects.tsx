@@ -64,8 +64,8 @@ export function TrackingProjects({
                             </div>
                           )}
                           {track.dueOn && (
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              Due on: {track.dueOn}
+                            <div className={`mt-1 text-xs ${new Date(track.dueOn) < new Date() ? 'text-red-500' : 'text-muted-foreground'}`}>
+                              Due on: {new Date(track.dueOn).toDateString()}
                             </div>
                           )}
                         </TableCell>

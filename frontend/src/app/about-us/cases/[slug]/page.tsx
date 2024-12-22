@@ -326,20 +326,21 @@ export default function CasePage() {
   return (
     <div>
       <CaseHeader caseItem={caseItem} />
-      
+
       {getFlag("is-fin-user", session?.user?.email) && (
         <div className="mt-4">
           <RevenueProgression data={caseItem} />
         </div>
       )}
 
-      <TrackingProjects
-        tracker={caseItem.tracker}
-        workersByTrackingProject={
-          caseItem.timesheets.lastSixWeeks.byCase?.[0]
-            ?.workersByTrackingProject || []
-        }
-      />
+      {caseItem.updates && caseItem.updates.length > 0 && (
+        <div className="mt-8 mb-8">
+          <SectionHeader title="Case Updates" subtitle="" />
+          <div className="ml-4 mr-4">
+            <CaseTimeline updates={caseItem.updates} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-4">
         <SectionHeader title="Side by Side Analysis" subtitle="" />
@@ -393,14 +394,13 @@ export default function CasePage() {
         </div>
       </div>
 
-      {caseItem.updates && caseItem.updates.length > 0 && (
-        <div className="mt-8 mb-8">
-          <SectionHeader title="Case Updates" subtitle="" />
-          <div className="ml-4 mr-4">
-            <CaseTimeline updates={caseItem.updates} />
-          </div>
-        </div>
-      )}
+      <TrackingProjects
+        tracker={caseItem.tracker}
+        workersByTrackingProject={
+          caseItem.timesheets.lastSixWeeks.byCase?.[0]
+            ?.workersByTrackingProject || []
+        }
+      />
     </div>
   );
 }
