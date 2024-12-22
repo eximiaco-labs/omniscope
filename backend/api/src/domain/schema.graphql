@@ -127,6 +127,7 @@ type TrackerProject {
   id: String!
   name: String!
   kind: String!
+  dueOn: Date
   budget: TrackerProjectBudget
 }
 

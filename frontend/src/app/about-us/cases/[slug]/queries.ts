@@ -48,6 +48,7 @@ export const GET_CASE_BY_SLUG = gql`
         id
         name
         kind
+        dueOn
         budget {
           hours
           period
