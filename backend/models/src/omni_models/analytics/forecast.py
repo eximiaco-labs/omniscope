@@ -5,6 +5,21 @@ import pandas as pd
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
 
+
+labels_suffix_future = [
+    '', 
+    'one_month_later', 
+    'two_months_later', 
+    'three_months_later'
+]
+
+labels_expected = [
+    'expected', 
+    'expected_' + labels_suffix_future[1], 
+    'expected_' + labels_suffix_future[2], 
+    'expected_' + labels_suffix_future[3]
+]
+
 def get_same_day_one_month_ago(date_of_interest):
     d = date_of_interest.day
     if date_of_interest.month == 1:
@@ -18,6 +33,15 @@ def get_same_day_one_month_ago(date_of_interest):
     if d > last_day:
         d = last_day
 
+    return datetime(y, m, d, 23, 59, 59, 999999)
+
+def get_same_day_one_month_later(date_of_interest):
+    d = date_of_interest.day
+    m = date_of_interest.month + 1
+    y = date_of_interest.year
+    if m > 12:
+        m = 1
+        y += 1
     return datetime(y, m, d, 23, 59, 59, 999999)
 
 def get_last_day_of_month(date_of_interest):
@@ -78,6 +102,15 @@ def compute_forecast(date_of_interest = None, filters = None):
     
     same_day_three_months_ago = get_same_day_one_month_ago(same_day_two_months_ago)
     last_day_of_three_months_ago = get_last_day_of_month(same_day_three_months_ago)
+    
+    same_day_one_month_later = get_same_day_one_month_later(date_of_interest)
+    last_day_of_one_month_later = get_last_day_of_month(same_day_one_month_later)   
+    
+    same_day_two_months_later = get_same_day_one_month_later(same_day_one_month_later)
+    last_day_of_two_months_later = get_last_day_of_month(same_day_two_months_later)
+    
+    same_day_three_months_later = get_same_day_one_month_later(same_day_two_months_later)
+    last_day_of_three_months_later = get_last_day_of_month(same_day_three_months_later)
     
     # Revenue tracking
     
@@ -242,39 +275,53 @@ def compute_forecast(date_of_interest = None, filters = None):
                 if not project_:
                     continue
                 
-                # contrato encerra na vigência do mês
-                days_in_month = calendar.monthrange(date_of_interest.year, date_of_interest.month)[1]
-                working_days_in_month = get_working_days_in_month(date_of_interest.year, date_of_interest.month)
-                hours_in_month = 0
-                daily_approved_hours = wah / 5
-                for day in range(1, days_in_month + 1):
-                    date = datetime(date_of_interest.year, date_of_interest.month, day)
+                year = date_of_interest.year    
+                month = date_of_interest.month
+                for n in range(0, 4):
+                    days_in_month = calendar.monthrange(year, month)[1]
+                    working_days_in_month = get_working_days_in_month(year, month)
                     
-                    if case_.end_of_contract and date.date() > case_.end_of_contract:
-                        break
+                    hours_in_month = 0
+                    daily_approved_hours = wah / 5
                     
-                    if date in working_days_in_month:
-                        hours_in_month += daily_approved_hours
-                
-                case['expected'] = hours_in_month * (project_.rate.rate / 100)
+                    due_on = project_.due_on.date() if project_.due_on else case_.end_of_contract
+                    
+                    for day in range(1, days_in_month + 1):
+                        date = datetime(year, month, day)
+                        
+                        if due_on and date.date() > due_on:
+                            break
+                        
+                        if date in working_days_in_month:
+                            hours_in_month += daily_approved_hours
+
+                    case[labels_expected[n]] = hours_in_month * (project_.rate.rate / 100)
+                    
+                    month += 1
+                    if month > 12:
+                        month = 1
+                        year += 1
                 
 
             for sponsor in by_sponsor:
-                sponsor['expected'] = sum(
-                    case['expected'] 
-                    for case in by_case
-                    if case['sponsor_slug'] == sponsor['slug']
-                )
+                for n in range(0, 4):
+                    sponsor[labels_expected[n]] = sum(
+                        case[labels_expected[n]] 
+                        for case in by_case
+                        if case['sponsor_slug'] == sponsor['slug']
+                    )
                 
             for client in by_client:
-                client['expected'] = sum(
-                    sponsor['expected'] 
-                    for sponsor in by_sponsor
-                    if sponsor['client_slug'] == client['slug']
-                )
-                
+                for n in range(0, 4):
+                    client[labels_expected[n]] = sum(
+                        sponsor[labels_expected[n]] 
+                        for sponsor in by_sponsor
+                        if sponsor['client_slug'] == client['slug']
+                    )
+
             for project in by_project:
-                project['expected'] = 0
+                for n in range(0, 4):
+                    project[labels_expected[n]] = 0
         
         def adjust_entity(entity):
             entity['in_analysis'] = entity.get('in_analysis', 0)
@@ -345,6 +392,9 @@ def compute_forecast(date_of_interest = None, filters = None):
             totals['same_day_three_months_ago'] = sum(client.get('same_day_three_months_ago', 0) for client in by_client)
             totals['projected'] = sum(client.get('projected', 0) for client in by_client)
             totals['expected'] = sum(client.get('expected', 0) for client in by_client) 
+            totals['expected_one_month_later'] = sum(client.get('expected_one_month_later', 0) for client in by_client)
+            totals['expected_two_months_later'] = sum(client.get('expected_two_months_later', 0) for client in by_client)
+            totals['expected_three_months_later'] = sum(client.get('expected_three_months_later', 0) for client in by_client)
             totals['expected_historical'] = sum(client.get('expected_historical', 0) for client in by_client)
             totals['in_analysis_consulting_hours'] = sum(client.get('in_analysis_consulting_hours', 0) for client in by_client)
             totals['one_month_ago_consulting_hours'] = sum(client.get('one_month_ago_consulting_hours', 0) for client in by_client)
@@ -387,8 +437,15 @@ def compute_forecast(date_of_interest = None, filters = None):
             "same_day_two_months_ago": same_day_two_months_ago,
             "two_months_ago": last_day_of_two_months_ago,
             "same_day_three_months_ago": same_day_three_months_ago,
-            "three_months_ago": last_day_of_three_months_ago
+            "three_months_ago": last_day_of_three_months_ago,
+            "same_day_one_month_later": same_day_one_month_later,
+            "one_month_later": last_day_of_one_month_later,
+            "same_day_two_months_later": same_day_two_months_later,
+            "two_months_later": last_day_of_two_months_later,
+            "same_day_three_months_later": same_day_three_months_later,
+            "three_months_later": last_day_of_three_months_later
         },
+        
         "by_kind": {
         
             "consulting": summarize_forecast('consulting'),
@@ -406,6 +463,9 @@ def compute_forecast(date_of_interest = None, filters = None):
         "one_month_ago": sum(result["by_kind"][kind]["totals"]["one_month_ago"] for kind in result["by_kind"]),
         "two_months_ago": sum(result["by_kind"][kind]["totals"]["two_months_ago"] for kind in result["by_kind"]),
         "three_months_ago": sum(result["by_kind"][kind]["totals"]["three_months_ago"] for kind in result["by_kind"]),
+        "expected_one_month_later": sum(result["by_kind"][kind]["totals"].get("expected_one_month_later", 0) for kind in result["by_kind"]),
+        "expected_two_months_later": sum(result["by_kind"][kind]["totals"].get("expected_two_months_later", 0) for kind in result["by_kind"]),
+        "expected_three_months_later": sum(result["by_kind"][kind]["totals"].get("expected_three_months_later", 0) for kind in result["by_kind"]),
     }
     
     result["summary"] = summary
@@ -418,6 +478,12 @@ def compute_forecast(date_of_interest = None, filters = None):
         "same_day_two_months_ago": len([d for d in get_working_days_in_month(same_day_two_months_ago.year, same_day_two_months_ago.month) if d.day <= date_of_interest.day]),
         "three_months_ago": len(get_working_days_in_month(same_day_three_months_ago.year, same_day_three_months_ago.month)),
         "same_day_three_months_ago": len([d for d in get_working_days_in_month(same_day_three_months_ago.year, same_day_three_months_ago.month) if d.day <= date_of_interest.day]),
+        "one_month_later": len(get_working_days_in_month(same_day_one_month_later.year, same_day_one_month_later.month)),
+        "same_day_one_month_later": len([d for d in get_working_days_in_month(same_day_one_month_later.year, same_day_one_month_later.month) if d.day <= date_of_interest.day]),
+        "two_months_later": len(get_working_days_in_month(same_day_two_months_later.year, same_day_two_months_later.month)),
+        "same_day_two_months_later": len([d for d in get_working_days_in_month(same_day_two_months_later.year, same_day_two_months_later.month) if d.day <= date_of_interest.day]),
+        "three_months_later": len(get_working_days_in_month(same_day_three_months_later.year, same_day_three_months_later.month)),
+        "same_day_three_months_later": len([d for d in get_working_days_in_month(same_day_three_months_later.year, same_day_three_months_later.month) if d.day <= date_of_interest.day]),
     }
     
     result["working_days"] = working_days
