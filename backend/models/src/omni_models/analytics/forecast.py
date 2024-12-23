@@ -247,10 +247,13 @@ def compute_forecast(date_of_interest = None, filters = None):
                 working_days_in_month = get_working_days_in_month(date_of_interest.year, date_of_interest.month)
                 hours_in_month = 0
                 daily_approved_hours = wah / 5
+                
+                due_on = project_.due_on if project_.due_on else case_.end_of_contract
+                
                 for day in range(1, days_in_month + 1):
                     date = datetime(date_of_interest.year, date_of_interest.month, day)
                     
-                    if case_.end_of_contract and date.date() > case_.end_of_contract:
+                    if due_on and date.date() > due_on:
                         break
                     
                     if date in working_days_in_month:
