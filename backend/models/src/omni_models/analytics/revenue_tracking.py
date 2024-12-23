@@ -107,6 +107,12 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                                 if project["kind"] == "consulting" and not project["fixed"]
                             )
                             
+                            consulting_pre_hours = sum(
+                                project["hours"] 
+                                for project in by_project 
+                                if project["kind"] == "consulting" and project["fixed"]
+                            )
+                            
                             if case.start_of_contract and case.start_of_contract.year == date_of_interest.year and case.start_of_contract.month == date_of_interest.month:
                                 consulting_fee_new = consulting_fee
                             else:
@@ -119,6 +125,7 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                                 "consulting_hours": consulting_hours,
                                 "consulting_fee": consulting_fee,
                                 "consulting_fee_new": consulting_fee_new,
+                                "consulting_pre_hours": consulting_pre_hours,
                                 "consulting_pre_fee": sum(project["fee"] for project in by_project if project["kind"] == "consulting" and project["fixed"]),
                                 "hands_on_fee": sum(project["fee"] for project in by_project if project["kind"] == "handsOn"),
                                 "squad_fee": sum(project["fee"] for project in by_project if project["kind"] == "squad"),
@@ -138,6 +145,7 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                         "fee": sum(case["fee"] for case in by_case),
                         "consulting_fee_new": sum(case["consulting_fee_new"] for case in by_case),
                         "consulting_hours": sum(case["consulting_hours"] for case in by_case),
+                        "consulting_pre_hours": sum(case["consulting_pre_hours"] for case in by_case),
                         "consulting_fee": sum(case["consulting_fee"] for case in by_case),
                         "consulting_pre_fee": sum(case["consulting_pre_fee"] for case in by_case),
                         "hands_on_fee": sum(case["hands_on_fee"] for case in by_case),
@@ -158,6 +166,7 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                     "fee": sum(sponsor["fee"] for sponsor in by_sponsor),
                     "consulting_hours": sum(sponsor["consulting_hours"] for sponsor in by_sponsor),
                     "consulting_fee": sum(sponsor["consulting_fee"] for sponsor in by_sponsor),
+                    "consulting_pre_hours": sum(sponsor["consulting_pre_hours"] for sponsor in by_sponsor),
                     "consulting_fee_new": sum(sponsor["consulting_fee_new"] for sponsor in by_sponsor),
                     "consulting_pre_fee": sum(sponsor["consulting_pre_fee"] for sponsor in by_sponsor),
                     "hands_on_fee": sum(sponsor["hands_on_fee"] for sponsor in by_sponsor),
@@ -177,12 +186,13 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                 "by_client": by_client,
                 "fee": sum(client["fee"] for client in by_client),
                 "consulting_hours": sum(client["consulting_hours"] for client in by_client),
+                "consulting_pre_hours": sum(client["consulting_pre_hours"] for client in by_client),
                 "consulting_fee": sum(client["consulting_fee"] for client in by_client),
                 "consulting_fee_new": sum(client["consulting_fee_new"] for client in by_client),
                 "consulting_pre_fee": sum(client["consulting_pre_fee"] for client in by_client),
                 "hands_on_fee": sum(client["hands_on_fee"] for client in by_client),
                 "squad_fee": sum(client["squad_fee"] for client in by_client),
-                }
+            }
             
             if "partial" in by_client[0]:
                 account_manager_["partial"] = any("partial" in client and client["partial"] for client in by_client)
@@ -193,6 +203,7 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
     total_consulting_fee = sum(account_manager["consulting_fee"] for account_manager in by_account_manager)
     total_consulting_fee_new = sum(account_manager["consulting_fee_new"] for account_manager in by_account_manager)
     total_consulting_hours = sum(account_manager["consulting_hours"] for account_manager in by_account_manager)
+    total_consulting_pre_hours = sum(account_manager["consulting_pre_hours"] for account_manager in by_account_manager)
     total_consulting_pre_fee = sum(account_manager["consulting_pre_fee"] for account_manager in by_account_manager)
     total_hands_on_fee = sum(account_manager["hands_on_fee"] for account_manager in by_account_manager)
     total_squad_fee = sum(account_manager["squad_fee"] for account_manager in by_account_manager)
@@ -204,6 +215,7 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
             "total_consulting_fee_new": total_consulting_fee_new,
             "total_consulting_pre_fee": total_consulting_pre_fee,
             "total_consulting_hours": total_consulting_hours,
+            "total_consulting_pre_hours": total_consulting_pre_hours,
             "total_hands_on_fee": total_hands_on_fee,
             "total_squad_fee": total_squad_fee,
             "by_account_manager": by_account_manager
@@ -251,6 +263,8 @@ def compute_pre_contracted_revenue_tracking(
     account_manager_name_or_slug: str = None
 ):
     def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame, pro_rata_info):
+        project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+        result = None
         if project.billing and project.billing.fee and project.billing.fee != 0:
             if project.budget and project.budget.period == 'general':
 
@@ -292,10 +306,11 @@ def compute_pre_contracted_revenue_tracking(
                         
                 fee = project.billing.fee / 100 / number_of_months
 
-                return {
+                result = {
                     "kind": project.kind,
                     "name": project.name,
                     "fee": fee,
+                    "hours": project_df["TimeInHs"].sum(),
                     "fixed": True
                 }
             elif case.pre_contracted_value:
@@ -319,10 +334,11 @@ def compute_pre_contracted_revenue_tracking(
                 if should_do_pro_rata:
                     fee = fee * (calendar.monthrange(date_of_interest.year, date_of_interest.month)[1] / date_of_interest.day)
                 
-                return {
+                result = {
                     "kind": project.kind,
                     "name": project.name,
                     "fee": project.billing.fee / 100,
+                    "hours": project_df["TimeInHs"].sum(),
                     "fixed": True
                 }
             else:
@@ -480,15 +496,28 @@ def compute_pre_contracted_revenue_tracking(
                 # TODO: fator individual por trabalhador   
                 # TODO: O que fazer com "trabalhaadores ocasionais"
          
-                return {
+                result = {
                     "kind": project.kind,
                     "name": project.name,
                     "fee": partial_fee if partial else fee,
+                    "hours": project_df["TimeInHs"].sum(),
                     "partial": partial,
                     "fixed": True
                 }
                 
-        return None 
+        if result and len(project_df) > 0:
+            by_worker = []
+            for worker_name in project_df["WorkerName"].unique():
+                worker_df = project_df[project_df["WorkerName"] == worker_name]
+                worker = globals.omni_models.workers.get_by_name(worker_name)
+                by_worker.append({
+                    "name": worker_name,
+                    "slug": worker.slug if worker else None,
+                    "hours": worker_df["TimeInHs"].sum(),
+                })
+            result["by_worker"] = by_worker
+                
+        return result
     
     return _compute_revenue_tracking_base(df, date_of_interest, process_project, account_manager_name_or_slug)
 
@@ -586,6 +615,7 @@ class ProjectSummary:
     total: float
     consulting_fee: float
     consulting_hours: float
+    consulting_pre_hours: float
     consulting_pre_fee: float
     consulting_fee_new: float
     hands_on_fee: float
@@ -655,6 +685,16 @@ class ProjectSummary:
             if project["name"] == project_name and project["kind"] == "consulting"
         )
         
+        total_consulting_pre_hours = sum(
+            project["hours"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            if project["name"] == project_name and project["kind"] == "consulting"
+        )
+        
         total_consulting_pre_fee = sum(
             project["fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -703,6 +743,7 @@ class ProjectSummary:
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
             consulting_hours=total_consulting_hours,
+            consulting_pre_hours=total_consulting_pre_hours,
             consulting_fee=total_consulting_fee,
             consulting_pre_fee=total_consulting_pre_fee,
             consulting_fee_new=total_consulting_fee_new,
@@ -742,6 +783,7 @@ class CaseSummary:
     regular: float
     total: float
     consulting_hours: float
+    consulting_pre_hours: float
     consulting_fee: float
     consulting_pre_fee: float
     consulting_fee_new: float
@@ -808,6 +850,15 @@ class CaseSummary:
             if case["title"] == case_title
         )
         
+        total_consulting_pre_hours = sum(
+            case["consulting_pre_hours"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            if case["title"] == case_title
+        )
+        
         total_consulting_pre_fee = sum(
             case["consulting_pre_fee"]
             for account_manager in pre_contracted["monthly"]["by_account_manager"]
@@ -852,6 +903,7 @@ class CaseSummary:
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
             consulting_hours=total_consulting_hours,
+            consulting_pre_hours=total_consulting_pre_hours,
             consulting_fee=total_consulting_fee,
             consulting_pre_fee=total_consulting_pre_fee,
             consulting_fee_new=total_consulting_fee_new,
@@ -886,6 +938,7 @@ class SponsorSummary:
     consulting_fee: float
     consulting_fee_new: float
     consulting_hours: float
+    consulting_pre_hours: float
     consulting_pre_fee: float
     hands_on_fee: float
     squad_fee: float
@@ -944,6 +997,14 @@ class SponsorSummary:
             for sponsor in client["by_sponsor"]
             if sponsor["name"] == sponsor_name
         )
+        
+        total_consulting_pre_hours = sum(
+            sponsor["consulting_pre_hours"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            if sponsor["name"] == sponsor_name
+        )
             
         total_consulting_pre_fee = sum(
             sponsor["consulting_pre_fee"]
@@ -985,6 +1046,7 @@ class SponsorSummary:
             consulting_fee=total_consulting_fee,
             consulting_fee_new=total_consulting_fee_new,
             consulting_hours=total_consulting_hours,
+            consulting_pre_hours=total_consulting_pre_hours,
             consulting_pre_fee=total_consulting_pre_fee,
             hands_on_fee=total_hands_on_fee,
             squad_fee=total_squad_fee,
@@ -1017,6 +1079,7 @@ class ClientSummary:
     consulting_fee: float
     consulting_fee_new: float
     consulting_hours: float
+    consulting_pre_hours: float
     consulting_pre_fee: float
     hands_on_fee: float
     squad_fee: float
@@ -1070,6 +1133,13 @@ class ClientSummary:
             for client in account_manager["by_client"]
             if client["name"] == client_name
         )
+        
+        total_consulting_pre_hours = sum(
+            client["consulting_pre_hours"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            if client["name"] == client_name
+        )
 
         total_consulting_pre_fee = sum(
             client["consulting_pre_fee"]
@@ -1106,6 +1176,7 @@ class ClientSummary:
             regular=regular_fee,
             total=pre_contracted_fee + regular_fee,
             consulting_hours=total_consulting_hours,
+            consulting_pre_hours=total_consulting_pre_hours,
             consulting_fee=total_consulting_fee,
             consulting_fee_new=total_consulting_fee_new,
             consulting_pre_fee=total_consulting_pre_fee,
@@ -1175,6 +1246,7 @@ class ConsultantSummary:
     slug: str
     consulting_fee: float
     consulting_hours: float
+    consulting_pre_hours: float
     
     @staticmethod
     def build(consultant_name, pre_contracted, regular):
@@ -1199,12 +1271,24 @@ class ConsultantSummary:
             for worker in project["by_worker"]
             if worker["name"] == consultant_name
         )
+        
+        consulting_pre_hours = sum(
+            worker["hours"]
+            for account_manager in pre_contracted["monthly"]["by_account_manager"]
+            for client in account_manager["by_client"]
+            for sponsor in client["by_sponsor"]
+            for case in sponsor["by_case"]
+            for project in case["by_project"]
+            for worker in project["by_worker"]
+            if worker["name"] == consultant_name and project["kind"] == "consulting"
+        )
        
         return ConsultantSummary(
             name=consultant_name,
             slug=globals.omni_models.workers.get_by_name(consultant_name).slug,
             consulting_fee=consulting_fee,
             consulting_hours=consulting_hours,
+            consulting_pre_hours=consulting_pre_hours,
         )
         
     @staticmethod

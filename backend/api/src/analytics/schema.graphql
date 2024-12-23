@@ -412,6 +412,7 @@ type RevenueTrackingSummary {
   totalConsultingFee: Float!
   totalConsultingFeeNew: Float!
   totalConsultingHours: Float!
+  totalConsultingPreHours: Float!
   totalConsultingPreFee: Float!
   totalHandsOnFee: Float!
   totalSquadFee: Float!
@@ -422,6 +423,7 @@ type RevenueTrackingByConsultant {
   slug: String!
   consultingFee: Float!
   consultingHours: Float!
+  consultingPreHours: Float!
 }
 
 type RevenueTrackingByKind {
@@ -442,6 +444,7 @@ type RevenueTrackingMonthly {
   totalConsultingFee: Float!
   totalConsultingFeeNew: Float!
   totalConsultingHours: Float!
+  totalConsultingPreHours: Float!
   totalConsultingPreFee: Float!
   totalHandsOnFee: Float!
   totalSquadFee: Float!
@@ -456,6 +459,7 @@ type RevenueTrackingByAccountManager {
   consultingFeeNew: Float!
   consultingHours: Float!
   consultingPreFee: Float!
+  consultingPreHours: Float!
   handsOnFee: Float!
   squadFee: Float!
   regular: Float!
@@ -472,6 +476,7 @@ type RevenueTrackingByClient {
   consultingFee: Float!
   consultingFeeNew: Float!
   consultingPreFee: Float!
+  consultingPreHours: Float!
   consultingHours: Float!
   handsOnFee: Float!
   squadFee: Float!
@@ -489,6 +494,7 @@ type RevenueTrackingBySponsor {
   consultingFee: Float!
   consultingFeeNew: Float!
   consultingPreFee: Float!
+  consultingPreHours: Float!
   consultingHours: Float!
   handsOnFee: Float!
   squadFee: Float!
@@ -506,6 +512,7 @@ type RevenueTrackingByCase {
   consultingFee: Float!
   consultingFeeNew: Float!
   consultingPreFee: Float!
+  consultingPreHours: Float!
   consultingHours: Float!
   handsOnFee: Float!
   squadFee: Float!
@@ -523,6 +530,7 @@ type RevenueTrackingByProject {
   hours: Float
   fee: Float!
   consultingHours: Float!
+  consultingPreHours: Float!
   consultingFeeNew: Float!
   partial: Boolean
 }
