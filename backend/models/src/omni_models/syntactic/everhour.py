@@ -142,6 +142,20 @@ class Appointment(BaseModel):
             project_id=json['task']['projects'][0]
         )
 
+class Task(BaseModel):
+    id: str
+    name: str
+    due_on: Optional[datetime] = None
+    projects: List[str]
+    
+    @staticmethod
+    def from_json(json):
+        return Task(
+            id=json['id'],
+            name=json['name'],
+            due_on=datetime.strptime(json['dueOn'], "%Y-%m-%d") if json.get('dueOn') else None,
+            projects=json['projects']
+        )
 
 class Everhour:
 
@@ -150,11 +164,16 @@ class Everhour:
         self.api_token = api_token
         self.base_url = "https://api.everhour.com/"
 
-    def fetch(self, entity: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def fetch(self, entity: str, entity_id: Optional[str] = None, sub_entity: Optional[str] = None, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         if params is None:
             params = {}
 
-        url = f"{self.base_url}{entity}"
+        url = self.base_url + entity
+        if entity_id:
+            url += f"/{entity_id}"
+        if sub_entity:
+            url += f"/{sub_entity}"
+
         headers = {
             'Content-Type': 'application/json',
             'X-Api-Key': self.api_token
@@ -163,7 +182,7 @@ class Everhour:
         response = self.session.get(url, params=params, headers=headers)
         response.raise_for_status()
         return response.json()
-
+    
     @cache
     def fetch_all_users(self) -> Dict[int, User]:
         json = self.fetch('team/users')
@@ -181,7 +200,7 @@ class Everhour:
             "page": 1
         }
 
-        json = self.fetch("team/time", params)
+        json = self.fetch("team/time", params=params)
         return [
             Appointment.from_json(ap)
             for ap in json
@@ -189,22 +208,48 @@ class Everhour:
 
     @cache
     def fetch_all_projects(self, status: Optional[str] = None) -> List[Project]:
-        json = self.fetch_all_projects_json(status)
-
+        params = {
+            "limit": 10000,
+            "page": 1
+        }
+        if status:
+            params["status"] = status
+            
+        json = self.fetch("projects", params=params)
         return [
             Project(**p)
             for p in json
         ]
 
-    def fetch_all_projects_json(self, status: Optional[str] = None):
+    @cache
+    def fetch_project_tasks(self, project_id: str) -> List[Task]:
         params = {
             "limit": 10000,
-            "page": 1,
-            "status": status
+            "page": 1
         }
-        json = self.fetch("projects", params)
-        return json
+        json = self.fetch(f"projects/{project_id}/tasks", params=params)
+        return [
+            Task.from_json(t)
+            for t in json
+        ]
+        
+    @cache
+    def search_tasks(self, query: str) -> List[Task]:
+        json = self._search_tasks_json(query)
+        return [
+            Task.from_json(t)
+            for t in json
+        ]
 
+    def _search_tasks_json(self, query: str) -> List[Dict[str, Any]]:
+        params = {
+            #"limit": 10000,
+            "query": query,
+            "searchInClosed": False
+        }
+        json = self.fetch("tasks/search", params=params)
+        return json
+    
     @cache
     def fetch_all_clients(self) -> List[Client]:
         params = {
@@ -212,19 +257,11 @@ class Everhour:
             "page": 1
         }
 
-        json = self.fetch("clients", params)
-
+        json = self.fetch("clients", params=params)
         return [
             Client(**c)
             for c in json
         ]
-
-    # def _fetch_and_convert_to_df(self, entity: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
-    #     data_json = self.fetch(entity, params)
-    #     if data_json is not None:
-    #         return pd.DataFrame(data_json)
-    #     else:
-    #         return pd.DataFrame()  # Return an empty DataFrame if the fetch fails
 
     def __del__(self):
         self.session.close()

@@ -12,6 +12,7 @@ interface TrackingProjectsProps {
     weeklyApprovedHours?: number;
     startOfContract?: string;
     endOfContract?: string;
+    dueOn?: string;
     budget?: {
       hours: number;
       period: string;
@@ -60,6 +61,11 @@ export function TrackingProjects({
                           {track.budget && (
                             <div className="mt-1 text-xs text-muted-foreground">
                               Budget: {track.budget.hours}h / {track.budget.period}
+                            </div>
+                          )}
+                          {track.dueOn && (
+                            <div className={`mt-1 text-xs ${new Date(track.dueOn) < new Date() ? 'text-red-500' : 'text-muted-foreground'}`}>
+                              Due on: {new Date(track.dueOn).toDateString()}
                             </div>
                           )}
                         </TableCell>

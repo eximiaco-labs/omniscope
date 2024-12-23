@@ -104,6 +104,7 @@ export const GET_CLIENT_TIMESHEET = gql`
         id
         name
         kind
+        dueOn
         budget {
           hours
           period
@@ -235,6 +236,7 @@ export const GET_CLIENT_TIMESHEET = gql`
             id
             name
             kind
+            dueOn
             budget {
               hours
               period

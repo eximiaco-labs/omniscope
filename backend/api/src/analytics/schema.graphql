@@ -530,14 +530,14 @@ type RevenueTrackingByProject {
 # Forecast types
 type Forecast {
   dateOfInterest: Date!
-  dates: ForecastDates!
-  byKind: ForecastByKind!
-  summary: ForecastSummary!
+  dates: ForecastTimePeriods!
+  byKind: ForecastRevenueByType!
+  summary: ForecastTotalMetrics!
   filterableFields: [FilterableField]!
-  workingDays: ForecastWorkingDays!
+  workingDays: ForecastWorkingDayMetrics!
 }
 
-type ForecastDates {
+type ForecastTimePeriods {
   inAnalysis: Date!
   sameDayOneMonthAgo: Date!
   oneMonthAgo: Date!
@@ -547,7 +547,7 @@ type ForecastDates {
   threeMonthsAgo: Date!
 }
 
-type ForecastSummary {
+type ForecastTotalMetrics {
   realized: Float!
   realizedConsultingHours: Float!
   projected: Float!
@@ -560,7 +560,7 @@ type ForecastSummary {
   threeMonthsAgoConsultingHours: Float!
 }
 
-type ForecastWorkingDays {
+type ForecastWorkingDayMetrics {
   inAnalysis: Int!
   inAnalysisPartial: Int!
   oneMonthAgo: Int!
@@ -571,31 +571,31 @@ type ForecastWorkingDays {
   sameDayThreeMonthsAgo: Int!
 }
 
-type ForecastByKind {
-  consulting: ForecastConsultingByClient!
-  consultingPre: ForecastByClient!
-  handsOn: ForecastByClient!
-  squad: ForecastByClient!
+type ForecastRevenueByType {
+  consulting: ForecastConsultingRevenue!
+  consultingPre: ForecastClientRevenue!
+  handsOn: ForecastClientRevenue!
+  squad: ForecastClientRevenue!
 }
 
-type ForecastByClient {
-  byClient: [ForecastByClientEntry!]!
-  bySponsor: [ForecastBySponsorEntry!]!
-  byCase: [ForecastByCaseEntry!]!
-  byProject: [ForecastByProjectEntry!]!
-  totals: ForecastTotals!
+type ForecastClientRevenue {
+  byClient: [ForecastClientMetrics!]!
+  bySponsor: [ForecastSponsorMetrics!]!
+  byCase: [ForecastCaseMetrics!]!
+  byProject: [ForecastProjectMetrics!]!
+  totals: ForecastRevenueMetrics!
 }
 
-type ForecastConsultingByClient {
-  byClient: [ForecastConsultingByClientEntry!]!
-  bySponsor: [ForecastConsultingBySponsorEntry!]!
-  byCase: [ForecastConsultingByCaseEntry!]!
-  byProject: [ForecastConsultingByProjectEntry!]!
-  byConsultant: [ForecastConsultingByConsultantEntry!]!
-  totals: ForecastConsultingTotals!
+type ForecastConsultingRevenue {
+  byClient: [ForecastConsultingClientMetrics!]!
+  bySponsor: [ForecastConsultingSponsorMetrics!]!
+  byCase: [ForecastConsultingCaseMetrics!]!
+  byProject: [ForecastConsultingProjectMetrics!]!
+  byConsultant: [ForecastConsultantMetrics!]!
+  totals: ForecastConsultingTotalMetrics!
 }
 
-type ForecastConsultingByConsultantEntry {
+type ForecastConsultantMetrics {
   name: String!
   slug: String!
   inAnalysis: Float!
@@ -621,7 +621,7 @@ type ForecastConsultingByConsultantEntry {
   expectedHistorical: Float!
 }
 
-type ForecastTotals {
+type ForecastRevenueMetrics {
   inAnalysis: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
@@ -632,7 +632,7 @@ type ForecastTotals {
   threeMonthsAgoConsultingFeeNew: Float!
 }
 
-type ForecastConsultingTotals {
+type ForecastConsultingTotalMetrics {
   inAnalysis: Float!
   inAnalysisConsultingHours: Float!
   inAnalysisConsultingFeeNew: Float!
@@ -659,7 +659,7 @@ type ForecastConsultingTotals {
   expectedHistorical: Float!
 }
 
-type ForecastBySponsorEntry {
+type ForecastSponsorMetrics {
   name: String!
   slug: String!
   clientSlug: String
@@ -669,7 +669,7 @@ type ForecastBySponsorEntry {
   threeMonthsAgo: Float!
 }
 
-type ForecastByCaseEntry {
+type ForecastCaseMetrics {
   title: String!
   slug: String!
   sponsorSlug: String
@@ -680,7 +680,7 @@ type ForecastByCaseEntry {
   threeMonthsAgo: Float!
 }
 
-type ForecastByProjectEntry {
+type ForecastProjectMetrics {
   name: String!
   slug: String!
   caseSlug: String!
@@ -690,7 +690,7 @@ type ForecastByProjectEntry {
   threeMonthsAgo: Float!
 }
 
-type ForecastByClientEntry {
+type ForecastClientMetrics {
   name: String!
   slug: String
   inAnalysis: Float!
@@ -699,7 +699,7 @@ type ForecastByClientEntry {
   threeMonthsAgo: Float!
 } 
 
-type ForecastConsultingByClientEntry {
+type ForecastConsultingClientMetrics {
   name: String!
   slug: String
   
@@ -729,7 +729,7 @@ type ForecastConsultingByClientEntry {
   expectedHistorical: Float!
 } 
 
-type ForecastConsultingBySponsorEntry {
+type ForecastConsultingSponsorMetrics {
   name: String!
   slug: String!
   clientSlug: String
@@ -759,7 +759,7 @@ type ForecastConsultingBySponsorEntry {
   expectedHistorical: Float!
 }
 
-type ForecastConsultingByCaseEntry {
+type ForecastConsultingCaseMetrics {
   title: String!
   slug: String!
   sponsorSlug: String
@@ -789,7 +789,7 @@ type ForecastConsultingByCaseEntry {
   expectedHistorical: Float!
 }
 
-type ForecastConsultingByProjectEntry {
+type ForecastConsultingProjectMetrics {
   name: String!
   slug: String!
   caseSlug: String!

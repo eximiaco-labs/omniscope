@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/catalyst/table";
-import RankingIndicator from "@/components/RankingIndicator";
+
 import { ChevronDown, ChevronUp } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
 
@@ -44,7 +44,7 @@ const TopSponsors: React.FC<TopSponsorsProps> = ({
 
   const filterItems = (item: any) => {
     if (selectedStat === "allClients" || selectedStat === "total") return true;
-    return item.byKind[selectedStat].totalHours > 0;
+    return item.byKind?.[selectedStat]?.totalHours > 0;
   };
 
   const sortItems = (a: any, b: any) => {
