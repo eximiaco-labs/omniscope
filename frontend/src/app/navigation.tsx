@@ -134,6 +134,12 @@ export function getOperationalSummariesSidebarItems() {
       url: "/operational-summaries/unspecified-work-hours", 
       icon: AlertCircleIcon,
     },
+    
+    {
+      title: "Projects Due Dates",
+      url: "/operational-summaries/due-on-projects",
+      icon: CalendarIcon,
+    },
   ];
 }
 
