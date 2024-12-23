@@ -466,6 +466,13 @@ def compute_forecast(date_of_interest = None, filters = None):
         "expected_one_month_later": sum(result["by_kind"][kind]["totals"].get("expected_one_month_later", 0) for kind in result["by_kind"]),
         "expected_two_months_later": sum(result["by_kind"][kind]["totals"].get("expected_two_months_later", 0) for kind in result["by_kind"]),
         "expected_three_months_later": sum(result["by_kind"][kind]["totals"].get("expected_three_months_later", 0) for kind in result["by_kind"]),
+        "in_analysis_consulting_hours": sum(result["by_kind"][kind]["totals"].get("in_analysis_consulting_hours", 0) for kind in result["by_kind"]),
+        "one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("one_month_ago_consulting_hours", 0) for kind in result["by_kind"]),
+        "two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("two_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
+        "three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("three_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
+        "same_day_one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("same_day_one_month_ago_consulting_hours", 0) for kind in result["by_kind"]),
+        "same_day_two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("same_day_two_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
+        "same_day_three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("same_day_three_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
     }
     
     result["summary"] = summary
