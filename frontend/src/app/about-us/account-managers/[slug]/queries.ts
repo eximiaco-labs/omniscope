@@ -23,11 +23,11 @@ export const GET_ACCOUNT_MANAGER = gql`
         }
         dates {
           sameDayOneMonthAgo
-          oneMonthAgo
+          lastDayOfOneMonthAgo
           sameDayTwoMonthsAgo
-          twoMonthsAgo
+          lastDayOfTwoMonthsAgo
           sameDayThreeMonthsAgo
-          threeMonthsAgo
+          lastDayOfThreeMonthsAgo
         }
         summary {
           realized

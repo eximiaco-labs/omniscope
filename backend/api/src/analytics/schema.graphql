@@ -548,17 +548,17 @@ type Forecast {
 type ForecastTimePeriods {
   inAnalysis: Date!
   sameDayOneMonthAgo: Date!
-  oneMonthAgo: Date!
+  lastDayOfOneMonthAgo: Date!
   sameDayTwoMonthsAgo: Date!
-  twoMonthsAgo: Date!
+  lastDayOfTwoMonthsAgo: Date!
   sameDayThreeMonthsAgo: Date!
-  threeMonthsAgo: Date!
+  lastDayOfThreeMonthsAgo: Date!
   sameDayOneMonthLater: Date!
-  oneMonthLater: Date!
+  lastDayOfOneMonthLater: Date!
   sameDayTwoMonthsLater: Date!
-  twoMonthsLater: Date!
+  lastDayOfTwoMonthsLater: Date!
   sameDayThreeMonthsLater: Date!
-  threeMonthsLater: Date!
+  lastDayOfThreeMonthsLater: Date!
 }
 
 type ForecastTotalMetrics {

@@ -28,11 +28,11 @@ export const GET_CASE_BY_SLUG = gql`
         }
         dates {
           sameDayOneMonthAgo
-          oneMonthAgo
+          lastDayOfOneMonthAgo
           sameDayTwoMonthsAgo
-          twoMonthsAgo
+          lastDayOfTwoMonthsAgo
           sameDayThreeMonthsAgo
-          threeMonthsAgo
+          lastDayOfThreeMonthsAgo
         }
         summary {
           realized

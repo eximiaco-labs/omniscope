@@ -25,11 +25,11 @@ export const GET_SPONSOR_BY_SLUG = gql`
         }
         dates {
           sameDayOneMonthAgo
-          oneMonthAgo
+          lastDayOfOneMonthAgo
           sameDayTwoMonthsAgo
-          twoMonthsAgo
+          lastDayOfTwoMonthsAgo
           sameDayThreeMonthsAgo
-          threeMonthsAgo
+          lastDayOfThreeMonthsAgo
         }
         summary {
           realized

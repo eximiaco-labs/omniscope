@@ -17,11 +17,11 @@ export const GET_CLIENT_BY_SLUG = gql`
         }
         dates {
           sameDayOneMonthAgo
-          oneMonthAgo
+          lastDayOfOneMonthAgo
           sameDayTwoMonthsAgo
-          twoMonthsAgo
+          lastDayOfTwoMonthsAgo
           sameDayThreeMonthsAgo
-          threeMonthsAgo
+          lastDayOfThreeMonthsAgo
         }
         summary {
           realized

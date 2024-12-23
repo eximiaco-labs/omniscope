@@ -12,14 +12,17 @@ export const REVENUE_FORECAST_QUERY = gql`
       dates {
         inAnalysis
         sameDayOneMonthAgo
-        oneMonthAgo
+        lastDayOfOneMonthAgo
         sameDayTwoMonthsAgo
-        twoMonthsAgo
+        lastDayOfTwoMonthsAgo
         sameDayThreeMonthsAgo
-        threeMonthsAgo
-        oneMonthLater
-        twoMonthsLater
-        threeMonthsLater
+        lastDayOfThreeMonthsAgo
+        sameDayOneMonthLater
+        lastDayOfOneMonthLater
+        sameDayTwoMonthsLater
+        lastDayOfTwoMonthsLater
+        sameDayThreeMonthsLater
+        lastDayOfThreeMonthsLater
       }
       workingDays {
         inAnalysisPartial

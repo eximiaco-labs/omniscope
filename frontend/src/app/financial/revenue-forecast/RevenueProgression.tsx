@@ -5,9 +5,9 @@ interface RevenueProgressionProps {
   data: {
     forecast: {
       dates: {
-        threeMonthsAgo: string;
-        twoMonthsAgo: string;
-        oneMonthAgo: string;
+        lastDayOfThreeMonthsAgo: string;
+        lastDayOfTwoMonthsAgo: string;
+        lastDayOfOneMonthAgo: string;
       };
       summary: {
         threeMonthsAgo: number;
@@ -38,7 +38,7 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
           {/* Three Months Ago */}
           <div className="text-left p-4">
             <SectionHeader
-              title={format(new Date(data.forecast.dates.threeMonthsAgo), "MMM yyyy")}
+              title={format(new Date(data.forecast.dates.lastDayOfThreeMonthsAgo), "MMM yyyy")}
               subtitle=" "
             />
             <div className="text-2xl font-bold text-gray-900 mt-2">
@@ -49,7 +49,7 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
           {/* Two Months Ago */}
           <div className="text-left p-4">
             <SectionHeader
-              title={format(new Date(data.forecast.dates.twoMonthsAgo), "MMM yyyy")}
+              title={format(new Date(data.forecast.dates.lastDayOfTwoMonthsAgo), "MMM yyyy")}
               subtitle=" "
             />
             <div className="text-2xl font-bold text-gray-900 mt-2">
@@ -66,14 +66,14 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
               {Math.abs(
                 (data.forecast.summary.twoMonthsAgo / data.forecast.summary.threeMonthsAgo - 1) * 100
               ).toFixed(1)}
-              % vs {format(new Date(data.forecast.dates.threeMonthsAgo), "MMM")}
+              % vs {format(new Date(data.forecast.dates.lastDayOfThreeMonthsAgo), "MMM")}
             </div>
           </div>
 
           {/* One Month Ago */}
           <div className="text-left p-4">
             <SectionHeader
-              title={format(new Date(data.forecast.dates.oneMonthAgo), "MMM yyyy")}
+              title={format(new Date(data.forecast.dates.lastDayOfOneMonthAgo), "MMM yyyy")}
               subtitle=" "
             />
             <div className="text-2xl font-bold text-gray-900 mt-2">
@@ -90,7 +90,7 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
               {Math.abs(
                 (data.forecast.summary.oneMonthAgo / data.forecast.summary.twoMonthsAgo - 1) * 100
               ).toFixed(1)}
-              % vs {format(new Date(data.forecast.dates.twoMonthsAgo), "MMM")}
+              % vs {format(new Date(data.forecast.dates.lastDayOfTwoMonthsAgo), "MMM")}
             </div>
           </div>
 
@@ -114,7 +114,7 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
                     {Math.abs(
                       (data.forecast.summary.realized / data.forecast.summary.oneMonthAgo - 1) * 100
                     ).toFixed(1)}
-                    % vs {format(new Date(data.forecast.dates.oneMonthAgo), "MMM")}
+                    % vs {format(new Date(data.forecast.dates.lastDayOfOneMonthAgo), "MMM")}
                   </div>
                 </div>
 
