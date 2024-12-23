@@ -1,6 +1,6 @@
+from omni_utils.helpers.dates import get_same_day_one_month_ago, get_same_day_one_month_later, get_last_day_of_month, get_working_days_in_month
 from datetime import datetime
 import calendar
-import pandas as pd
 
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
@@ -19,56 +19,6 @@ labels_expected = [
     'expected_' + labels_suffix_future[2], 
     'expected_' + labels_suffix_future[3]
 ]
-
-def get_same_day_one_month_ago(date_of_interest):
-    d = date_of_interest.day
-    if date_of_interest.month == 1:
-        y = date_of_interest.year - 1
-        m = 12
-    else:
-        y = date_of_interest.year
-        m = date_of_interest.month - 1
-
-    last_day = calendar.monthrange(y, m)[1]
-    if d > last_day:
-        d = last_day
-
-    return datetime(y, m, d, 23, 59, 59, 999999)
-
-def get_same_day_one_month_later(date_of_interest):
-    d = date_of_interest.day
-    m = date_of_interest.month + 1
-    y = date_of_interest.year
-    if m > 12:
-        m = 1
-        y += 1
-    return datetime(y, m, d, 23, 59, 59, 999999)
-
-def get_last_day_of_month(date_of_interest):
-    y = date_of_interest.year
-    m = date_of_interest.month
-    last_day = calendar.monthrange(y, m)[1]
-    return datetime(y, m, last_day, 23, 59, 59, 999999)
-
-def get_working_days_in_month(year, month):
-    import holidays
-    
-    
-    # Get all days in month
-    num_days = calendar.monthrange(year, month)[1]
-    
-    # Get Brazil holidays
-    br_holidays = holidays.BR(years=year)
-    
-    # Create list of all dates in month
-    working_days = []
-    for day in range(1, num_days + 1):
-        date = datetime(year, month, day)
-        # Check if weekday (0=Monday, 6=Sunday) and not a holiday
-        if date.weekday() < 5 and date.date() not in br_holidays:  # 0-4 are weekdays
-            working_days.append(date)
-            
-    return working_days
 
 def merge_filterable_fields(analysis_lists):
     filterable_fields = []
@@ -215,50 +165,20 @@ def compute_forecast(date_of_interest = None, filters = None):
             add_context(analysis_same_day_two_months_ago, 'same_day_two_months_ago')
             add_context(analysis_same_day_three_months_ago, 'same_day_three_months_ago')
             
-        by_consultant = list(consultants.values())
-        by_consultant = [
-            consultant for consultant in by_consultant
-            if consultant.get('in_analysis', 0) > 0
-            or consultant.get('one_month_ago', 0) > 0
-            or consultant.get('two_months_ago', 0) > 0
-            or consultant.get('three_months_ago', 0) > 0
-        ]
+        def filter_items(items):
+            return [
+                item for item in items.values()
+                if any(
+                    item.get(period, 0) > 0 
+                    for period in ['in_analysis', 'one_month_ago', 'two_months_ago', 'three_months_ago']
+                )
+            ]
         
-        by_client = list(clients.values())
-        by_client = [
-            client for client in by_client 
-            if client.get('in_analysis', 0) > 0 
-            or client.get('one_month_ago', 0) > 0
-            or client.get('two_months_ago', 0) > 0 
-            or client.get('three_months_ago', 0) > 0
-        ]
-        
-        by_sponsor = list(sponsors.values())
-        by_sponsor = [
-            sponsor for sponsor in by_sponsor
-            if sponsor.get('in_analysis', 0) > 0
-            or sponsor.get('one_month_ago', 0) > 0
-            or sponsor.get('two_months_ago', 0) > 0
-            or sponsor.get('three_months_ago', 0) > 0
-        ]
-        
-        by_case = list(cases.values())
-        by_case = [
-            case for case in by_case
-            if case.get('in_analysis', 0) > 0
-            or case.get('one_month_ago', 0) > 0
-            or case.get('two_months_ago', 0) > 0
-            or case.get('three_months_ago', 0) > 0
-        ]
-        
-        by_project = list(projects.values())
-        by_project = [
-            project for project in by_project
-            if project.get('in_analysis', 0) > 0
-            or project.get('one_month_ago', 0) > 0
-            or project.get('two_months_ago', 0) > 0
-            or project.get('three_months_ago', 0) > 0
-        ]
+        by_consultant = filter_items(consultants)
+        by_client = filter_items(clients) 
+        by_sponsor = filter_items(sponsors)
+        by_case = filter_items(cases)
+        by_project = filter_items(projects)
         
         ### projected and expected revenue
         if slug == 'consulting':
