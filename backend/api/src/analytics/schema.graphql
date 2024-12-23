@@ -564,6 +564,9 @@ type ForecastTotalMetrics {
   twoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
   threeMonthsAgoConsultingHours: Float!
+  expectedOneMonthLater: Float!
+  expectedTwoMonthsLater: Float!
+  expectedThreeMonthsLater: Float!
 }
 
 type ForecastWorkingDayMetrics {
