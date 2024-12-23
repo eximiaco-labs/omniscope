@@ -60,7 +60,7 @@ export function ConsultingTableByConsultant({
       <div className="flex justify-between items-center">
         <SectionHeader
           title={title}
-          subtitle={`${formatCurrency(total.realized)} / ${formatCurrency(total.expectedHistorical)}`}
+          subtitle="By Consultant"
         />
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Normalized</span>

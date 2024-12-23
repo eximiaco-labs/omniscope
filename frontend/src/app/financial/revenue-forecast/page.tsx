@@ -10,6 +10,7 @@ import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { RevenueProgression } from "./RevenueProgression";
 import { ConsultingTable } from "./ConsultingTable";
+import { ConsultingTableFuture } from "./ConsultingTableFuture";
 import { ConsultingTableByConsultant } from "./ConsultingTableByConsultant";
 import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
@@ -30,28 +31,35 @@ export default function RevenueForecastPage() {
     >
   >({
     consulting: { key: "current", direction: "desc" },
+    consultingFuture: { key: "realized", direction: "desc" },
     consultingByConsultant: { key: "expectedHistorical", direction: "desc" },
     consultingPre: { key: "current", direction: "desc" },
     handsOn: { key: "current", direction: "desc" },
     squad: { key: "current", direction: "desc" },
   });
-  const [expandedClients, setExpandedClients] = useState<Record<string, string[]>>({
+  const [expandedClients, setExpandedClients] = useState<
+    Record<string, string[]>
+  >({
+    consulting: [],
+    consultingFuture: [],
     consultingPre: [],
     handsOn: [],
-    squad: []
+    squad: [],
   });
   const [useHistorical, setUseHistorical] = useState<Record<string, boolean>>({
     consulting: false,
+    consultingFuture: false,
     consultingPre: false,
     handsOn: false,
-    squad: false
+    squad: false,
   });
   const [normalized, setNormalized] = useState<Record<string, boolean>>({
     consulting: false,
+    consultingFuture: false,
     consultingByConsultant: false,
     consultingPre: false,
     handsOn: false,
-    squad: false
+    squad: false,
   });
 
   useEffect(() => {
@@ -127,15 +135,15 @@ export default function RevenueForecastPage() {
   };
 
   const toggleClient = (clientSlug: string, tableId: string) => {
-    setExpandedClients(prev => {
+    setExpandedClients((prev) => {
       const tableClients = prev[tableId] || [];
       const newTableClients = tableClients.includes(clientSlug)
-        ? tableClients.filter(slug => slug !== clientSlug)
+        ? tableClients.filter((slug) => slug !== clientSlug)
         : [...tableClients, clientSlug];
-      
+
       return {
         ...prev,
-        [tableId]: newTableClients
+        [tableId]: newTableClients,
       };
     });
   };
@@ -174,11 +182,13 @@ export default function RevenueForecastPage() {
             },
             {
               id: "consultingByConsultant",
-              title: "By Consultant",
-              subtitle:
-                formatCurrency(forecastData.consulting.totals.realized) +
-                " / " +
-                formatCurrency(forecastData.consulting.totals.expectedHistorical),
+              title: "Consulting",
+              subtitle: "By Consultant",
+            },
+            {
+              id: "consultingFuture",
+              title: "Consulting",
+              subtitle: "Next three months",
             },
             {
               id: "consultingPre",
@@ -199,7 +209,7 @@ export default function RevenueForecastPage() {
             },
           ]}
         />
-        
+
         <ConsultingTable
           title="Consulting"
           tableData={forecastData.consulting}
@@ -215,9 +225,9 @@ export default function RevenueForecastPage() {
           setNormalized={setNormalized}
           setUseHistorical={setUseHistorical}
         />
-        
+
         <ConsultingTableByConsultant
-          title="Consulting by Consultant"
+          title="Consulting"
           tableData={forecastData.consulting}
           tableId="consultingByConsultant"
           dates={data.forecast.dates}
@@ -227,7 +237,23 @@ export default function RevenueForecastPage() {
           requestSort={requestSort}
           setNormalized={setNormalized}
         />
-        
+
+        <ConsultingTableFuture
+          title="Consulting"
+          tableData={forecastData.consulting}
+          tableId="consultingFuture"
+          dates={data.forecast.dates}
+          workingDays={data.forecast.workingDays}
+          sortConfigs={sortConfigs}
+          expandedClients={expandedClients}
+          useHistorical={useHistorical}
+          normalized={normalized}
+          requestSort={requestSort}
+          toggleClient={toggleClient}
+          setNormalized={setNormalized}
+          setUseHistorical={setUseHistorical}
+        />
+
         <OtherTable
           title="Consulting Pre"
           tableData={forecastData.consultingPre}
@@ -238,7 +264,7 @@ export default function RevenueForecastPage() {
           requestSort={requestSort}
           toggleClient={toggleClient}
         />
-        
+
         <OtherTable
           title="Hands On"
           tableData={forecastData.handsOn}
@@ -249,7 +275,7 @@ export default function RevenueForecastPage() {
           requestSort={requestSort}
           toggleClient={toggleClient}
         />
-        
+
         <OtherTable
           title="Squad"
           tableData={forecastData.squad}
