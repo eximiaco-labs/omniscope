@@ -334,6 +334,78 @@ export function ConsultingTable({
               <TableCell className="text-right border-x border-gray-200">-</TableCell>
               <TableCell className="text-right border-r border-gray-400">-</TableCell>
             </TableRow>
+            <TableRow className="text-gray-600 border-t h-[57px]">
+              <TableCell className="text-right pr-4"></TableCell>
+              <TableCell className="border-r border-gray-400">Total Hours</TableCell>
+              <TableCellComponent
+                value={total.sameDayThreeMonthsAgoConsultingHours || 0}
+                normalizedValue={(total.normalizedSameDayThreeMonthsAgoConsultingHours || 0)}
+                totalValue={total.sameDayThreeMonthsAgoConsultingHours || 0 }
+                normalizedTotalValue={total.normalizedSameDayThreeMonthsAgoConsultingHours || 0}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={normalized[tableId]}
+              />
+              <TableCellComponent
+                value={total.threeMonthsAgoConsultingHours || 0}
+                normalizedValue={(total.normalizedThreeMonthsAgoConsultingHours || 0)}
+                totalValue={total.threeMonthsAgoConsultingHours || 0}
+                normalizedTotalValue={total.normalizedThreeMonthsAgoConsultingHours || 0}
+                className="border-r border-gray-400 text-[12px]"
+                normalized={normalized[tableId]}
+              />
+              <TableCellComponent
+                value={total.sameDayTwoMonthsAgoConsultingHours || 0}
+                normalizedValue={(total.normalizedSameDayTwoMonthsAgoConsultingHours || 0)}
+                totalValue={total.sameDayTwoMonthsAgoConsultingHours || 0}
+                normalizedTotalValue={total.normalizedSameDayTwoMonthsAgoConsultingHours || 0}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={normalized[tableId]}
+                previousValue={total.sameDayThreeMonthsAgoConsultingHours}
+                normalizedPreviousValue={(total.normalizedSameDayThreeMonthsAgoConsultingHours || 0)}
+              />
+              <TableCellComponent
+                value={total.twoMonthsAgoConsultingHours || 0}
+                normalizedValue={(total.normalizedTwoMonthsAgoConsultingHours || 0)}
+                totalValue={total.twoMonthsAgoConsultingHours || 0}
+                normalizedTotalValue={total.normalizedTwoMonthsAgoConsultingHours || 0}
+                className="border-r border-gray-400 text-[12px]"
+                normalized={normalized[tableId]}
+                previousValue={total.threeMonthsAgoConsultingHours}
+                normalizedPreviousValue={(total.normalizedThreeMonthsAgoConsultingHours || 0)}
+              />
+              <TableCellComponent
+                value={total.sameDayOneMonthAgoConsultingHours || 0}
+                normalizedValue={(total.normalizedSameDayOneMonthAgoConsultingHours || 0)}
+                totalValue={total.sameDayOneMonthAgoConsultingHours || 0}
+                normalizedTotalValue={total.normalizedSameDayOneMonthAgoConsultingHours || 0}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={normalized[tableId]}
+                previousValue={total.sameDayTwoMonthsAgoConsultingHours}
+                normalizedPreviousValue={(total.normalizedSameDayTwoMonthsAgoConsultingHours || 0)}
+              />
+              <TableCellComponent
+                value={total.oneMonthAgoConsultingHours || 0}
+                normalizedValue={(total.normalizedOneMonthAgoConsultingHours || 0)}
+                totalValue={total.oneMonthAgoConsultingHours || 0}
+                normalizedTotalValue={total.normalizedOneMonthAgoConsultingHours || 0}
+                className="border-r border-gray-400 text-[12px]"
+                normalized={normalized[tableId]}
+                previousValue={total.twoMonthsAgoConsultingHours}
+                normalizedPreviousValue={(total.normalizedTwoMonthsAgoConsultingHours || 0)}
+              />
+              <TableCellComponent
+                value={total.inAnalysisConsultingHours || 0}
+                normalizedValue={(total.normalizedInAnalysisConsultingHours || 0)}
+                totalValue={total.inAnalysisConsultingHours || 0}
+                normalizedTotalValue={total.normalizedInAnalysisConsultingHours || 0}
+                className="border-x border-gray-200"
+                normalized={normalized[tableId]}
+                previousValue={total.sameDayOneMonthAgoConsultingHours}
+                normalizedPreviousValue={(total.normalizedSameDayOneMonthAgoConsultingHours || 0)}
+              />
+              <TableCell className="text-right border-x border-gray-200">-</TableCell>
+              <TableCell className="text-right border-r border-gray-400">-</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>
