@@ -631,9 +631,6 @@ type ForecastConsultantMetrics {
   sameDayThreeMonthsAgoConsultingFeeNew: Float!
   projected: Float!
   expected: Float!
-  expectedOneMonthLater: Float!
-  expectedTwoMonthsLater: Float!
-  expectedThreeMonthsLater: Float!
   expectedHistorical: Float!
 }
 

@@ -17,6 +17,9 @@ export const REVENUE_FORECAST_QUERY = gql`
         twoMonthsAgo
         sameDayThreeMonthsAgo
         threeMonthsAgo
+        oneMonthLater
+        twoMonthsLater
+        threeMonthsLater
       }
       workingDays {
         inAnalysisPartial
@@ -27,6 +30,9 @@ export const REVENUE_FORECAST_QUERY = gql`
         sameDayTwoMonthsAgo
         threeMonthsAgo
         sameDayThreeMonthsAgo
+        oneMonthLater
+        twoMonthsLater
+        threeMonthsLater
       }
       summary {
         realized
@@ -83,6 +89,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             sameDayTwoMonthsAgo
             threeMonthsAgo
             sameDayThreeMonthsAgo
+            expectedOneMonthLater
+            expectedTwoMonthsLater
+            expectedThreeMonthsLater
           }
           bySponsor {
             name
@@ -98,6 +107,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             sameDayTwoMonthsAgo
             threeMonthsAgo
             sameDayThreeMonthsAgo
+            expectedOneMonthLater
+            expectedTwoMonthsLater
+            expectedThreeMonthsLater
           }
           byCase {
             title
@@ -114,6 +126,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             sameDayTwoMonthsAgo
             threeMonthsAgo
             sameDayThreeMonthsAgo
+            expectedOneMonthLater
+            expectedTwoMonthsLater
+            expectedThreeMonthsLater
           }
           byProject {
             name
@@ -129,6 +144,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             sameDayTwoMonthsAgo
             threeMonthsAgo
             sameDayThreeMonthsAgo
+            expectedOneMonthLater
+            expectedTwoMonthsLater
+            expectedThreeMonthsLater
           }
         }
         consultingPre {

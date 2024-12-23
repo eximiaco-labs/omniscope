@@ -25,6 +25,12 @@ interface ForecastItem {
   normalizedExpected: number;
   expectedHistorical: number;
   normalizedExpectedHistorical: number;
+  expectedOneMonthLater?: number;
+  normalizedExpectedOneMonthLater?: number;
+  expectedTwoMonthsLater?: number;
+  normalizedExpectedTwoMonthsLater?: number;
+  expectedThreeMonthsLater?: number;
+  normalizedExpectedThreeMonthsLater?: number;
 }
 
 interface ForecastTotals {
@@ -229,6 +235,12 @@ export function getForecastData(data: any): ForecastData {
     normalizedExpected: item.expected / data.forecast.workingDays.inAnalysis,
     expectedHistorical: item.expectedHistorical,
     normalizedExpectedHistorical: item.expectedHistorical / data.forecast.workingDays.inAnalysis,
+    expectedOneMonthLater: item.expectedOneMonthLater,
+    normalizedExpectedOneMonthLater: item.expectedOneMonthLater / data.forecast.workingDays.oneMonthLater,
+    expectedTwoMonthsLater: item.expectedTwoMonthsLater,
+    normalizedExpectedTwoMonthsLater: item.expectedTwoMonthsLater / data.forecast.workingDays.twoMonthsLater,
+    expectedThreeMonthsLater: item.expectedThreeMonthsLater,
+    normalizedExpectedThreeMonthsLater: item.expectedThreeMonthsLater / data.forecast.workingDays.threeMonthsLater,
   });
 
   const mapConsultingTotals = (totals: any) => ({
@@ -359,6 +371,12 @@ export function getDefaultForecastItem(): ForecastItem {
     normalizedExpected: 0,
     expectedHistorical: 0,
     normalizedExpectedHistorical: 0,
+    expectedOneMonthLater: 0,
+    normalizedExpectedOneMonthLater: 0,
+    expectedTwoMonthsLater: 0,
+    normalizedExpectedTwoMonthsLater: 0,
+    expectedThreeMonthsLater: 0,
+    normalizedExpectedThreeMonthsLater: 0,
   };
 }
 
