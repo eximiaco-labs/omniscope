@@ -31,7 +31,7 @@ export default async function Changelog() {
             const linkId = `changelog-${formattedDate}`;
             
             return (
-              <div key={index} className="relative flex gap-12" id={linkId}>
+              <div key={index} className="relative flex gap-12 scroll-mt-[68px] sm:scroll-mt-[68px]" id={linkId}>
                 {/* Date column */}
                 <div className="w-32 flex-shrink-0">
                   <time className="text-sm text-gray-500 font-medium tracking-wide block mb-2">
