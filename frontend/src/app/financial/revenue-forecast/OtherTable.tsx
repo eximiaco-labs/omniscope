@@ -59,10 +59,10 @@ interface OtherTableProps {
   };
   tableId: string;
   dates: {
-    threeMonthsAgo: string;
-    twoMonthsAgo: string;
-    oneMonthAgo: string;
-    dateOfInterest: string;
+    lastDayOfThreeMonthsAgo: string;
+    lastDayOfTwoMonthsAgo: string;
+    lastDayOfOneMonthAgo: string;
+    inAnalysis: string;
   };
   sortConfigs: Record<string, { key: string; direction: "asc" | "desc" }>;
   expandedClients: Record<string, string[]>;
@@ -146,7 +146,7 @@ export function OtherTable({
                 onClick={() => requestSort("threeMonthsAgo", tableId)}
                 className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
               >
-                {formatDate(dates.threeMonthsAgo)}{" "}
+                {formatDate(dates.lastDayOfThreeMonthsAgo)}{" "}
                 {sortConfig.key === "threeMonthsAgo" &&
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
@@ -154,7 +154,7 @@ export function OtherTable({
                 onClick={() => requestSort("twoMonthsAgo", tableId)}
                 className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
               >
-                {formatDate(dates.twoMonthsAgo)}{" "}
+                {formatDate(dates.lastDayOfTwoMonthsAgo)}{" "}
                 {sortConfig.key === "twoMonthsAgo" &&
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
@@ -162,7 +162,7 @@ export function OtherTable({
                 onClick={() => requestSort("oneMonthAgo", tableId)}
                 className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
               >
-                {formatDate(dates.oneMonthAgo)}{" "}
+                {formatDate(dates.lastDayOfOneMonthAgo)}{" "}
                 {sortConfig.key === "oneMonthAgo" &&
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
@@ -170,7 +170,7 @@ export function OtherTable({
                 onClick={() => requestSort("current", tableId)}
                 className="text-center border-x w-[120px] cursor-pointer hover:bg-gray-100"
               >
-                {formatDate(dates.dateOfInterest)}{" "}
+                {formatDate(dates.inAnalysis)}{" "}
                 {sortConfig.key === "current" &&
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
