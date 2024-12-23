@@ -60,6 +60,20 @@ interface ForecastTotals {
   normalizedExpected: number;
   expectedHistorical: number;
   normalizedExpectedHistorical: number;
+  inAnalysisConsultingHours?: number;
+  normalizedInAnalysisConsultingHours?: number;
+  oneMonthAgoConsultingHours?: number;
+  normalizedOneMonthAgoConsultingHours?: number;
+  twoMonthsAgoConsultingHours?: number;
+  normalizedTwoMonthsAgoConsultingHours?: number;
+  threeMonthsAgoConsultingHours?: number;
+  normalizedThreeMonthsAgoConsultingHours?: number;
+  sameDayOneMonthAgoConsultingHours?: number;
+  normalizedSameDayOneMonthAgoConsultingHours?: number;
+  sameDayTwoMonthsAgoConsultingHours?: number;
+  normalizedSameDayTwoMonthsAgoConsultingHours?: number;
+  sameDayThreeMonthsAgoConsultingHours?: number;
+  normalizedSameDayThreeMonthsAgoConsultingHours?: number;
 }
 
 interface ForecastSection {
@@ -292,6 +306,20 @@ export function getForecastData(data: any): ForecastData {
       sameDayOneMonthAgoConsultingFeeNew: totals.sameDayOneMonthAgoConsultingFeeNew || 0,
       oneMonthAgoConsultingFeeNew: totals.oneMonthAgoConsultingFeeNew || 0,
       realizedConsultingFeeNew: totals.inAnalysisConsultingFeeNew || 0,
+      inAnalysisConsultingHours: totals.inAnalysisConsultingHours || 0,
+      oneMonthAgoConsultingHours: totals.oneMonthAgoConsultingHours || 0,
+      twoMonthsAgoConsultingHours: totals.twoMonthsAgoConsultingHours || 0,
+      threeMonthsAgoConsultingHours: totals.threeMonthsAgoConsultingHours || 0,
+      sameDayOneMonthAgoConsultingHours: totals.sameDayOneMonthAgoConsultingHours || 0,
+      sameDayTwoMonthsAgoConsultingHours: totals.sameDayTwoMonthsAgoConsultingHours || 0,
+      sameDayThreeMonthsAgoConsultingHours: totals.sameDayThreeMonthsAgoConsultingHours || 0,
+      normalizedInAnalysisConsultingHours: (totals.inAnalysisConsultingHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+      normalizedOneMonthAgoConsultingHours: (totals.oneMonthAgoConsultingHours || 0) / data.forecast.workingDays.oneMonthAgo,
+      normalizedTwoMonthsAgoConsultingHours: (totals.twoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+      normalizedThreeMonthsAgoConsultingHours: (totals.threeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.threeMonthsAgo,
+      normalizedSameDayOneMonthAgoConsultingHours: (totals.sameDayOneMonthAgoConsultingHours || 0) / data.forecast.workingDays.sameDayOneMonthAgo,
+      normalizedSameDayTwoMonthsAgoConsultingHours: (totals.sameDayTwoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayTwoMonthsAgo,
+      normalizedSameDayThreeMonthsAgoConsultingHours: (totals.sameDayThreeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
     };
   };
 

@@ -555,15 +555,18 @@ type ForecastTimePeriods {
 
 type ForecastTotalMetrics {
   realized: Float!
-  realizedConsultingHours: Float!
+  inAnalysisConsultingHours: Float!
   projected: Float!
   expected: Float!
   oneMonthAgo: Float!
   oneMonthAgoConsultingHours: Float!
+  sameDayOneMonthAgoConsultingHours: Float!
   twoMonthsAgo: Float!
   twoMonthsAgoConsultingHours: Float!
+  sameDayTwoMonthsAgoConsultingHours: Float!
   threeMonthsAgo: Float!
   threeMonthsAgoConsultingHours: Float!
+  sameDayThreeMonthsAgoConsultingHours: Float!
   expectedOneMonthLater: Float!
   expectedTwoMonthsLater: Float!
   expectedThreeMonthsLater: Float!
