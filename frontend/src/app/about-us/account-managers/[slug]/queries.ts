@@ -239,11 +239,11 @@ export interface AccountManager {
     }>;
     dates: {
       sameDayOneMonthAgo: string;
-      oneMonthAgo: string;
+      lastDayOfOneMonthAgo: string;
       sameDayTwoMonthsAgo: string;
-      twoMonthsAgo: string;
+      lastDayOfTwoMonthsAgo: string;
       sameDayThreeMonthsAgo: string;
-      threeMonthsAgo: string;
+      lastDayOfThreeMonthsAgo: string;
     };
     summary: {
       realized: number;
