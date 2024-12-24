@@ -96,6 +96,13 @@ export const REVENUE_FORECAST_QUERY = gql`
             sameDayTwoMonthsAgo
             threeMonthsAgo
             sameDayThreeMonthsAgo
+            inAnalysisConsultingHours
+            oneMonthAgoConsultingHours
+            sameDayOneMonthAgoConsultingHours
+            twoMonthsAgoConsultingHours
+            sameDayTwoMonthsAgoConsultingHours
+            threeMonthsAgoConsultingHours
+            sameDayThreeMonthsAgoConsultingHours
           }
           byClient {
             name
@@ -113,6 +120,13 @@ export const REVENUE_FORECAST_QUERY = gql`
             expectedOneMonthLater
             expectedTwoMonthsLater
             expectedThreeMonthsLater
+            inAnalysisConsultingHours
+            oneMonthAgoConsultingHours
+            sameDayOneMonthAgoConsultingHours
+            twoMonthsAgoConsultingHours
+            sameDayTwoMonthsAgoConsultingHours
+            threeMonthsAgoConsultingHours
+            sameDayThreeMonthsAgoConsultingHours
           }
           bySponsor {
             name
@@ -131,6 +145,13 @@ export const REVENUE_FORECAST_QUERY = gql`
             expectedOneMonthLater
             expectedTwoMonthsLater
             expectedThreeMonthsLater
+            inAnalysisConsultingHours
+            oneMonthAgoConsultingHours
+            sameDayOneMonthAgoConsultingHours
+            twoMonthsAgoConsultingHours
+            sameDayTwoMonthsAgoConsultingHours
+            threeMonthsAgoConsultingHours
+            sameDayThreeMonthsAgoConsultingHours
           }
           byCase {
             title
@@ -150,6 +171,13 @@ export const REVENUE_FORECAST_QUERY = gql`
             expectedOneMonthLater
             expectedTwoMonthsLater
             expectedThreeMonthsLater
+            inAnalysisConsultingHours
+            oneMonthAgoConsultingHours
+            sameDayOneMonthAgoConsultingHours
+            twoMonthsAgoConsultingHours
+            sameDayTwoMonthsAgoConsultingHours
+            threeMonthsAgoConsultingHours
+            sameDayThreeMonthsAgoConsultingHours
           }
           byProject {
             name
@@ -168,6 +196,13 @@ export const REVENUE_FORECAST_QUERY = gql`
             expectedOneMonthLater
             expectedTwoMonthsLater
             expectedThreeMonthsLater
+            inAnalysisConsultingHours
+            oneMonthAgoConsultingHours
+            sameDayOneMonthAgoConsultingHours
+            twoMonthsAgoConsultingHours
+            sameDayTwoMonthsAgoConsultingHours
+            threeMonthsAgoConsultingHours
+            sameDayThreeMonthsAgoConsultingHours
           }
         }
         consultingPre {
@@ -216,7 +251,6 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
-
           }
         }
         handsOn {

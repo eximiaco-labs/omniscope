@@ -630,6 +630,7 @@ type ForecastConsultantMetrics {
   slug: String!
   inAnalysis: Float!
   oneMonthAgo: Float!
+  inAnalysisConsultingHours: Float!
   oneMonthAgoConsultingHours: Float!
   oneMonthAgoConsultingPreHours: Float!
   oneMonthAgoConsultingFeeNew: Float!
