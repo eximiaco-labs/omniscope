@@ -108,7 +108,7 @@ class ForecastRevenueTrackings:
     same_day_three_months_ago: Dict[str, Any]
     
     def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
-        self.date_of_interest = compute_revenue_tracking(forecast_dates.same_day_one_month_ago, filters=filters)
+        self.date_of_interest = compute_revenue_tracking(forecast_dates.in_analysis, filters=filters)
         self.last_day_of_last_month = compute_revenue_tracking(forecast_dates.last_day_of_one_month_ago, filters=filters)
         self.last_day_of_two_months_ago = compute_revenue_tracking(forecast_dates.last_day_of_two_months_ago, filters=filters)
         self.last_day_of_three_months_ago = compute_revenue_tracking(forecast_dates.last_day_of_three_months_ago, filters=filters)

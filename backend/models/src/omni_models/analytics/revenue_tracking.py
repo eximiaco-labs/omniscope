@@ -310,7 +310,7 @@ def compute_pre_contracted_revenue_tracking(
                     "kind": project.kind,
                     "name": project.name,
                     "fee": fee,
-                    "hours": project_df["TimeInHs"].sum(),
+                    "hours": project_df["TimeInHs"].sum() if len(project_df) > 0 else 0,
                     "fixed": True
                 }
             elif case.pre_contracted_value:
@@ -338,7 +338,7 @@ def compute_pre_contracted_revenue_tracking(
                     "kind": project.kind,
                     "name": project.name,
                     "fee": project.billing.fee / 100,
-                    "hours": project_df["TimeInHs"].sum(),
+                    "hours": project_df["TimeInHs"].sum() if len(project_df) > 0 else 0,
                     "fixed": True
                 }
             else:
