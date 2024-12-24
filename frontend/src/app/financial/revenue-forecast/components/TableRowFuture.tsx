@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { TableCellFuture } from "./TableCellFuture";
+import { TableCellComponent } from "./TableCell";
 
 interface TableRowFutureProps {
   item: any;
@@ -60,7 +60,7 @@ export function TableRowFuture({
       </TableCell>
       
       {/* Current Month */}
-      <TableCellFuture
+      <TableCellComponent
         value={item.realized}
         normalizedValue={item.normalizedRealized}
         totalValue={total.realized}
@@ -68,7 +68,7 @@ export function TableRowFuture({
         className="border-x border-gray-200"
         normalized={normalized[tableId]}
       />
-      <TableCellFuture
+      <TableCellComponent
         value={item.projected}
         normalizedValue={item.normalizedProjected}
         totalValue={total.projected}
@@ -80,7 +80,7 @@ export function TableRowFuture({
         expected={item.expected}
         normalizedExpected={item.normalizedExpected}
       />
-      <TableCellFuture
+      <TableCellComponent
         value={item.expected}
         normalizedValue={item.normalizedExpected}
         totalValue={total.expected}
@@ -94,27 +94,33 @@ export function TableRowFuture({
       />
 
       {/* Future Months */}
-      <TableCellFuture
+      <TableCellComponent
         value={item.expectedOneMonthLater}
         normalizedValue={item.normalizedExpectedOneMonthLater}
         totalValue={total.expectedOneMonthLater}
         normalizedTotalValue={total.normalizedExpectedOneMonthLater}
+        previousValue={item.expected}
+        normalizedPreviousValue={item.normalizedExpected}
         className="border-x border-gray-200 text-[12px]"
         normalized={normalized[tableId]}
       />
-      <TableCellFuture
+      <TableCellComponent
         value={item.expectedTwoMonthsLater}
         normalizedValue={item.normalizedExpectedTwoMonthsLater}
         totalValue={total.expectedTwoMonthsLater}
         normalizedTotalValue={total.normalizedExpectedTwoMonthsLater}
+        previousValue={item.expectedOneMonthLater}
+        normalizedPreviousValue={item.normalizedExpectedOneMonthLater}
         className="border-x border-gray-200 text-[12px]"
         normalized={normalized[tableId]}
       />
-      <TableCellFuture
+      <TableCellComponent
         value={item.expectedThreeMonthsLater}
         normalizedValue={item.normalizedExpectedThreeMonthsLater}
         totalValue={total.expectedThreeMonthsLater}
         normalizedTotalValue={total.normalizedExpectedThreeMonthsLater}
+        previousValue={item.expectedTwoMonthsLater}
+        normalizedPreviousValue={item.normalizedExpectedTwoMonthsLater}
         className="border-r border-gray-400 text-[12px]"
         normalized={normalized[tableId]}
       />

@@ -12,14 +12,17 @@ export const REVENUE_FORECAST_QUERY = gql`
       dates {
         inAnalysis
         sameDayOneMonthAgo
-        oneMonthAgo
+        lastDayOfOneMonthAgo
         sameDayTwoMonthsAgo
-        twoMonthsAgo
+        lastDayOfTwoMonthsAgo
         sameDayThreeMonthsAgo
-        threeMonthsAgo
-        oneMonthLater
-        twoMonthsLater
-        threeMonthsLater
+        lastDayOfThreeMonthsAgo
+        sameDayOneMonthLater
+        lastDayOfOneMonthLater
+        sameDayTwoMonthsLater
+        lastDayOfTwoMonthsLater
+        sameDayThreeMonthsLater
+        lastDayOfThreeMonthsLater
       }
       workingDays {
         inAnalysisPartial
@@ -48,6 +51,10 @@ export const REVENUE_FORECAST_QUERY = gql`
         sameDayTwoMonthsAgoConsultingHours
         threeMonthsAgoConsultingHours
         sameDayThreeMonthsAgoConsultingHours
+        inAnalysisConsultingPreHours
+        oneMonthAgoConsultingPreHours
+        twoMonthsAgoConsultingPreHours
+        threeMonthsAgoConsultingPreHours
       }
       byKind {
         consulting {
@@ -169,6 +176,10 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
+            inAnalysisConsultingPreHours
+            oneMonthAgoConsultingPreHours
+            twoMonthsAgoConsultingPreHours
+            threeMonthsAgoConsultingPreHours
           }
           byClient {
             name
@@ -205,6 +216,7 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
+
           }
         }
         handsOn {

@@ -56,7 +56,7 @@ export function TableCellComponent({
       {formatCurrency(displayValue)}
       <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1 box-border">
         <span className={changeInfo ? `${changeInfo.indicatorColor}` : ''}>
-          {changeInfo && (
+          {changeInfo && Math.abs(changeInfo.percentageChange).toFixed(1) !== "0.0" && (
             <>{changeInfo.indicator} {Math.abs(changeInfo.percentageChange).toFixed(1)}%</>
           )}
         </span>

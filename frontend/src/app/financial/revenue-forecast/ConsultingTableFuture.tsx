@@ -8,7 +8,7 @@ import SectionHeader from "@/components/SectionHeader";
 import React from "react";
 import { TableHeaderFuture } from "./components/TableHeaderFuture";
 import { TableRowFuture } from "./components/TableRowFuture";
-import { TableCellFuture } from "./components/TableCellFuture";
+import { TableCellComponent } from "./components/TableCell";
 import { formatCurrency } from "./utils";
 
 interface ConsultingTableFutureProps {
@@ -175,7 +175,7 @@ export function ConsultingTableFuture({
             <TableRow className="font-bold border-t-4 h-[57px]">
               <TableCell className="text-right pr-4"></TableCell>
               <TableCell className="border-r border-gray-400">Total</TableCell>
-              <TableCellFuture
+              <TableCellComponent
                 value={total.realized}
                 normalizedValue={total.normalizedRealized}
                 totalValue={total.realized}
@@ -183,7 +183,7 @@ export function ConsultingTableFuture({
                 className="border-x border-gray-200"
                 normalized={normalized[tableId]}
               />
-              <TableCellFuture
+              <TableCellComponent
                 value={total.projected}
                 normalizedValue={total.normalizedProjected}
                 totalValue={total.projected}
@@ -191,7 +191,7 @@ export function ConsultingTableFuture({
                 className="border-x border-gray-200"
                 normalized={normalized[tableId]}
               />
-              <TableCellFuture
+              <TableCellComponent
                 value={total.expected}
                 normalizedValue={total.normalizedExpected}
                 totalValue={total.expected}
@@ -199,7 +199,7 @@ export function ConsultingTableFuture({
                 className="border-r border-gray-400"
                 normalized={normalized[tableId]}
               />
-              <TableCellFuture
+              <TableCellComponent
                 value={total.expectedOneMonthLater}
                 normalizedValue={total.normalizedExpectedOneMonthLater}
                 totalValue={total.expectedOneMonthLater}
@@ -207,7 +207,7 @@ export function ConsultingTableFuture({
                 className="border-x border-gray-200"
                 normalized={normalized[tableId]}
               />
-              <TableCellFuture
+              <TableCellComponent
                 value={total.expectedTwoMonthsLater}
                 normalizedValue={total.normalizedExpectedTwoMonthsLater}
                 totalValue={total.expectedTwoMonthsLater}
@@ -215,7 +215,7 @@ export function ConsultingTableFuture({
                 className="border-x border-gray-200"
                 normalized={normalized[tableId]}
               />
-              <TableCellFuture
+              <TableCellComponent
                 value={total.expectedThreeMonthsLater}
                 normalizedValue={total.normalizedExpectedThreeMonthsLater}
                 totalValue={total.expectedThreeMonthsLater}

@@ -74,6 +74,14 @@ interface ForecastTotals {
   normalizedSameDayTwoMonthsAgoConsultingHours?: number;
   sameDayThreeMonthsAgoConsultingHours?: number;
   normalizedSameDayThreeMonthsAgoConsultingHours?: number;
+  inAnalysisConsultingPreHours?: number;
+  normalizedInAnalysisConsultingPreHours?: number;
+  oneMonthAgoConsultingPreHours?: number;
+  normalizedOneMonthAgoConsultingPreHours?: number;
+  twoMonthsAgoConsultingPreHours?: number;
+  normalizedTwoMonthsAgoConsultingPreHours?: number;
+  threeMonthsAgoConsultingPreHours?: number;
+  normalizedThreeMonthsAgoConsultingPreHours?: number;
 }
 
 interface ForecastSection {
@@ -126,9 +134,13 @@ interface ForecastData {
     }>;
     totals: {
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     };
   };
   handsOn: {
@@ -170,9 +182,13 @@ interface ForecastData {
     }>;
     totals: {
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     };
   };
   squad: {
@@ -214,9 +230,13 @@ interface ForecastData {
     }>;
     totals: {
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     };
   };
 }
@@ -320,6 +340,14 @@ export function getForecastData(data: any): ForecastData {
       normalizedSameDayOneMonthAgoConsultingHours: (totals.sameDayOneMonthAgoConsultingHours || 0) / data.forecast.workingDays.sameDayOneMonthAgo,
       normalizedSameDayTwoMonthsAgoConsultingHours: (totals.sameDayTwoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayTwoMonthsAgo,
       normalizedSameDayThreeMonthsAgoConsultingHours: (totals.sameDayThreeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
+      inAnalysisConsultingPreHours: totals.inAnalysisConsultingPreHours || 0,
+      normalizedInAnalysisConsultingPreHours: (totals.inAnalysisConsultingPreHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+      oneMonthAgoConsultingPreHours: totals.oneMonthAgoConsultingPreHours || 0,
+      normalizedOneMonthAgoConsultingPreHours: (totals.oneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.oneMonthAgo,
+      twoMonthsAgoConsultingPreHours: totals.twoMonthsAgoConsultingPreHours || 0,
+      normalizedTwoMonthsAgoConsultingPreHours: (totals.twoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+      threeMonthsAgoConsultingPreHours: totals.threeMonthsAgoConsultingPreHours || 0,
+      normalizedThreeMonthsAgoConsultingPreHours: (totals.threeMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.threeMonthsAgo,
     };
   };
 
@@ -357,6 +385,10 @@ export function getForecastData(data: any): ForecastData {
         twoMonthsAgo: data.forecast.byKind.consultingPre.totals.twoMonthsAgo,
         oneMonthAgo: data.forecast.byKind.consultingPre.totals.oneMonthAgo,
         current: data.forecast.byKind.consultingPre.totals.inAnalysis,
+        threeMonthsAgoConsultingPreHours: data.forecast.byKind.consultingPre.totals.threeMonthsAgoConsultingPreHours,
+        twoMonthsAgoConsultingPreHours: data.forecast.byKind.consultingPre.totals.twoMonthsAgoConsultingPreHours,
+        oneMonthAgoConsultingPreHours: data.forecast.byKind.consultingPre.totals.oneMonthAgoConsultingPreHours,
+        inAnalysisConsultingPreHours: data.forecast.byKind.consultingPre.totals.inAnalysisConsultingPreHours,
       },
     },
     handsOn: {
@@ -369,6 +401,10 @@ export function getForecastData(data: any): ForecastData {
         twoMonthsAgo: data.forecast.byKind.handsOn.totals.twoMonthsAgo,
         oneMonthAgo: data.forecast.byKind.handsOn.totals.oneMonthAgo,
         current: data.forecast.byKind.handsOn.totals.inAnalysis,
+        threeMonthsAgoConsultingPreHours: data.forecast.byKind.handsOn.totals.threeMonthsAgoConsultingPreHours,
+        twoMonthsAgoConsultingPreHours: data.forecast.byKind.handsOn.totals.twoMonthsAgoConsultingPreHours,
+        oneMonthAgoConsultingPreHours: data.forecast.byKind.handsOn.totals.oneMonthAgoConsultingPreHours,
+        inAnalysisConsultingPreHours: data.forecast.byKind.handsOn.totals.inAnalysisConsultingPreHours,
       },
     },
     squad: {
@@ -381,6 +417,10 @@ export function getForecastData(data: any): ForecastData {
         twoMonthsAgo: data.forecast.byKind.squad.totals.twoMonthsAgo,
         oneMonthAgo: data.forecast.byKind.squad.totals.oneMonthAgo,
         current: data.forecast.byKind.squad.totals.inAnalysis,
+        threeMonthsAgoConsultingPreHours: data.forecast.byKind.squad.totals.threeMonthsAgoConsultingPreHours,
+        twoMonthsAgoConsultingPreHours: data.forecast.byKind.squad.totals.twoMonthsAgoConsultingPreHours,
+        oneMonthAgoConsultingPreHours: data.forecast.byKind.squad.totals.oneMonthAgoConsultingPreHours,
+        inAnalysisConsultingPreHours: data.forecast.byKind.squad.totals.inAnalysisConsultingPreHours,
       },
     },
   };
@@ -460,6 +500,10 @@ export function getDefaultOtherItem() {
     twoMonthsAgo: 0,
     oneMonthAgo: 0,
     current: 0,
+    threeMonthsAgoConsultingPreHours: 0,
+    twoMonthsAgoConsultingPreHours: 0,
+    oneMonthAgoConsultingPreHours: 0,
+    inAnalysisConsultingPreHours: 0,
   };
 }
 

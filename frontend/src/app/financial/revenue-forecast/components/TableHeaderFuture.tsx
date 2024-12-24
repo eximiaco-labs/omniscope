@@ -71,9 +71,9 @@ export function TableHeaderFuture({
         <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
         <TableHead rowSpan={2} className="border-r border-gray-400">Client</TableHead>
         {renderMonthHeader(dates.inAnalysis, workingDays.inAnalysis, 3, "border-x border-gray-400")}
-        {renderMonthHeader(dates.oneMonthLater, workingDays.oneMonthLater, 1, "border-x border-gray-400")}
-        {renderMonthHeader(dates.twoMonthsLater, workingDays.twoMonthsLater, 1, "border-x border-gray-400")}
-        {renderMonthHeader(dates.threeMonthsLater, workingDays.threeMonthsLater, 1, "border-r border-gray-400")}
+        {renderMonthHeader(dates.lastDayOfOneMonthLater, workingDays.oneMonthLater, 1, "border-x border-gray-400")}
+        {renderMonthHeader(dates.lastDayOfTwoMonthsLater, workingDays.twoMonthsLater, 1, "border-x border-gray-400")}
+        {renderMonthHeader(dates.lastDayOfThreeMonthsLater, workingDays.threeMonthsLater, 1, "border-r border-gray-400")}
       </TableRow>
       <TableRow>
         {renderSortHeader("realized", "normalizedRealized", "Realized", workingDays.inAnalysisPartial, "w-[120px] border-x border-gray-200")}
