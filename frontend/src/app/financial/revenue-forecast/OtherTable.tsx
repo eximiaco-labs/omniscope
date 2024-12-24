@@ -52,9 +52,13 @@ interface OtherTableProps {
     }>;
     totals: {
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     };
   };
   tableId: string;
@@ -82,13 +86,13 @@ const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      console.error('Data inválida:', dateString);
-      return 'Invalid date';
+      console.error("Data inválida:", dateString);
+      return "Invalid date";
     }
     return format(date, "MMM yyyy");
   } catch (error) {
-    console.error('Erro ao formatar data:', error);
-    return 'Invalid date';
+    console.error("Erro ao formatar data:", error);
+    return "Invalid date";
   }
 };
 
@@ -125,10 +129,16 @@ export function OtherTable({
   }
 
   const renderCell = (value: number, total: number, className: string = "") => (
-    <TableCell className={`text-right ${className} ${value === 0 ? "text-gray-300" : ""} relative`}>
+    <TableCell
+      className={`text-right ${className} ${
+        value === 0 ? "text-gray-300" : ""
+      } relative`}
+    >
       {formatCurrency(value)}
       <span className="absolute bottom-0 right-1 text-[10px] text-gray-400">
-        {value === 0 || total === 0 ? "" : `${((value / total) * 100).toFixed(1)}%`}
+        {value === 0 || total === 0
+          ? ""
+          : `${((value / total) * 100).toFixed(1)}%`}
       </span>
     </TableCell>
   );
@@ -185,23 +195,40 @@ export function OtherTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      <button 
+                      <button
                         onClick={() => toggleClient(client.slug, tableId)}
                         className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                       >
-                        {expandedClients[tableId]?.includes(client.slug) ? '−' : '+'}
+                        {expandedClients[tableId]?.includes(client.slug)
+                          ? "−"
+                          : "+"}
                       </button>
-                      <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:text-blue-800">
+                      <Link
+                        href={`/about-us/clients/${client.slug}`}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
                         {client.name}
                       </Link>
                     </div>
                   </TableCell>
-                  {renderCell(client.threeMonthsAgo, total.threeMonthsAgo, "border-x text-[12px]")}
-                  {renderCell(client.twoMonthsAgo, total.twoMonthsAgo, "border-x text-[12px]")}
-                  {renderCell(client.oneMonthAgo, total.oneMonthAgo, "border-x text-[12px]")}
+                  {renderCell(
+                    client.threeMonthsAgo,
+                    total.threeMonthsAgo,
+                    "border-x text-[12px]"
+                  )}
+                  {renderCell(
+                    client.twoMonthsAgo,
+                    total.twoMonthsAgo,
+                    "border-x text-[12px]"
+                  )}
+                  {renderCell(
+                    client.oneMonthAgo,
+                    total.oneMonthAgo,
+                    "border-x text-[12px]"
+                  )}
                   {renderCell(client.current, total.current, "border-x")}
                 </TableRow>
-                {expandedClients[tableId]?.includes(client.slug) && 
+                {expandedClients[tableId]?.includes(client.slug) &&
                   tableData.sponsors
                     .filter((sponsor) => sponsor.clientSlug === client.slug)
                     .map((sponsor) => (
@@ -210,82 +237,225 @@ export function OtherTable({
                           <TableCell></TableCell>
                           <TableCell className="pl-4">
                             <div className="flex items-center">
-                              <button 
-                                onClick={() => toggleClient(sponsor.slug, tableId)}
+                              <button
+                                onClick={() =>
+                                  toggleClient(sponsor.slug, tableId)
+                                }
                                 className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                               >
-                                {expandedClients[tableId]?.includes(sponsor.slug) ? '−' : '+'}
+                                {expandedClients[tableId]?.includes(
+                                  sponsor.slug
+                                )
+                                  ? "−"
+                                  : "+"}
                               </button>
-                              <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:text-blue-800 text-[14px]">
+                              <Link
+                                href={`/about-us/sponsors/${sponsor.slug}`}
+                                className="text-blue-600 hover:text-blue-800 text-[14px]"
+                              >
                                 {sponsor.name}
                               </Link>
                             </div>
                           </TableCell>
-                          {renderCell(sponsor.threeMonthsAgo, total.threeMonthsAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.twoMonthsAgo, total.twoMonthsAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.oneMonthAgo, total.oneMonthAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.current, total.current, "border-x")}
+                          {renderCell(
+                            sponsor.threeMonthsAgo,
+                            total.threeMonthsAgo,
+                            "border-x text-[12px]"
+                          )}
+                          {renderCell(
+                            sponsor.twoMonthsAgo,
+                            total.twoMonthsAgo,
+                            "border-x text-[12px]"
+                          )}
+                          {renderCell(
+                            sponsor.oneMonthAgo,
+                            total.oneMonthAgo,
+                            "border-x text-[12px]"
+                          )}
+                          {renderCell(
+                            sponsor.current,
+                            total.current,
+                            "border-x"
+                          )}
                         </TableRow>
-                        {expandedClients[tableId]?.includes(sponsor.slug) && 
+                        {expandedClients[tableId]?.includes(sponsor.slug) &&
                           tableData.cases
-                            .filter((caseItem) => caseItem.sponsorSlug === sponsor.slug)
+                            .filter(
+                              (caseItem) =>
+                                caseItem.sponsorSlug === sponsor.slug
+                            )
                             .map((caseItem) => (
                               <React.Fragment key={caseItem.slug}>
                                 <TableRow className="h-[57px] bg-gray-100">
                                   <TableCell></TableCell>
                                   <TableCell className="pl-8">
                                     <div className="flex items-center">
-                                      <button 
-                                        onClick={() => toggleClient(caseItem.slug, tableId)}
+                                      <button
+                                        onClick={() =>
+                                          toggleClient(caseItem.slug, tableId)
+                                        }
                                         className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                                       >
-                                        {expandedClients[tableId]?.includes(caseItem.slug) ? '−' : '+'}
+                                        {expandedClients[tableId]?.includes(
+                                          caseItem.slug
+                                        )
+                                          ? "−"
+                                          : "+"}
                                       </button>
-                                      <Link href={`/about-us/cases/${caseItem.slug}`} className="text-blue-600 hover:text-blue-800 text-[12px]">
+                                      <Link
+                                        href={`/about-us/cases/${caseItem.slug}`}
+                                        className="text-blue-600 hover:text-blue-800 text-[12px]"
+                                      >
                                         {caseItem.title}
                                       </Link>
                                     </div>
                                   </TableCell>
-                                  {renderCell(caseItem.threeMonthsAgo, total.threeMonthsAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.twoMonthsAgo, total.twoMonthsAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.oneMonthAgo, total.oneMonthAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.current, total.current, "border-x")}
+                                  {renderCell(
+                                    caseItem.threeMonthsAgo,
+                                    total.threeMonthsAgo,
+                                    "border-x text-[12px]"
+                                  )}
+                                  {renderCell(
+                                    caseItem.twoMonthsAgo,
+                                    total.twoMonthsAgo,
+                                    "border-x text-[12px]"
+                                  )}
+                                  {renderCell(
+                                    caseItem.oneMonthAgo,
+                                    total.oneMonthAgo,
+                                    "border-x text-[12px]"
+                                  )}
+                                  {renderCell(
+                                    caseItem.current,
+                                    total.current,
+                                    "border-x"
+                                  )}
                                 </TableRow>
-                                {expandedClients[tableId]?.includes(caseItem.slug) &&
+                                {expandedClients[tableId]?.includes(
+                                  caseItem.slug
+                                ) &&
                                   tableData.projects
-                                    .filter((project) => project.caseSlug === caseItem.slug)
+                                    .filter(
+                                      (project) =>
+                                        project.caseSlug === caseItem.slug
+                                    )
                                     .map((project) => (
-                                      <TableRow key={project.slug} className="h-[57px] bg-gray-150">
+                                      <TableRow
+                                        key={project.slug}
+                                        className="h-[57px] bg-gray-150"
+                                      >
                                         <TableCell></TableCell>
                                         <TableCell className="pl-12">
-                                          <span className="text-[12px]">{project.name}</span>
+                                          <span className="text-[12px]">
+                                            {project.name}
+                                          </span>
                                         </TableCell>
-                                        {renderCell(project.threeMonthsAgo, total.threeMonthsAgo, "border-x text-[12px]")}
-                                        {renderCell(project.twoMonthsAgo, total.twoMonthsAgo, "border-x text-[12px]")}
-                                        {renderCell(project.oneMonthAgo, total.oneMonthAgo, "border-x text-[12px]")}
-                                        {renderCell(project.current, total.current, "border-x")}
+                                        {renderCell(
+                                          project.threeMonthsAgo,
+                                          total.threeMonthsAgo,
+                                          "border-x text-[12px]"
+                                        )}
+                                        {renderCell(
+                                          project.twoMonthsAgo,
+                                          total.twoMonthsAgo,
+                                          "border-x text-[12px]"
+                                        )}
+                                        {renderCell(
+                                          project.oneMonthAgo,
+                                          total.oneMonthAgo,
+                                          "border-x text-[12px]"
+                                        )}
+                                        {renderCell(
+                                          project.current,
+                                          total.current,
+                                          "border-x"
+                                        )}
                                       </TableRow>
-                                    ))
-                                }
+                                    ))}
                               </React.Fragment>
-                            ))
-                        }
+                            ))}
                       </React.Fragment>
-                    ))
-                }
+                    ))}
               </React.Fragment>
             ))}
             <TableRow className="font-bold border-t-2 h-[57px]">
               <TableCell></TableCell>
               <TableCell>Total</TableCell>
-              {renderCell(total.threeMonthsAgo, total.threeMonthsAgo, "border-x text-[12px]")}
-              {renderCell(total.twoMonthsAgo, total.twoMonthsAgo, "border-x text-[12px]")}
-              {renderCell(total.oneMonthAgo, total.oneMonthAgo, "border-x text-[12px]")}
+              {renderCell(
+                total.threeMonthsAgo,
+                total.threeMonthsAgo,
+                "border-x text-[12px]"
+              )}
+              {renderCell(
+                total.twoMonthsAgo,
+                total.twoMonthsAgo,
+                "border-x text-[12px]"
+              )}
+              {renderCell(
+                total.oneMonthAgo,
+                total.oneMonthAgo,
+                "border-x text-[12px]"
+              )}
               {renderCell(total.current, total.current, "border-x")}
             </TableRow>
+            {tableId === "consultingPre" && (
+              <>
+                <TableRow className="font-bold h-[57px]">
+                  <TableCell></TableCell>
+                  <TableCell>Total Hours</TableCell>
+                  <TableCell className="text-right border-x text-[12px]">
+                    {formatCurrency(total.threeMonthsAgoConsultingPreHours)}
+                  </TableCell>
+                  <TableCell className="text-right border-x text-[12px]">
+                    {formatCurrency(total.twoMonthsAgoConsultingPreHours)}
+                  </TableCell>
+                  <TableCell className="text-right border-x text-[12px]">
+                    {formatCurrency(total.oneMonthAgoConsultingPreHours)}
+                  </TableCell>
+                  <TableCell className="text-right border-x">
+                    {formatCurrency(total.inAnalysisConsultingPreHours)}
+                  </TableCell>
+                </TableRow>
+                <TableRow className="font-bold h-[57px]">
+                  <TableCell></TableCell>
+                  <TableCell>Average Rate</TableCell>
+                  <TableCell className="text-right border-x text-[12px]">
+                    {formatCurrency(
+                      total.threeMonthsAgoConsultingPreHours
+                        ? total.threeMonthsAgo /
+                            total.threeMonthsAgoConsultingPreHours
+                        : 0
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right border-x text-[12px]">
+                    {formatCurrency(
+                      total.twoMonthsAgoConsultingPreHours
+                        ? total.twoMonthsAgo /
+                            total.twoMonthsAgoConsultingPreHours
+                        : 0
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right border-x text-[12px]">
+                    {formatCurrency(
+                      total.oneMonthAgoConsultingPreHours
+                        ? total.oneMonthAgo /
+                            total.oneMonthAgoConsultingPreHours
+                        : 0
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right border-x">
+                    {formatCurrency(
+                      total.inAnalysisConsultingPreHours
+                        ? total.current / total.inAnalysisConsultingPreHours
+                        : 0
+                    )}
+                  </TableCell>
+                </TableRow>
+              </>
+            )}
           </TableBody>
         </Table>
       </div>
     </div>
   );
-} 
+}

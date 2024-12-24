@@ -663,6 +663,10 @@ type ForecastRevenueMetrics {
   oneMonthAgoConsultingFeeNew: Float!
   twoMonthsAgoConsultingFeeNew: Float!
   threeMonthsAgoConsultingFeeNew: Float!
+  inAnalysisConsultingPreHours: Float!
+  oneMonthAgoConsultingPreHours: Float!
+  twoMonthsAgoConsultingPreHours: Float!
+  threeMonthsAgoConsultingPreHours: Float!
 }
 
 type ForecastConsultingTotalMetrics {
