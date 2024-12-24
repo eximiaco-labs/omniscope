@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
+from omni_models.analytics import forecast_types
 
 
 labels_suffix_future = [
@@ -152,82 +153,82 @@ def compute_forecast(date_of_interest = None, filters = None):
         def add_context(context, context_slug):
             for consultant in context['summaries']['by_consultant']:
                 if consultant.slug not in consultants:
-                    consultants[consultant.slug] = {
-                        'name': consultant.name,
-                        'slug': consultant.slug
-                    }
+                    consultants[consultant.slug] = forecast_types.ConsultantForecast(
+                        name=consultant.name,
+                        slug=consultant.slug
+                    )
                 
                 working_consultant = consultants[consultant.slug]
-                working_consultant[context_slug] = consultant.consulting_fee
-                working_consultant[f'{context_slug}_consulting_hours'] = consultant.consulting_hours
-                working_consultant[f'{context_slug}_consulting_pre_hours'] = consultant.consulting_pre_hours
+                setattr(working_consultant, context_slug, consultant.consulting_fee)
+                setattr(working_consultant, f'{context_slug}_consulting_hours', consultant.consulting_hours)
+                setattr(working_consultant, f'{context_slug}_consulting_pre_hours', consultant.consulting_pre_hours)
             
             for client in context['summaries']['by_client']:
                 if client.slug not in clients:
-                    clients[client.slug] = {
-                        'name': client.name,
-                        'slug': client.slug
-                    }
+                    clients[client.slug] = forecast_types.ClientForecast(
+                        name=client.name,
+                        slug=client.slug
+                    )
 
                 working_client = clients[client.slug]
-                working_client[context_slug] = client.get_fee(slug)
+                setattr(working_client, context_slug, client.get_fee(slug))
                 if slug == 'consulting':
-                    working_client[f'{context_slug}_consulting_hours'] = client.consulting_hours
-                    working_client[f'{context_slug}_consulting_fee_new'] = client.consulting_fee_new
+                    setattr(working_client, f'{context_slug}_consulting_hours', client.consulting_hours)
+                    setattr(working_client, f'{context_slug}_consulting_fee_new', client.consulting_fee_new)
                 elif slug == 'consulting_pre':
-                    working_client[f'{context_slug}_consulting_pre_hours'] = client.consulting_pre_hours
+                    setattr(working_client, f'{context_slug}_consulting_pre_hours', client.consulting_pre_hours)
                     
                 for sponsor in client.by_sponsor:
                     if sponsor.name not in sponsors:
-                        sponsors[sponsor.name] = {
-                            'name': sponsor.name,
-                            'slug': sponsor.slug,
-                            'client_slug': client.slug
-                        }
+                        sponsors[sponsor.name] = forecast_types.SponsorForecast(
+                            name=sponsor.name,
+                            slug=sponsor.slug,
+                            client_slug=client.slug
+                        )
                     
                     working_sponsor = sponsors[sponsor.name]
-                    working_sponsor[context_slug] = sponsor.get_fee(slug)
+                    setattr(working_sponsor, context_slug, sponsor.get_fee(slug))
                     
                     if slug == 'consulting':
-                        working_sponsor[f'{context_slug}_consulting_hours'] = sponsor.consulting_hours
-                        working_sponsor[f'{context_slug}_consulting_fee_new'] = sponsor.consulting_fee_new
+                        setattr(working_sponsor, f'{context_slug}_consulting_hours', sponsor.consulting_hours)
+                        setattr(working_sponsor, f'{context_slug}_consulting_fee_new', sponsor.consulting_fee_new)
                     elif slug == 'consulting_pre':
-                        working_sponsor[f'{context_slug}_consulting_pre_hours'] = sponsor.consulting_pre_hours
+                        setattr(working_sponsor, f'{context_slug}_consulting_pre_hours', sponsor.consulting_pre_hours)
                         
                     for case in sponsor.by_case:
                         if case.title not in cases:
-                            cases[case.title] = {
-                                'title': case.title,
-                                'slug': case.slug,
-                                'sponsor_slug': sponsor.slug,
-                                'client_slug': client.slug
-                            }
+                            cases[case.title] = forecast_types.CaseForecast(
+                                title=case.title,
+                                slug=case.slug,
+                                sponsor_slug=sponsor.slug,
+                                client_slug=client.slug
+                            )
                             
                         working_case = cases[case.title]
-                        working_case[context_slug] = case.get_fee(slug)
+                        setattr(working_case, context_slug, case.get_fee(slug))
                         
                         if slug == 'consulting':
-                            working_case[f'{context_slug}_consulting_hours'] = case.consulting_hours
-                            working_case['consulting_fee_new'] = case.consulting_fee_new
+                            setattr(working_case, f'{context_slug}_consulting_hours', case.consulting_hours)
+                            setattr(working_case, 'consulting_fee_new', case.consulting_fee_new)
                         elif slug == 'consulting_pre':
-                            working_case[f'{context_slug}_consulting_pre_hours'] = case.consulting_pre_hours
+                            setattr(working_case, f'{context_slug}_consulting_pre_hours', case.consulting_pre_hours)
                             
                         for project in case.by_project:
                             if project.name not in projects:
-                                projects[project.name] = {
-                                    'name': project.name,
-                                    'slug': project.slug,
-                                    'case_slug': case.slug
-                                }
+                                projects[project.name] = forecast_types.ProjectForecast(
+                                    name=project.name,
+                                    slug=project.slug,
+                                    case_slug=case.slug
+                                )
                             
                             working_project = projects[project.name]
-                            working_project[context_slug] = project.get_fee(slug)
+                            setattr(working_project, context_slug, project.get_fee(slug))
                             
                             if slug == 'consulting':
-                                working_project[f'{context_slug}_consulting_hours'] = project.consulting_hours
-                                working_project[f'{context_slug}_consulting_fee_new'] = project.consulting_fee_new
+                                setattr(working_project, f'{context_slug}_consulting_hours', project.consulting_hours)
+                                setattr(working_project, f'{context_slug}_consulting_fee_new', project.consulting_fee_new)
                             elif slug == 'consulting_pre':
-                                working_project[f'{context_slug}_consulting_pre_hours'] = project.consulting_pre_hours 
+                                setattr(working_project, f'{context_slug}_consulting_pre_hours', project.consulting_pre_hours)
                                 
         add_context(forecast_revenue_trackings.date_of_interest, 'in_analysis')
         add_context(forecast_revenue_trackings.last_day_of_last_month, 'one_month_ago')
@@ -243,7 +244,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             return [
                 item for item in items.values()
                 if any(
-                    item.get(period, 0) > 0 
+                    getattr(item, period, 0) > 0 
                     for period in ['in_analysis', 'one_month_ago', 'two_months_ago', 'three_months_ago']
                 )
             ]
@@ -257,7 +258,7 @@ def compute_forecast(date_of_interest = None, filters = None):
         ### projected and expected revenue
         if slug == 'consulting':
             for case in by_case:
-                case_ = globals.omni_models.cases.get_by_title(case['title'])
+                case_ = globals.omni_models.cases.get_by_title(case.title)
                 
                 wah = case_.weekly_approved_hours
                 project_ = None
@@ -289,7 +290,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                         if date in working_days_in_month:
                             hours_in_month += daily_approved_hours
 
-                    case[labels_expected[n]] = hours_in_month * (project_.rate.rate / 100)
+                    setattr(case, labels_expected[n], hours_in_month * (project_.rate.rate / 100))
                     
                     month += 1
                     if month > 12:
@@ -299,78 +300,43 @@ def compute_forecast(date_of_interest = None, filters = None):
 
             for sponsor in by_sponsor:
                 for n in range(0, 4):
-                    sponsor[labels_expected[n]] = sum(
-                        case[labels_expected[n]] 
+                    setattr(sponsor, labels_expected[n], sum(
+                        getattr(case, labels_expected[n], 0)
                         for case in by_case
-                        if case['sponsor_slug'] == sponsor['slug']
-                    )
+                        if case.sponsor_slug == sponsor.slug
+                    ))
                 
             for client in by_client:
                 for n in range(0, 4):
-                    client[labels_expected[n]] = sum(
-                        sponsor[labels_expected[n]] 
+                    setattr(client, labels_expected[n], sum(
+                        getattr(sponsor, labels_expected[n], 0)
                         for sponsor in by_sponsor
-                        if sponsor['client_slug'] == client['slug']
-                    )
+                        if sponsor.client_slug == client.slug
+                    ))
 
             for project in by_project:
                 for n in range(0, 4):
-                    project[labels_expected[n]] = 0
+                    setattr(project, labels_expected[n], 0)
         
         def adjust_entity(entity):
-            entity['in_analysis'] = entity.get('in_analysis', 0)
-            entity['in_analysis_consulting_fee_new'] = entity.get('in_analysis_consulting_fee_new', 0)
-            entity['one_month_ago'] = entity.get('one_month_ago', 0)
-            entity['one_month_ago_consulting_fee_new'] = entity.get('one_month_ago_consulting_fee_new', 0)
-            entity['two_months_ago'] = entity.get('two_months_ago', 0)
-            entity['two_months_ago_consulting_fee_new'] = entity.get('two_months_ago_consulting_fee_new', 0)
-            entity['three_months_ago'] = entity.get('three_months_ago', 0)
-            entity['three_months_ago_consulting_fee_new'] = entity.get('three_months_ago_consulting_fee_new', 0)
             if slug == 'consulting':
-                entity['in_analysis_consulting_fee_new'] = entity.get('in_analysis_consulting_fee_new', 0)
-                entity['one_month_ago_consulting_fee_new'] = entity.get('one_month_ago_consulting_fee_new', 0)
-                entity['two_months_ago_consulting_fee_new'] = entity.get('two_months_ago_consulting_fee_new', 0)
-                entity['three_months_ago_consulting_fee_new'] = entity.get('three_months_ago_consulting_fee_new', 0)
-                entity['one_month_ago'] = entity.get('one_month_ago', 0)
-                entity['one_month_ago_consulting_fee_new'] = entity.get('one_month_ago_consulting_fee_new', 0)
-                entity['in_analysis_consulting_hours'] = entity.get('in_analysis_consulting_hours', 0)
-                entity['in_analysis_consulting_pre_hours'] = entity.get('in_analysis_consulting_pre_hours', 0)
-                entity['same_day_one_month_ago_consulting_hours'] = entity.get('same_day_one_month_ago_consulting_hours', 0)
-                entity['one_month_ago_consulting_hours'] = entity.get('one_month_ago_consulting_hours', 0)
-                entity['one_month_ago_consulting_pre_hours'] = entity.get('one_month_ago_consulting_pre_hours', 0)
-                entity['same_day_two_months_ago_consulting_hours'] = entity.get('same_day_two_months_ago_consulting_hours', 0)
-                entity['two_months_ago_consulting_hours'] = entity.get('two_months_ago_consulting_hours', 0)
-                entity['two_months_ago_consulting_pre_hours'] = entity.get('two_months_ago_consulting_pre_hours', 0)
-                entity['three_months_ago_consulting_hours'] = entity.get('three_months_ago_consulting_hours', 0)
-                entity['same_day_three_months_ago_consulting_hours'] = entity.get('same_day_three_months_ago_consulting_hours', 0)
-                entity['three_months_ago_consulting_pre_hours'] = entity.get('three_months_ago_consulting_pre_hours', 0)
-                entity['same_day_one_month_ago'] = entity.get('same_day_one_month_ago', 0)
-                entity['same_day_two_months_ago'] = entity.get('same_day_two_months_ago', 0)
-                entity['same_day_three_months_ago'] = entity.get('same_day_three_months_ago', 0)
-                entity['same_day_one_month_ago_consulting_fee_new'] = entity.get('same_day_one_month_ago_consulting_fee_new', 0)    
-                entity['same_day_two_months_ago_consulting_fee_new'] = entity.get('same_day_two_months_ago_consulting_fee_new', 0)
-                entity['same_day_three_months_ago_consulting_fee_new'] = entity.get('same_day_three_months_ago_consulting_fee_new', 0)
-                entity['projected'] = (entity['in_analysis'] / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
+                entity.projected = (entity.in_analysis / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
                 
-                previous_value = entity.get('one_month_ago', 0)
-                two_months_ago_value = entity.get('two_months_ago', 0)
-                three_months_ago_value = entity.get('three_months_ago', 0)
+                previous_value = getattr(entity, 'one_month_ago', 0)
+                two_months_ago_value = getattr(entity, 'two_months_ago', 0)
+                three_months_ago_value = getattr(entity, 'three_months_ago', 0)
                 
                 if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
-                    entity['expected_historical'] = entity['projected'] if entity['projected'] else 0
+                    entity.expected_historical = entity.projected if entity.projected else 0
                 elif two_months_ago_value == 0 and three_months_ago_value == 0:
-                    entity['expected_historical'] = previous_value
+                    entity.expected_historical = previous_value
                 elif three_months_ago_value == 0:
-                    entity['expected_historical'] = previous_value * 0.8 + two_months_ago_value * 0.2
+                    entity.expected_historical = previous_value * 0.8 + two_months_ago_value * 0.2
                 else:
-                    entity['expected_historical'] = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
+                    entity.expected_historical = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
                     
             elif slug == 'consulting_pre':
-                entity['in_analysis_consulting_pre_hours'] = entity.get('in_analysis_consulting_pre_hours', 0)
-                entity['one_month_ago_consulting_pre_hours'] = entity.get('one_month_ago_consulting_pre_hours', 0)
-                entity['two_months_ago_consulting_pre_hours'] = entity.get('two_months_ago_consulting_pre_hours', 0)
-                entity['three_months_ago_consulting_pre_hours'] = entity.get('three_months_ago_consulting_pre_hours', 0)
-                entity['projected'] = (entity['in_analysis'] / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
+                entity.projected = (entity.in_analysis / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
                
                
         for client in by_client:
@@ -390,44 +356,44 @@ def compute_forecast(date_of_interest = None, filters = None):
         
         
         totals = {
-            'in_analysis': sum(client.get('in_analysis', 0) for client in by_client),
-            'one_month_ago': sum(client.get('one_month_ago', 0) for client in by_client),
-            'two_months_ago': sum(client.get('two_months_ago', 0) for client in by_client),
-            'three_months_ago': sum(client.get('three_months_ago', 0) for client in by_client),
+            'in_analysis': sum(getattr(client, 'in_analysis', 0) for client in by_client),
+            'one_month_ago': sum(getattr(client, 'one_month_ago', 0) for client in by_client),
+            'two_months_ago': sum(getattr(client, 'two_months_ago', 0) for client in by_client),
+            'three_months_ago': sum(getattr(client, 'three_months_ago', 0) for client in by_client),
         }
         if slug == 'consulting':
-            totals['same_day_one_month_ago'] = sum(client.get('same_day_one_month_ago', 0) for client in by_client)
-            totals['same_day_two_months_ago'] = sum(client.get('same_day_two_months_ago', 0) for client in by_client)
-            totals['same_day_three_months_ago'] = sum(client.get('same_day_three_months_ago', 0) for client in by_client)
-            totals['projected'] = sum(client.get('projected', 0) for client in by_client)
-            totals['expected'] = sum(client.get('expected', 0) for client in by_client) 
-            totals['expected_one_month_later'] = sum(client.get('expected_one_month_later', 0) for client in by_client)
-            totals['expected_two_months_later'] = sum(client.get('expected_two_months_later', 0) for client in by_client)
-            totals['expected_three_months_later'] = sum(client.get('expected_three_months_later', 0) for client in by_client)
-            totals['expected_historical'] = sum(client.get('expected_historical', 0) for client in by_client)
-            totals['in_analysis_consulting_hours'] = sum(client.get('in_analysis_consulting_hours', 0) for client in by_client)
-            totals['in_analysis_consulting_pre_hours'] = sum(client.get('in_analysis_consulting_pre_hours', 0) for client in by_client)
-            totals['one_month_ago_consulting_hours'] = sum(client.get('one_month_ago_consulting_hours', 0) for client in by_client)
-            totals['one_month_ago_consulting_pre_hours'] = sum(client.get('one_month_ago_consulting_pre_hours', 0) for client in by_client)
-            totals['two_months_ago_consulting_hours'] = sum(client.get('two_months_ago_consulting_hours', 0) for client in by_client)
-            totals['two_months_ago_consulting_pre_hours'] = sum(client.get('two_months_ago_consulting_pre_hours', 0) for client in by_client)
-            totals['three_months_ago_consulting_hours'] = sum(client.get('three_months_ago_consulting_hours', 0) for client in by_client)
-            totals['three_months_ago_consulting_pre_hours'] = sum(client.get('three_months_ago_consulting_pre_hours', 0) for client in by_client)
-            totals['same_day_one_month_ago_consulting_hours'] = sum(client.get('same_day_one_month_ago_consulting_hours', 0) for client in by_client)
-            totals['same_day_two_months_ago_consulting_hours'] = sum(client.get('same_day_two_months_ago_consulting_hours', 0) for client in by_client)
-            totals['same_day_three_months_ago_consulting_hours'] = sum(client.get('same_day_three_months_ago_consulting_hours', 0) for client in by_client)
-            totals['in_analysis_consulting_fee_new'] = sum(client.get('in_analysis_consulting_fee_new', 0) for client in by_client)
-            totals['one_month_ago_consulting_fee_new'] = sum(client.get('one_month_ago_consulting_fee_new', 0) for client in by_client)
-            totals['two_months_ago_consulting_fee_new'] = sum(client.get('two_months_ago_consulting_fee_new', 0) for client in by_client)
-            totals['three_months_ago_consulting_fee_new'] = sum(client.get('three_months_ago_consulting_fee_new', 0) for client in by_client)
-            totals['same_day_one_month_ago_consulting_fee_new'] = sum(client.get('same_day_one_month_ago_consulting_fee_new', 0) for client in by_client)
-            totals['same_day_two_months_ago_consulting_fee_new'] = sum(client.get('same_day_two_months_ago_consulting_fee_new', 0) for client in by_client)
-            totals['same_day_three_months_ago_consulting_fee_new'] = sum(client.get('same_day_three_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_one_month_ago'] = sum(getattr(client, 'same_day_one_month_ago', 0) for client in by_client)
+            totals['same_day_two_months_ago'] = sum(getattr(client, 'same_day_two_months_ago', 0) for client in by_client)
+            totals['same_day_three_months_ago'] = sum(getattr(client, 'same_day_three_months_ago', 0) for client in by_client)
+            totals['projected'] = sum(getattr(client, 'projected', 0) for client in by_client)
+            totals['expected'] = sum(getattr(client, 'expected', 0) for client in by_client) 
+            totals['expected_one_month_later'] = sum(getattr(client, 'expected_one_month_later', 0) for client in by_client)
+            totals['expected_two_months_later'] = sum(getattr(client, 'expected_two_months_later', 0) for client in by_client)
+            totals['expected_three_months_later'] = sum(getattr(client, 'expected_three_months_later', 0) for client in by_client)
+            totals['expected_historical'] = sum(getattr(client, 'expected_historical', 0) for client in by_client)
+            totals['in_analysis_consulting_hours'] = sum(getattr(client, 'in_analysis_consulting_hours', 0) for client in by_client)
+            totals['in_analysis_consulting_pre_hours'] = sum(getattr(client, 'in_analysis_consulting_pre_hours', 0) for client in by_client)
+            totals['one_month_ago_consulting_hours'] = sum(getattr(client, 'one_month_ago_consulting_hours', 0) for client in by_client)
+            totals['one_month_ago_consulting_pre_hours'] = sum(getattr(client, 'one_month_ago_consulting_pre_hours', 0) for client in by_client)
+            totals['two_months_ago_consulting_hours'] = sum(getattr(client, 'two_months_ago_consulting_hours', 0) for client in by_client)
+            totals['two_months_ago_consulting_pre_hours'] = sum(getattr(client, 'two_months_ago_consulting_pre_hours', 0) for client in by_client)
+            totals['three_months_ago_consulting_hours'] = sum(getattr(client, 'three_months_ago_consulting_hours', 0) for client in by_client)
+            totals['three_months_ago_consulting_pre_hours'] = sum(getattr(client, 'three_months_ago_consulting_pre_hours', 0) for client in by_client)
+            totals['same_day_one_month_ago_consulting_hours'] = sum(getattr(client, 'same_day_one_month_ago_consulting_hours', 0) for client in by_client)
+            totals['same_day_two_months_ago_consulting_hours'] = sum(getattr(client, 'same_day_two_months_ago_consulting_hours', 0) for client in by_client)
+            totals['same_day_three_months_ago_consulting_hours'] = sum(getattr(client, 'same_day_three_months_ago_consulting_hours', 0) for client in by_client)
+            totals['in_analysis_consulting_fee_new'] = sum(getattr(client, 'in_analysis_consulting_fee_new', 0) for client in by_client)
+            totals['one_month_ago_consulting_fee_new'] = sum(getattr(client, 'one_month_ago_consulting_fee_new', 0) for client in by_client)
+            totals['two_months_ago_consulting_fee_new'] = sum(getattr(client, 'two_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['three_months_ago_consulting_fee_new'] = sum(getattr(client, 'three_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_one_month_ago_consulting_fee_new'] = sum(getattr(client, 'same_day_one_month_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_two_months_ago_consulting_fee_new'] = sum(getattr(client, 'same_day_two_months_ago_consulting_fee_new', 0) for client in by_client)
+            totals['same_day_three_months_ago_consulting_fee_new'] = sum(getattr(client, 'same_day_three_months_ago_consulting_fee_new', 0) for client in by_client)
         elif slug == 'consulting_pre':
-            totals['in_analysis_consulting_pre_hours'] = sum(client.get('in_analysis_consulting_pre_hours', 0) for client in by_client)
-            totals['one_month_ago_consulting_pre_hours'] = sum(client.get('one_month_ago_consulting_pre_hours', 0) for client in by_client)
-            totals['two_months_ago_consulting_pre_hours'] = sum(client.get('two_months_ago_consulting_pre_hours', 0) for client in by_client)
-            totals['three_months_ago_consulting_pre_hours'] = sum(client.get('three_months_ago_consulting_pre_hours', 0) for client in by_client)
+            totals['in_analysis_consulting_pre_hours'] = sum(getattr(client, 'in_analysis_consulting_pre_hours', 0) for client in by_client)
+            totals['one_month_ago_consulting_pre_hours'] = sum(getattr(client, 'one_month_ago_consulting_pre_hours', 0) for client in by_client)
+            totals['two_months_ago_consulting_pre_hours'] = sum(getattr(client, 'two_months_ago_consulting_pre_hours', 0) for client in by_client)
+            totals['three_months_ago_consulting_pre_hours'] = sum(getattr(client, 'three_months_ago_consulting_pre_hours', 0) for client in by_client)
 
         return {
             'slug': slug,
