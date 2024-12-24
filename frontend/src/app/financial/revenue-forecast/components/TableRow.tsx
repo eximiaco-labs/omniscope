@@ -74,6 +74,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedSameDayThreeMonthsAgo}
         totalValue={total.sameDayThreeMonthsAgo}
         normalizedTotalValue={total.normalizedSameDayThreeMonthsAgo}
+        hours={item.sameDayThreeMonthsAgoConsultingHours}
+        normalizedHours={item.normalizedSameDayThreeMonthsAgoConsultingHours}
         className="border-x border-gray-200 text-[12px]"
         normalized={normalized[tableId]}
         highlightYellow={isSignificantlyHigher(item.normalizedThreeMonthsAgo, item.normalizedSameDayThreeMonthsAgo)}
@@ -83,6 +85,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedThreeMonthsAgo}
         totalValue={total.threeMonthsAgo}
         normalizedTotalValue={total.normalizedThreeMonthsAgo}
+        hours={item.threeMonthsAgoConsultingHours}
+        normalizedHours={item.normalizedThreeMonthsAgoConsultingHours}
         className="border-r border-gray-400 text-[12px]"
         normalized={normalized[tableId]}
         highlightYellow={isSignificantlyHigher(item.normalizedThreeMonthsAgo, item.normalizedSameDayThreeMonthsAgo)}
@@ -94,6 +98,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedSameDayTwoMonthsAgo}
         totalValue={total.sameDayTwoMonthsAgo}
         normalizedTotalValue={total.normalizedSameDayTwoMonthsAgo}
+        hours={item.sameDayTwoMonthsAgoConsultingHours}
+        normalizedHours={item.normalizedSameDayTwoMonthsAgoConsultingHours}
         className="border-x border-gray-200 text-[12px]"
         normalized={normalized[tableId]}
         previousValue={item.sameDayThreeMonthsAgo}
@@ -105,6 +111,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedTwoMonthsAgo}
         totalValue={total.twoMonthsAgo}
         normalizedTotalValue={total.normalizedTwoMonthsAgo}
+        hours={item.twoMonthsAgoConsultingHours}
+        normalizedHours={item.normalizedTwoMonthsAgoConsultingHours}
         className="border-r border-gray-400 text-[12px]"
         normalized={normalized[tableId]}
         previousValue={item.threeMonthsAgo}
@@ -118,6 +126,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedSameDayOneMonthAgo}
         totalValue={total.sameDayOneMonthAgo}
         normalizedTotalValue={total.normalizedSameDayOneMonthAgo}
+        hours={item.sameDayOneMonthAgoConsultingHours}
+        normalizedHours={item.normalizedSameDayOneMonthAgoConsultingHours}
         className="border-x border-gray-200 text-[12px]"
         normalized={normalized[tableId]}
         previousValue={item.sameDayTwoMonthsAgo}
@@ -129,6 +139,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedOneMonthAgo}
         totalValue={total.oneMonthAgo}
         normalizedTotalValue={total.normalizedOneMonthAgo}
+        hours={item.oneMonthAgoConsultingHours}
+        normalizedHours={item.normalizedOneMonthAgoConsultingHours}
         className="border-r border-gray-400 text-[12px]"
         normalized={normalized[tableId]}
         previousValue={item.twoMonthsAgo}
@@ -142,6 +154,8 @@ export function TableRowComponent({
         normalizedValue={item.normalizedRealized}
         totalValue={total.realized}
         normalizedTotalValue={total.normalizedRealized}
+        hours={item.inAnalysisConsultingHours}
+        normalizedHours={item.normalizedInAnalysisConsultingHours}
         className="border-x border-gray-200"
         normalized={normalized[tableId]}
         previousValue={item.sameDayOneMonthAgo}

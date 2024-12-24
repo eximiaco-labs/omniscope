@@ -15,6 +15,8 @@ interface TableCellProps {
   normalizedPreviousValue?: number | null;
   normalized: boolean;
   highlightYellow?: boolean;
+  hours?: number;
+  normalizedHours?: number;
 }
 
 export function TableCellComponent({
@@ -31,12 +33,15 @@ export function TableCellComponent({
   normalizedPreviousValue = null,
   normalized,
   highlightYellow = false,
+  hours,
+  normalizedHours,
 }: TableCellProps) {
   const isProjectedLessThanExpected = projected !== undefined && expected !== undefined && projected < expected;
   const bgColor = isProjectedLessThanExpected ? "bg-red-100" : "";
   
   const displayValue = normalized ? normalizedValue : value;
   const displayTotalValue = normalized ? normalizedTotalValue : totalValue;
+  const displayHours = normalized ? normalizedHours : hours;
 
   let changeInfo = null;
   if (previousValue !== null) {
@@ -53,6 +58,16 @@ export function TableCellComponent({
         value === 0 ? "text-gray-300" : ""
       } relative ${bgColor} ${highlightYellow ? 'bg-yellow-50' : ''}`}
     >
+      {displayHours !== undefined && displayHours > 0 && (
+        <>
+          <div className="absolute top-0 left-1 text-[8px] text-gray-400">
+            {displayHours.toFixed(1)}h
+          </div>
+          <div className="absolute top-0 right-1 text-[8px] text-gray-400">
+            {formatCurrency(displayValue / displayHours)}
+          </div>
+        </>
+      )}
       {formatCurrency(displayValue)}
       <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1 box-border">
         <span className={changeInfo ? `${changeInfo.indicatorColor}` : ''}>
