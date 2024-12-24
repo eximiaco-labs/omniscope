@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import {
   format,
   startOfWeek,
@@ -10,8 +10,6 @@ import {
   startOfMonth,
   endOfMonth,
 } from "date-fns";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Option } from "react-tailwindcss-select/dist/components/type";
@@ -27,6 +25,21 @@ import {
 } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
 import { DateRangePicker } from "@/components/DateRangePicker";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { InfoCircledIcon, ReloadIcon } from "@radix-ui/react-icons";
+import { useRouter } from "next/navigation";
+
+const REFRESH_DATA_MUTATION = gql`
+  mutation RefreshData {
+    refreshData
+  }
+`;
 
 const TIMESHEET_QUERY = gql`
   query Timesheet($slug: String!, $filters: [FilterInput]) {
@@ -66,6 +79,12 @@ interface WorkerStats {
   total: number;
   unspecifiedHours: number;
   totalHours: number;
+  appointments?: Array<{
+    date: string;
+    clientName: string;
+    clientSlug: string;
+    timeInHs: number;
+  }>;
 }
 
 interface WorkerStatsWithPercentages extends WorkerStats {
@@ -86,9 +105,13 @@ interface Appointment {
   workerSlug: string;
   timeInHs: number;
   comment: string;
+  date: string;
+  clientName: string;
+  clientSlug: string;
 }
 
 export default function UnspecifiedWorkHoursPage() {
+  const router = useRouter();
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
@@ -104,6 +127,8 @@ export default function UnspecifiedWorkHoursPage() {
 
   const [sortField, setSortField] = useState<SortField>("percentage");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [buttonDisabled, setButtonDisabled] = useState(false);
 
   const slug = useMemo(() => {
     if (!dateRange.from || !dateRange.to) return "";
@@ -143,7 +168,7 @@ export default function UnspecifiedWorkHoursPage() {
     setFormattedSelectedValues(formattedValues);
   };
 
-  const { data, loading, error } = useQuery(TIMESHEET_QUERY, {
+  const { data, loading, error, refetch } = useQuery(TIMESHEET_QUERY, {
     variables: {
       slug,
       filters:
@@ -151,6 +176,19 @@ export default function UnspecifiedWorkHoursPage() {
     },
     skip: !slug,
   });
+
+  const [refreshData] = useMutation(REFRESH_DATA_MUTATION, {
+    onCompleted: () => {
+      setIsRefreshing(false);
+      router.refresh();
+    },
+  });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    setButtonDisabled(true);
+    await refreshData();
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -178,6 +216,7 @@ export default function UnspecifiedWorkHoursPage() {
             unspecifiedHours: 0,
             totalHours: 0,
             slug: curr.workerSlug,
+            appointments: [],
           };
         }
 
@@ -186,6 +225,12 @@ export default function UnspecifiedWorkHoursPage() {
         if (!curr.comment) {
           acc[curr.workerName].count += 1;
           acc[curr.workerName].unspecifiedHours += curr.timeInHs;
+          acc[curr.workerName].appointments?.push({
+            date: curr.date,
+            clientName: curr.clientName,
+            clientSlug: curr.clientSlug,
+            timeInHs: curr.timeInHs,
+          });
         }
 
         return acc;
@@ -239,6 +284,32 @@ export default function UnspecifiedWorkHoursPage() {
       </div>
 
       <div className="ml-2 mr-2">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex flex-col gap-4">
+            <p className="text-blue-800">
+              <InfoCircledIcon className="inline-block mr-2 h-4 w-4 text-blue-600" />
+              An entry is considered "unspecified" when there is a time entry in Everhour without any comments. 
+              These entries need attention as they lack important context about the work performed.
+            </p>
+
+            <div className="flex items-center justify-between text-sm">
+              <p className="text-blue-600">
+                <span className="inline-block w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                This page shows cached data for better performance. If you suspect the data is outdated, use the refresh button.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh}
+                disabled={buttonDisabled || isRefreshing}
+              >
+                <ReloadIcon className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {stats && (
           <div className="grid gap-6">
             {Object.keys(stats.byWorker).length > 0 && (
@@ -356,7 +427,47 @@ export default function UnspecifiedWorkHoursPage() {
                             </Link>
                           </TableCell>
                           <TableCell className="text-right relative">
-                            {data.count}
+                            <Sheet>
+                              <SheetTrigger className="text-blue-600 hover:underline">
+                                {data.count}
+                              </SheetTrigger>
+                              <SheetContent>
+                                <SheetHeader>
+                                  <SheetTitle>
+                                    {data.worker}
+                                  </SheetTitle>
+                                </SheetHeader>
+                                <div className="mt-6">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Client</TableHead>
+                                        <TableHead className="text-right">Hours</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {data.appointments?.map((apt, idx) => (
+                                        <TableRow key={idx}>
+                                          <TableCell>{format(new Date(apt.date), "MMMM dd, yyyy")}</TableCell>
+                                          <TableCell>
+                                            <Link
+                                              href={`/about-us/clients/${apt.clientSlug}`}
+                                              className="text-blue-600 hover:underline"
+                                            >
+                                              {apt.clientName}
+                                            </Link>
+                                          </TableCell>
+                                          <TableCell className="text-right">
+                                            {apt.timeInHs.toFixed(1)}
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </SheetContent>
+                            </Sheet>
                             <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">
                               {((data.count / stats.unspecified) * 100).toFixed(
                                 1
