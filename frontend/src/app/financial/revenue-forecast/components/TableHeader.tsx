@@ -76,9 +76,9 @@ export function TableHeaderComponent({
       <TableRow>
         <TableHead rowSpan={2} className="w-[50px] text-center">#</TableHead>
         <TableHead rowSpan={2} className="border-r border-gray-400">{columnLabel}</TableHead>
-        {renderMonthHeader(dates.lastDayOfThreeMonthsAgo, workingDays.lastDayOfThreeMonthsAgo, 2, "border-x border-gray-400")}
-        {renderMonthHeader(dates.lastDayOfTwoMonthsAgo, workingDays.lastDayOfTwoMonthsAgo, 2, "border-x border-gray-400")}
-        {renderMonthHeader(dates.lastDayOfOneMonthAgo, workingDays.lastDayOfOneMonthAgo, 2, "border-x border-gray-400")}
+        {renderMonthHeader(dates.lastDayOfThreeMonthsAgo, workingDays.threeMonthsAgo, 2, "border-x border-gray-400")}
+        {renderMonthHeader(dates.lastDayOfTwoMonthsAgo, workingDays.twoMonthsAgo, 2, "border-x border-gray-400")}
+        {renderMonthHeader(dates.lastDayOfOneMonthAgo, workingDays.oneMonthAgo, 2, "border-x border-gray-400")}
         {renderMonthHeader(dates.inAnalysis, workingDays.inAnalysis, 3, "border-x border-gray-400")}
       </TableRow>
       <TableRow>
