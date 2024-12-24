@@ -353,13 +353,6 @@ def compute_forecast(date_of_interest = None, filters = None):
             
         for consultant in by_consultant:
             adjust_entity(consultant)
-        
-        if slug == 'consulting':
-            totals = forecast_types.TotalsConsulting.build(by_client)
-        elif slug == 'consulting_pre':
-            totals = forecast_types.TotalsConsultingPre.build(by_client)
-        else:
-            totals = forecast_types.Totals.build(by_client)
 
         return {
             'slug': slug,
@@ -368,7 +361,7 @@ def compute_forecast(date_of_interest = None, filters = None):
             'by_case': by_case,
             'by_project': by_project,
             'by_consultant': by_consultant,
-            'totals': totals
+            'totals': forecast_types.Totals.build(by_client)
         }
     
     filterable_fields = merge_filterable_fields([
@@ -392,26 +385,26 @@ def compute_forecast(date_of_interest = None, filters = None):
     }
     
     summary = {
-        "realized": sum(result["by_kind"][kind]["totals"]["in_analysis"] for kind in result["by_kind"]),
-        "projected": result["by_kind"]["consulting"]["totals"]["projected"] + sum(result["by_kind"][kind]["totals"]["in_analysis"] for kind in result["by_kind"] if kind != "consulting"),
-        "expected": result["by_kind"]["consulting"]["totals"]["expected"] + sum(result["by_kind"][kind]["totals"]["in_analysis"] for kind in result["by_kind"] if kind != "consulting"),
-        "one_month_ago": sum(result["by_kind"][kind]["totals"]["one_month_ago"] for kind in result["by_kind"]),
-        "two_months_ago": sum(result["by_kind"][kind]["totals"]["two_months_ago"] for kind in result["by_kind"]),
-        "three_months_ago": sum(result["by_kind"][kind]["totals"]["three_months_ago"] for kind in result["by_kind"]),
-        "expected_one_month_later": sum(result["by_kind"][kind]["totals"].get("expected_one_month_later", 0) for kind in result["by_kind"]),
-        "expected_two_months_later": sum(result["by_kind"][kind]["totals"].get("expected_two_months_later", 0) for kind in result["by_kind"]),
-        "expected_three_months_later": sum(result["by_kind"][kind]["totals"].get("expected_three_months_later", 0) for kind in result["by_kind"]),
-        "in_analysis_consulting_hours": sum(result["by_kind"][kind]["totals"].get("in_analysis_consulting_hours", 0) for kind in result["by_kind"]),
-        "in_analysis_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].get("in_analysis_consulting_pre_hours", 0) for kind in result["by_kind"]),
-        "one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("one_month_ago_consulting_hours", 0) for kind in result["by_kind"]),
-        "one_month_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].get("one_month_ago_consulting_pre_hours", 0) for kind in result["by_kind"]),
-        "two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("two_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
-        "two_months_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].get("two_months_ago_consulting_pre_hours", 0) for kind in result["by_kind"]),
-        "three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("three_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
-        "three_months_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].get("three_months_ago_consulting_pre_hours", 0) for kind in result["by_kind"]),
-        "same_day_one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("same_day_one_month_ago_consulting_hours", 0) for kind in result["by_kind"]),
-        "same_day_two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("same_day_two_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
-        "same_day_three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].get("same_day_three_months_ago_consulting_hours", 0) for kind in result["by_kind"]),
+        "realized": sum(result["by_kind"][kind]["totals"].in_analysis for kind in result["by_kind"]),
+        "projected": result["by_kind"]["consulting"]["totals"].projected + sum(result["by_kind"][kind]["totals"].in_analysis for kind in result["by_kind"] if kind != "consulting"),
+        "expected": result["by_kind"]["consulting"]["totals"].expected + sum(result["by_kind"][kind]["totals"].in_analysis for kind in result["by_kind"] if kind != "consulting"),
+        "one_month_ago": sum(result["by_kind"][kind]["totals"].one_month_ago for kind in result["by_kind"]),
+        "two_months_ago": sum(result["by_kind"][kind]["totals"].two_months_ago for kind in result["by_kind"]),
+        "three_months_ago": sum(result["by_kind"][kind]["totals"].three_months_ago for kind in result["by_kind"]),
+        "expected_one_month_later": sum(result["by_kind"][kind]["totals"].expected_one_month_later for kind in result["by_kind"]),
+        "expected_two_months_later": sum(result["by_kind"][kind]["totals"].expected_two_months_later for kind in result["by_kind"]),
+        "expected_three_months_later": sum(result["by_kind"][kind]["totals"].expected_three_months_later for kind in result["by_kind"]),
+        "in_analysis_consulting_hours": sum(result["by_kind"][kind]["totals"].in_analysis_consulting_hours for kind in result["by_kind"]),
+        "in_analysis_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].in_analysis_consulting_pre_hours for kind in result["by_kind"]),
+        "one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].one_month_ago_consulting_hours for kind in result["by_kind"]),
+        "one_month_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].one_month_ago_consulting_pre_hours for kind in result["by_kind"]),
+        "two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].two_months_ago_consulting_hours for kind in result["by_kind"]),
+        "two_months_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].two_months_ago_consulting_pre_hours for kind in result["by_kind"]),
+        "three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].three_months_ago_consulting_hours for kind in result["by_kind"]),
+        "three_months_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].three_months_ago_consulting_pre_hours for kind in result["by_kind"]),
+        "same_day_one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_one_month_ago_consulting_hours for kind in result["by_kind"]),
+        "same_day_two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_two_months_ago_consulting_hours for kind in result["by_kind"]),
+        "same_day_three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_three_months_ago_consulting_hours for kind in result["by_kind"]),
     }
     
     result["summary"] = summary

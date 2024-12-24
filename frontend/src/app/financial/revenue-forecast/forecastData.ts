@@ -31,6 +31,34 @@ interface ForecastItem {
   normalizedExpectedTwoMonthsLater?: number;
   expectedThreeMonthsLater?: number;
   normalizedExpectedThreeMonthsLater?: number;
+  consultingHours?: number;
+  normalizedConsultingHours?: number;
+  sameDayThreeMonthsAgoConsultingHours?: number;
+  normalizedSameDayThreeMonthsAgoConsultingHours?: number;
+  threeMonthsAgoConsultingHours?: number;
+  normalizedThreeMonthsAgoConsultingHours?: number;
+  sameDayTwoMonthsAgoConsultingHours?: number;
+  normalizedSameDayTwoMonthsAgoConsultingHours?: number;
+  twoMonthsAgoConsultingHours?: number;
+  normalizedTwoMonthsAgoConsultingHours?: number;
+  sameDayOneMonthAgoConsultingHours?: number;
+  normalizedSameDayOneMonthAgoConsultingHours?: number;
+  oneMonthAgoConsultingHours?: number;
+  normalizedOneMonthAgoConsultingHours?: number;
+  consultingPreHours?: number;
+  normalizedConsultingPreHours?: number;
+  sameDayThreeMonthsAgoConsultingPreHours?: number;
+  normalizedSameDayThreeMonthsAgoConsultingPreHours?: number;
+  threeMonthsAgoConsultingPreHours?: number;
+  normalizedThreeMonthsAgoConsultingPreHours?: number;
+  sameDayTwoMonthsAgoConsultingPreHours?: number;
+  normalizedSameDayTwoMonthsAgoConsultingPreHours?: number;
+  twoMonthsAgoConsultingPreHours?: number;
+  normalizedTwoMonthsAgoConsultingPreHours?: number;
+  sameDayOneMonthAgoConsultingPreHours?: number;
+  normalizedSameDayOneMonthAgoConsultingPreHours?: number;
+  oneMonthAgoConsultingPreHours?: number;
+  normalizedOneMonthAgoConsultingPreHours?: number;
 }
 
 interface ForecastTotals {
@@ -275,6 +303,34 @@ export function getForecastData(data: any): ForecastData {
     normalizedExpectedTwoMonthsLater: item.expectedTwoMonthsLater / data.forecast.workingDays.twoMonthsLater,
     expectedThreeMonthsLater: item.expectedThreeMonthsLater,
     normalizedExpectedThreeMonthsLater: item.expectedThreeMonthsLater / data.forecast.workingDays.threeMonthsLater,
+    consultingHours: item.consultingHours || 0,
+    normalizedConsultingHours: (item.consultingHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+    sameDayThreeMonthsAgoConsultingHours: item.sameDayThreeMonthsAgoConsultingHours || 0,
+    normalizedSameDayThreeMonthsAgoConsultingHours: (item.sameDayThreeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
+    threeMonthsAgoConsultingHours: item.threeMonthsAgoConsultingHours || 0,
+    normalizedThreeMonthsAgoConsultingHours: (item.threeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.threeMonthsAgo,
+    sameDayTwoMonthsAgoConsultingHours: item.sameDayTwoMonthsAgoConsultingHours || 0,
+    normalizedSameDayTwoMonthsAgoConsultingHours: (item.sameDayTwoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayTwoMonthsAgo,
+    twoMonthsAgoConsultingHours: item.twoMonthsAgoConsultingHours || 0,
+    normalizedTwoMonthsAgoConsultingHours: (item.twoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+    sameDayOneMonthAgoConsultingHours: item.sameDayOneMonthAgoConsultingHours || 0,
+    normalizedSameDayOneMonthAgoConsultingHours: (item.sameDayOneMonthAgoConsultingHours || 0) / data.forecast.workingDays.sameDayOneMonthAgo,
+    oneMonthAgoConsultingHours: item.oneMonthAgoConsultingHours || 0,
+    normalizedOneMonthAgoConsultingHours: (item.oneMonthAgoConsultingHours || 0) / data.forecast.workingDays.oneMonthAgo,
+    consultingPreHours: item.consultingPreHours || 0,
+    normalizedConsultingPreHours: (item.consultingPreHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+    sameDayThreeMonthsAgoConsultingPreHours: item.sameDayThreeMonthsAgoConsultingPreHours || 0,
+    normalizedSameDayThreeMonthsAgoConsultingPreHours: (item.sameDayThreeMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
+    threeMonthsAgoConsultingPreHours: item.threeMonthsAgoConsultingPreHours || 0,
+    normalizedThreeMonthsAgoConsultingPreHours: (item.threeMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.threeMonthsAgo,
+    sameDayTwoMonthsAgoConsultingPreHours: item.sameDayTwoMonthsAgoConsultingPreHours || 0,
+    normalizedSameDayTwoMonthsAgoConsultingPreHours: (item.sameDayTwoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.sameDayTwoMonthsAgo,
+    twoMonthsAgoConsultingPreHours: item.twoMonthsAgoConsultingPreHours || 0,
+    normalizedTwoMonthsAgoConsultingPreHours: (item.twoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+    sameDayOneMonthAgoConsultingPreHours: item.sameDayOneMonthAgoConsultingPreHours || 0,
+    normalizedSameDayOneMonthAgoConsultingPreHours: (item.sameDayOneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.sameDayOneMonthAgo,
+    oneMonthAgoConsultingPreHours: item.oneMonthAgoConsultingPreHours || 0,
+    normalizedOneMonthAgoConsultingPreHours: (item.oneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.oneMonthAgo,
   });
 
   const calculateConsultingTotals = (items: ForecastItem[]) => {
