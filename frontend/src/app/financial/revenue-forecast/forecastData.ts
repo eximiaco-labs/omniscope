@@ -31,8 +31,8 @@ interface ForecastItem {
   normalizedExpectedTwoMonthsLater?: number;
   expectedThreeMonthsLater?: number;
   normalizedExpectedThreeMonthsLater?: number;
-  consultingHours?: number;
-  normalizedConsultingHours?: number;
+  inAnalysisConsultingHours?: number;
+  normalizedInAnalysisConsultingHours?: number;    
   sameDayThreeMonthsAgoConsultingHours?: number;
   normalizedSameDayThreeMonthsAgoConsultingHours?: number;
   threeMonthsAgoConsultingHours?: number;
@@ -303,8 +303,8 @@ export function getForecastData(data: any): ForecastData {
     normalizedExpectedTwoMonthsLater: item.expectedTwoMonthsLater / data.forecast.workingDays.twoMonthsLater,
     expectedThreeMonthsLater: item.expectedThreeMonthsLater,
     normalizedExpectedThreeMonthsLater: item.expectedThreeMonthsLater / data.forecast.workingDays.threeMonthsLater,
-    consultingHours: item.consultingHours || 0,
-    normalizedConsultingHours: (item.consultingHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+    inAnalysisConsultingHours: item.inAnalysisConsultingHours || 0,
+    normalizedInAnalysisConsultingHours: (item.inAnalysisConsultingHours || 0) / data.forecast.workingDays.inAnalysisPartial,
     sameDayThreeMonthsAgoConsultingHours: item.sameDayThreeMonthsAgoConsultingHours || 0,
     normalizedSameDayThreeMonthsAgoConsultingHours: (item.sameDayThreeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
     threeMonthsAgoConsultingHours: item.threeMonthsAgoConsultingHours || 0,
