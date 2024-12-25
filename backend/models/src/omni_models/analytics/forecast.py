@@ -284,6 +284,9 @@ def compute_forecast(date_of_interest = None, filters = None):
                     for day in range(1, days_in_month + 1):
                         date = datetime(year, month, day)
                         
+                        if case_.start_of_contract and date.date() < case_.start_of_contract:
+                            continue
+                        
                         if due_on and date.date() > due_on:
                             break
                         
