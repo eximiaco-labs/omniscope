@@ -539,7 +539,7 @@ type RevenueTrackingByProject {
 type Forecast {
   dateOfInterest: Date!
   dates: ForecastTimePeriods!
-  byKind: ForecastRevenueByType!
+  byKind: ForecastRevenueByKind!
   summary: ForecastTotalMetrics!
   filterableFields: [FilterableField]!
   workingDays: ForecastWorkingDayMetrics!
@@ -601,9 +601,9 @@ type ForecastWorkingDayMetrics {
   sameDayThreeMonthsLater: Int!
 }
 
-type ForecastRevenueByType {
+type ForecastRevenueByKind {
   consulting: ForecastConsultingRevenue!
-  consultingPre: ForecastClientRevenue!
+  consultingPre: ForecastConsultingPreRevenue!
   handsOn: ForecastClientRevenue!
   squad: ForecastClientRevenue!
 }
@@ -614,6 +614,14 @@ type ForecastClientRevenue {
   byCase: [ForecastCaseMetrics!]!
   byProject: [ForecastProjectMetrics!]!
   totals: ForecastRevenueMetrics!
+}
+
+type ForecastConsultingPreRevenue {
+  byClient: [ForecastConsultingPreClientMetrics!]!
+  bySponsor: [ForecastConsultingPreSponsorMetrics!]!
+  byCase: [ForecastConsultingPreCaseMetrics!]!
+  byProject: [ForecastConsultingPreProjectMetrics!]!
+  totals: ForecastConsultingPreTotalMetrics!
 }
 
 type ForecastConsultingRevenue {
@@ -656,6 +664,17 @@ type ForecastConsultantMetrics {
 }
 
 type ForecastRevenueMetrics {
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  inAnalysisConsultingFeeNew: Float!
+  oneMonthAgoConsultingFeeNew: Float!
+  twoMonthsAgoConsultingFeeNew: Float!
+  threeMonthsAgoConsultingFeeNew: Float!
+}
+
+type ForecastConsultingPreTotalMetrics {
   inAnalysis: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
@@ -714,6 +733,22 @@ type ForecastSponsorMetrics {
   threeMonthsAgo: Float!
 }
 
+type ForecastConsultingPreSponsorMetrics {
+  name: String!
+  slug: String!
+  clientSlug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  inAnalysisConsultingPreHours: Float!
+  oneMonthAgoConsultingPreHours: Float!
+  twoMonthsAgoConsultingPreHours: Float!
+  threeMonthsAgoConsultingPreHours: Float!
+}
+
+
+
 type ForecastCaseMetrics {
   title: String!
   slug: String!
@@ -725,6 +760,21 @@ type ForecastCaseMetrics {
   threeMonthsAgo: Float!
 }
 
+type ForecastConsultingPreCaseMetrics {
+  title: String!
+  slug: String!
+  sponsorSlug: String
+  clientSlug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  inAnalysisConsultingPreHours: Float!
+  oneMonthAgoConsultingPreHours: Float!
+  twoMonthsAgoConsultingPreHours: Float!
+  threeMonthsAgoConsultingPreHours: Float!
+} 
+
 type ForecastProjectMetrics {
   name: String!
   slug: String!
@@ -735,6 +785,20 @@ type ForecastProjectMetrics {
   threeMonthsAgo: Float!
 }
 
+type ForecastConsultingPreProjectMetrics {
+  name: String!
+  slug: String!
+  caseSlug: String!
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  inAnalysisConsultingPreHours: Float!
+  oneMonthAgoConsultingPreHours: Float!
+  twoMonthsAgoConsultingPreHours: Float!
+  threeMonthsAgoConsultingPreHours: Float!
+}
+
 type ForecastClientMetrics {
   name: String!
   slug: String
@@ -742,7 +806,20 @@ type ForecastClientMetrics {
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
   threeMonthsAgo: Float!
-} 
+}
+
+type ForecastConsultingPreClientMetrics {
+  name: String!
+  slug: String
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  inAnalysisConsultingPreHours: Float!
+  oneMonthAgoConsultingPreHours: Float!
+  twoMonthsAgoConsultingPreHours: Float!
+  threeMonthsAgoConsultingPreHours: Float!
+}
 
 type ForecastConsultingClientMetrics {
   name: String!

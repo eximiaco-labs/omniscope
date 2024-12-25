@@ -223,6 +223,10 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
+            inAnalysisConsultingPreHours
+            oneMonthAgoConsultingPreHours
+            twoMonthsAgoConsultingPreHours
+            threeMonthsAgoConsultingPreHours
           }
           bySponsor {
             name
@@ -232,6 +236,10 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
+            inAnalysisConsultingPreHours
+            oneMonthAgoConsultingPreHours
+            twoMonthsAgoConsultingPreHours
+            threeMonthsAgoConsultingPreHours
           }
           byCase {
             title
@@ -242,6 +250,10 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
+            inAnalysisConsultingPreHours
+            oneMonthAgoConsultingPreHours
+            twoMonthsAgoConsultingPreHours
+            threeMonthsAgoConsultingPreHours
           }
           byProject {
             name
@@ -251,6 +263,10 @@ export const REVENUE_FORECAST_QUERY = gql`
             oneMonthAgo
             twoMonthsAgo
             threeMonthsAgo
+            inAnalysisConsultingPreHours
+            oneMonthAgoConsultingPreHours
+            twoMonthsAgoConsultingPreHours
+            threeMonthsAgoConsultingPreHours
           }
         }
         handsOn {
