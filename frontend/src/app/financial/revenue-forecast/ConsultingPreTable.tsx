@@ -19,18 +19,26 @@ interface ConsultingPreTableProps {
       name: string;
       slug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     sponsors: Array<{
       name: string;
       slug: string;
       clientSlug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     cases: Array<{
       title: string;
@@ -38,18 +46,26 @@ interface ConsultingPreTableProps {
       sponsorSlug: string;
       clientSlug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     projects: Array<{
       name: string;
       slug: string;
       caseSlug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     totals: {
       threeMonthsAgo: number;
@@ -119,7 +135,7 @@ export function ConsultingPreTable({
 
   const sortedClients = getSortedClients(tableData.clients);
 
-  const renderCell = (value: number, totalValue: number, previousValue: number | null = null, className: string = "") => (
+  const renderCell = (value: number, totalValue: number, hours: number, previousValue: number | null = null, className: string = "") => (
     <TableCellComponent
       value={value}
       normalizedValue={value}
@@ -129,6 +145,7 @@ export function ConsultingPreTable({
       normalizedPreviousValue={previousValue}
       normalized={false}
       className={className}
+      hours={hours}
     />
   );
 
@@ -200,10 +217,10 @@ export function ConsultingPreTable({
                       </Link>
                     </div>
                   </TableHead>
-                  {renderCell(client.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                  {renderCell(client.twoMonthsAgo, total.twoMonthsAgo, client.threeMonthsAgo, "border-x text-[12px]")}
-                  {renderCell(client.oneMonthAgo, total.oneMonthAgo, client.twoMonthsAgo, "border-x text-[12px]")}
-                  {renderCell(client.current, total.current, client.oneMonthAgo, "border-x")}
+                  {renderCell(client.threeMonthsAgo, total.threeMonthsAgo, client.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                  {renderCell(client.twoMonthsAgo, total.twoMonthsAgo, client.twoMonthsAgoConsultingPreHours, client.threeMonthsAgo, "border-x text-[12px]")}
+                  {renderCell(client.oneMonthAgo, total.oneMonthAgo, client.oneMonthAgoConsultingPreHours, client.twoMonthsAgo, "border-x text-[12px]")}
+                  {renderCell(client.current, total.current, client.inAnalysisConsultingPreHours, client.oneMonthAgo, "border-x")}
                 </TableRow>
                 {expandedClients["consultingPre"]?.includes(client.slug) &&
                   tableData.sponsors
@@ -234,10 +251,10 @@ export function ConsultingPreTable({
                               </Link>
                             </div>
                           </TableHead>
-                          {renderCell(sponsor.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                          {renderCell(sponsor.twoMonthsAgo, total.twoMonthsAgo, sponsor.threeMonthsAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.oneMonthAgo, total.oneMonthAgo, sponsor.twoMonthsAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.current, total.current, sponsor.oneMonthAgo, "border-x")}
+                          {renderCell(sponsor.threeMonthsAgo, total.threeMonthsAgo, sponsor.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                          {renderCell(sponsor.twoMonthsAgo, total.twoMonthsAgo, sponsor.twoMonthsAgoConsultingPreHours, sponsor.threeMonthsAgo, "border-x text-[12px]")}
+                          {renderCell(sponsor.oneMonthAgo, total.oneMonthAgo, sponsor.oneMonthAgoConsultingPreHours, sponsor.twoMonthsAgo, "border-x text-[12px]")}
+                          {renderCell(sponsor.current, total.current, sponsor.inAnalysisConsultingPreHours, sponsor.oneMonthAgo, "border-x")}
                         </TableRow>
                         {expandedClients["consultingPre"]?.includes(sponsor.slug) &&
                           tableData.cases
@@ -271,10 +288,10 @@ export function ConsultingPreTable({
                                       </Link>
                                     </div>
                                   </TableHead>
-                                  {renderCell(caseItem.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                                  {renderCell(caseItem.twoMonthsAgo, total.twoMonthsAgo, caseItem.threeMonthsAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.oneMonthAgo, total.oneMonthAgo, caseItem.twoMonthsAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.current, total.current, caseItem.oneMonthAgo, "border-x")}
+                                  {renderCell(caseItem.threeMonthsAgo, total.threeMonthsAgo, caseItem.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                                  {renderCell(caseItem.twoMonthsAgo, total.twoMonthsAgo, caseItem.twoMonthsAgoConsultingPreHours, caseItem.threeMonthsAgo, "border-x text-[12px]")}
+                                  {renderCell(caseItem.oneMonthAgo, total.oneMonthAgo, caseItem.oneMonthAgoConsultingPreHours, caseItem.twoMonthsAgo, "border-x text-[12px]")}
+                                  {renderCell(caseItem.current, total.current, caseItem.inAnalysisConsultingPreHours, caseItem.oneMonthAgo, "border-x")}
                                 </TableRow>
                                 {expandedClients["consultingPre"]?.includes(
                                   caseItem.slug
@@ -295,10 +312,10 @@ export function ConsultingPreTable({
                                             {project.name}
                                           </span>
                                         </TableHead>
-                                        {renderCell(project.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                                        {renderCell(project.twoMonthsAgo, total.twoMonthsAgo, project.threeMonthsAgo, "border-x text-[12px]")}
-                                        {renderCell(project.oneMonthAgo, total.oneMonthAgo, project.twoMonthsAgo, "border-x text-[12px]")}
-                                        {renderCell(project.current, total.current, project.oneMonthAgo, "border-x")}
+                                        {renderCell(project.threeMonthsAgo, total.threeMonthsAgo, project.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                                        {renderCell(project.twoMonthsAgo, total.twoMonthsAgo, project.twoMonthsAgoConsultingPreHours, project.threeMonthsAgo, "border-x text-[12px]")}
+                                        {renderCell(project.oneMonthAgo, total.oneMonthAgo, project.oneMonthAgoConsultingPreHours, project.twoMonthsAgo, "border-x text-[12px]")}
+                                        {renderCell(project.current, total.current, project.inAnalysisConsultingPreHours, project.oneMonthAgo, "border-x")}
                                       </TableRow>
                                     ))}
                               </React.Fragment>
@@ -317,6 +334,7 @@ export function ConsultingPreTable({
                 normalizedTotalValue={total.threeMonthsAgo}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={false}
+                hours={total.threeMonthsAgoConsultingPreHours}
               />
               <TableCellComponent
                 value={total.twoMonthsAgo}
@@ -327,6 +345,7 @@ export function ConsultingPreTable({
                 normalizedPreviousValue={total.threeMonthsAgo}
                 className="border-r text-[12px]"
                 normalized={false}
+                hours={total.twoMonthsAgoConsultingPreHours}
               />
               <TableCellComponent
                 value={total.oneMonthAgo}
@@ -337,6 +356,7 @@ export function ConsultingPreTable({
                 normalizedPreviousValue={total.twoMonthsAgo}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={false}
+                hours={total.oneMonthAgoConsultingPreHours}
               />
               <TableCellComponent
                 value={total.current}
@@ -347,6 +367,7 @@ export function ConsultingPreTable({
                 normalizedPreviousValue={total.oneMonthAgo}
                 className="border-r"
                 normalized={false}
+                hours={total.inAnalysisConsultingPreHours}
               />
             </TableRow>
             <TableRow className="h-[57px]">
