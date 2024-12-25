@@ -14,6 +14,7 @@ import { ConsultingTableFuture } from "./ConsultingTableFuture";
 import { ConsultingTableByConsultant } from "./ConsultingTableByConsultant";
 import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
+import { ConsultingPreTable } from "./ConsultingPreTable";
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -254,15 +255,14 @@ export default function RevenueForecastPage() {
           setUseHistorical={setUseHistorical}
         />
 
-        <OtherTable
+        <ConsultingPreTable
           title="Consulting Pre"
           tableData={forecastData.consultingPre}
-          tableId="consultingPre"
           dates={data.forecast.dates}
           sortConfigs={sortConfigs}
           expandedClients={expandedClients}
-          requestSort={requestSort}
-          toggleClient={toggleClient}
+          requestSort={(key) => requestSort(key, "consultingPre")}
+          toggleClient={(clientSlug) => toggleClient(clientSlug, "consultingPre")}
         />
 
         <OtherTable
