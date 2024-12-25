@@ -12,25 +12,33 @@ import {
 import { TableCellComponent } from "./components/TableCell";
 import SectionHeader from "@/components/SectionHeader";
 
-interface OtherTableProps {
+interface ConsultingPreTableProps {
   title: string;
   tableData: {
     clients: Array<{
       name: string;
       slug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     sponsors: Array<{
       name: string;
       slug: string;
       clientSlug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     cases: Array<{
       title: string;
@@ -38,27 +46,38 @@ interface OtherTableProps {
       sponsorSlug: string;
       clientSlug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     projects: Array<{
       name: string;
       slug: string;
       caseSlug: string;
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     }>;
     totals: {
       threeMonthsAgo: number;
+      threeMonthsAgoConsultingPreHours: number;
       twoMonthsAgo: number;
+      twoMonthsAgoConsultingPreHours: number;
       oneMonthAgo: number;
+      oneMonthAgoConsultingPreHours: number;
       current: number;
+      inAnalysisConsultingPreHours: number;
     };
   };
-  tableId: string;
   dates: {
     lastDayOfThreeMonthsAgo: string;
     lastDayOfTwoMonthsAgo: string;
@@ -67,8 +86,8 @@ interface OtherTableProps {
   };
   sortConfigs: Record<string, { key: string; direction: "asc" | "desc" }>;
   expandedClients: Record<string, string[]>;
-  requestSort: (key: string, tableId: string) => void;
-  toggleClient: (clientSlug: string, tableId: string) => void;
+  requestSort: (key: string) => void;
+  toggleClient: (clientSlug: string) => void;
 }
 
 const formatDate = (dateString: string): string => {
@@ -85,22 +104,19 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-export function OtherTable({
+export function ConsultingPreTable({
   title,
   tableData,
-  tableId,
   dates,
   sortConfigs,
   expandedClients,
   requestSort,
   toggleClient,
-}: OtherTableProps) {
-  const sortedClients = getSortedClients(tableData.clients, tableId);
-  const sortConfig = sortConfigs[tableId];
+}: ConsultingPreTableProps) {
+  const sortConfig = sortConfigs["consultingPre"];
   const total = tableData.totals;
 
-  function getSortedClients(clients: any[], tableId: string) {
-    const sortConfig = sortConfigs[tableId];
+  function getSortedClients(clients: any[]) {
     if (!sortConfig?.key) return clients;
 
     return [...clients].sort((a, b) => {
@@ -117,7 +133,9 @@ export function OtherTable({
     });
   }
 
-  const renderCell = (value: number, totalValue: number, previousValue: number | null = null, className: string = "") => (
+  const sortedClients = getSortedClients(tableData.clients);
+
+  const renderCell = (value: number, totalValue: number, hours: number, previousValue: number | null = null, className: string = "") => (
     <TableCellComponent
       value={value}
       normalizedValue={value}
@@ -127,11 +145,12 @@ export function OtherTable({
       normalizedPreviousValue={previousValue}
       normalized={false}
       className={className}
+      hours={hours}
     />
   );
 
   return (
-    <div id={tableId} className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
+    <div id="consultingPre" className="mt-8 scroll-mt-[68px] sm:scroll-mt-[68px]">
       <SectionHeader title={title} subtitle={total.current.toLocaleString('en-US', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 })} />
       <div className="px-2">
         <Table>
@@ -140,7 +159,7 @@ export function OtherTable({
               <TableHead className="w-[50px] text-center">#</TableHead>
               <TableHead>Client</TableHead>
               <TableHead
-                onClick={() => requestSort("threeMonthsAgo", tableId)}
+                onClick={() => requestSort("threeMonthsAgo")}
                 className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
               >
                 {formatDate(dates.lastDayOfThreeMonthsAgo)}{" "}
@@ -148,7 +167,7 @@ export function OtherTable({
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead
-                onClick={() => requestSort("twoMonthsAgo", tableId)}
+                onClick={() => requestSort("twoMonthsAgo")}
                 className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
               >
                 {formatDate(dates.lastDayOfTwoMonthsAgo)}{" "}
@@ -156,7 +175,7 @@ export function OtherTable({
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead
-                onClick={() => requestSort("oneMonthAgo", tableId)}
+                onClick={() => requestSort("oneMonthAgo")}
                 className="text-center border-x w-[95px] cursor-pointer hover:bg-gray-100"
               >
                 {formatDate(dates.lastDayOfOneMonthAgo)}{" "}
@@ -164,7 +183,7 @@ export function OtherTable({
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead
-                onClick={() => requestSort("current", tableId)}
+                onClick={() => requestSort("current")}
                 className="text-center border-x w-[120px] cursor-pointer hover:bg-gray-100"
               >
                 {formatDate(dates.inAnalysis)}{" "}
@@ -183,10 +202,10 @@ export function OtherTable({
                   <TableHead>
                     <div className="flex items-center">
                       <button
-                        onClick={() => toggleClient(client.slug, tableId)}
+                        onClick={() => toggleClient(client.slug)}
                         className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                       >
-                        {expandedClients[tableId]?.includes(client.slug)
+                        {expandedClients["consultingPre"]?.includes(client.slug)
                           ? "−"
                           : "+"}
                       </button>
@@ -198,12 +217,12 @@ export function OtherTable({
                       </Link>
                     </div>
                   </TableHead>
-                  {renderCell(client.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                  {renderCell(client.twoMonthsAgo, total.twoMonthsAgo, client.threeMonthsAgo, "border-x text-[12px]")}
-                  {renderCell(client.oneMonthAgo, total.oneMonthAgo, client.twoMonthsAgo, "border-x text-[12px]")}
-                  {renderCell(client.current, total.current, client.oneMonthAgo, "border-x")}
+                  {renderCell(client.threeMonthsAgo, total.threeMonthsAgo, client.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                  {renderCell(client.twoMonthsAgo, total.twoMonthsAgo, client.twoMonthsAgoConsultingPreHours, client.threeMonthsAgo, "border-x text-[12px]")}
+                  {renderCell(client.oneMonthAgo, total.oneMonthAgo, client.oneMonthAgoConsultingPreHours, client.twoMonthsAgo, "border-x text-[12px]")}
+                  {renderCell(client.current, total.current, client.inAnalysisConsultingPreHours, client.oneMonthAgo, "border-x")}
                 </TableRow>
-                {expandedClients[tableId]?.includes(client.slug) &&
+                {expandedClients["consultingPre"]?.includes(client.slug) &&
                   tableData.sponsors
                     .filter((sponsor) => sponsor.clientSlug === client.slug)
                     .map((sponsor) => (
@@ -214,11 +233,11 @@ export function OtherTable({
                             <div className="flex items-center">
                               <button
                                 onClick={() =>
-                                  toggleClient(sponsor.slug, tableId)
+                                  toggleClient(sponsor.slug)
                                 }
                                 className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                               >
-                                {expandedClients[tableId]?.includes(
+                                {expandedClients["consultingPre"]?.includes(
                                   sponsor.slug
                                 )
                                   ? "−"
@@ -232,12 +251,12 @@ export function OtherTable({
                               </Link>
                             </div>
                           </TableHead>
-                          {renderCell(sponsor.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                          {renderCell(sponsor.twoMonthsAgo, total.twoMonthsAgo, sponsor.threeMonthsAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.oneMonthAgo, total.oneMonthAgo, sponsor.twoMonthsAgo, "border-x text-[12px]")}
-                          {renderCell(sponsor.current, total.current, sponsor.oneMonthAgo, "border-x")}
+                          {renderCell(sponsor.threeMonthsAgo, total.threeMonthsAgo, sponsor.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                          {renderCell(sponsor.twoMonthsAgo, total.twoMonthsAgo, sponsor.twoMonthsAgoConsultingPreHours, sponsor.threeMonthsAgo, "border-x text-[12px]")}
+                          {renderCell(sponsor.oneMonthAgo, total.oneMonthAgo, sponsor.oneMonthAgoConsultingPreHours, sponsor.twoMonthsAgo, "border-x text-[12px]")}
+                          {renderCell(sponsor.current, total.current, sponsor.inAnalysisConsultingPreHours, sponsor.oneMonthAgo, "border-x")}
                         </TableRow>
-                        {expandedClients[tableId]?.includes(sponsor.slug) &&
+                        {expandedClients["consultingPre"]?.includes(sponsor.slug) &&
                           tableData.cases
                             .filter(
                               (caseItem) =>
@@ -251,11 +270,11 @@ export function OtherTable({
                                     <div className="flex items-center">
                                       <button
                                         onClick={() =>
-                                          toggleClient(caseItem.slug, tableId)
+                                          toggleClient(caseItem.slug)
                                         }
                                         className="w-4 h-4 flex items-center justify-center text-gray-500 mr-1"
                                       >
-                                        {expandedClients[tableId]?.includes(
+                                        {expandedClients["consultingPre"]?.includes(
                                           caseItem.slug
                                         )
                                           ? "−"
@@ -269,12 +288,12 @@ export function OtherTable({
                                       </Link>
                                     </div>
                                   </TableHead>
-                                  {renderCell(caseItem.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                                  {renderCell(caseItem.twoMonthsAgo, total.twoMonthsAgo, caseItem.threeMonthsAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.oneMonthAgo, total.oneMonthAgo, caseItem.twoMonthsAgo, "border-x text-[12px]")}
-                                  {renderCell(caseItem.current, total.current, caseItem.oneMonthAgo, "border-x")}
+                                  {renderCell(caseItem.threeMonthsAgo, total.threeMonthsAgo, caseItem.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                                  {renderCell(caseItem.twoMonthsAgo, total.twoMonthsAgo, caseItem.twoMonthsAgoConsultingPreHours, caseItem.threeMonthsAgo, "border-x text-[12px]")}
+                                  {renderCell(caseItem.oneMonthAgo, total.oneMonthAgo, caseItem.oneMonthAgoConsultingPreHours, caseItem.twoMonthsAgo, "border-x text-[12px]")}
+                                  {renderCell(caseItem.current, total.current, caseItem.inAnalysisConsultingPreHours, caseItem.oneMonthAgo, "border-x")}
                                 </TableRow>
-                                {expandedClients[tableId]?.includes(
+                                {expandedClients["consultingPre"]?.includes(
                                   caseItem.slug
                                 ) &&
                                   tableData.projects
@@ -293,10 +312,10 @@ export function OtherTable({
                                             {project.name}
                                           </span>
                                         </TableHead>
-                                        {renderCell(project.threeMonthsAgo, total.threeMonthsAgo, null, "border-x text-[12px]")}
-                                        {renderCell(project.twoMonthsAgo, total.twoMonthsAgo, project.threeMonthsAgo, "border-x text-[12px]")}
-                                        {renderCell(project.oneMonthAgo, total.oneMonthAgo, project.twoMonthsAgo, "border-x text-[12px]")}
-                                        {renderCell(project.current, total.current, project.oneMonthAgo, "border-x")}
+                                        {renderCell(project.threeMonthsAgo, total.threeMonthsAgo, project.threeMonthsAgoConsultingPreHours, null, "border-x text-[12px]")}
+                                        {renderCell(project.twoMonthsAgo, total.twoMonthsAgo, project.twoMonthsAgoConsultingPreHours, project.threeMonthsAgo, "border-x text-[12px]")}
+                                        {renderCell(project.oneMonthAgo, total.oneMonthAgo, project.oneMonthAgoConsultingPreHours, project.twoMonthsAgo, "border-x text-[12px]")}
+                                        {renderCell(project.current, total.current, project.inAnalysisConsultingPreHours, project.oneMonthAgo, "border-x")}
                                       </TableRow>
                                     ))}
                               </React.Fragment>
@@ -315,6 +334,7 @@ export function OtherTable({
                 normalizedTotalValue={total.threeMonthsAgo}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={false}
+                hours={total.threeMonthsAgoConsultingPreHours}
               />
               <TableCellComponent
                 value={total.twoMonthsAgo}
@@ -325,6 +345,7 @@ export function OtherTable({
                 normalizedPreviousValue={total.threeMonthsAgo}
                 className="border-r text-[12px]"
                 normalized={false}
+                hours={total.twoMonthsAgoConsultingPreHours}
               />
               <TableCellComponent
                 value={total.oneMonthAgo}
@@ -335,6 +356,7 @@ export function OtherTable({
                 normalizedPreviousValue={total.twoMonthsAgo}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={false}
+                hours={total.oneMonthAgoConsultingPreHours}
               />
               <TableCellComponent
                 value={total.current}
@@ -343,6 +365,91 @@ export function OtherTable({
                 normalizedTotalValue={total.current}
                 previousValue={total.oneMonthAgo}
                 normalizedPreviousValue={total.oneMonthAgo}
+                className="border-r"
+                normalized={false}
+                hours={total.inAnalysisConsultingPreHours}
+              />
+            </TableRow>
+            <TableRow className="h-[57px]">
+              <TableCell className="text-right pr-4"></TableCell>
+              <TableCell className="border-r">Total Hours</TableCell>
+              <TableCellComponent
+                value={total.threeMonthsAgoConsultingPreHours}
+                normalizedValue={total.threeMonthsAgoConsultingPreHours}
+                totalValue={total.threeMonthsAgoConsultingPreHours}
+                normalizedTotalValue={total.threeMonthsAgoConsultingPreHours}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={false}
+              />
+              <TableCellComponent
+                value={total.twoMonthsAgoConsultingPreHours}
+                normalizedValue={total.twoMonthsAgoConsultingPreHours}
+                totalValue={total.twoMonthsAgoConsultingPreHours}
+                normalizedTotalValue={total.twoMonthsAgoConsultingPreHours}
+                previousValue={total.threeMonthsAgoConsultingPreHours}
+                normalizedPreviousValue={total.threeMonthsAgoConsultingPreHours}
+                className="border-r text-[12px]"
+                normalized={false}
+              />
+              <TableCellComponent
+                value={total.oneMonthAgoConsultingPreHours}
+                normalizedValue={total.oneMonthAgoConsultingPreHours}
+                totalValue={total.oneMonthAgoConsultingPreHours}
+                normalizedTotalValue={total.oneMonthAgoConsultingPreHours}
+                previousValue={total.twoMonthsAgoConsultingPreHours}
+                normalizedPreviousValue={total.twoMonthsAgoConsultingPreHours}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={false}
+              />
+              <TableCellComponent
+                value={total.inAnalysisConsultingPreHours}
+                normalizedValue={total.inAnalysisConsultingPreHours}
+                totalValue={total.inAnalysisConsultingPreHours}
+                normalizedTotalValue={total.inAnalysisConsultingPreHours}
+                previousValue={total.oneMonthAgoConsultingPreHours}
+                normalizedPreviousValue={total.oneMonthAgoConsultingPreHours}
+                className="border-r"
+                normalized={false}
+              />
+            </TableRow>
+            <TableRow className="h-[57px]">
+              <TableCell className="text-right pr-4"></TableCell>
+              <TableCell className="border-r">Average Rate</TableCell>
+              <TableCellComponent
+                value={total.threeMonthsAgoConsultingPreHours ? total.threeMonthsAgo / total.threeMonthsAgoConsultingPreHours : 0}
+                normalizedValue={total.threeMonthsAgoConsultingPreHours ? total.threeMonthsAgo / total.threeMonthsAgoConsultingPreHours : 0}
+                totalValue={total.threeMonthsAgoConsultingPreHours ? total.threeMonthsAgo / total.threeMonthsAgoConsultingPreHours : 0}
+                normalizedTotalValue={total.threeMonthsAgoConsultingPreHours ? total.threeMonthsAgo / total.threeMonthsAgoConsultingPreHours : 0}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={false}
+              />
+              <TableCellComponent
+                value={total.twoMonthsAgoConsultingPreHours ? total.twoMonthsAgo / total.twoMonthsAgoConsultingPreHours : 0}
+                normalizedValue={total.twoMonthsAgoConsultingPreHours ? total.twoMonthsAgo / total.twoMonthsAgoConsultingPreHours : 0}
+                totalValue={total.twoMonthsAgoConsultingPreHours ? total.twoMonthsAgo / total.twoMonthsAgoConsultingPreHours : 0}
+                normalizedTotalValue={total.twoMonthsAgoConsultingPreHours ? total.twoMonthsAgo / total.twoMonthsAgoConsultingPreHours : 0}
+                previousValue={total.threeMonthsAgoConsultingPreHours ? total.threeMonthsAgo / total.threeMonthsAgoConsultingPreHours : 0}
+                normalizedPreviousValue={total.threeMonthsAgoConsultingPreHours ? total.threeMonthsAgo / total.threeMonthsAgoConsultingPreHours : 0}
+                className="border-r text-[12px]"
+                normalized={false}
+              />
+              <TableCellComponent
+                value={total.oneMonthAgoConsultingPreHours ? total.oneMonthAgo / total.oneMonthAgoConsultingPreHours : 0}
+                normalizedValue={total.oneMonthAgoConsultingPreHours ? total.oneMonthAgo / total.oneMonthAgoConsultingPreHours : 0}
+                totalValue={total.oneMonthAgoConsultingPreHours ? total.oneMonthAgo / total.oneMonthAgoConsultingPreHours : 0}
+                normalizedTotalValue={total.oneMonthAgoConsultingPreHours ? total.oneMonthAgo / total.oneMonthAgoConsultingPreHours : 0}
+                previousValue={total.twoMonthsAgoConsultingPreHours ? total.twoMonthsAgo / total.twoMonthsAgoConsultingPreHours : 0}
+                normalizedPreviousValue={total.twoMonthsAgoConsultingPreHours ? total.twoMonthsAgo / total.twoMonthsAgoConsultingPreHours : 0}
+                className="border-x border-gray-200 text-[12px]"
+                normalized={false}
+              />
+              <TableCellComponent
+                value={total.inAnalysisConsultingPreHours ? total.current / total.inAnalysisConsultingPreHours : 0}
+                normalizedValue={total.inAnalysisConsultingPreHours ? total.current / total.inAnalysisConsultingPreHours : 0}
+                totalValue={total.inAnalysisConsultingPreHours ? total.current / total.inAnalysisConsultingPreHours : 0}
+                normalizedTotalValue={total.inAnalysisConsultingPreHours ? total.current / total.inAnalysisConsultingPreHours : 0}
+                previousValue={total.oneMonthAgoConsultingPreHours ? total.oneMonthAgo / total.oneMonthAgoConsultingPreHours : 0}
+                normalizedPreviousValue={total.oneMonthAgoConsultingPreHours ? total.oneMonthAgo / total.oneMonthAgoConsultingPreHours : 0}
                 className="border-r"
                 normalized={false}
               />

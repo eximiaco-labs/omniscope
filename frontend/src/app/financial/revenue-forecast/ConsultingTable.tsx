@@ -190,6 +190,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedSameDayThreeMonthsAgo}
                 totalValue={total.sameDayThreeMonthsAgo}
                 normalizedTotalValue={total.normalizedSameDayThreeMonthsAgo}
+                hours={total.sameDayThreeMonthsAgoConsultingHours}
+                normalizedHours={total.normalizedSameDayThreeMonthsAgoConsultingHours}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={normalized[tableId]}
               />
@@ -198,6 +200,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedThreeMonthsAgo}
                 totalValue={total.threeMonthsAgo}
                 normalizedTotalValue={total.normalizedThreeMonthsAgo}
+                hours={total.threeMonthsAgoConsultingHours}
+                normalizedHours={total.normalizedThreeMonthsAgoConsultingHours}
                 className="border-r border-gray-400 text-[12px]"
                 normalized={normalized[tableId]}
               />
@@ -206,6 +210,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedSameDayTwoMonthsAgo}
                 totalValue={total.sameDayTwoMonthsAgo}
                 normalizedTotalValue={total.normalizedSameDayTwoMonthsAgo}
+                hours={total.sameDayTwoMonthsAgoConsultingHours}
+                normalizedHours={total.normalizedSameDayTwoMonthsAgoConsultingHours}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={normalized[tableId]}
                 previousValue={total.sameDayThreeMonthsAgo}
@@ -216,6 +222,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedTwoMonthsAgo}
                 totalValue={total.twoMonthsAgo}
                 normalizedTotalValue={total.normalizedTwoMonthsAgo}
+                hours={total.twoMonthsAgoConsultingHours}
+                normalizedHours={total.normalizedTwoMonthsAgoConsultingHours}
                 className="border-r border-gray-400 text-[12px]"
                 normalized={normalized[tableId]}
                 previousValue={total.threeMonthsAgo}
@@ -226,6 +234,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedSameDayOneMonthAgo}
                 totalValue={total.sameDayOneMonthAgo}
                 normalizedTotalValue={total.normalizedSameDayOneMonthAgo}
+                hours={total.sameDayOneMonthAgoConsultingHours}
+                normalizedHours={total.normalizedSameDayOneMonthAgoConsultingHours}
                 className="border-x border-gray-200 text-[12px]"
                 normalized={normalized[tableId]}
                 previousValue={total.sameDayTwoMonthsAgo}
@@ -236,6 +246,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedOneMonthAgo}
                 totalValue={total.oneMonthAgo}
                 normalizedTotalValue={total.normalizedOneMonthAgo}
+                hours={total.oneMonthAgoConsultingHours}
+                normalizedHours={total.normalizedOneMonthAgoConsultingHours}
                 className="border-r border-gray-400 text-[12px]"
                 normalized={normalized[tableId]}
                 previousValue={total.twoMonthsAgo}
@@ -246,6 +258,8 @@ export function ConsultingTable({
                 normalizedValue={total.normalizedRealized}
                 totalValue={total.realized}
                 normalizedTotalValue={total.normalizedRealized}
+                hours={total.inAnalysisConsultingHours}
+                normalizedHours={total.normalizedInAnalysisConsultingHours}
                 className="border-x border-gray-200"
                 normalized={normalized[tableId]}
                 previousValue={total.sameDayOneMonthAgo}
