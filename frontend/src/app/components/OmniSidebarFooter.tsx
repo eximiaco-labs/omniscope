@@ -21,6 +21,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import SectionHeader from "@/components/SectionHeader";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
 
 const REFRESH_DATA_MUTATION = gql`
   mutation RefreshData {
@@ -119,76 +125,77 @@ export default function OmniSidebarFooter() {
 
   return (
     <>
-      <div className="space-y-4">
-        <div>
-          <SectionHeader title="System Cache" subtitle="" />
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={handleSoftRefresh}
-              className="p-1.5 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all"
-              title="Refresh frequently updated data"
-            >
-              {refreshLoading ? (
-                <ArrowPathIcon className="h-4 w-4 animate-spin" />
-              ) : (
-                <ArrowPathIcon className="h-4 w-4" />
-              )}
-            </button>
+      <SidebarGroup>
+        <div className="text-xs text-[#3f3f46b2] mb-2">System Cache</div>
+        <SidebarGroupContent className="md:px-0">
+          <div className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <p className="text-[10px] text-gray-600 leading-tight">
+                Invalidates and refreshes timesheets (Everhour) cache.
+              </p>
+              <button
+                onClick={handleSoftRefresh}
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-white bg-blue-500 hover:bg-blue-600 transition-all rounded-md shadow-sm"
+              >
+                Run
+              </button>
+            </div>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  className="px-2 py-1.5 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all text-xs font-medium"
-                  title="Complete system refresh"
-                >
-                  {refreshLoading ? (
-                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Full Refresh"
-                  )}
-                </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-white">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Confirm Complete System Refresh
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-gray-600">
-                    This will take longer than a soft refresh. Continue?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="border-gray-200">
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleHardRefresh}
-                    className="bg-red-600 hover:bg-red-700 text-white"
+            <div className="space-y-2">
+              <p className="text-[10px] text-gray-600 leading-tight">
+                Reloads all system data including core information.
+              </p>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs text-white bg-red-500 hover:bg-red-600 transition-all rounded-md shadow-sm"
                   >
-                    Confirm
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    Run
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Confirm Complete System Refresh
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-xs text-gray-600">
+                      This operation will take longer. Continue?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-gray-200">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleHardRefresh}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Confirm
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
-        </div>
-        <div>
-          <SectionHeader title="Changelog" subtitle="Last update" />
+        </SidebarGroupContent>
+      </SidebarGroup>
+      <SidebarSeparator />
+      <SidebarGroup>
+        <div className="text-xs text-[#3f3f46b2] mb-2">Changelog</div>
+        <SidebarGroupContent className="px-1.5 md:px-0">
           <Link
             href={`/admin/changelog#changelog-${format(date, "yyyy-MM-dd")}`}
-            className="block transition-all border border-transparent hover:border-gray-200 mt-2 p-2 rounded-md hover:bg-gray-50 text-blue-600 hover:text-blue-700"
+            className="block transition-all  -md hover:bg-gray-50 text-blue-600 hover:text-blue-700"
           >
-            <div className="space-y-1">
-              <div className="text-xs text-gray-400">
-                {format(date, "MMMM d, yyyy", { locale: enUS })}
-              </div>
-              <div className="text-sm break-words whitespace-pre-wrap">
-                {latestEntry.data.title}
-              </div>
+            <div className="text-[11px] text-gray-400">
+              {format(date, "MMMM d, yyyy", { locale: enUS })}
+            </div>
+            <div className="text-xs break-words whitespace-pre-wrap leading-tight">
+              {latestEntry.data.title}
             </div>
           </Link>
-        </div>
-      </div>
+        </SidebarGroupContent>
+      </SidebarGroup>
     </>
   );
 }

@@ -4,6 +4,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -11,7 +12,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { DollarSignIcon, BarChart3Icon, UsersIcon, SettingsIcon, CheckCheckIcon } from "lucide-react";
+import {
+  DollarSignIcon,
+  BarChart3Icon,
+  UsersIcon,
+  SettingsIcon,
+  CheckCheckIcon,
+} from "lucide-react";
 
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
@@ -30,11 +37,16 @@ import React from "react";
 import { NavUser } from "./NavUser";
 import { getFlag } from "@/app/flags";
 import { usePathname } from "next/navigation";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import OmniSidebarFooter from "./OmniSidebarFooter";
 import SectionHeader from "@/components/SectionHeader";
 import { OmniCommandsButton } from "./OmniCommands";
+import { LucideIcon } from "lucide-react";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -43,6 +55,20 @@ const GET_USER_PHOTO = gql`
     }
   }
 `;
+
+interface MenuItem {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+}
+
+interface SidebarSection {
+  section: string;
+  items: MenuItem[];
+  icon: LucideIcon;
+  tooltip: string;
+  show?: boolean;
+}
 
 export function OmniSidebar() {
   const { data: session } = useSession();
@@ -53,28 +79,18 @@ export function OmniSidebar() {
   const { setOpen } = useSidebar();
   const pathname = usePathname();
 
-  const [financialItems, setFinancialItems] = React.useState<
-    Array<{ title: string; url: string; icon: any }>
-  >([]);
-  const [analyticsItems, setAnalyticsItems] = React.useState<
-    Array<{ title: string; url: string; icon: any }>
-  >([]);
-  const [aboutUsItems, setAboutUsItems] = React.useState<
-    Array<{ title: string; url: string; icon: any }>
-  >([]);
-  const [adminItems, setAdminItems] = React.useState<
-    Array<{ title: string; url: string; icon: any }>
-  >([]);
-  const [operationalItems, setOperationalItems] = React.useState<
-    Array<{ title: string; url: string; icon: any }>
-  >([]);
+  const [financialItems, setFinancialItems] = React.useState<MenuItem[]>([]);
+  const [analyticsItems, setAnalyticsItems] = React.useState<MenuItem[]>([]);
+  const [aboutUsItems, setAboutUsItems] = React.useState<MenuItem[]>([]);
+  const [adminItems, setAdminItems] = React.useState<MenuItem[]>([]);
+  const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>(
+    []
+  );
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
-  const [activeItems, setActiveItems] = React.useState<
-    Array<{ title: string; url: string; icon: any }>
-  >([]);
+  const [activeItems, setActiveItems] = React.useState<MenuItem[]>([]);
 
-  const hasFinancialAccess = getFlag('is-fin-user', session?.user?.email);
+  const hasFinancialAccess = getFlag("is-fin-user", session?.user?.email);
 
   React.useEffect(() => {
     async function loadItems() {
@@ -95,32 +111,40 @@ export function OmniSidebar() {
       let initialItems = analytics;
 
       if (hasFinancialAccess) {
-        const isFinancialPath = financial.some(item => pathname.startsWith(item.url));
+        const isFinancialPath = financial.some((item) =>
+          pathname.startsWith(item.url)
+        );
         if (isFinancialPath) {
           initialSection = "Financial";
           initialItems = financial;
         }
       }
 
-      const isAnalyticsPath = analytics.some(item => pathname.startsWith(item.url));
+      const isAnalyticsPath = analytics.some((item) =>
+        pathname.startsWith(item.url)
+      );
       if (isAnalyticsPath) {
         initialSection = "Analytics";
         initialItems = analytics;
       }
 
-      const isOperationalSummariesPath = operationalSummaries.some(item => pathname.startsWith(item.url));
+      const isOperationalSummariesPath = operationalSummaries.some((item) =>
+        pathname.startsWith(item.url)
+      );
       if (isOperationalSummariesPath) {
         initialSection = "Operational Summaries";
         initialItems = operationalSummaries;
       }
 
-      const isAboutUsPath = aboutUs.some(item => pathname.startsWith(item.url));
+      const isAboutUsPath = aboutUs.some((item) =>
+        pathname.startsWith(item.url)
+      );
       if (isAboutUsPath) {
         initialSection = "About Us";
         initialItems = aboutUs;
       }
 
-      const isAdminPath = admin.some(item => pathname.startsWith(item.url));
+      const isAdminPath = admin.some((item) => pathname.startsWith(item.url));
       if (isAdminPath) {
         initialSection = "Administrative";
         initialItems = admin;
@@ -135,14 +159,15 @@ export function OmniSidebar() {
   return (
     <Sidebar
       collapsible="icon"
+      variant="floating"
       className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
     >
       {/* First sidebar - Section selection */}
       <Sidebar
         collapsible="none"
-        className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
+        className="gray !w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
       >
-        <SidebarHeader>
+        {/* <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
@@ -158,113 +183,72 @@ export function OmniSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarHeader>
+        </SidebarHeader> */}
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
-                {hasFinancialAccess && financialItems.length > 0 && (
-                  <SidebarMenuItem>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton
-                            isActive={activeSection === "Financial"}
-                            onClick={() => {
-                              setActiveSection("Financial");
-                              setActiveItems(financialItems);
-                              setOpen(true);
-                            }}
-                          >
-                            <DollarSignIcon className="size-4" />
-                            <span>Financial</span>
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">Financial</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </SidebarMenuItem>
+                {(
+                  [
+                    hasFinancialAccess && {
+                      section: "Financial",
+                      items: financialItems,
+                      icon: DollarSignIcon,
+                      tooltip: "Financial",
+                      show: financialItems.length > 0,
+                    },
+                    {
+                      section: "Analytics",
+                      items: analyticsItems,
+                      icon: BarChart3Icon,
+                      tooltip: "Analytics",
+                    },
+                    {
+                      section: "About Us",
+                      items: aboutUsItems,
+                      icon: UsersIcon,
+                      tooltip: "About Us",
+                    },
+                    {
+                      section: "Operational Summaries",
+                      items: operationalItems,
+                      icon: CheckCheckIcon,
+                      tooltip: "Operational",
+                    },
+                    {
+                      section: "Administrative",
+                      items: adminItems,
+                      icon: SettingsIcon,
+                      tooltip: "Admin",
+                    },
+                  ].filter(Boolean) as SidebarSection[]
+                ).map(
+                  (item) =>
+                    item.show !== false && (
+                      <SidebarMenuItem key={item.section}>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SidebarMenuButton
+                                isActive={activeSection === item.section}
+                                onClick={() => {
+                                  setActiveSection(item.section);
+                                  setActiveItems(item.items);
+                                  setOpen(true);
+                                }}
+                              >
+                                <item.icon className="size-4" />
+                                <span>{item.section}</span>
+                              </SidebarMenuButton>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              {item.tooltip}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </SidebarMenuItem>
+                    )
                 )}
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          isActive={activeSection === "Analytics"}
-                          onClick={() => {
-                            setActiveSection("Analytics");
-                            setActiveItems(analyticsItems);
-                            setOpen(true);
-                          }}
-                        >
-                          <BarChart3Icon className="size-4" />
-                          <span>Analytics</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Analytics</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          isActive={activeSection === "About Us"}
-                          onClick={() => {
-                            setActiveSection("About Us");
-                            setActiveItems(aboutUsItems);
-                            setOpen(true);
-                          }}
-                        >
-                          <UsersIcon className="size-4" />
-                          <span>About Us</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">About Us</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          isActive={activeSection === "Operational Summaries"}
-                          onClick={() => {
-                            setActiveSection("Operational Summaries");
-                            setActiveItems(operationalItems);
-                            setOpen(true);
-                          }}
-                        >
-                          <CheckCheckIcon className="size-4" />
-                          <span>Operational Summaries</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Operational</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          isActive={activeSection === "Administrative"}
-                          onClick={() => {
-                            setActiveSection("Administrative");
-                            setActiveItems(adminItems);
-                            setOpen(true);
-                          }}
-                        >
-                          <SettingsIcon className="size-4" />
-                          <span>Administrative</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Admin</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -277,19 +261,21 @@ export function OmniSidebar() {
       {/* Second sidebar - Items for selected section */}
       <Sidebar collapsible="none" className="hidden flex-1 md:flex">
         <SidebarContent>
-          <SidebarGroup className="px-0">
+          <div className="m-2">
+            <div>
+              <OmniCommandsButton />
+            </div>
+          </div>
+          <SidebarGroup>
+            <SidebarGroupLabel>{activeSection}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                
-                <div className="mr-2 ml-2">
-                  <div className="mb-4">
-                    <OmniCommandsButton />
-                  </div>
-                  <SectionHeader title={activeSection} subtitle="" />
-                </div>
                 {activeItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.url)}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname.startsWith(item.url)}
+                    >
                       <Link href={item.url}>
                         {/* <item.icon /> */}
                         <span>{item.title}</span>
