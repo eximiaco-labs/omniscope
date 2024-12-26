@@ -143,6 +143,22 @@ def compute_forecast(date_of_interest = None, filters = None):
     forecast_revenue_trackings = ForecastRevenueTrackings(forecast_dates, filters)
     forecast_working_days = ForecastNumberOfWorkingDays(date_of_interest, forecast_dates)
     
+    daily = {
+        date['date']: {
+            "date": date['date'],
+            "actual": {
+                "total_consulting_fee": date['total_consulting_fee'],
+                "total_consulting_hours": date['total_consulting_hours']
+            },
+            "expected": {
+                "total_consulting_fee": 0,
+                "total_consulting_hours": 0
+            }
+        }
+        for date in forecast_revenue_trackings.date_of_interest['regular']['daily']
+    }
+    
+    
     def summarize_forecast(slug):
         clients: Dict[str, forecast_types.ClientForecast] = {}
         sponsors: Dict[str, forecast_types.SponsorForecast] = {}
@@ -292,7 +308,10 @@ def compute_forecast(date_of_interest = None, filters = None):
                         
                         if date in working_days_in_month:
                             hours_in_month += daily_approved_hours
-
+                            if date.date() in daily:
+                                daily[date.date()]['expected']['total_consulting_fee'] += daily_approved_hours * (project_.rate.rate / 100)
+                                daily[date.date()]['expected']['total_consulting_hours'] += daily_approved_hours
+                            
                     setattr(case, labels_expected[n], hours_in_month * (project_.rate.rate / 100))
                     
                     month += 1
@@ -410,9 +429,36 @@ def compute_forecast(date_of_interest = None, filters = None):
         "same_day_three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_three_months_ago_consulting_hours for kind in result["by_kind"]),
     }
     
+    daily = sorted(list(daily.values()), key=lambda x: x['date'])
+    expected_acc_total_consulting_fee = 0
+    expected_acc_total_consulting_hours = 0
+    actual_acc_total_consulting_fee = 0
+    actual_acc_total_consulting_hours = 0
+    for d in daily:
+        expected = d['expected']
+        actual = d['actual']
+        
+        expected_acc_total_consulting_fee += expected['total_consulting_fee']
+        expected_acc_total_consulting_hours += expected['total_consulting_hours']
+        actual_acc_total_consulting_fee += actual['total_consulting_fee']
+        actual_acc_total_consulting_hours += actual['total_consulting_hours']   
+        
+        d['expected']['acc_total_consulting_fee'] = expected_acc_total_consulting_fee
+        d['expected']['acc_total_consulting_hours'] = expected_acc_total_consulting_hours
+        
+        d['actual']['acc_total_consulting_fee'] = actual_acc_total_consulting_fee
+        d['actual']['acc_total_consulting_hours'] = actual_acc_total_consulting_hours
+        
+        d['difference'] = {
+            "total_consulting_fee": actual['total_consulting_fee'] - expected['total_consulting_fee'],
+            "total_consulting_hours": actual['total_consulting_hours'] - expected['total_consulting_hours'],
+            "acc_total_consulting_fee": actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
+            "acc_total_consulting_hours": actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
+        }
+    
     result["summary"] = summary
     result["working_days"] = forecast_working_days
-    
+    result["daily"] = daily
     return result
 
     

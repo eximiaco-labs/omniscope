@@ -550,6 +550,21 @@ type Forecast {
   summary: ForecastTotalMetrics!
   filterableFields: [FilterableField]!
   workingDays: ForecastWorkingDayMetrics!
+  daily: [ForecastTrackingDaily!]!
+}
+
+type ForecastTrackingDaily {
+  date: Date!
+  actual: ForecastTrackingDailyEntry!
+  expected: ForecastTrackingDailyEntry!
+  difference: ForecastTrackingDailyEntry!
+}
+
+type ForecastTrackingDailyEntry {
+  totalConsultingFee: Float!
+  totalConsultingHours: Float!
+  accTotalConsultingFee: Float!
+  accTotalConsultingHours: Float!
 }
 
 type ForecastTimePeriods {
