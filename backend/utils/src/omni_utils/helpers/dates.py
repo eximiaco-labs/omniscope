@@ -26,6 +26,11 @@ def get_same_day_one_month_later(date_of_interest):
         y += 1
     return datetime(y, m, d, 23, 59, 59, 999999)
 
+def get_first_day_of_month(date_of_interest):
+    y = date_of_interest.year
+    m = date_of_interest.month
+    return datetime(y, m, 1, 0, 0, 0, 0)
+
 def get_last_day_of_month(date_of_interest):
     y = date_of_interest.year
     m = date_of_interest.month

@@ -4,6 +4,7 @@ from omni_shared import globals
 from datetime import date, datetime, timedelta
 from omni_utils.helpers.slug import slugify
 from omni_models.domain.cases import Case
+from omni_utils.helpers.dates import get_first_day_of_month, get_last_day_of_month
 import pandas as pd
 from dataclasses import dataclass
 
@@ -19,32 +20,44 @@ def _get_account_manager_name(case):
     return client.account_manager.name if client and client.account_manager else NA_VALUE
 
 def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, process_project, account_manager_name_or_slug: str = None):
+    
+    first_day_of_month = get_first_day_of_month(date_of_interest)
+    last_day_of_month = get_last_day_of_month(date_of_interest)
+    
+    current_day = first_day_of_month
+    daily = {}
+    while current_day <= last_day_of_month:
+        daily[current_day.date()] = {
+            "date": current_day.date(),
+            "total_consulting_fee": 0,
+            "total_consulting_hours": 0,
+        }
+        current_day = current_day + timedelta(days=1)
+        
+    
+    default_result = {
+        "monthly": {
+            "total": 0,
+            "total_consulting_fee": 0,
+            "total_consulting_fee_new": 0,
+            "total_consulting_pre_fee": 0,
+            "total_consulting_hours": 0,
+            "total_consulting_pre_hours": 0,
+            "total_hands_on_fee": 0,
+            "total_squad_fee": 0,
+            "by_account_manager": []
+        },
+        "daily": []
+    }
+    
     pro_rata_info = { "by_kind": [] }
     
     if df is None or len(df) == 0:
-        return {
-            "monthly": {
-                "total": 0,
-                "total_consulting_fee": 0,
-                "total_consulting_pre_fee": 0,
-                "total_hands_on_fee": 0,
-                "total_squad_fee": 0,
-                "by_account_manager": []
-            }
-        }, pro_rata_info
+        return default_result, pro_rata_info
         
     df = df[df["Kind"] != INTERNAL_KIND]
     if len(df) == 0:
-        return {
-            "monthly": {
-                "total": 0,
-                "total_consulting_fee": 0,
-                "total_consulting_pre_fee": 0,
-                "total_hands_on_fee": 0,
-                "total_squad_fee": 0,
-                "by_account_manager": []
-            }
-        }, pro_rata_info
+        return default_result, pro_rata_info
     
     if account_manager_name_or_slug:
         df_ = df[df["AccountManagerName"] == account_manager_name_or_slug]
@@ -52,16 +65,7 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
             df_ = df[df["AccountManagerSlug"] == account_manager_name_or_slug]
         df = df_
         if len(df) == 0:
-            return {
-                "monthly": {
-                    "total": 0,
-                    "total_consulting_fee": 0,
-                    "total_consulting_pre_fee": 0,
-                    "total_hands_on_fee": 0,
-                    "total_squad_fee": 0,
-                    "by_account_manager": []
-                }
-            }, pro_rata_info
+            return default_result, pro_rata_info
     
     case_ids = df["CaseId"].unique()
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
@@ -94,6 +98,15 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                             project_data = process_project(date_of_interest, case, project, df, pro_rata_info)
                             if project_data:
                                 by_project.append(project_data)
+                            
+                                if project.kind == "consulting" and not project_data["fixed"]:
+                                    project_df = df[df["ProjectId"] == project.id]
+                                    
+                                    if len(project_df) > 0:
+                                        for date in project_df["Date"].unique():
+                                            date_df = project_df[project_df["Date"] == date]
+                                            daily[date]["total_consulting_fee"] += date_df["Revenue"].sum()  
+                                            daily[date]["total_consulting_hours"] += date_df["TimeInHs"].sum()
                     
                         if len(by_project) > 0:
                             consulting_hours = sum(
@@ -219,7 +232,8 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
             "total_hands_on_fee": total_hands_on_fee,
             "total_squad_fee": total_squad_fee,
             "by_account_manager": by_account_manager
-        }
+        },
+        "daily": list(daily.values())
     }, pro_rata_info
 
 def compute_regular_revenue_tracking(

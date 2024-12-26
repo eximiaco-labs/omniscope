@@ -115,7 +115,30 @@ interface ForecastSection {
   totals: ForecastTotals;
 }
 
+export interface DailyData {
+  date: string;
+  actual: {
+    totalConsultingFee: number;
+    totalConsultingHours: number;
+    accTotalConsultingFee: number;
+    accTotalConsultingHours: number;
+  };
+  expected: {
+    totalConsultingFee: number;
+    totalConsultingHours: number;
+    accTotalConsultingFee: number;
+    accTotalConsultingHours: number;
+  };
+  difference: {
+    totalConsultingFee: number;
+    totalConsultingHours: number;
+    accTotalConsultingFee: number;
+    accTotalConsultingHours: number;
+  };
+}
+
 interface ForecastData {
+  daily: DailyData[];
   consulting: ForecastSection;
   consultingPre: {
     clients: Array<{
@@ -269,9 +292,7 @@ interface ForecastData {
       current: number;
     };
   };
-}
-
-export function getForecastData(data: any): ForecastData {
+}export function getForecastData(data: any): ForecastData {
   const mapConsultingItem = (item: any) => ({
     name: item.name,
     title: item.title,
@@ -423,6 +444,8 @@ export function getForecastData(data: any): ForecastData {
   const consultingClients = data.forecast.byKind.consulting.byClient.map(mapConsultingItem);
 
   return {
+    daily: data.forecast.daily,
+
     consulting: {
       clients: consultingClients,
       sponsors: data.forecast.byKind.consulting.bySponsor.map(mapConsultingItem),
@@ -566,6 +589,7 @@ export function processForecastData(data: any): ForecastData {
     console.error('Erro ao processar dados de previsão:', error);
     // Retorna uma estrutura de dados vazia mas válida
     return {
+      daily: [],
       consulting: {
         clients: [],
         sponsors: [],
@@ -598,3 +622,4 @@ export function processForecastData(data: any): ForecastData {
     };
   }
 } 
+

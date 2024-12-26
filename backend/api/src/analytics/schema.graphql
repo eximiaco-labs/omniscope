@@ -392,6 +392,7 @@ type RevenueTrackingPreContracted {
 
 type RevenueTrackingRegular {
   monthly: RevenueTrackingMonthly!
+  daily: [RevenueTrackingDaily!]!
 }
 
 type RevenueTrackingSummaries {
@@ -449,6 +450,12 @@ type RevenueTrackingMonthly {
   totalHandsOnFee: Float!
   totalSquadFee: Float!
   byAccountManager: [RevenueTrackingByAccountManager!]!
+}
+
+type RevenueTrackingDaily {
+  date: Date!
+  totalConsultingFee: Float!
+  totalConsultingHours: Float!
 }
 
 type RevenueTrackingByAccountManager {
@@ -543,6 +550,21 @@ type Forecast {
   summary: ForecastTotalMetrics!
   filterableFields: [FilterableField]!
   workingDays: ForecastWorkingDayMetrics!
+  daily: [ForecastTrackingDaily!]!
+}
+
+type ForecastTrackingDaily {
+  date: Date!
+  actual: ForecastTrackingDailyEntry!
+  expected: ForecastTrackingDailyEntry!
+  difference: ForecastTrackingDailyEntry!
+}
+
+type ForecastTrackingDailyEntry {
+  totalConsultingFee: Float
+  totalConsultingHours: Float
+  accTotalConsultingFee: Float
+  accTotalConsultingHours: Float
 }
 
 type ForecastTimePeriods {
