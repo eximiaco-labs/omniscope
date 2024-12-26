@@ -89,6 +89,13 @@ export const GET_ACCOUNT_MANAGER = gql`
           totalSquadHours
           totalInternalHours
         }
+        businessCalendar {
+          workingDays
+          holidays {
+            date
+            reason
+          }
+        }
       }
 
       timesheet2: timesheet(slug: $dataset2) {
@@ -111,6 +118,13 @@ export const GET_ACCOUNT_MANAGER = gql`
           totalHandsOnHours
           totalSquadHours
           totalInternalHours
+        }
+        businessCalendar {
+          workingDays
+          holidays {
+            date
+            reason
+          }
         }
       }
 

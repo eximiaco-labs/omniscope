@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { STAT_COLORS, StatType } from "@/app/constants/colors";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type DayData = {
   day?: number;
@@ -11,6 +12,8 @@ type DayData = {
     squad: number;
     internal: number;
   };
+  isHoliday?: boolean;
+  holidayReason?: string;
 }
 
 type DayCellProps = {
@@ -112,14 +115,14 @@ const DayCell = ({
   selectedStatType,
   onDayClick
 }: DayCellProps) => {
-  const { type, hours } = dayData;
+  const { type, hours, isHoliday, holidayReason } = dayData;
   const day = 'day' in dayData ? dayData.day : undefined;
   const statHours = hours[selectedStatType];
 
   const isSelectable = type === 'current' && statHours > 0;
   const isHighlighted = isSelected || selectedColumn === dayIndex || selectedRow === weekIndex || isAllSelected;
 
-  return (
+  const dayContent = (
     <div
       onClick={() => {
         if (isSelectable && day !== undefined) {
@@ -132,10 +135,11 @@ const DayCell = ({
         ${isSelectable ? 'cursor-pointer hover:bg-gray-100' : ''}
         ${type === 'current' ? '' : type === 'total' ? 'bg-gray-50' : 'text-gray-400'}
         ${isHighlighted ? 'ring-2 ring-blue-500 ring-inset' : ''}
+        ${isHoliday && type === 'current' ? 'bg-red-100' : ''}
       `}
     >
       {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
-      <span className="absolute top-[15px] left-1/2 transform -translate-x-1/2 text-[12px]">{day}</span>
+      <span className={`absolute top-[15px] left-1/2 transform -translate-x-1/2 text-[12px] ${isHoliday && type === 'current' ? 'text-red-600 font-semibold' : ''}`}>{day}</span>
       {statHours > 0 && (
         <>
           <span style={{color: type === 'current' ? STAT_COLORS[selectedStatType] : '#9CA3AF'}} className="absolute bottom-[15px] left-1/2 transform -translate-x-1/2 block">{Number.isInteger(statHours) ? statHours : statHours.toFixed(1)}h</span>
@@ -144,6 +148,23 @@ const DayCell = ({
       )}
     </div>
   );
+
+  if (type === 'current') {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {dayContent}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isHoliday ? holidayReason : statHours > 0 ? `${statHours} hours allocated` : 'No hours allocated'}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return dayContent;
 };
 
 interface AllocationCalendarProps {
@@ -216,6 +237,16 @@ export function AllocationCalendar({
       squad: dayData?.totalSquadHours || 0,
       internal: dayData?.totalInternalHours || 0
     };
+  };
+
+  const isHoliday = (date: Date) => {
+    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    return timesheet.businessCalendar?.holidays?.find((h: { date: string }) => {
+      const holidayDate = new Date(new Date(h.date).getTime() + (24 * 60 * 60 * 1000));
+      
+      const formattedHolidayDate = `${holidayDate.getFullYear()}-${(holidayDate.getMonth() + 1).toString().padStart(2, '0')}-${holidayDate.getDate().toString().padStart(2, '0')}`;
+      return formattedHolidayDate === formattedDate;
+    });
   };
 
   const handleDayClick = (day: number, type: 'prev' | 'current' | 'next', rowIndex: number) => {
@@ -291,9 +322,14 @@ export function AllocationCalendar({
         >
           ←
         </button>
-        <span className="text-lg font-semibold">
-          {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}
-        </span>
+        <div className="flex flex-col items-center">
+          <span className="text-lg font-semibold">
+            {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+          </span>
+          <span className="text-sm text-gray-500">
+            {timesheet.businessCalendar?.workingDays.filter((date: string) => new Date(date).getMonth() === selectedDate.getMonth()).length} working days
+          </span>
+        </div>
         <button 
           onClick={() => handleMonthChange(1)}
           className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
@@ -354,20 +390,26 @@ export function AllocationCalendar({
           // Get last few days of previous month only if needed
           const previousMonthDays = Array.from({ length: startingDayOfWeek }, (_, i) => {
             const date = new Date(currentYear, currentMonth, -i);
+            const holiday = isHoliday(date);
             return {
               day: date.getDate(),
               type: 'prev' as const,
-              hours: getHoursForDate(date)
+              hours: getHoursForDate(date),
+              isHoliday: !!holiday,
+              holidayReason: holiday?.reason
             };
           }).reverse();
 
           // Current month days
           const currentMonthDays = Array.from({ length: daysInMonth }, (_, i) => {
             const date = new Date(currentYear, currentMonth, i + 1);
+            const holiday = isHoliday(date);
             return {
               day: i + 1,
               type: 'current' as const,
-              hours: getHoursForDate(date)
+              hours: getHoursForDate(date),
+              isHoliday: !!holiday,
+              holidayReason: holiday?.reason
             };
           });
 
@@ -375,10 +417,13 @@ export function AllocationCalendar({
           const remainingDays = totalCells - (previousMonthDays.length + currentMonthDays.length);
           const nextMonthDays = Array.from({ length: remainingDays }, (_, i) => {
             const date = new Date(currentYear, currentMonth + 1, i + 1);
+            const holiday = isHoliday(date);
             return {
               day: i + 1,
               type: 'next' as const,
-              hours: getHoursForDate(date)
+              hours: getHoursForDate(date),
+              isHoliday: !!holiday,
+              holidayReason: holiday?.reason
             };
           });
 

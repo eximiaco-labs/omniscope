@@ -64,6 +64,13 @@ export const GET_CASE_BY_SLUG = gql`
           comment
           timeInHs
         }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
+        }
         byDate {
           date
           totalHours
@@ -82,6 +89,13 @@ export const GET_CASE_BY_SLUG = gql`
           workerName
           comment
           timeInHs
+        }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
         }
         byDate {
           date
