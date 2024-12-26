@@ -440,8 +440,26 @@ def compute_forecast(date_of_interest = None, filters = None):
         
         expected_acc_total_consulting_fee += expected['total_consulting_fee']
         expected_acc_total_consulting_hours += expected['total_consulting_hours']
-        actual_acc_total_consulting_fee += actual['total_consulting_fee']
-        actual_acc_total_consulting_hours += actual['total_consulting_hours']   
+        
+        if d['date'] <= date_of_interest.date():
+            actual_acc_total_consulting_fee += actual['total_consulting_fee']
+            actual_acc_total_consulting_hours += actual['total_consulting_hours'] 
+            d['difference'] = {
+                "total_consulting_fee": actual['total_consulting_fee'] - expected['total_consulting_fee'],
+                "total_consulting_hours": actual['total_consulting_hours'] - expected['total_consulting_hours'],
+                "acc_total_consulting_fee": actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
+                "acc_total_consulting_hours": actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
+            }
+        else:
+            actual_acc_total_consulting_fee = None
+            actual_acc_total_consulting_hours = None
+            d['difference'] = {
+                "total_consulting_fee": None,
+                "total_consulting_hours": None,
+                "acc_total_consulting_fee": None,
+                "acc_total_consulting_hours": None
+            }
+
         
         d['expected']['acc_total_consulting_fee'] = expected_acc_total_consulting_fee
         d['expected']['acc_total_consulting_hours'] = expected_acc_total_consulting_hours
@@ -449,12 +467,12 @@ def compute_forecast(date_of_interest = None, filters = None):
         d['actual']['acc_total_consulting_fee'] = actual_acc_total_consulting_fee
         d['actual']['acc_total_consulting_hours'] = actual_acc_total_consulting_hours
         
-        d['difference'] = {
-            "total_consulting_fee": actual['total_consulting_fee'] - expected['total_consulting_fee'],
-            "total_consulting_hours": actual['total_consulting_hours'] - expected['total_consulting_hours'],
-            "acc_total_consulting_fee": actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
-            "acc_total_consulting_hours": actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
-        }
+        # d['difference'] = {
+        #     "total_consulting_fee": actual['total_consulting_fee'] - expected['total_consulting_fee'],
+        #     "total_consulting_hours": actual['total_consulting_hours'] - expected['total_consulting_hours'],
+        #     "acc_total_consulting_fee": actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
+        #     "acc_total_consulting_hours": actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
+        # }
     
     result["summary"] = summary
     result["working_days"] = forecast_working_days

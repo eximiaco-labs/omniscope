@@ -561,10 +561,10 @@ type ForecastTrackingDaily {
 }
 
 type ForecastTrackingDailyEntry {
-  totalConsultingFee: Float!
-  totalConsultingHours: Float!
-  accTotalConsultingFee: Float!
-  accTotalConsultingHours: Float!
+  totalConsultingFee: Float
+  totalConsultingHours: Float
+  accTotalConsultingFee: Float
+  accTotalConsultingHours: Float
 }
 
 type ForecastTimePeriods {

@@ -15,6 +15,7 @@ import { ConsultingTableByConsultant } from "./ConsultingTableByConsultant";
 import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
 import { ConsultingPreTable } from "./ConsultingPreTable";
+import { GraphVizDaily } from "./GraphVizDaily";
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -226,6 +227,8 @@ export default function RevenueForecastPage() {
           setNormalized={setNormalized}
           setUseHistorical={setUseHistorical}
         />
+
+        <GraphVizDaily data={forecastData.daily} />
 
         <ConsultingTableByConsultant
           title="Consulting"

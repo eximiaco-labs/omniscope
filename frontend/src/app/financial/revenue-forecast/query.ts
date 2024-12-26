@@ -9,6 +9,27 @@ export const REVENUE_FORECAST_QUERY = gql`
         options
         selectedValues
       }
+      daily {
+        date
+        actual {
+          totalConsultingFee
+          totalConsultingHours
+          accTotalConsultingFee
+          accTotalConsultingHours
+        }
+        expected {
+          totalConsultingFee
+          totalConsultingHours
+          accTotalConsultingFee
+          accTotalConsultingHours
+        }
+        difference {
+          totalConsultingFee
+          totalConsultingHours
+          accTotalConsultingFee
+          accTotalConsultingHours
+        }
+      }
       dates {
         inAnalysis
         sameDayOneMonthAgo
