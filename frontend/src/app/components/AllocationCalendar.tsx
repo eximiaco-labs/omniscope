@@ -62,7 +62,7 @@ const DayOfWeekTotalCell = ({ hours, index, grandTotal, selectedColumn, isAllSel
       {statHours > 0 && (
         <>
           {index < 7 && grandTotal && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{((statHours / grandTotal) * 100).toFixed(1)}%</span>}
-          <span style={{color: STAT_COLORS[selectedStatType]}}>{Number.isInteger(statHours) ? `${statHours}h` : `${statHours.toFixed(1)}h`}</span>
+          <span className="text-[14px]" style={{color: STAT_COLORS[selectedStatType]}}>{Number.isInteger(statHours) ? `${statHours}h` : `${statHours.toFixed(1)}h`}</span>
         </>
       )}
     </div>
@@ -94,7 +94,7 @@ const WeekTotalCell = ({
       {statHours > 0 && (
         <>
           {rowPercentage && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{rowPercentage}%</span>}
-          <span style={{color: STAT_COLORS[selectedStatType]}} className="absolute top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">{statHours.toFixed(1)}h</span>
+          <span  style={{color: STAT_COLORS[selectedStatType]}} className="absolute text-[14px] top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">{statHours.toFixed(1)}h</span>
           {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
         </>
       )}
@@ -142,7 +142,7 @@ const DayCell = ({
       <span className={`absolute top-[15px] left-1/2 transform -translate-x-1/2 text-[12px] ${isHoliday && type === 'current' ? 'text-red-600 font-semibold' : ''}`}>{day}</span>
       {statHours > 0 && (
         <>
-          <span style={{color: type === 'current' ? STAT_COLORS[selectedStatType] : '#9CA3AF'}} className="absolute bottom-[15px] left-1/2 transform -translate-x-1/2 block">{Number.isInteger(statHours) ? statHours : statHours.toFixed(1)}h</span>
+          <span style={{color: type === 'current' ? STAT_COLORS[selectedStatType] : '#9CA3AF'}} className="absolute bottom-[15px] text-[14px] left-1/2 transform -translate-x-1/2 block">{Number.isInteger(statHours) ? statHours : statHours.toFixed(1)}h</span>
           {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
         </>
       )}
@@ -362,7 +362,7 @@ export function AllocationCalendar({
             key={day}
             onClick={() => handleColumnSelect(index)}
             className={`
-              text-center p-2 text-sm font-semibold text-gray-600 border-b border-r border-gray-200 last:border-r-0 h-[70px] 
+              text-center p-2 text-[12px] text-[#3f3f46b2] border-b border-r border-gray-200 last:border-r-0 h-[70px] 
               flex items-center justify-center cursor-pointer
               ${(selectedColumn === index && !isAllSelected) || (isAllSelected) ? 'ring-2 ring-blue-500 ring-inset' : ''}
             `}
