@@ -59,7 +59,7 @@ export function OmniCommandsButton() {
     <>
       <Button
         variant="outline"
-        className="relative h-9 w-60 justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-64 lg:w-80"
+        className="relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground"
         onClick={() => setOpen(true)}
       >
         <MagnifyingGlassIcon className="mr-2 h-4 w-4" />

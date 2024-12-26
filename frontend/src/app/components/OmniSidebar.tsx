@@ -34,6 +34,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { TooltipProvider } from "@/components/ui/tooltip";
 import OmniSidebarFooter from "./OmniSidebarFooter";
 import SectionHeader from "@/components/SectionHeader";
+import { OmniCommandsButton } from "./OmniCommands";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -279,7 +280,11 @@ export function OmniSidebar() {
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
               <SidebarMenu>
+                
                 <div className="mr-2 ml-2">
+                  <div className="mb-4">
+                    <OmniCommandsButton />
+                  </div>
                   <SectionHeader title={activeSection} subtitle="" />
                 </div>
                 {activeItems.map((item) => (

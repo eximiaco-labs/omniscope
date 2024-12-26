@@ -105,15 +105,11 @@ export default function RootLayout({
                               className="mr-2 h-4"
                             />
                             <OmniBreadcrumb currentPage="Data Fetching" />
-                            <div className="ml-auto">
-                              <OmniCommandsButton />
-                            </div>
                           </div>
                         </header>
                         <main>
                           <div className="container mx-auto px-4">
                             <InconsistencyAlerts />
-                            <OmniHitRefresh />
                             {children}
                           </div>
                         </main>
