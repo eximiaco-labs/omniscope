@@ -1,6 +1,7 @@
 from ariadne import QueryType, gql
 from pathlib import Path
 
+from business_calendar import resolve_business_calendar
 from domain import setup_query_for_domain
 from datasets import setup_query_for_datasets
 from analytics import setup_query_for_analytics
@@ -42,6 +43,7 @@ def resolve_timesheet_cache(_, info, after = None, before = None):
     return globals.omni_datasets.timesheets.memory.list_cache(after, before)
 
 
+query.set_field('businessCalendar', resolve_business_calendar)
 query.set_field('inconsistencies', resolve_inconsistencies)
 query.set_field('cache', resolve_cache)
 query.set_field('timesheetCache', resolve_timesheet_cache)
