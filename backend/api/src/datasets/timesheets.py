@@ -9,6 +9,8 @@ from graphql import GraphQLResolveInfo
 from utils.fields import build_fields_map, get_requested_fields_from, get_selections_from_info
 from omni_utils.helpers.slug import slugify
 
+from business_calendar import compute_business_calendar
+
 from omni_shared import globals
 
 
@@ -226,6 +228,7 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
 
     timesheet = globals.omni_datasets.get_by_slug(slug)
     source = globals.omni_datasets.get_dataset_source_by_slug(slug)
+    dates = globals.omni_datasets.get_dates(slug)
     df = timesheet.data
 
     # Filter the dataframe based on the 'kind' parameter
@@ -247,6 +250,9 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None):
     # Base summary
     if base_fields:
         result.update(summarize(df))
+        
+    if 'businessCalendar' in requested_fields:
+        result['business_calendar'] = compute_business_calendar(dates[0], dates[1])
 
     # By kind
     if 'byKind' in requested_fields:

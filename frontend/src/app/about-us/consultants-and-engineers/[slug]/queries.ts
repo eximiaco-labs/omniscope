@@ -45,6 +45,13 @@ export const GET_CONSULTANT = gql`
           comment
           timeInHs
         }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
+        }
         byDate {
           date
           totalHours
@@ -65,6 +72,13 @@ export const GET_CONSULTANT = gql`
           sponsor
           comment
           timeInHs
+        }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
         }
         byDate {
           date

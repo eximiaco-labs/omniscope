@@ -7,7 +7,7 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx,css}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx,css}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx,css}",
-    "./src/styles/**/*.{css}",
+    "./src/styles/**/*.css",
     "./node_modules/react-tailwindcss-select/dist/index.esm.js"
   ],
   theme: {

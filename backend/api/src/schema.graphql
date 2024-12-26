@@ -10,6 +10,16 @@ type Inconsistency {
   description: String!
 }
 
+type BusinessCalendar {
+  workingDays: [Date!]!
+  holidays: [BusinessCalendarHoliday!]!
+}
+
+type BusinessCalendarHoliday {
+  date: Date!
+  reason: String!
+}
+
 type Query {
   inconsistencies: [Inconsistency]!
 
@@ -49,6 +59,7 @@ type Query {
 
   staleliness: Staleliness!
 
+  businessCalendar(start: Date!, end: Date!): BusinessCalendar!
   cache: [CacheItem!]!
   timesheetCache(after: Date, before: Date): [TimesheetCacheItem!]!
 }

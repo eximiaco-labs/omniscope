@@ -1,14 +1,18 @@
 import { gql } from "@apollo/client";
 
 export const GET_CLIENT_BY_SLUG = gql`
-  query GetClientBySlug($slug: String!, $dataset1: String!, $dataset2: String!) {
+  query GetClientBySlug(
+    $slug: String!
+    $dataset1: String!
+    $dataset2: String!
+  ) {
     client(slug: $slug) {
       name
       logoUrl
       ontologyUrl
       isStrategic
 
-        forecast {
+      forecast {
         dateOfInterest
         filterableFields {
           field
@@ -44,6 +48,13 @@ export const GET_CLIENT_BY_SLUG = gql`
           comment
           timeInHs
         }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
+        }
         byDate {
           date
           totalHours
@@ -64,6 +75,13 @@ export const GET_CLIENT_BY_SLUG = gql`
           sponsor
           comment
           timeInHs
+        }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
         }
         byDate {
           date
@@ -112,12 +130,15 @@ export const GET_CLIENT_TIMESHEET = gql`
       }
     }
 
-    timesheet(slug: $datasetSlug, filters: [{ field: "ClientName", selectedValues: [$clientName] }]) {
+    timesheet(
+      slug: $datasetSlug
+      filters: [{ field: "ClientName", selectedValues: [$clientName] }]
+    ) {
       uniqueClients
       uniqueCases
       uniqueWorkers
       totalHours
-      
+
       byKind {
         consulting {
           uniqueClients

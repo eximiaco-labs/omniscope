@@ -146,13 +146,8 @@ export function getOperationalSummariesSidebarItems() {
 export function getAdministrativeSidebarItems() {
   return [
     {
-      title: "Refresh data",
-      url: "/admnistrative/hit-refresh",
-      icon: RefreshCwIcon,
-    },
-    {
       title: "Changelog",
-      url: "/admnistrative/changelog",
+      url: "/admin/changelog",
       icon: ClipboardListIcon,
     },
   ];

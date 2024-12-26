@@ -52,6 +52,13 @@ export const GET_SPONSOR_BY_SLUG = gql`
           comment
           timeInHs
         }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
+        }
         byDate {
           date
           totalHours
@@ -72,6 +79,13 @@ export const GET_SPONSOR_BY_SLUG = gql`
           caseId
           comment
           timeInHs
+        }
+        businessCalendar {
+          holidays {
+            date
+            reason
+          }
+          workingDays
         }
         byDate {
           date
