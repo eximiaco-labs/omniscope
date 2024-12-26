@@ -137,6 +137,7 @@ type TimesheetSummary implements ISummary {
   byOffer: [NamedSummary!]!
 
   appointments: [Appointment!]!
+  businessCalendar: BusinessCalendar!
 
   filterableFields: [FilterableField]!
 }

@@ -2,6 +2,9 @@ import holidays
 from datetime import datetime, timedelta
 
 def resolve_business_calendar(_, info, start, end):
+    return compute_business_calendar(start, end)
+    
+def compute_business_calendar(start, end):
     if isinstance(start, str):
         start = datetime.strptime(start, '%Y-%m-%d').date()
     if isinstance(end, str):

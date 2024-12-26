@@ -66,6 +66,116 @@ class OmniDatasets:
         self.insights = InsightsDataset(models)
         self.tasks = TasksDataset(models)
 
+    def get_dates(self, slug: str) -> Tuple[datetime, datetime]:
+        if not slug:
+            return None, None
+
+        if slug.startswith('timesheet-') and len(slug.split('-')) == 7:
+            parts = slug.split('-')
+            start_day = int(parts[1])
+            start_month = int(parts[2])
+            start_year = int(parts[3])
+            end_day = int(parts[4])
+            end_month = int(parts[5])
+            end_year = int(parts[6])
+
+            start_date = datetime(start_year, start_month, start_day, 0, 0, 0, 0)
+            end_date = datetime(end_year, end_month, end_day, 23, 59, 59, 9999)
+
+            return start_date, end_date
+
+        if slug.startswith('timesheet-') and len(slug.split('-')) == 5:
+            parts = slug.split('-')
+            start_day = int(parts[1])
+            start_month = int(parts[2])
+            end_day = int(parts[3])
+            end_month = int(parts[4])
+
+            current_year = datetime.now().year
+            
+            start_year = current_year
+            end_year = current_year
+            if start_month > end_month:
+                end_year = current_year + 1
+
+            start_date = datetime(start_year, start_month, start_day, 0, 0, 0, 0)
+            end_date = datetime(end_year, end_month, end_day, 23, 59, 59, 9999)
+
+            return start_date, end_date
+
+        if slug.startswith('timesheet-month-'):
+            parts = slug.split('-')
+            year = int(parts[-2])
+            month = int(parts[-1])
+
+            first, last = monthrange(year, month)
+            first_day = datetime(year, month, 1, 0, 0, 0, 0)
+            last_day = datetime(year, month, last, 23, 59, 59, 9999)
+
+            return first_day, last_day
+
+        if slug.startswith('timesheet-last-six-weeks') and slug != 'timesheet-last-six-weeks':
+            parts = slug.split('-')
+            year = parts[-3]
+            month = parts[-2]
+            day = parts[-1]
+            doi = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d")
+            return None, None  # Special case handled by source.get_last_six_weeks(doi)
+
+        if slug.startswith('timesheet-s'):
+            semester_slug = get_time_part_from_slug(slug)
+            return get_semester_dates(semester_slug)
+
+        if slug.startswith('timesheet-q'):
+            quarter_slug = get_time_part_from_slug(slug)
+            return get_quarter_dates(quarter_slug)
+
+        if slug.endswith('this-month'):
+            now = datetime.now()
+            start = datetime(now.year, now.month, 1, hour=0, minute=0, second=0, microsecond=0)
+            end = datetime(
+                now.year, now.month, calendar.monthrange(now.year, now.month)[1], 
+                hour=23, minute=59, second=59, microsecond=9999
+            )
+            return start, end
+
+        if slug.endswith('previous-month'):
+            now = datetime.now()
+            if now.month == 1:
+                previous_month = 12
+                year = now.year - 1
+            else:
+                previous_month = now.month - 1
+                year = now.year
+            start = datetime(year, previous_month, 1, hour=0, minute=0, second=0, microsecond=0)
+            end = datetime(
+                year, previous_month, calendar.monthrange(year, previous_month)[1],
+                hour=23, minute=59, second=59, microsecond=9999
+            )
+            return start, end
+
+        if slug.endswith('this-week'):
+            start, end = Weeks.get_current_dates()
+            return start, end
+
+        if slug.endswith('previous-week'):
+            start, end = Weeks.get_previous_dates(1)
+            return start, end
+
+        try:
+            month, year = slug.split('-')[-2:]
+            month = list(calendar.month_name).index(month.capitalize())
+            year = int(year)
+            first_day = datetime(year, month, 1, 0, 0, 0, 0)
+            last_day = datetime(
+                year, month, calendar.monthrange(year, month)[1], 
+                23, 59, 59, 9999
+            )
+            return first_day, last_day
+        except:
+            return None, None
+            
+            
     def get_dataset_source_by_slug(self, slug: str) -> OmniDataset:
         if not slug:
             return None
