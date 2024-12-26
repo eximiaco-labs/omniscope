@@ -9,7 +9,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DailyData } from "./forecastData";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, ComposedChart, XAxis, YAxis, Bar, ReferenceLine } from "recharts";
 import { formatCurrency } from "./utils";
 import React from "react";
 import SectionHeader from "@/components/SectionHeader";
@@ -19,8 +19,6 @@ interface GraphVizDailyProps {
 }
 
 export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>("actual");
   const chartData = data.map((item) => ({
     date: new Date(new Date(item.date).getTime() + 86400000).toLocaleDateString(
       "pt-BR",
@@ -28,7 +26,8 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
     ),
     expected: item.expected.accTotalConsultingFee,
     actual: item.actual.accTotalConsultingFee,
-    difference: item.difference.accTotalConsultingFee,
+    positiveBalance: item.difference.accTotalConsultingFee >= 0 ? item.difference.accTotalConsultingFee : 0,
+    negativeBalance: item.difference.accTotalConsultingFee < 0 ? item.difference.accTotalConsultingFee : 0,
   }));
 
   const chartConfig = {
@@ -42,7 +41,10 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
     },
     difference: {
       label: "Balance",
-      color: "green",
+      theme: {
+        light: "#16a34a", // verde
+        dark: "#dc2626", // vermelho
+      }
     },
   } satisfies ChartConfig;
 
@@ -50,11 +52,31 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
     <div className="mt-8">
       <SectionHeader title="Daily Forecast" subtitle="" />
       <ChartContainer config={chartConfig} className="ml-2 mr-2">
-        <LineChart
+        <ComposedChart
           data={chartData}
           margin={{ top: 5, right: 12, bottom: 5, left: 12 }}
           accessibilityLayer
         >
+          <CartesianGrid vertical={false} />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <ReferenceLine y={0} stroke="#666" />
+          
+          {/* Barras para o Balance */}
+          <Bar
+            dataKey="positiveBalance"
+            fill={chartConfig.difference.theme.light}
+            fillOpacity={0.8}
+            stackId="stack"
+          />
+          <Bar 
+            dataKey="negativeBalance"
+            fill={chartConfig.difference.theme.dark}
+            fillOpacity={0.8}
+            stackId="stack"
+          />
+
+          {/* Linhas de Expected e Actual */}
           <Line
             type="natural"
             strokeWidth={2}
@@ -67,29 +89,22 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
             dataKey="actual"
             stroke={chartConfig.actual.color}
           />
-          <Line
-            type="natural"
-            strokeWidth={2}
-            dataKey="difference"
-            stroke={chartConfig.difference.color}
-          />
-          <CartesianGrid vertical={false} />
-          <XAxis dataKey="date" />
-          <YAxis />
+
           <ChartTooltip
             cursor={false}
             content={
               <ChartTooltipContent
                 hideLabel
                 formatter={(v, name) => {
-                  const result = `${name}: ${formatCurrency(v as number)}`;
+                  const label = name === "positiveBalance" || name === "negativeBalance" ? "Balance" : name;
+                  const result = `${label}: ${formatCurrency(v as number)}`;
                   return result;
                 }}
               />
             }
           />
           <ChartLegend content={<ChartLegendContent />} />
-        </LineChart>
+        </ComposedChart>
       </ChartContainer>
     </div>
   );
