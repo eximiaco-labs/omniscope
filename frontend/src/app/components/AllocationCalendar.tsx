@@ -59,7 +59,7 @@ const DayOfWeekTotalCell = ({ hours, index, grandTotal, selectedColumn, isAllSel
       {statHours > 0 && (
         <>
           {index < 7 && grandTotal && <span className="absolute top-[2px] left-[2px] text-[8px] text-gray-500">{((statHours / grandTotal) * 100).toFixed(1)}%</span>}
-          <span style={{color: STAT_COLORS[selectedStatType]}}>{statHours}h</span>
+          <span style={{color: STAT_COLORS[selectedStatType]}}>{Number.isInteger(statHours) ? `${statHours}h` : `${statHours.toFixed(1)}h`}</span>
         </>
       )}
     </div>
@@ -138,7 +138,7 @@ const DayCell = ({
       <span className="absolute top-[15px] left-1/2 transform -translate-x-1/2 text-[12px]">{day}</span>
       {statHours > 0 && (
         <>
-          <span style={{color: type === 'current' ? STAT_COLORS[selectedStatType] : '#9CA3AF'}} className="absolute bottom-[15px] left-1/2 transform -translate-x-1/2 block">{statHours}h</span>
+          <span style={{color: type === 'current' ? STAT_COLORS[selectedStatType] : '#9CA3AF'}} className="absolute bottom-[15px] left-1/2 transform -translate-x-1/2 block">{Number.isInteger(statHours) ? statHours : statHours.toFixed(1)}h</span>
           {columnPercentage && <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">{columnPercentage}%</span>}
         </>
       )}
