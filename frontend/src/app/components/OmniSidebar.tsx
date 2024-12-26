@@ -32,6 +32,8 @@ import { getFlag } from "@/app/flags";
 import { usePathname } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import OmniSidebarFooter from "./OmniSidebarFooter";
+import SectionHeader from "@/components/SectionHeader";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -177,7 +179,7 @@ export function OmniSidebar() {
                             <span>Financial</span>
                           </SidebarMenuButton>
                         </TooltipTrigger>
-                        <TooltipContent side="right">Financial Reports & Data</TooltipContent>
+                        <TooltipContent side="right">Financial</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </SidebarMenuItem>
@@ -198,7 +200,7 @@ export function OmniSidebar() {
                           <span>Analytics</span>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right">Analytics & Insights</TooltipContent>
+                      <TooltipContent side="right">Analytics</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </SidebarMenuItem>
@@ -218,7 +220,7 @@ export function OmniSidebar() {
                           <span>About Us</span>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right">Company Information</TooltipContent>
+                      <TooltipContent side="right">About Us</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </SidebarMenuItem>
@@ -238,7 +240,7 @@ export function OmniSidebar() {
                           <span>Operational Summaries</span>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right">Operational Reports & Summaries</TooltipContent>
+                      <TooltipContent side="right">Operational</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </SidebarMenuItem>
@@ -258,7 +260,7 @@ export function OmniSidebar() {
                           <span>Administrative</span>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right">Administrative Settings</TooltipContent>
+                      <TooltipContent side="right">Admin</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </SidebarMenuItem>
@@ -273,15 +275,13 @@ export function OmniSidebar() {
 
       {/* Second sidebar - Items for selected section */}
       <Sidebar collapsible="none" className="hidden flex-1 md:flex">
-        <SidebarHeader className="border-b p-4">
-          <div className="text-base font-medium text-foreground">
-            {activeSection}
-          </div>
-        </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
               <SidebarMenu>
+                <div className="mr-2 ml-2">
+                  <SectionHeader title={activeSection} subtitle="" />
+                </div>
                 {activeItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={pathname.startsWith(item.url)}>
@@ -296,6 +296,9 @@ export function OmniSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
+        <SidebarFooter>
+          <OmniSidebarFooter />
+        </SidebarFooter>
       </Sidebar>
     </Sidebar>
   );

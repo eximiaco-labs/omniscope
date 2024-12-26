@@ -19,7 +19,7 @@ export async function getChangelogEntries() {
           return {
             content,
             data: {
-              date: data.date,
+              date: new Date(data.date.getTime() + 24 * 60 * 60 * 1000),
               version: data.version,
               title: data.title,
             },
