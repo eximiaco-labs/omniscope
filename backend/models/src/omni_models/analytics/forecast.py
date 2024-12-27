@@ -132,6 +132,7 @@ def merge_filterable_fields(analysis_lists):
     
     return filterable_fields
 
+
 def compute_forecast(date_of_interest = None, filters = None):
     if date_of_interest is None:
         date_of_interest = datetime.now()
@@ -275,6 +276,8 @@ def compute_forecast(date_of_interest = None, filters = None):
         if slug == 'consulting':
             for case in by_case:
                 case_ = globals.omni_models.cases.get_by_title(case.title)
+                if not case_.is_active:
+                    continue
                 
                 wah = case_.weekly_approved_hours
                 project_ = None

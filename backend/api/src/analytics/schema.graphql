@@ -1000,4 +1000,5 @@ type YearlyForecastByMonth {
   month: Int!
   goal: Float!
   workingDays: Int!
+  expectedConsultingFee: Float!
 }
