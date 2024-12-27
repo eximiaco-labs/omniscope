@@ -96,6 +96,9 @@ def get_expected_pre_contracted_revenue(year, month):
     squad = 0
     
     for case in cases:
+        if month == 12:
+            print(f"----> case.title: {case.title}")
+            
         start = case.start_of_contract # .replace(day=1)
         if start is None:
             start = datetime(year, month, 1)
