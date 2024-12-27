@@ -29,6 +29,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
 import { getFlag } from "@/app/flags";
 import { useSession } from "next-auth/react";
+import { GraphVizDaily } from "@/app/financial/revenue-forecast/GraphVizDaily";
 
 interface WorkerSummary {
   worker: string;
@@ -491,9 +492,14 @@ export default function ClientPage() {
       <ClientHeader client={clientData.client} />
 
       {getFlag("is-fin-user", session?.user?.email) && (
+        <>
+          <div className="mt-4">
+            <RevenueProgression data={clientData.client} />
+          </div>
         <div className="mt-4">
-          <RevenueProgression data={clientData.client} />
-        </div>
+            <GraphVizDaily data={clientData.client.forecast.daily} />
+          </div>
+        </>
       )}
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />

@@ -35,6 +35,27 @@ export const GET_CLIENT_BY_SLUG = gql`
           twoMonthsAgo
           threeMonthsAgo
         }
+        daily {
+          date
+          actual {
+            totalConsultingFee
+            totalConsultingHours
+            accTotalConsultingFee
+            accTotalConsultingHours
+          }
+          expected {
+            totalConsultingFee
+            totalConsultingHours
+            accTotalConsultingFee
+            accTotalConsultingHours
+          }
+          difference {
+            totalConsultingFee
+            totalConsultingHours
+            accTotalConsultingFee
+            accTotalConsultingHours
+          }
+        }
       }
 
       timesheet1: timesheet(slug: $dataset1) {
