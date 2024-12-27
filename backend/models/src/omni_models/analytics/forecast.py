@@ -308,11 +308,14 @@ def compute_forecast(date_of_interest = None, filters = None):
                         
                         if date in working_days_in_month:
                             hours_in_month += daily_approved_hours
-                            if date.date() in daily:
+                            if date.date() in daily and project_ and project_.rate:
                                 daily[date.date()]['expected']['total_consulting_fee'] += daily_approved_hours * (project_.rate.rate / 100)
                                 daily[date.date()]['expected']['total_consulting_hours'] += daily_approved_hours
                             
-                    setattr(case, labels_expected[n], hours_in_month * (project_.rate.rate / 100))
+                    if (project_ and project_.rate):
+                        setattr(case, labels_expected[n], hours_in_month * (project_.rate.rate / 100))
+                    else:
+                        print(f'NO-RATE: {project_.name} - {case.title}')
                     
                     month += 1
                     if month > 12:
