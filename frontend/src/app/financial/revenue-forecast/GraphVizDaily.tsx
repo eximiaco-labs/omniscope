@@ -81,12 +81,14 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
             fill={chartConfig.difference.theme.light}
             fillOpacity={0.8}
             stackId="stack"
+            isAnimationActive={false}
           />
           <Bar 
             dataKey="negativeBalance"
             fill={chartConfig.difference.theme.dark}
             fillOpacity={0.8}
             stackId="stack"
+            isAnimationActive={false}
           />
 
           {/* Linhas de Expected e Actual */}
@@ -95,12 +97,14 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
             strokeWidth={2}
             dataKey="expected"
             stroke={chartConfig.expected.color}
+            isAnimationActive={false}
           />
           <Line
             type="natural"
             strokeWidth={2}
             dataKey="actual"
             stroke={chartConfig.actual.color}
+            isAnimationActive={false}
           />
 
           <ChartTooltip
