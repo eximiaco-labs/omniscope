@@ -133,8 +133,6 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               key={month.month}
               value={month.goal}
               normalizedValue={month.goal}
-              totalValue={grandTotalExpected}
-              normalizedTotalValue={grandTotalExpected}
               normalized={false}
               className="border-x border-gray-400"
             />
@@ -142,8 +140,6 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
           <TableCellComponent
             value={totalGoal}
             normalizedValue={totalGoal}
-            totalValue={grandTotalExpected}
-            normalizedTotalValue={grandTotalExpected}
             normalized={false}
             className="border-x border-gray-400"
           />
@@ -157,8 +153,10 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               key={month.month}
               value={totalExpected[idx]}
               normalizedValue={totalExpected[idx]}
-              totalValue={grandTotalExpected}
-              normalizedTotalValue={grandTotalExpected}
+              totalValue={totalExpected[idx]}
+              normalizedTotalValue={totalExpected[idx]}
+              previousValue={idx > 0 ? totalExpected[idx - 1] : undefined}
+              normalizedPreviousValue={idx > 0 ? totalExpected[idx - 1] : undefined}
               normalized={false}
               className="border-x border-gray-400"
             />
@@ -183,6 +181,8 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               normalizedValue={month.expectedConsultingFee}
               totalValue={totalExpected[idx]}
               normalizedTotalValue={totalExpected[idx]}
+              previousValue={idx > 0 ? months[idx - 1].expectedConsultingFee : undefined}
+              normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedConsultingFee : undefined}
               normalized={false}
               className="border-x border-gray-400"
             />
@@ -207,6 +207,8 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               normalizedValue={month.expectedConsultingPreFee}
               totalValue={totalExpected[idx]}
               normalizedTotalValue={totalExpected[idx]}
+              previousValue={idx > 0 ? months[idx - 1].expectedConsultingPreFee : undefined}
+              normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedConsultingPreFee : undefined}
               normalized={false}
               className="border-x border-gray-400"
             />
@@ -231,6 +233,8 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               normalizedValue={month.expectedHandsOnFee}
               totalValue={totalExpected[idx]}
               normalizedTotalValue={totalExpected[idx]}
+              previousValue={idx > 0 ? months[idx - 1].expectedHandsOnFee : undefined}
+              normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedHandsOnFee : undefined}
               normalized={false}
               className="border-x border-gray-400"
             />
@@ -255,6 +259,8 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               normalizedValue={month.expectedSquadFee}
               totalValue={totalExpected[idx]}
               normalizedTotalValue={totalExpected[idx]}
+              previousValue={idx > 0 ? months[idx - 1].expectedSquadFee : undefined}
+              normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedSquadFee : undefined}
               normalized={false}
               className="border-x border-gray-400"
             />
