@@ -94,24 +94,29 @@ def get_expected_pre_contracted_revenue(year, month):
     squad = 0
     
     for case in cases:
+        start = case.start_of_contract # .replace(day=1)
+        if start is None:
+            start = datetime(year, month, 1)
+        else:
+            start = start.replace(day=1)
+            
+        end = case.end_of_contract
+        if end is None:
+            end = datetime(year, month, calendar.monthrange(year, month)[1])
+        
+        in_contract = start.year <= year <= end.year
+        if in_contract and year == start.year:
+            in_contract = month >= start.month
+
+        if in_contract and year == end.year:
+            in_contract = month <= end.month
+            
+        if not in_contract:
+            continue
+        
         for project_info in case.tracker_info:
             if project_info.billing and project_info.billing.fee and project_info.billing.fee != 0:
                 if project_info.budget and project_info.budget.period == 'general':
-                    start = case.start_of_contract.replace(day=1)
-                    end = case.end_of_contract
-                    if end is None:
-                        end = start
-                    
-                    in_contract = start.year <= year <= end.year
-                    if in_contract and year == start.year:
-                        in_contract = month >= start.month
-
-                    if in_contract and year == end.year:
-                        in_contract = month <= end.month
-                        
-                    if not in_contract:
-                        continue
-                        
                     if start.year == end.year:
                         number_of_months = end.month - start.month + 1
                     else:
@@ -130,6 +135,14 @@ def get_expected_pre_contracted_revenue(year, month):
                         hands_on += fee
                     elif project_info.kind == 'squad':
                         squad += fee
+                elif case.pre_contracted_value:
+                    fee = project_info.billing.fee / 100
+                    if project_info.kind == 'consulting':
+                        consulting_pre += fee
+                    elif project_info.kind == 'hands_on':
+                        hands_on += fee
+                    elif project_info.kind == 'squad':
+                        squad += fee
     
     return {
         "consulting_pre": consulting_pre,
@@ -137,36 +150,7 @@ def get_expected_pre_contracted_revenue(year, month):
         "squad": squad
     }
     
-    
 
-            # elif case.pre_contracted_value:
-            #     fee = case.pre_contracted_value / 100
-                
-            #     should_do_pro_rata = (
-            #         case.start_of_contract 
-            #         and case.start_of_contract.year == date_of_interest.year 
-            #         and case.start_of_contract.month == date_of_interest.month
-            #     )
-                
-            #     if should_do_pro_rata:
-            #         fee = fee * (date_of_interest.day / calendar.monthrange(date_of_interest.year, date_of_interest.month)[1])
-                
-            #     should_do_pro_rata = (
-            #         case.end_of_contract 
-            #         and case.end_of_contract.year == date_of_interest.year 
-            #         and case.end_of_contract.month == date_of_interest.month
-            #     )
-                
-            #     if should_do_pro_rata:
-            #         fee = fee * (calendar.monthrange(date_of_interest.year, date_of_interest.month)[1] / date_of_interest.day)
-                
-            #     result = {
-            #         "kind": project.kind,
-            #         "name": project.name,
-            #         "fee": project.billing.fee / 100,
-            #         "hours": project_df["TimeInHs"].sum() if len(project_df) > 0 else 0,
-            #         "fixed": True
-            #     }
             # else:
             #     project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
             #     if len(project_df) == 0:
