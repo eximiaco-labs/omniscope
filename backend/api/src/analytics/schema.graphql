@@ -988,3 +988,16 @@ type ForecastConsultingProjectMetrics {
   expectedThreeMonthsLater: Float!
   expectedHistorical: Float!
 }
+
+# Yearly Forecast
+type YearlyForecast {
+  year: Int!
+  goal: Float!
+  byMonth: [YearlyForecastByMonth!]!
+}
+
+type YearlyForecastByMonth {
+  month: Int!
+  goal: Float!
+  workingDays: Int!
+}

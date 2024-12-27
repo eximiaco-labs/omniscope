@@ -62,6 +62,8 @@ type Query {
   businessCalendar(start: Date!, end: Date!): BusinessCalendar!
   cache: [CacheItem!]!
   timesheetCache(after: Date, before: Date): [TimesheetCacheItem!]!
+
+  yearlyForecast(year: Int): YearlyForecast!
 }
 
 type CacheItem {
