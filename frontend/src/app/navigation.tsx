@@ -42,6 +42,11 @@ export function getFinancialSidebarItems(userEmail?: string | null) {
             url: "/financial/pro-rata",
             icon: PercentIcon,
           },
+          {
+            title: "2025 🎯",
+            url: "/financial/2025",
+            icon: CalendarIcon,
+          },
         ]
       : []),
   ];
