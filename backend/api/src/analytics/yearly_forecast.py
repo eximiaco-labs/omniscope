@@ -12,13 +12,15 @@ def resolve_yearly_forecast(_, info, year=None):
     
     by_month = []
     for month in range(1, 13):
-        expected_consulting_fee = get_expected_regular_consulting_revenue(year, month)
-        expected_pre_contracted_revenue = get_expected_pre_contracted_revenue(year, month)
+        m = month - 1 if month > 1 else 12
+        y = year if month > 1 else year - 1
+        expected_consulting_fee = get_expected_regular_consulting_revenue(y, m)
+        expected_pre_contracted_revenue = get_expected_pre_contracted_revenue(y, m)
         
         by_month.append({
-            "month": month,
+            "month": m,
             "goal": main_goal / 12,
-            "working_days": len(get_working_days_in_month(year, month)),
+            "working_days": len(get_working_days_in_month(y, m)),
             "expected_consulting_fee": expected_consulting_fee,
             "expected_squad_fee": expected_pre_contracted_revenue["squad"],
             "expected_hands_on_fee": expected_pre_contracted_revenue["hands_on"],

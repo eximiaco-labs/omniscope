@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery, gql } from "@apollo/client";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
