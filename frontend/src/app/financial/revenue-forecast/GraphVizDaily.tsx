@@ -52,7 +52,7 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
 
   return (
     <div className="mt-8">
-      <SectionHeader title="Daily Forecast" subtitle="" />
+      <SectionHeader title="Regular Consuting Daily Forecast" subtitle="" />
       <ChartContainer config={chartConfig} className="ml-2 mr-2">
         <ComposedChart
           data={chartData}

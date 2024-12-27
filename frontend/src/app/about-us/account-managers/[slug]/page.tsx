@@ -35,6 +35,8 @@ import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProg
 import { useSession } from "next-auth/react";
 import { Heading } from "@/components/catalyst/heading";
 
+import { GraphVizDaily } from "@/app/financial/revenue-forecast/GraphVizDaily";
+
 interface Summary {
   hours: number;
   appointments: any[];
@@ -60,7 +62,7 @@ type SummaryType = ClientSummary | SponsorSummary | WorkerSummary;
 const SummarySection = ({
   summaries,
   selectedStatType,
-  type
+  type,
 }: {
   summaries: SummaryType[] | null;
   selectedStatType: StatType;
@@ -69,31 +71,35 @@ const SummarySection = ({
   if (!summaries) return null;
 
   const getNameAndSlug = (summary: SummaryType) => {
-    switch(type) {
+    switch (type) {
       case "client":
         return {
           name: (summary as ClientSummary).client,
           slug: (summary as ClientSummary).clientSlug,
-          path: `/about-us/clients/${(summary as ClientSummary).clientSlug}`
+          path: `/about-us/clients/${(summary as ClientSummary).clientSlug}`,
         };
       case "sponsor":
         return {
           name: (summary as SponsorSummary).sponsor,
           slug: (summary as SponsorSummary).sponsorSlug,
-          path: `/about-us/sponsors/${(summary as SponsorSummary).sponsorSlug}`
+          path: `/about-us/sponsors/${(summary as SponsorSummary).sponsorSlug}`,
         };
       case "worker":
         return {
           name: (summary as WorkerSummary).workerName,
           slug: (summary as WorkerSummary).workerSlug,
-          path: `/about-us/consultants-and-engineers/${(summary as WorkerSummary).workerSlug}`
+          path: `/about-us/consultants-and-engineers/${
+            (summary as WorkerSummary).workerSlug
+          }`,
         };
     }
   };
 
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-      <h3 className="font-semibold mb-2">{type.charAt(0).toUpperCase() + type.slice(1)} Summary:</h3>
+      <h3 className="font-semibold mb-2">
+        {type.charAt(0).toUpperCase() + type.slice(1)} Summary:
+      </h3>
       {summaries.map((summary) => {
         const { name, path } = getNameAndSlug(summary);
         return (
@@ -110,7 +116,10 @@ const SummarySection = ({
                 <SheetContent>
                   <SheetHeader>
                     <SheetTitle>
-                      {name} - {selectedStatType.charAt(0).toUpperCase() + selectedStatType.slice(1)} Hours
+                      {name} -{" "}
+                      {selectedStatType.charAt(0).toUpperCase() +
+                        selectedStatType.slice(1)}{" "}
+                      Hours
                     </SheetTitle>
                   </SheetHeader>
                   <div className="mt-6 max-h-[60vh] overflow-y-auto">
@@ -130,7 +139,10 @@ const SummarySection = ({
                               {apt.date}
                             </TableCell>
                             <TableCell className="text-xs">
-                              <Link href={`/about-us/consultants-and-engineers/${apt.workerSlug}`} className="text-blue-600 hover:underline">
+                              <Link
+                                href={`/about-us/consultants-and-engineers/${apt.workerSlug}`}
+                                className="text-blue-600 hover:underline"
+                              >
                                 {apt.workerName}
                               </Link>
                             </TableCell>
@@ -250,32 +262,64 @@ export default function AccountManagerPage() {
     if (!selectedDay && !selectedRow && !selectedColumn && !isAllSelected)
       return null;
 
-    const clientData: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number, slug: string } } = {};
-    const sponsorData: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number, slug: string } } = {};
-    const workerData: { [key: string]: { total: number, consulting: number, handsOn: number, squad: number, internal: number, slug: string } } = {};
+    const clientData: {
+      [key: string]: {
+        total: number;
+        consulting: number;
+        handsOn: number;
+        squad: number;
+        internal: number;
+        slug: string;
+      };
+    } = {};
+    const sponsorData: {
+      [key: string]: {
+        total: number;
+        consulting: number;
+        handsOn: number;
+        squad: number;
+        internal: number;
+        slug: string;
+      };
+    } = {};
+    const workerData: {
+      [key: string]: {
+        total: number;
+        consulting: number;
+        handsOn: number;
+        squad: number;
+        internal: number;
+        slug: string;
+      };
+    } = {};
     const clientAppointments: { [key: string]: any[] } = {};
     const sponsorAppointments: { [key: string]: any[] } = {};
     const workerAppointments: { [key: string]: any[] } = {};
 
     timesheet.appointments.forEach((appointment: any) => {
-      console.log('Appointment worker data:', {
+      console.log("Appointment worker data:", {
         name: appointment.workerName,
-        slug: appointment.workerSlug
+        slug: appointment.workerSlug,
       });
       const appointmentDate = new Date(appointment.date);
       const dayOfMonth = appointmentDate.getUTCDate();
       const dayOfWeek = appointmentDate.getUTCDay();
       const appointmentMonth = appointmentDate.getUTCMonth();
-      
-      const firstDayOfMonth = new Date(appointmentDate.getUTCFullYear(), appointmentDate.getUTCMonth(), 1);
+
+      const firstDayOfMonth = new Date(
+        appointmentDate.getUTCFullYear(),
+        appointmentDate.getUTCMonth(),
+        1
+      );
       const firstDayOffset = firstDayOfMonth.getUTCDay();
 
       const weekIndex = Math.floor((dayOfMonth + firstDayOffset - 1) / 7);
 
-      const shouldInclude = (isAllSelected || 
-        (selectedDay !== null && dayOfMonth === selectedDay) ||
-        (selectedRow !== null && weekIndex === selectedRow) ||
-        (selectedColumn !== null && dayOfWeek === selectedColumn)) &&
+      const shouldInclude =
+        (isAllSelected ||
+          (selectedDay !== null && dayOfMonth === selectedDay) ||
+          (selectedRow !== null && weekIndex === selectedRow) ||
+          (selectedColumn !== null && dayOfWeek === selectedColumn)) &&
         appointmentMonth === selectedDate.getMonth();
 
       if (shouldInclude) {
@@ -284,9 +328,24 @@ export default function AccountManagerPage() {
         const workerKey = appointment.workerName;
 
         [
-          { data: clientData, key: clientKey, slug: appointment.clientSlug, appointments: clientAppointments },
-          { data: sponsorData, key: sponsorKey, slug: appointment.sponsorSlug, appointments: sponsorAppointments },
-          { data: workerData, key: workerKey, slug: appointment.workerSlug, appointments: workerAppointments }
+          {
+            data: clientData,
+            key: clientKey,
+            slug: appointment.clientSlug,
+            appointments: clientAppointments,
+          },
+          {
+            data: sponsorData,
+            key: sponsorKey,
+            slug: appointment.sponsorSlug,
+            appointments: sponsorAppointments,
+          },
+          {
+            data: workerData,
+            key: workerKey,
+            slug: appointment.workerSlug,
+            appointments: workerAppointments,
+          },
         ].forEach(({ data, key, slug, appointments }) => {
           if (!data[key]) {
             data[key] = {
@@ -295,7 +354,7 @@ export default function AccountManagerPage() {
               handsOn: 0,
               squad: 0,
               internal: 0,
-              slug
+              slug,
             };
           }
           if (!appointments[key]) {
@@ -303,70 +362,78 @@ export default function AccountManagerPage() {
           }
 
           data[key].total += appointment.timeInHs;
-          switch(appointment.kind.toLowerCase()) {
-            case 'consulting':
+          switch (appointment.kind.toLowerCase()) {
+            case "consulting":
               data[key].consulting += appointment.timeInHs;
               break;
-            case 'handson':
+            case "handson":
               data[key].handsOn += appointment.timeInHs;
               break;
-            case 'squad':
+            case "squad":
               data[key].squad += appointment.timeInHs;
               break;
-            case 'internal':
+            case "internal":
               data[key].internal += appointment.timeInHs;
               break;
           }
 
-          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
           appointments[key].push({
             ...appointment,
-            date: `${days[appointmentDate.getUTCDay()]} ${appointmentDate.getUTCDate()}`
+            date: `${
+              days[appointmentDate.getUTCDay()]
+            } ${appointmentDate.getUTCDate()}`,
           });
         });
       }
     });
 
-    const createSummaries = (data: any, appointments: any, type: "client" | "sponsor" | "worker") => {
+    const createSummaries = (
+      data: any,
+      appointments: any,
+      type: "client" | "sponsor" | "worker"
+    ) => {
       return Object.entries(data)
         .map(([key, value]: [string, any]) => {
           const summary = {
             hours: value[selectedStatType],
-            appointments: appointments[key]?.filter((apt: any) => 
-              apt.kind.toLowerCase() === selectedStatType ||
-              (selectedStatType === 'handsOn' && apt.kind.toLowerCase() === 'handson')
-            )
+            appointments: appointments[key]?.filter(
+              (apt: any) =>
+                apt.kind.toLowerCase() === selectedStatType ||
+                (selectedStatType === "handsOn" &&
+                  apt.kind.toLowerCase() === "handson")
+            ),
           };
 
-          switch(type) {
+          switch (type) {
             case "client":
               return {
                 ...summary,
                 client: key,
-                clientSlug: value.slug
+                clientSlug: value.slug,
               } as ClientSummary;
             case "sponsor":
               return {
                 ...summary,
                 sponsor: key,
-                sponsorSlug: value.slug
+                sponsorSlug: value.slug,
               } as SponsorSummary;
             case "worker":
               return {
                 ...summary,
                 workerName: key,
-                workerSlug: value.slug
+                workerSlug: value.slug,
               } as WorkerSummary;
           }
         })
-        .filter(summary => summary.hours > 0)
+        .filter((summary) => summary.hours > 0)
         .sort((a, b) => b.hours - a.hours);
     };
 
     return {
       client: createSummaries(clientData, clientAppointments, "client"),
       sponsor: createSummaries(sponsorData, sponsorAppointments, "sponsor"),
-      worker: createSummaries(workerData, workerAppointments, "worker")
+      worker: createSummaries(workerData, workerAppointments, "worker"),
     };
   };
 
@@ -397,7 +464,9 @@ export default function AccountManagerPage() {
           <div className="flex flex-col flex-grow space-y-3">
             <div>
               <div className="flex flex-col lg:max-w-[80%]">
-                <Heading className="text-2xl font-bold text-gray-900">{name}</Heading>
+                <Heading className="text-2xl font-bold text-gray-900">
+                  {name}
+                </Heading>
                 <p className="text-gray-600">{position}</p>
                 {data.accountManager.ontologyUrl && (
                   <span className="text-xs mt-2">
@@ -407,8 +476,19 @@ export default function AccountManagerPage() {
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
                     >
-                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      <svg
+                        className="w-3 h-3 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                        />
                       </svg>
                       View Ontology
                     </a>
@@ -421,9 +501,14 @@ export default function AccountManagerPage() {
       </div>
 
       {getFlag("is-fin-user", session?.user?.email) && (
-        <div className="mt-4">
-          <RevenueProgression data={data.accountManager} />
-        </div>
+        <>
+          <div className="mt-4">
+            <RevenueProgression data={data.accountManager} />
+          </div>
+          <div className="mt-4">
+            <GraphVizDaily data={data.accountManager.forecast.daily} />
+          </div>
+        </>
       )}
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
@@ -463,45 +548,51 @@ export default function AccountManagerPage() {
                 </TabsList>
                 <TabsContent value="client">
                   <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet1,
-                      selectedDayPrev,
-                      selectedRowPrev,
-                      selectedColumnPrev,
-                      isAllSelectedPrev,
-                      selectedDatePrev,
-                      selectedStatTypePrev
-                    )?.client || null}
+                    summaries={
+                      getSelectedSummary(
+                        timesheet1,
+                        selectedDayPrev,
+                        selectedRowPrev,
+                        selectedColumnPrev,
+                        isAllSelectedPrev,
+                        selectedDatePrev,
+                        selectedStatTypePrev
+                      )?.client || null
+                    }
                     selectedStatType={selectedStatTypePrev}
                     type="client"
                   />
                 </TabsContent>
                 <TabsContent value="sponsor">
                   <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet1,
-                      selectedDayPrev,
-                      selectedRowPrev,
-                      selectedColumnPrev,
-                      isAllSelectedPrev,
-                      selectedDatePrev,
-                      selectedStatTypePrev
-                    )?.sponsor || null}
+                    summaries={
+                      getSelectedSummary(
+                        timesheet1,
+                        selectedDayPrev,
+                        selectedRowPrev,
+                        selectedColumnPrev,
+                        isAllSelectedPrev,
+                        selectedDatePrev,
+                        selectedStatTypePrev
+                      )?.sponsor || null
+                    }
                     selectedStatType={selectedStatTypePrev}
                     type="sponsor"
                   />
                 </TabsContent>
                 <TabsContent value="worker">
                   <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet1,
-                      selectedDayPrev,
-                      selectedRowPrev,
-                      selectedColumnPrev,
-                      isAllSelectedPrev,
-                      selectedDatePrev,
-                      selectedStatTypePrev
-                    )?.worker || null}
+                    summaries={
+                      getSelectedSummary(
+                        timesheet1,
+                        selectedDayPrev,
+                        selectedRowPrev,
+                        selectedColumnPrev,
+                        isAllSelectedPrev,
+                        selectedDatePrev,
+                        selectedStatTypePrev
+                      )?.worker || null
+                    }
                     selectedStatType={selectedStatTypePrev}
                     type="worker"
                   />
@@ -542,45 +633,51 @@ export default function AccountManagerPage() {
                 </TabsList>
                 <TabsContent value="client">
                   <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet2,
-                      selectedDayCurr,
-                      selectedRowCurr,
-                      selectedColumnCurr,
-                      isAllSelectedCurr,
-                      selectedDateCurr,
-                      selectedStatTypeCurr
-                    )?.client || null}
+                    summaries={
+                      getSelectedSummary(
+                        timesheet2,
+                        selectedDayCurr,
+                        selectedRowCurr,
+                        selectedColumnCurr,
+                        isAllSelectedCurr,
+                        selectedDateCurr,
+                        selectedStatTypeCurr
+                      )?.client || null
+                    }
                     selectedStatType={selectedStatTypeCurr}
                     type="client"
                   />
                 </TabsContent>
                 <TabsContent value="sponsor">
                   <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet2,
-                      selectedDayCurr,
-                      selectedRowCurr,
-                      selectedColumnCurr,
-                      isAllSelectedCurr,
-                      selectedDateCurr,
-                      selectedStatTypeCurr
-                    )?.sponsor || null}
+                    summaries={
+                      getSelectedSummary(
+                        timesheet2,
+                        selectedDayCurr,
+                        selectedRowCurr,
+                        selectedColumnCurr,
+                        isAllSelectedCurr,
+                        selectedDateCurr,
+                        selectedStatTypeCurr
+                      )?.sponsor || null
+                    }
                     selectedStatType={selectedStatTypeCurr}
                     type="sponsor"
                   />
                 </TabsContent>
                 <TabsContent value="worker">
                   <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet2,
-                      selectedDayCurr,
-                      selectedRowCurr,
-                      selectedColumnCurr,
-                      isAllSelectedCurr,
-                      selectedDateCurr,
-                      selectedStatTypeCurr
-                    )?.worker || null}
+                    summaries={
+                      getSelectedSummary(
+                        timesheet2,
+                        selectedDayCurr,
+                        selectedRowCurr,
+                        selectedColumnCurr,
+                        isAllSelectedCurr,
+                        selectedDateCurr,
+                        selectedStatTypeCurr
+                      )?.worker || null
+                    }
                     selectedStatType={selectedStatTypeCurr}
                     type="worker"
                   />
