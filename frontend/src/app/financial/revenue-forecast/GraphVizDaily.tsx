@@ -9,7 +9,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DailyData } from "./forecastData";
-import { CartesianGrid, Line, ComposedChart, XAxis, YAxis, Bar, ReferenceLine } from "recharts";
+import { CartesianGrid, Line, ComposedChart, XAxis, YAxis, Bar, ReferenceLine, Legend } from "recharts";
 import { formatCurrency } from "./utils";
 import React from "react";
 import SectionHeader from "@/components/SectionHeader";
@@ -48,19 +48,32 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
     },
   } satisfies ChartConfig;
 
+  const [highlightedDate, setHighlightedDate] = React.useState<string | null>(null);
+
   return (
     <div className="mt-8">
-      <SectionHeader title="Daily Forecast" subtitle="" />
+      <SectionHeader title="Regular Consuting Daily Forecast" subtitle="" />
       <ChartContainer config={chartConfig} className="ml-2 mr-2">
         <ComposedChart
           data={chartData}
           margin={{ top: 5, right: 12, bottom: 5, left: 12 }}
           accessibilityLayer
+          onMouseMove={(e) => {
+            if (e.activeLabel) {
+              setHighlightedDate(e.activeLabel);
+            }
+          }}
+          onMouseLeave={() => setHighlightedDate(null)}
         >
           <CartesianGrid vertical={false} />
           <XAxis dataKey="date" />
           <YAxis />
-          <ReferenceLine y={0} stroke="#666" />
+          {highlightedDate && 
+          <ReferenceLine 
+            x={highlightedDate} 
+            stroke="#666" 
+            strokeDasharray="3 3"
+          />}
           
           {/* Barras para o Balance */}
           <Bar
@@ -68,12 +81,14 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
             fill={chartConfig.difference.theme.light}
             fillOpacity={0.8}
             stackId="stack"
+            isAnimationActive={false}
           />
           <Bar 
             dataKey="negativeBalance"
             fill={chartConfig.difference.theme.dark}
             fillOpacity={0.8}
             stackId="stack"
+            isAnimationActive={false}
           />
 
           {/* Linhas de Expected e Actual */}
@@ -82,12 +97,14 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
             strokeWidth={2}
             dataKey="expected"
             stroke={chartConfig.expected.color}
+            isAnimationActive={false}
           />
           <Line
             type="natural"
             strokeWidth={2}
             dataKey="actual"
             stroke={chartConfig.actual.color}
+            isAnimationActive={false}
           />
 
           <ChartTooltip
@@ -96,14 +113,45 @@ export const GraphVizDaily: React.FC<GraphVizDailyProps> = ({ data }) => {
               <ChartTooltipContent
                 hideLabel
                 formatter={(v, name) => {
-                  const label = name === "positiveBalance" || name === "negativeBalance" ? "Balance" : name;
-                  const result = `${label}: ${formatCurrency(v as number)}`;
-                  return result;
+                  if (v === undefined || v === null) return false;
+                  
+                  let label = name;
+                  let color = "";
+
+                  if (name === "positiveBalance") {
+                    label = "positive";
+                    color = chartConfig.difference.theme.light;
+                  } else if (name === "negativeBalance") {
+                    label = "negative";
+                    color = chartConfig.difference.theme.dark;
+                  } else if (name === "expected") {
+                    color = chartConfig.expected.color;
+                  } else if (name === "actual") {
+                    color = chartConfig.actual.color;
+                  }
+
+                  const value = formatCurrency(v as number);
+                  if (value === '0.00') return false;
+                  
+                  return (
+                    <span style={{ color }}>
+                      {`${label}: ${value}`}
+                    </span>
+                  );
                 }}
               />
             }
           />
-          <ChartLegend content={<ChartLegendContent />} />
+          <Legend 
+            formatter={(value) => {
+              if (value === "positiveBalance") return "positive";
+              if (value === "negativeBalance") return "negative";
+              return value;
+            }}
+            iconType="square"
+            align="right"
+            verticalAlign="top"
+          />
         </ComposedChart>
       </ChartContainer>
     </div>

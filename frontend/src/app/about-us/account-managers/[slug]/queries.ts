@@ -1,3 +1,4 @@
+import { DailyData } from "@/app/financial/revenue-forecast/forecastData";
 import { RevenueTrackingQuery } from "@/app/financial/revenue-tracking/types";
 import { gql } from "@apollo/client";
 
@@ -36,6 +37,27 @@ export const GET_ACCOUNT_MANAGER = gql`
           oneMonthAgo
           twoMonthsAgo
           threeMonthsAgo
+        }
+        daily {
+          date
+          actual {
+            totalConsultingFee
+            totalConsultingHours
+            accTotalConsultingFee
+            accTotalConsultingHours
+          }
+          expected {
+            totalConsultingFee
+            totalConsultingHours
+            accTotalConsultingFee
+            accTotalConsultingHours
+          }
+          difference {
+            totalConsultingFee
+            totalConsultingHours
+            accTotalConsultingFee
+            accTotalConsultingHours
+          }
         }
       }
 
@@ -267,6 +289,7 @@ export interface AccountManager {
       twoMonthsAgo: number;
       threeMonthsAgo: number;
     };
+    daily: DailyData[];
   };
 
   activeDeals: Array<{

@@ -1296,10 +1296,12 @@ class ConsultantSummary:
             for worker in project["by_worker"]
             if worker["name"] == consultant_name and project["kind"] == "consulting"
         )
+        
+        consultant = globals.omni_models.workers.get_by_name(consultant_name)
        
         return ConsultantSummary(
             name=consultant_name,
-            slug=globals.omni_models.workers.get_by_name(consultant_name).slug,
+            slug=consultant.slug if consultant else "NA",
             consulting_fee=consulting_fee,
             consulting_hours=consulting_hours,
             consulting_pre_hours=consulting_pre_hours,

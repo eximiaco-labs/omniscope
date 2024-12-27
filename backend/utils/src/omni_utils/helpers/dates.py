@@ -24,6 +24,11 @@ def get_same_day_one_month_later(date_of_interest):
     if m > 12:
         m = 1
         y += 1
+    
+    last_day = calendar.monthrange(y, m)[1]
+    if d > last_day:
+        d = last_day
+
     return datetime(y, m, d, 23, 59, 59, 999999)
 
 def get_first_day_of_month(date_of_interest):
