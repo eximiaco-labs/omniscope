@@ -62,6 +62,8 @@ interface ForecastTableProps {
 }
 
 const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
+  const currentMonth = new Date().getMonth() + 1;
+
   const totalGoal = months.reduce((sum, month) => sum + month.goal, 0);
   const totalWorkingDays = months.reduce(
     (sum, month) => sum + month.workingDays,
@@ -106,7 +108,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
           {months.map((month) => (
             <TableHead
               key={month.month}
-              className="text-center border-x border-gray-400"
+              className={`text-center border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-100' : ''}`}
             >
               {monthNames[month.month - 1]}
               <span className="block text-[10px] text-gray-500">
@@ -133,7 +135,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               value={month.goal}
               normalizedValue={month.goal}
               normalized={false}
-              className="border-x border-gray-400"
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
             />
           ))}
           <TableCellComponent
@@ -157,7 +159,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               previousValue={idx > 0 ? totalExpected[idx - 1] : undefined}
               normalizedPreviousValue={idx > 0 ? totalExpected[idx - 1] : undefined}
               normalized={false}
-              className="border-x border-gray-400"
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
             />
           ))}
           <TableCellComponent
@@ -183,7 +185,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               previousValue={idx > 0 ? months[idx - 1].expectedConsultingFee : undefined}
               normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedConsultingFee : undefined}
               normalized={false}
-              className="border-x border-gray-400"
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
             />
           ))}
           <TableCellComponent
@@ -209,7 +211,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               previousValue={idx > 0 ? months[idx - 1].expectedConsultingPreFee : undefined}
               normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedConsultingPreFee : undefined}
               normalized={false}
-              className="border-x border-gray-400"
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
             />
           ))}
           <TableCellComponent
@@ -235,7 +237,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               previousValue={idx > 0 ? months[idx - 1].expectedHandsOnFee : undefined}
               normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedHandsOnFee : undefined}
               normalized={false}
-              className="border-x border-gray-400"
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
             />
           ))}
           <TableCellComponent
@@ -261,7 +263,7 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
               previousValue={idx > 0 ? months[idx - 1].expectedSquadFee : undefined}
               normalizedPreviousValue={idx > 0 ? months[idx - 1].expectedSquadFee : undefined}
               normalized={false}
-              className="border-x border-gray-400"
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
             />
           ))}
           <TableCellComponent
@@ -300,12 +302,12 @@ export default function YearlyForecast2025() {
         Annual Goal: {formatCurrency(forecast.goal)}
       </p>
 
-      <SectionHeader title="First Semester" subtitle="January to June" />
+      <SectionHeader title="First Semester" subtitle="December 2024 to May 2025" />
       <div className="ml-2 mr-2 mb-8">
         <ForecastTable months={firstHalf} forecast={forecast} />
       </div>
 
-      <SectionHeader title="Second Semester" subtitle="July to December" />
+      <SectionHeader title="Second Semester" subtitle="June 2025 to December 2025" />
       <div className="ml-2 mr-2">
         <ForecastTable months={secondHalf} forecast={forecast} />
       </div>
