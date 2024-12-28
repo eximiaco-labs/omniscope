@@ -4,8 +4,8 @@ import { formatCurrency, formatPercentage, calculatePercentageChange } from "../
 interface TableCellProps {
   value: number;
   normalizedValue: number;
-  totalValue: number;
-  normalizedTotalValue: number;
+  totalValue?: number;
+  normalizedTotalValue?: number;
   className?: string;
   projected?: number;
   normalizedProjected?: number;
@@ -75,9 +75,11 @@ export function TableCellComponent({
             <>{changeInfo.indicator} {Math.abs(changeInfo.percentageChange).toFixed(1)}%</>
           )}
         </span>
-        <span className="text-gray-400 truncate mr-2">
-          {formatPercentage(value, totalValue)}
-        </span>
+        {totalValue !== undefined && (
+          <span className="text-gray-400 truncate mr-2">
+            {formatPercentage(value, totalValue)}
+          </span>
+        )}
       </div>
     </UITableCell>
   );

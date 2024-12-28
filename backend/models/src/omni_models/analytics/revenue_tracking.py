@@ -328,7 +328,7 @@ def compute_pre_contracted_revenue_tracking(
                     "fixed": True
                 }
             elif case.pre_contracted_value:
-                fee = case.pre_contracted_value / 100
+                fee = project.billing.fee / 100
                 
                 should_do_pro_rata = (
                     case.start_of_contract 
