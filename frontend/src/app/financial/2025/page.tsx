@@ -26,6 +26,7 @@ const YEARLY_FORECAST_QUERY = gql`
         expectedConsultingPreFee
         expectedHandsOnFee
         expectedSquadFee
+        actual
       }
     }
   }
@@ -55,6 +56,7 @@ interface ForecastTableProps {
     expectedConsultingPreFee: number;
     expectedHandsOnFee: number;
     expectedSquadFee: number;
+    actual: number;
   }[];
   forecast: {
     goal: number;
@@ -271,6 +273,29 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
             normalizedValue={totalExpectedSquadFee}
             totalValue={grandTotalExpected}
             normalizedTotalValue={grandTotalExpected}
+            normalized={false}
+            className="border-x border-gray-400"
+          />
+        </TableRow>
+        <TableRow className="h-[57px] border-b-[1px] font-bold">
+          <TableCell className="border-r border-gray-400">
+            Actual
+          </TableCell>
+          {months.map((month, idx) => (
+            <TableCellComponent
+              key={month.month}
+              value={month.month <= currentMonth ? month.actual : 0}
+              normalizedValue={month.month <= currentMonth ? month.actual : 0}
+              previousValue={idx > 0 ? (months[idx - 1].month <= currentMonth ? months[idx - 1].actual : 0) : undefined}
+              normalizedPreviousValue={idx > 0 ? (months[idx - 1].month <= currentMonth ? months[idx - 1].actual : 0) : undefined}
+              normalized={false}
+              className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
+
+            />
+          ))}
+          <TableCellComponent
+            value={months.reduce((sum, month) => sum + (month.month <= currentMonth ? month.actual : 0), 0)}
+            normalizedValue={months.reduce((sum, month) => sum + (month.month <= currentMonth ? month.actual : 0), 0)}
             normalized={false}
             className="border-x border-gray-400"
           />

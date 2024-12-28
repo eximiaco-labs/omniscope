@@ -1004,4 +1004,5 @@ type YearlyForecastByMonth {
   expectedConsultingPreFee: Float!
   expectedHandsOnFee: Float!
   expectedSquadFee: Float!
+  actual: Float!
 }

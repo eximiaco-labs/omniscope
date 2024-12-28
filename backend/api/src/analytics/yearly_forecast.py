@@ -1,4 +1,7 @@
 from omni_utils.helpers.dates import get_working_days_in_month
+from omni_models.analytics.revenue_tracking import compute_revenue_tracking
+from omni_utils.helpers.dates import get_last_day_of_month
+
 import calendar
 from datetime import datetime
 
@@ -10,6 +13,8 @@ def resolve_yearly_forecast(_, info, year=None):
     
     main_goal = 30000000
     
+    actual = 0
+    
     by_month = []
     for month in range(1, 13):
         m = month - 1 if month > 1 else 12
@@ -17,19 +22,37 @@ def resolve_yearly_forecast(_, info, year=None):
         expected_consulting_fee = get_expected_regular_consulting_revenue(y, m)
         expected_pre_contracted_revenue = get_expected_pre_contracted_revenue(y, m)
         
+        current_date = datetime.now()
+        current_year = current_date.year
+        current_month = current_date.month
+        
+        revenue_tracking = None
+        discount = main_goal / (13 - month)
+        if (y == current_year and m == current_month):
+            revenue_tracking = compute_revenue_tracking(current_date)
+        elif y < current_year or (y == current_year and m < current_month):
+            discount = revenue_tracking["total"]
+            revenue_tracking = compute_revenue_tracking(get_last_day_of_month(datetime(y, m, 1)))
+            
+        actual += revenue_tracking["total"] if revenue_tracking else 0
+        
         by_month.append({
             "month": m,
-            "goal": main_goal / 12,
+            "goal": main_goal / (13 - month),
             "working_days": len(get_working_days_in_month(y, m)),
             "expected_consulting_fee": expected_consulting_fee,
             "expected_squad_fee": expected_pre_contracted_revenue["squad"],
             "expected_hands_on_fee": expected_pre_contracted_revenue["hands_on"],
-            "expected_consulting_pre_fee": expected_pre_contracted_revenue["consulting_pre"]
+            "expected_consulting_pre_fee": expected_pre_contracted_revenue["consulting_pre"],
+            "actual": revenue_tracking["total"] if revenue_tracking else 0
         })
+        
+        main_goal -= discount
+        
         
     return { 
         "year": year,
-        "goal": main_goal,
+        "goal": 30000000,
         "by_month": by_month
     }
     
@@ -96,9 +119,6 @@ def get_expected_pre_contracted_revenue(year, month):
     squad = 0
     
     for case in cases:
-        if month == 12:
-            print(f"----> case.title: {case.title}")
-            
         start = case.start_of_contract # .replace(day=1)
         if start is None:
             start = datetime(year, month, 1)
@@ -150,14 +170,6 @@ def get_expected_pre_contracted_revenue(year, month):
                     else: # hands_on
                         hands_on += fee
                         
-                # else:
-                #     fee = project_info.billing.fee / 100
-                #     if project_info.kind == 'consulting':
-                #         consulting_pre += fee
-                #     elif project_info.kind == 'hands_on':
-                #         hands_on += fee
-                #     elif project_info.kind == 'squad':
-                #         squad += fee
     
     return {
         "consulting_pre": consulting_pre,
