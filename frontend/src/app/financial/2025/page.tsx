@@ -314,18 +314,44 @@ export default function YearlyForecast2025() {
   if (error) return <div>Error loading data: {error.message}</div>;
 
   const forecast = data?.yearlyForecast;
+  const totalActual = forecast.byMonth.reduce((sum: number, month: any) => 
+    sum + (month.month <= new Date().getMonth() + 1 ? month.actual : 0), 0
+  );
+  const remaining = forecast.goal - totalActual;
 
   const firstHalf = forecast.byMonth.slice(0, 6);
   const secondHalf = forecast.byMonth.slice(6, 12);
 
   return (
     <div className="container mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-4">
+      <h2 className="text-2xl font-bold mb-6">
         Yearly Forecast {forecast.year}
       </h2>
-      <p className="text-muted-foreground mb-8">
-        Annual Goal: {formatCurrency(forecast.goal)}
-      </p>
+      
+      <div className="grid grid-cols-3 gap-4 mb-8 text-center">
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <div className="text-lg text-gray-600">Annual Goal</div>
+          <div className="text-2xl font-bold text-blue-600">{formatCurrency(forecast.goal)}</div>
+        </div>
+        <div className="p-4 bg-green-50 rounded-lg">
+          <div className="text-lg text-gray-600">Realized</div>
+          <div className="text-2xl font-bold text-green-600">
+            {formatCurrency(totalActual)}
+            <div className="text-sm">
+              {((totalActual / forecast.goal) * 100).toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className="p-4 bg-orange-50 rounded-lg">
+          <div className="text-lg text-gray-600">Remaining</div>
+          <div className="text-2xl font-bold text-orange-600">
+            {formatCurrency(remaining)}
+            <div className="text-sm">
+              {((remaining / forecast.goal) * 100).toFixed(1)}%
+            </div>
+          </div>
+        </div>
+      </div>
 
       <SectionHeader title="First Semester" subtitle="December 2024 to May 2025" />
       <div className="ml-2 mr-2 mb-8">
