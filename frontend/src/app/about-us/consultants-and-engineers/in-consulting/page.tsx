@@ -68,6 +68,13 @@ const IN_CONSULTING_QUERY = gql`
   }
 `;
 
+const formatHours = (value: number) => {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
 export default function ConsultantsAllocationPage() {
   const [date, setDate] = useState<Date>(new Date());
   const [sortConfigs, setSortConfigs] = useState<
@@ -162,6 +169,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.sameDayThreeMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedSameDayThreeMonthsAgo}
+                        formatter={formatHours}
                     />
                     <TableCellComponent
                         value={item.threeMonthsAgo} 
@@ -169,6 +177,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.threeMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedThreeMonthsAgo}
+                        formatter={formatHours}
                     />
                     <TableCellComponent
                         value={item.sameDayTwoMonthsAgo}
@@ -176,6 +185,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.sameDayTwoMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedSameDayTwoMonthsAgo}
+                        formatter={formatHours}
                     />
                     <TableCellComponent
                         value={item.twoMonthsAgo}
@@ -183,6 +193,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.twoMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedTwoMonthsAgo}
+                        formatter={formatHours}
                     />
                     <TableCellComponent
                         value={item.sameDayOneMonthAgo}
@@ -190,6 +201,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.sameDayOneMonthAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedSameDayOneMonthAgo}
+                        formatter={formatHours}
                     />
                     <TableCellComponent
                         value={item.oneMonthAgo}
@@ -197,6 +209,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.oneMonthAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedOneMonthAgo}
+                        formatter={formatHours}
                     />
                     <TableCellComponent
                         value={item.inAnalysis}
@@ -204,6 +217,7 @@ export default function ConsultantsAllocationPage() {
                         normalized={normalized["in-consulting"]}
                         totalValue={data.inConsulting.totals.inAnalysis}
                         normalizedTotalValue={data.inConsulting.totals.normalizedInAnalysis}
+                        formatter={formatHours}
                     />
                 </TableRow>
             ))}
