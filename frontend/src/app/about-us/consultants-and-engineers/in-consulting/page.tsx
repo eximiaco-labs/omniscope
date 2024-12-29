@@ -155,7 +155,7 @@ export default function ConsultantsAllocationPage() {
                     <TableCell className="text-center text-gray-500 text-[10px]">
                         {index + 1}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="border-r border-gray-400">
                         <Link 
                             href={`/about-us/consultants-and-engineers'}/${item.slug}`}
                             className={`text-blue-600 hover:text-blue-800`}
@@ -170,8 +170,9 @@ export default function ConsultantsAllocationPage() {
                         totalValue={data.inConsulting.totals.sameDayThreeMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedSameDayThreeMonthsAgo}
                         formatter={formatHours}
+                        className="border-x border-gray-200 text-[12px]"
                     />
-                    <TableCellComponent
+                    <TableCellComponent className="border-r border-gray-400 text-[12px]"
                         value={item.threeMonthsAgo} 
                         normalizedValue={item.normalizedThreeMonthsAgo}
                         normalized={normalized["in-consulting"]}
@@ -188,8 +189,9 @@ export default function ConsultantsAllocationPage() {
                         formatter={formatHours}
                         previousValue={item.sameDayThreeMonthsAgo}
                         normalizedPreviousValue={item.normalizedSameDayThreeMonthsAgo}
+                        className="border-x border-gray-200 text-[12px]"
                     />
-                    <TableCellComponent
+                    <TableCellComponent className="border-r border-gray-400 text-[12px]"
                         value={item.twoMonthsAgo}
                         normalizedValue={item.normalizedTwoMonthsAgo}
                         normalized={normalized["in-consulting"]}
@@ -208,8 +210,9 @@ export default function ConsultantsAllocationPage() {
                         formatter={formatHours}
                         previousValue={item.sameDayTwoMonthsAgo}
                         normalizedPreviousValue={item.normalizedSameDayTwoMonthsAgo}
+                        className="border-x border-gray-200 text-[12px]"
                     />
-                    <TableCellComponent
+                    <TableCellComponent className="border-r border-gray-400 text-[12px]"
                         value={item.oneMonthAgo}
                         normalizedValue={item.normalizedOneMonthAgo}
                         normalized={normalized["in-consulting"]}
@@ -228,6 +231,7 @@ export default function ConsultantsAllocationPage() {
                         formatter={formatHours}
                         previousValue={item.sameDayOneMonthAgo}
                         normalizedPreviousValue={item.normalizedSameDayOneMonthAgo}
+                        className="border-x border-gray-200"
                     />
                 </TableRow>
             ))}
