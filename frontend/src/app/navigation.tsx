@@ -94,11 +94,6 @@ export function getAboutUsSidebarItems() {
           url: "/about-us/consultants-and-engineers/on-consulting",
           icon: UserIcon,
         },
-        {
-          title: "On Pre-contrated Consulting",
-          url: "/about-us/consultants-and-engineers/on-pre-contrated-consulting",
-          icon: UserIcon,
-        },
       ],
     },
     {
