@@ -90,8 +90,8 @@ export function getAboutUsSidebarItems() {
       icon: UserIcon,
       subItems: [
         {
-          title: "On Consulting",
-          url: "/about-us/consultants-and-engineers/on-consulting",
+          title: "In Consulting",
+          url: "/about-us/consultants-and-engineers/in-consulting",
           icon: UserIcon,
         },
       ],
