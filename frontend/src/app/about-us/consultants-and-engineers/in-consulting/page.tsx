@@ -186,6 +186,8 @@ export default function ConsultantsAllocationPage() {
                         totalValue={data.inConsulting.totals.sameDayTwoMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedSameDayTwoMonthsAgo}
                         formatter={formatHours}
+                        previousValue={item.sameDayThreeMonthsAgo}
+                        normalizedPreviousValue={item.normalizedSameDayThreeMonthsAgo}
                     />
                     <TableCellComponent
                         value={item.twoMonthsAgo}
@@ -194,6 +196,8 @@ export default function ConsultantsAllocationPage() {
                         totalValue={data.inConsulting.totals.twoMonthsAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedTwoMonthsAgo}
                         formatter={formatHours}
+                        previousValue={item.threeMonthsAgo}
+                        normalizedPreviousValue={item.normalizedThreeMonthsAgo}
                     />
                     <TableCellComponent
                         value={item.sameDayOneMonthAgo}
@@ -202,6 +206,8 @@ export default function ConsultantsAllocationPage() {
                         totalValue={data.inConsulting.totals.sameDayOneMonthAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedSameDayOneMonthAgo}
                         formatter={formatHours}
+                        previousValue={item.sameDayTwoMonthsAgo}
+                        normalizedPreviousValue={item.normalizedSameDayTwoMonthsAgo}
                     />
                     <TableCellComponent
                         value={item.oneMonthAgo}
@@ -210,6 +216,8 @@ export default function ConsultantsAllocationPage() {
                         totalValue={data.inConsulting.totals.oneMonthAgo}
                         normalizedTotalValue={data.inConsulting.totals.normalizedOneMonthAgo}
                         formatter={formatHours}
+                        previousValue={item.twoMonthsAgo}
+                        normalizedPreviousValue={item.normalizedTwoMonthsAgo}
                     />
                     <TableCellComponent
                         value={item.inAnalysis}
@@ -218,6 +226,8 @@ export default function ConsultantsAllocationPage() {
                         totalValue={data.inConsulting.totals.inAnalysis}
                         normalizedTotalValue={data.inConsulting.totals.normalizedInAnalysis}
                         formatter={formatHours}
+                        previousValue={item.sameDayOneMonthAgo}
+                        normalizedPreviousValue={item.normalizedSameDayOneMonthAgo}
                     />
                 </TableRow>
             ))}
