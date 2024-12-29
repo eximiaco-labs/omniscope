@@ -289,7 +289,7 @@ export function OmniSidebar() {
                       <SidebarMenuSub>
                         {item.subItems.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild>
+                            <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
                               <Link href={subItem.url}>
                                 <span>{subItem.title}</span>
                               </Link>
