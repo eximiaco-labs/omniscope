@@ -51,7 +51,10 @@ class ConsultantAllocation:
     normalized_same_day_three_months_ago: float = 0
     
     # Projections
+    projected: float = 0
+    normalized_projected: float = 0
     expected_historical: float = 0
+    normalized_expected_historical: float = 0
     
     def get(self, context: str = None, idx: int = 0) -> pd.DataFrame:
         if context is None:
@@ -156,12 +159,31 @@ def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
                 num_working_days = getattr(forecast_working_days, contexts_allocations[i])
                 consultants[worker_name].set(context=f"normalized_{contexts_allocations[i]}", value=row["TimeInHs"] / num_working_days)
                 
+    for consultant in consultants.values():
+        consultant.projected = (consultant.in_analysis / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
                 
+        previous_value = consultant.one_month_ago
+        two_months_ago_value = consultant.two_months_ago
+        three_months_ago_value = consultant.three_months_ago
+                
+        if previous_value == 0 and two_months_ago_value == 0 and three_months_ago_value == 0:
+            consultant.expected_historical = consultant.projected if consultant.projected else 0
+        elif two_months_ago_value == 0 and three_months_ago_value == 0:
+            consultant.expected_historical = previous_value
+        elif three_months_ago_value == 0:
+            consultant.expected_historical = previous_value * 0.8 + two_months_ago_value * 0.2
+        else:
+            consultant.expected_historical = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
+                
+        consultant.normalized_expected_historical = consultant.expected_historical / forecast_working_days.in_analysis
+        consultant.normalized_projected = consultant.projected / forecast_working_days.in_analysis
+           
     consultants = sorted(list(consultants.values()), key=lambda x: x.name)
     totals = ConsultantAllocation(
         name="Total",
         slug="total"
     )
+    
     for consultant in consultants:
         totals.in_analysis += consultant.in_analysis
         totals.normalized_in_analysis += consultant.normalized_in_analysis
@@ -177,6 +199,11 @@ def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
         totals.normalized_three_months_ago += consultant.normalized_three_months_ago
         totals.same_day_three_months_ago += consultant.same_day_three_months_ago
         totals.normalized_same_day_three_months_ago += consultant.normalized_same_day_three_months_ago
+        totals.projected += consultant.projected
+        totals.normalized_projected += consultant.normalized_projected
+        totals.expected_historical += consultant.expected_historical
+        totals.normalized_expected_historical += consultant.normalized_expected_historical
+    
     result["working_days"] = forecast_working_days
     result["totals"] = totals
     result["by_worker"] = consultants

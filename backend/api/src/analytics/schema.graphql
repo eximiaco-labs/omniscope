@@ -1033,7 +1033,9 @@ type InConsultingWorker {
   sameDayThreeMonthsAgo: Float!
   normalizedSameDayThreeMonthsAgo: Float!
   projected: Float!
+  normalizedProjected: Float!
   expectedHistorical: Float!
+  normalizedExpectedHistorical: Float!
 }
 
 type InConsultingTotalMetrics {
@@ -1052,5 +1054,7 @@ type InConsultingTotalMetrics {
   sameDayThreeMonthsAgo: Float!
   normalizedSameDayThreeMonthsAgo: Float!
   projected: Float!
+  normalizedProjected: Float!
   expectedHistorical: Float!
+  normalizedExpectedHistorical: Float!
 }
