@@ -20,6 +20,7 @@ interface TableRowProps {
   index?: number | null;
   hideIndex?: boolean;
   hideExpansion?: boolean;
+  contentType?: string;
 }
 
 export function TableRowComponent({
@@ -34,6 +35,7 @@ export function TableRowComponent({
   index,
   hideIndex = false,
   hideExpansion = false,
+  contentType = "consulting",
 }: TableRowProps) {
   const baseClasses = depth === 1 ? "bg-gray-50" : depth === 2 ? "bg-gray-100" : depth === 3 ? "bg-gray-150" : "";
   const paddingLeft = depth * 4;
@@ -57,7 +59,7 @@ export function TableRowComponent({
           )}
           {depth < 3 ? (
             <Link 
-              href={`/about-us/${depth === 0 ? 'clients' : depth === 1 ? 'sponsors' : 'cases'}/${item.slug}`} 
+              href={`/about-us/${contentType !== 'consulting-and-engineers' ? (depth === 0 ? 'clients' : depth === 1 ? 'sponsors' : 'cases') : 'consultants-and-engineers'}/${item.slug}`}
               className={`text-blue-600 hover:text-blue-800 ${depth > 0 ? 'text-[12px]' : ''}`}
             >
               {item.name || item.title}
