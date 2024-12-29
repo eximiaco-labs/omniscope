@@ -64,6 +64,8 @@ type Query {
   timesheetCache(after: Date, before: Date): [TimesheetCacheItem!]!
 
   yearlyForecast(year: Int): YearlyForecast!
+
+  inConsulting(dateOfInterest: Date): InConsulting!
 }
 
 type CacheItem {

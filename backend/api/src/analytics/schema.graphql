@@ -1006,3 +1006,25 @@ type YearlyForecastByMonth {
   expectedSquadFee: Float!
   actual: Float!
 }
+
+# In Consulting
+type InConsulting {
+  workingDays: ForecastWorkingDayMetrics!
+  byWorker: [InConsultingWorker!]!
+  dates: ForecastTimePeriods!
+}
+
+type InConsultingWorker {
+  name: String!
+  slug: String!
+  inAnalysis: Float!
+  oneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  projected: Float!
+  expectedHistorical: Float!
+}
+
