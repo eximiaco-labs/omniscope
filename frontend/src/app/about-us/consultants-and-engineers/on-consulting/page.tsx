@@ -6,7 +6,7 @@ import SectionHeader from "@/components/SectionHeader";
 export default function OnConsultingPage() {
   return (
     <div className="container mx-auto py-8">
-      <Heading level="1" className="mb-8">
+      <Heading level={1} className="mb-8">
         On Consulting
       </Heading>
 

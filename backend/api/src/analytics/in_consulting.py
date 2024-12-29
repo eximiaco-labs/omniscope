@@ -10,10 +10,10 @@ import pandas as pd
 contexts_dates = [
     "date_of_interest", 
     "last_day_of_last_month", 
-    "last_day_of_two_months_ago", 
-    "last_day_of_three_months_ago", 
     "same_day_last_month", 
-    "same_day_two_months_ago", 
+    "last_day_of_two_months_ago",
+    "same_day_two_months_ago",
+    "last_day_of_three_months_ago", 
     "same_day_three_months_ago"
     ]
 
@@ -36,12 +36,19 @@ class ConsultantAllocation:
     
     # Current period values
     in_analysis: float = 0
+    normalized_in_analysis: float = 0   
     one_month_ago: float = 0
+    normalized_one_month_ago: float = 0
     same_day_one_month_ago: float = 0
+    normalized_same_day_one_month_ago: float = 0
     two_months_ago: float = 0
+    normalized_two_months_ago: float = 0
     same_day_two_months_ago: float = 0
+    normalized_same_day_two_months_ago: float = 0
     three_months_ago: float = 0
+    normalized_three_months_ago: float = 0
     same_day_three_months_ago: float = 0
+    normalized_same_day_three_months_ago: float = 0
     
     # Projections
     expected_historical: float = 0
@@ -108,6 +115,7 @@ class InConsultingTimesheets:
             )
             
             return df
+        
         self.date_of_interest = get_timesheet(forecast_dates.in_analysis)
         self.last_day_of_last_month = get_timesheet(forecast_dates.last_day_of_one_month_ago)
         self.last_day_of_two_months_ago = get_timesheet(forecast_dates.last_day_of_two_months_ago)
@@ -129,7 +137,7 @@ def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
     forecast_working_days = ForecastNumberOfWorkingDays(date_of_interest, forecast_dates)
     in_consulting_timesheets = InConsultingTimesheets(forecast_dates, filters)
     
-    consutants = {}
+    consultants = {}
     
     for i in range(7):
         df = in_consulting_timesheets.get(idx=i)
@@ -138,15 +146,39 @@ def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
             summary = df.groupby(["WorkerName", "WorkerSlug"])["TimeInHs"].sum().reset_index()
             for _, row in summary.iterrows():
                 worker_name = row["WorkerName"]
-                if worker_name not in consutants:
-                    consutants[worker_name] = ConsultantAllocation(
+                if worker_name not in consultants:
+                    consultants[worker_name] = ConsultantAllocation(
                         name=worker_name,
                         slug=row["WorkerSlug"]
                     )
-                consutants[worker_name].set(idx=i, value=row["TimeInHs"])
-    
-    consultants = sorted(list(consutants.values()), key=lambda x: x.name)
+                    
+                consultants[worker_name].set(idx=i, value=row["TimeInHs"])
+                num_working_days = getattr(forecast_working_days, contexts_allocations[i])
+                consultants[worker_name].set(context=f"normalized_{contexts_allocations[i]}", value=row["TimeInHs"] / num_working_days)
+                
+                
+    consultants = sorted(list(consultants.values()), key=lambda x: x.name)
+    totals = ConsultantAllocation(
+        name="Total",
+        slug="total"
+    )
+    for consultant in consultants:
+        totals.in_analysis += consultant.in_analysis
+        totals.normalized_in_analysis += consultant.normalized_in_analysis
+        totals.one_month_ago += consultant.one_month_ago
+        totals.normalized_one_month_ago += consultant.normalized_one_month_ago
+        totals.same_day_one_month_ago += consultant.same_day_one_month_ago
+        totals.normalized_same_day_one_month_ago += consultant.normalized_same_day_one_month_ago
+        totals.two_months_ago += consultant.two_months_ago
+        totals.normalized_two_months_ago += consultant.normalized_two_months_ago
+        totals.same_day_two_months_ago += consultant.same_day_two_months_ago
+        totals.normalized_same_day_two_months_ago += consultant.normalized_same_day_two_months_ago
+        totals.three_months_ago += consultant.three_months_ago
+        totals.normalized_three_months_ago += consultant.normalized_three_months_ago
+        totals.same_day_three_months_ago += consultant.same_day_three_months_ago
+        totals.normalized_same_day_three_months_ago += consultant.normalized_same_day_three_months_ago
     result["working_days"] = forecast_working_days
+    result["totals"] = totals
     result["by_worker"] = consultants
     result["dates"] = forecast_dates
     
