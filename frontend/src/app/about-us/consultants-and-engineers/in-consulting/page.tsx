@@ -157,7 +157,7 @@ export default function ConsultantsAllocationPage() {
                     </TableCell>
                     <TableCell className="border-r border-gray-400">
                         <Link 
-                            href={`/about-us/consultants-and-engineers'}/${item.slug}`}
+                            href={`/about-us/consultants-and-engineers/${item.slug}`}
                             className={`text-blue-600 hover:text-blue-800`}
                         >
                             {item.name}
