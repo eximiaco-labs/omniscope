@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
+from datetime import date
+
 @dataclass
 class ConsultantForecast:
     # Basic info
@@ -89,6 +91,11 @@ class CaseForecast:
     slug: str
     sponsor_slug: str
     client_slug: str
+    
+    start_of_contract: date
+    end_of_contract: date
+    weekly_approved_hours: float = 0
+    
     consulting_fee_new: float = 0
     
     # Current period values

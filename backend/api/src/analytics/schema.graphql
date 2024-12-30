@@ -776,6 +776,9 @@ type ForecastCaseMetrics {
   slug: String!
   sponsorSlug: String
   clientSlug: String
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float
   inAnalysis: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
@@ -787,6 +790,9 @@ type ForecastConsultingPreCaseMetrics {
   slug: String!
   sponsorSlug: String
   clientSlug: String
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float
   inAnalysis: Float!
   oneMonthAgo: Float!
   twoMonthsAgo: Float!
@@ -885,6 +891,9 @@ type ForecastConsultingSponsorMetrics {
   slug: String!
   clientSlug: String
   inAnalysis: Float!
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float
   inAnalysisConsultingHours: Float!
   inAnalysisConsultingPreHours: Float!
   inAnalysisConsultingFeeNew: Float!
@@ -922,6 +931,9 @@ type ForecastConsultingCaseMetrics {
   slug: String!
   sponsorSlug: String
   clientSlug: String
+  startOfContract: Date
+  endOfContract: Date
+  weeklyApprovedHours: Float
   inAnalysis: Float!
   inAnalysisConsultingHours: Float!
   inAnalysisConsultingPreHours: Float!
