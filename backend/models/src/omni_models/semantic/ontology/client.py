@@ -3,7 +3,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import List, Dict
 
-from omni_models.semantic.ontology import WorkerPost
 from omni_shared.settings import api_settings
 from omni_utils.decorators.cache import memoize
 from omni_utils.decorators.c4 import c4_external_system
@@ -11,7 +10,7 @@ from omni_utils.decorators.c4 import c4_external_system
 from omni_models.base.semanticmodel import SemanticModel
 from omni_models.syntactic import Wordpress, Post, User
 
-from .models import Class, Worker, Client, Case, Entry
+from .models import Class, Worker, Client, Case, Entry, WorkerPost
 
 @c4_external_system(
     "Ontology (Wordpress)",

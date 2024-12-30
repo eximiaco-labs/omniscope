@@ -1,14 +1,14 @@
-from .class_model import Class
-from .worker import Worker, WorkerPost
-from .client import Client
 from .case import Case
+from .class_model import Class
+from .client import Client
 from .entry import Entry
+from .worker import Worker, WorkerPost
 
 __all__ = [
-    'Class',
-    'Worker',
-    'WorkerPost',
-    'Client',
     'Case',
-    'Entry'
+    'Class',
+    'Client',
+    'Entry',
+    'Worker',
+    'WorkerPost'
 ]
