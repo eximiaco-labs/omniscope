@@ -53,6 +53,9 @@ interface ForecastItem {
   normalizedTwoMonthsAgoConsultingPreHours?: number;
   oneMonthAgoConsultingPreHours?: number;
   normalizedOneMonthAgoConsultingPreHours?: number;
+  startOfContract?: string;
+  endOfContract?: string;
+  weeklyApprovedHours?: number;
 }
 
 interface ForecastTotals {
@@ -348,6 +351,9 @@ interface ForecastData {
     normalizedTwoMonthsAgoConsultingPreHours: (item.twoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.twoMonthsAgo,
     oneMonthAgoConsultingPreHours: item.oneMonthAgoConsultingPreHours || 0,
     normalizedOneMonthAgoConsultingPreHours: (item.oneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.oneMonthAgo,
+    startOfContract: item.startOfContract,
+    endOfContract: item.endOfContract,
+    weeklyApprovedHours: item.weeklyApprovedHours,
   });
 
   const calculateConsultingTotals = (items: ForecastItem[]) => {
