@@ -53,6 +53,9 @@ interface ForecastItem {
   normalizedTwoMonthsAgoConsultingPreHours?: number;
   oneMonthAgoConsultingPreHours?: number;
   normalizedOneMonthAgoConsultingPreHours?: number;
+  startOfContract?: string;
+  endOfContract?: string;
+  weeklyApprovedHours?: number;
 }
 
 interface ForecastTotals {
@@ -348,6 +351,9 @@ interface ForecastData {
     normalizedTwoMonthsAgoConsultingPreHours: (item.twoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.twoMonthsAgo,
     oneMonthAgoConsultingPreHours: item.oneMonthAgoConsultingPreHours || 0,
     normalizedOneMonthAgoConsultingPreHours: (item.oneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.oneMonthAgo,
+    startOfContract: item.startOfContract,
+    endOfContract: item.endOfContract,
+    weeklyApprovedHours: item.weeklyApprovedHours,
   });
 
   const calculateConsultingTotals = (items: ForecastItem[]) => {
@@ -439,6 +445,8 @@ interface ForecastData {
     twoMonthsAgoConsultingPreHours: item.twoMonthsAgoConsultingPreHours || 0,
     oneMonthAgoConsultingPreHours: item.oneMonthAgoConsultingPreHours || 0,
     inAnalysisConsultingPreHours: item.inAnalysisConsultingPreHours || 0,
+    endOfContract: item.endOfContract,
+    weeklyApprovedHours: item.weeklyApprovedHours,
   });
 
   const consultingClients = data.forecast.byKind.consulting.byClient.map(mapConsultingItem);
@@ -575,6 +583,8 @@ export function getDefaultOtherItem() {
     twoMonthsAgoConsultingPreHours: 0,
     oneMonthAgoConsultingPreHours: 0,
     inAnalysisConsultingPreHours: 0,
+    endOfContract: undefined,
+    weeklyApprovedHours: undefined,
   };
 }
 
