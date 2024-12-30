@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import List, Dict
 
+from omni_models.semantic.ontology import WorkerPost
 from omni_shared.settings import api_settings
 from omni_utils.decorators.cache import memoize
 from omni_utils.decorators.c4 import c4_external_system
