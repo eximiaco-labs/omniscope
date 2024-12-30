@@ -65,6 +65,11 @@ const CaseStatusOverview = ({ staleliness }: { staleliness: any }) => (
         color="text-green-600"
       />
       <CaseStatusCard 
+        title="Stale in Less Than 15 Days" 
+        cases={staleliness.staleInLessThan15DaysCases}
+        color="text-yellow-600"
+      />
+      <CaseStatusCard 
         title="Stale in One Week" 
         cases={staleliness.staleInOneWeekCases}
         color="text-yellow-600"
@@ -73,11 +78,6 @@ const CaseStatusOverview = ({ staleliness }: { staleliness: any }) => (
         title="Stale Cases" 
         cases={staleliness.staleCases}
         color="text-red-600"
-      />
-      <CaseStatusCard 
-        title="No Description" 
-        cases={staleliness.noDescriptionCases}
-        color="text-gray-600"
       />
     </div>
   </div>

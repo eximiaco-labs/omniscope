@@ -13,6 +13,7 @@ def compute_staleliness(workerSlug: str = None):
     result = {
             'stale_cases': [],
             'stale_in_one_week_cases': [], 
+            'stale_in_less_than_15_days_cases': [],
             'no_description_cases': [],
             'up_to_date_cases': []
         }
@@ -65,6 +66,9 @@ def compute_staleliness(workerSlug: str = None):
         # Will be stale in one week (21-30 days)
         elif days_since_update and days_since_update >= 21:
             result['stale_in_one_week_cases'].append(case_dict)
+        # Will be stale in 15 days (15-20 days)
+        elif days_since_update and days_since_update >= 15:
+            result['stale_in_less_than_15_days_cases'].append(case_dict)
         # Up to date cases
         else:
             result['up_to_date_cases'].append(case_dict)
@@ -73,4 +77,3 @@ def compute_staleliness(workerSlug: str = None):
 
 def resolve_staleliness(root, info):
     return compute_staleliness()
-    
