@@ -445,6 +445,8 @@ interface ForecastData {
     twoMonthsAgoConsultingPreHours: item.twoMonthsAgoConsultingPreHours || 0,
     oneMonthAgoConsultingPreHours: item.oneMonthAgoConsultingPreHours || 0,
     inAnalysisConsultingPreHours: item.inAnalysisConsultingPreHours || 0,
+    endOfContract: item.endOfContract,
+    weeklyApprovedHours: item.weeklyApprovedHours,
   });
 
   const consultingClients = data.forecast.byKind.consulting.byClient.map(mapConsultingItem);
@@ -581,6 +583,8 @@ export function getDefaultOtherItem() {
     twoMonthsAgoConsultingPreHours: 0,
     oneMonthAgoConsultingPreHours: 0,
     inAnalysisConsultingPreHours: 0,
+    endOfContract: undefined,
+    weeklyApprovedHours: undefined,
   };
 }
 
