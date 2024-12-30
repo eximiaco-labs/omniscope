@@ -24,11 +24,9 @@ from omni_models.semantic.crm import (
 
 __all__ = [
     'AccountManager', 'Activity', 'Appointment',
-    'Case', 'Class', 'Client', 'CommonQueries',
+    'Case', 'Class', 'Client', 'CRM',
     'Deal', 'Entry', 'Insight', 'Insights', 'Ontology', 
-    'TaskProject', 'Project', 'ProjectsDataFrame', 
+    'Person', 'TaskProject', 'Project', 'ProjectsDataFrame', 
     'SalesFunnelB2B', 'Stage', 'Task', 'TasksManager', 
-    'TimeTracker', 'TimeBudget', 'Worker', 'WorkerPost', 
-    'insights', 'ontology', 'salesfunnel', 'tasksmanager', 
-    'timetracker', 'crm', 'CRM', 'Person'
+    'TimeTracker', 'TimeBudget', 'Worker', 'WorkerPost'
 ]
