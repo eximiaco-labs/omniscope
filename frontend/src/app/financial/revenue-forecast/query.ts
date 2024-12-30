@@ -179,6 +179,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             slug
             sponsorSlug
             clientSlug
+            startOfContract
+            endOfContract
+            weeklyApprovedHours
             inAnalysis
             projected
             expected
@@ -267,6 +270,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             slug
             sponsorSlug
             clientSlug
+            startOfContract
+            endOfContract
+            weeklyApprovedHours
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
@@ -319,6 +325,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             slug
             sponsorSlug
             clientSlug
+            startOfContract
+            endOfContract
+            weeklyApprovedHours
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
@@ -363,6 +372,9 @@ export const REVENUE_FORECAST_QUERY = gql`
             slug
             sponsorSlug
             clientSlug
+            startOfContract
+            endOfContract
+            weeklyApprovedHours
             inAnalysis
             oneMonthAgo
             twoMonthsAgo
