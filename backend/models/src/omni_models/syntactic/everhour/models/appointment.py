@@ -1,16 +1,37 @@
 from typing import Optional
-from pydantic import BaseModel, conint
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 import pytz
 
 class Appointment(BaseModel):
     id: int
-    created_at: datetime
+    created_at: datetime = Field(alias='createdAt')
     date: datetime
-    user_id: int
+    user_id: int = Field(alias='user')
     comment: Optional[str] = None
-    time: conint(ge=0)
-    project_id: str
+    time: int = Field(ge=0)
+    project_id: str = Field(alias='task_project')
+
+    @field_validator('created_at', mode='before')
+    @classmethod
+    def validate_created_at(cls, value):
+        if isinstance(value, str):
+            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        return value
+
+    @field_validator('date', mode='before')
+    @classmethod
+    def validate_date(cls, value):
+        if isinstance(value, str):
+            return datetime.strptime(value, "%Y-%m-%d")
+        return value
+
+    @field_validator('project_id', mode='before')
+    @classmethod
+    def extract_project_id(cls, value, values):
+        if isinstance(value, dict) and 'projects' in value:
+            return value['projects'][0]
+        return value
 
     @property
     def created_at_sp(self) -> datetime:
@@ -21,16 +42,4 @@ class Appointment(BaseModel):
         return sp_time
 
     class Config:
-        population_by_name = True
-
-    @staticmethod
-    def from_json(json):
-        return Appointment(
-            id=json['id'],
-            created_at=json['createdAt'],
-            date=datetime.strptime(json['date'], "%Y-%m-%d"),
-            comment=json['comment'] if 'comment' in json else None,
-            user_id=json['user'],
-            time=int(json['time']),
-            project_id=json['task']['projects'][0]
-        ) 
+        populate_by_name = True 

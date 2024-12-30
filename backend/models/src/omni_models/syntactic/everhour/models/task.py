@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 
 class Task(BaseModel):
@@ -8,11 +8,12 @@ class Task(BaseModel):
     due_on: Optional[datetime] = None
     projects: List[str]
     
-    @staticmethod
-    def from_json(json):
-        return Task(
-            id=json['id'],
-            name=json['name'],
-            due_on=datetime.strptime(json['dueOn'], "%Y-%m-%d") if json.get('dueOn') else None,
-            projects=json['projects']
-        ) 
+    @field_validator('due_on', mode='before')
+    @classmethod
+    def validate_due_on(cls, value):
+        if isinstance(value, str):
+            return datetime.strptime(value, "%Y-%m-%d")
+        return value
+
+    class Config:
+        populate_by_name = True 

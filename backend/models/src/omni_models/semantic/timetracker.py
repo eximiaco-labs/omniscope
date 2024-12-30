@@ -113,7 +113,7 @@ class Appointment(e.Appointment):
         return days > 2
 
     def to_dict(self):
-        data = super().dict(by_alias=True)
+        data = super().model_dump()
         data['week'] = self.week
         data['time_in_hs'] = self.time_in_hs
         data['kind'] = self.kind

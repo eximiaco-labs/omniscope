@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 import omni_utils.helpers.slug as slug
 
@@ -9,13 +9,14 @@ class Client(BaseModel):
     name: str
     created_at: datetime = Field(alias='createdAt')
     status: str
-
-    @validator('created_at', pre=True)
-    def parse_created_at(cls, value):
+    
+    @field_validator('created_at', mode='before')
+    @classmethod
+    def validate_created_at(cls, value):
         if isinstance(value, str):
             return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
         return value
-
+    
     @property
     def slug(self) -> str:
         return slug.generate(self.name)

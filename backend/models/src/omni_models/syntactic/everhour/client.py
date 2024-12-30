@@ -49,7 +49,12 @@ class Everhour:
 
         json = self.fetch("team/time", params=params)
         return [
-            Appointment.from_json(ap)
+            Appointment(
+                **{
+                    **ap,
+                    'task_project': ap['task']
+                }
+            )
             for ap in json
         ]
 
@@ -76,7 +81,7 @@ class Everhour:
         }
         json = self.fetch(f"projects/{project_id}/tasks", params=params)
         return [
-            Task.from_json(t)
+            Task(**t)
             for t in json
         ]
         
@@ -84,7 +89,7 @@ class Everhour:
     def search_tasks(self, query: str) -> List[Task]:
         json = self._search_tasks_json(query)
         return [
-            Task.from_json(t)
+            Task(**t)
             for t in json
         ]
 
