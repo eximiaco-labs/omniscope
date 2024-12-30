@@ -1,5 +1,6 @@
 from omni_models.syntactic.everhour import (
     Appointment, Client, Everhour, Project, User,
+    Billing, Rate, Budget, Task,
 )
 
 from omni_models.syntactic.pipedrive import (
@@ -13,9 +14,13 @@ from omni_models.syntactic.wordpress import (
     Excerpt, GUID, PingStatus, Post, PostStatus,
     PostType, Title, User, Wordpress, logger,
 )
-__all__ = ['Acf', 'Activity', 'Appointment', 'Client', 'Collaborator',
-           'CommentStatus', 'Content', 'Deal', 'EventDetail', 'Everhour',
-           'Excerpt', 'Folder', 'GUID', 'Note', 'Organization', 'Person',
-           'PingStatus', 'Pipedrive', 'Post', 'PostStatus', 'PostType',
-           'Project', 'Stage', 'Task', 'Title', 'Todoist', 'User', 'Wordpress',
-           'everhour', 'logger', 'pipedrive', 'todoist', 'wordpress']
+
+__all__ = [
+    'Acf', 'Activity', 'Appointment', 'Billing', 'Budget',
+    'Client', 'Collaborator', 'CommentStatus', 'Content',
+    'Deal', 'EventDetail', 'Everhour', 'Excerpt', 'Folder',
+    'GUID', 'Note', 'Organization', 'Person', 'PingStatus',
+    'Pipedrive', 'Post', 'PostStatus', 'PostType', 'Project',
+    'Rate', 'Stage', 'Task', 'Title', 'Todoist', 'User',
+    'Wordpress', 'logger'
+]
