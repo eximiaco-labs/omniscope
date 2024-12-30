@@ -1,6 +1,7 @@
 type Staleliness {
     staleCases: [StalelinessCase!]!
     staleInOneWeekCases: [StalelinessCase!]!
+    staleInLessThan15DaysCases: [StalelinessCase!]!
     noDescriptionCases: [StalelinessCase!]!
     upToDateCases: [StalelinessCase!]!
 }

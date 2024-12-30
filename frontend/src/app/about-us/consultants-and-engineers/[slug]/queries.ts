@@ -24,6 +24,10 @@ export const GET_CONSULTANT = gql`
           title
           slug
         }
+        staleInLessThan15DaysCases {
+          title
+          slug
+        }
         upToDateCases {
           title
           slug

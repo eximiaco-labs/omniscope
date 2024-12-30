@@ -18,6 +18,7 @@ import Link from "next/link";
 const sections = [
   { id: 'staleCases', title: 'Stale Cases', subtitle: '0 cases' },
   { id: 'staleInOneWeekCases', title: 'Stale in One Week', subtitle: '0 cases' },
+  { id: 'staleInLessThan15DaysCases', title: 'Stale in Less Than 15 Days', subtitle: '0 cases' },
   { id: 'noDescriptionCases', title: 'Without Description', subtitle: '0 cases' },
   { id: 'upToDateCases', title: 'Up To Date', subtitle: '0 cases' },
 ];

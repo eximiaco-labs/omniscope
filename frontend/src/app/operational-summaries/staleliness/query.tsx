@@ -23,6 +23,16 @@ export const STALELINESS_QUERY = gql`
           slug
         }
       }
+      staleInLessThan15DaysCases {
+        title
+        slug
+        lastUpdated
+        daysSinceUpdate
+        workers {
+          name
+          slug
+        }
+      }
       noDescriptionCases {
         title
         slug
