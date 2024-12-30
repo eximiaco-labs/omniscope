@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, HttpUrl, Field, validator
+from pydantic import BaseModel, HttpUrl, Field, field_validator
 from typing import Dict, List, Any, Optional, TypeVar
 
 from omni_utils.helpers.weeks import Weeks
@@ -41,13 +41,15 @@ class Post(BaseModel):
     def creation_week(self) -> str:
         return Weeks.get_week_string(self.date)
 
-    @validator('acf', pre=True, always=True)
+    @field_validator('acf', mode='before')
+    @classmethod
     def set_acf_none_if_list(cls, v):
         if isinstance(v, list):
             return None
         return v
 
-    @validator('yoast_head_json', pre=True, always=True)
+    @field_validator('yoast_head_json', mode='before')
+    @classmethod
     def set_yhj_none_if_list(cls, v):
         if isinstance(v, list):
             return None

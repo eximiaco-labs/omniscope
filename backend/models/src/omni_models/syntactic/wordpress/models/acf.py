@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 
 class EventDetail(BaseModel):
@@ -8,19 +8,22 @@ class EventDetail(BaseModel):
     status: str = Field(..., alias='situacao')
     observations: str = Field(..., alias='observacoes')
 
-    @validator('author', pre=True, always=True)
+    @field_validator('author', mode='before')
+    @classmethod
     def set_author_none_if_boolean(cls, v):
         if isinstance(v, bool):
             return None
         return v
 
-    @validator('date', pre=True, always=True)
+    @field_validator('date', mode='before')
+    @classmethod
     def parse_date(cls, v):
         if (v == None):
             return None
         return datetime.strptime(v, '%Y%m%d')
 
-    @validator('status', pre=True, always=True)
+    @field_validator('status', mode='before')
+    @classmethod
     def set_status_none(cls, v):
         if v == 'Tudo certo':
             return 'All right'
@@ -28,6 +31,7 @@ class EventDetail(BaseModel):
             return 'Requires attention'
         elif v == 'Crítico':
             return 'Critical'
+        return v
 
 class Acf(BaseModel):
     register_updates: Optional[str] = Field(None, alias='cadastrar_atualizacoes')

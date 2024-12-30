@@ -3,7 +3,7 @@ from collections import defaultdict
 import requests
 from requests.auth import HTTPBasicAuth
 from typing import Union, Dict, List, Any, Optional, Type, TypeVar
-from pydantic import HttpUrl, validator
+from pydantic import HttpUrl
 
 from omni_utils.decorators.cache import cache
 import logging
