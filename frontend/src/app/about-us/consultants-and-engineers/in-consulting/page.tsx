@@ -24,6 +24,7 @@ const IN_CONSULTING_QUERY = gql`
       }
       workingDays {
         inAnalysis
+        inAnalysisPartial
         oneMonthAgo
         sameDayOneMonthAgo
         twoMonthsAgo

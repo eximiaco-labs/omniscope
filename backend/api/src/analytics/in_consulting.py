@@ -1,23 +1,23 @@
 from datetime import datetime
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 from omni_models.analytics.forecast import ForecastDates, ForecastNumberOfWorkingDays
 from omni_models.omnidatasets import SummarizablePowerDataFrame
 from omni_shared import globals
 import pandas as pd
 
-contexts_dates = [
+contexts_dates: List[str] = [
     "date_of_interest", 
     "last_day_of_last_month", 
     "same_day_last_month", 
     "last_day_of_two_months_ago",
     "same_day_two_months_ago",
-    "last_day_of_three_months_ago", 
+    "last_day_of_three_months_ago",
     "same_day_three_months_ago"
     ]
 
-contexts_allocations = [
+contexts_allocations: List[str] = [
     "in_analysis",
     "one_month_ago",
     "same_day_one_month_ago",
@@ -81,26 +81,14 @@ class InConsultingTimesheets:
     same_day_two_months_ago: pd.DataFrame
     same_day_three_months_ago: pd.DataFrame
     
-    def get(self, context: str = None, idx: int = 0) -> pd.DataFrame:
+    def get(self, context: Optional[str] = None, idx: int = 0) -> pd.DataFrame:
         if context is None:
             context = contexts_dates[idx]
             
-        if context == "date_of_interest":
-            return self.date_of_interest
-        elif context == "last_day_of_last_month":
-            return self.last_day_of_last_month
-        elif context == "last_day_of_two_months_ago":
-            return self.last_day_of_two_months_ago
-        elif context == "last_day_of_three_months_ago":
-            return self.last_day_of_three_months_ago
-        elif context == "same_day_last_month":
-            return self.same_day_last_month
-        elif context == "same_day_two_months_ago":
-            return self.same_day_two_months_ago
-        elif context == "same_day_three_months_ago":
-            return self.same_day_three_months_ago
-        else:
+        if not hasattr(self, context):
             raise ValueError(f"Invalid context: {context}")
+            
+        return getattr(self, context)
     
     def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
         def get_timesheet(d: datetime) -> pd.DataFrame:
@@ -127,11 +115,15 @@ class InConsultingTimesheets:
         self.same_day_two_months_ago = get_timesheet(forecast_dates.same_day_two_months_ago)
         self.same_day_three_months_ago = get_timesheet(forecast_dates.same_day_three_months_ago)
         
-def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
+def resolve_in_consulting(
+    _,
+    info,
+    date_of_interest: Optional[datetime] = None,
+    filters: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     if date_of_interest is None:
         date_of_interest = datetime.now()
-
-    if isinstance(date_of_interest, str):
+    elif isinstance(date_of_interest, str):
         date_of_interest = datetime.strptime(date_of_interest, '%Y-%m-%d')
         
     result = {}
@@ -156,11 +148,11 @@ def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
                     )
                     
                 consultants[worker_name].set(idx=i, value=row["TimeInHs"])
-                num_working_days = getattr(forecast_working_days, contexts_allocations[i])
+                num_working_days = getattr(forecast_working_days, contexts_allocations[i]) if i != 0 else forecast_working_days.in_analysis_partial
                 consultants[worker_name].set(context=f"normalized_{contexts_allocations[i]}", value=row["TimeInHs"] / num_working_days)
                 
     for consultant in consultants.values():
-        consultant.projected = (consultant.in_analysis / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
+        consultant.projected = consultant.in_analysis / forecast_working_days.in_analysis_partial * forecast_working_days.in_analysis
                 
         previous_value = consultant.one_month_ago
         two_months_ago_value = consultant.two_months_ago
@@ -176,6 +168,7 @@ def resolve_in_consulting(_, info, date_of_interest = None, filters = None):
             consultant.expected_historical = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
                 
         consultant.normalized_expected_historical = consultant.expected_historical / forecast_working_days.in_analysis
+        # O valor normalizado projetado deve ser igual à média diária
         consultant.normalized_projected = consultant.projected / forecast_working_days.in_analysis
            
     consultants = sorted(list(consultants.values()), key=lambda x: x.name)
