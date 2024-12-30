@@ -214,11 +214,15 @@ def compute_forecast(date_of_interest = None, filters = None):
                         
                     for case in sponsor.by_case:
                         if case.title not in cases:
+                            case_ = globals.omni_models.cases.get_by_title(case.title)
                             cases[case.title] = forecast_types.CaseForecast(
                                 title=case.title,
                                 slug=case.slug,
                                 sponsor_slug=sponsor.slug,
-                                client_slug=client.slug
+                                client_slug=client.slug,
+                                start_of_contract=case_.start_of_contract,
+                                end_of_contract=case_.end_of_contract,
+                                weekly_approved_hours=case_.weekly_approved_hours
                             )
                             
                         working_case = cases[case.title]
@@ -376,6 +380,7 @@ def compute_forecast(date_of_interest = None, filters = None):
         for case in by_case:
             adjust_entity(case)
             
+            
         for project in by_project:
             adjust_entity(project)
             
@@ -472,13 +477,6 @@ def compute_forecast(date_of_interest = None, filters = None):
         
         d['actual']['acc_total_consulting_fee'] = actual_acc_total_consulting_fee
         d['actual']['acc_total_consulting_hours'] = actual_acc_total_consulting_hours
-        
-        # d['difference'] = {
-        #     "total_consulting_fee": actual['total_consulting_fee'] - expected['total_consulting_fee'],
-        #     "total_consulting_hours": actual['total_consulting_hours'] - expected['total_consulting_hours'],
-        #     "acc_total_consulting_fee": actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
-        #     "acc_total_consulting_hours": actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
-        # }
     
     result["summary"] = summary
     result["working_days"] = forecast_working_days
