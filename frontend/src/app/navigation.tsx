@@ -88,6 +88,13 @@ export function getAboutUsSidebarItems() {
       title: "Consultants & Engineers",
       url: "/about-us/consultants-and-engineers",
       icon: UserIcon,
+      subItems: [
+        {
+          title: "In Consulting",
+          url: "/about-us/consultants-and-engineers/in-consulting",
+          icon: UserIcon,
+        },
+      ],
     },
     {
       title: "Account Managers",

@@ -7,9 +7,9 @@ interface TableHeaderProps {
   tableId: string;
   normalized: Record<string, boolean>;
   sortConfigs: Record<string, { key: string; direction: "asc" | "desc" }>;
-  useHistorical: Record<string, boolean>;
+  useHistorical?: Record<string, boolean>;
   requestSort: (key: string, tableId: string) => void;
-  setUseHistorical: (value: React.SetStateAction<Record<string, boolean>>) => void;
+  setUseHistorical?: (value: React.SetStateAction<Record<string, boolean>>) => void;
   columnLabel?: string;
   hideHistoricalToggle?: boolean;
 }
@@ -106,14 +106,14 @@ export function TableHeaderComponent({
             {!hideHistoricalToggle && (
               <button
                 onClick={() => {
-                  setUseHistorical(prev => ({
+                  setUseHistorical?.(prev => ({
                     ...prev,
                     [tableId]: !prev[tableId]
                   }));
                 }}
                 className={`
                   text-[10px] mt-0.5 
-                  ${useHistorical[tableId] 
+                  ${useHistorical?.[tableId] 
                     ? 'text-blue-600' 
                     : 'text-gray-400 hover:text-gray-600'
                   }

@@ -1006,3 +1006,55 @@ type YearlyForecastByMonth {
   expectedSquadFee: Float!
   actual: Float!
 }
+
+# In Consulting
+type InConsulting {
+  workingDays: ForecastWorkingDayMetrics!
+  byWorker: [InConsultingWorker!]!
+  dates: ForecastTimePeriods!
+  totals: InConsultingTotalMetrics!
+}
+
+type InConsultingWorker {
+  name: String!
+  slug: String!
+  inAnalysis: Float!
+  normalizedInAnalysis: Float!  
+  oneMonthAgo: Float!
+  normalizedOneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  normalizedTwoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  normalizedThreeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  normalizedSameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  normalizedSameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  normalizedSameDayThreeMonthsAgo: Float!
+  projected: Float!
+  normalizedProjected: Float!
+  expectedHistorical: Float!
+  normalizedExpectedHistorical: Float!
+}
+
+type InConsultingTotalMetrics {
+  inAnalysis: Float!
+  normalizedInAnalysis: Float!
+  oneMonthAgo: Float!
+  normalizedOneMonthAgo: Float!
+  twoMonthsAgo: Float!
+  normalizedTwoMonthsAgo: Float!
+  threeMonthsAgo: Float!
+  normalizedThreeMonthsAgo: Float!
+  sameDayOneMonthAgo: Float!
+  normalizedSameDayOneMonthAgo: Float!
+  sameDayTwoMonthsAgo: Float!
+  normalizedSameDayTwoMonthsAgo: Float!
+  sameDayThreeMonthsAgo: Float!
+  normalizedSameDayThreeMonthsAgo: Float!
+  projected: Float!
+  normalizedProjected: Float!
+  expectedHistorical: Float!
+  normalizedExpectedHistorical: Float!
+}
