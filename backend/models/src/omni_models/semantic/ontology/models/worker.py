@@ -53,6 +53,13 @@ class Worker(BaseModel):
         if photo_url == '':
             photo_url = None
 
+        # Obtém a lista de atividades do campo meta ou acf
+        atividades = post.meta.get('atividade', []) if post.meta else []
+        if isinstance(atividades, str):
+            atividades = [int(atividades)]
+        elif isinstance(atividades, list):
+            atividades = [int(a) for a in atividades if a]
+
         return Worker(
             id=post.id,
             name=post.title.rendered,
@@ -63,6 +70,6 @@ class Worker(BaseModel):
             link=post.link,
             profile=post.content.rendered,
             has_profile=(post.content.rendered is not None) and len(post.content.rendered) > 0,
-            is_account_manager=28 in post.atividade,
+            is_account_manager=28 in atividades,
             clients=worker_client_rels.get(post.id, [])
         )
