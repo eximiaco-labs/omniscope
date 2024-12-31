@@ -11,6 +11,7 @@ class ActiveDeal(BaseModel):
     stage_name: str
     stage_order_nr: int
     client_or_prospect_name: Optional[str] = None
+    account_manager_name: Optional[str] = None
     add_time: Optional[datetime]
     update_time: Optional[datetime]
     days_since_last_update: Optional[int] = 0
@@ -51,6 +52,7 @@ class ActiveDealsRepository:
                 stage_name=deal.stage_name,
                 stage_order_nr=deal.stage_order_nr,
                 client_or_prospect_name=deal.client_name,
+                account_manager_name=deal.account_manager_name,
                 add_time=deal.add_time,
                 update_time=deal.update_time,
                 days_since_last_update=deal.days_since_last_update,
@@ -68,6 +70,7 @@ class ActiveDealsRepository:
                 stage_name=deal.stage_name,
                 stage_order_nr=deal.stage_order_nr,
                 client_or_prospect_name=deal.client_name,
+                account_manager_name=deal.account_manager_name,
                 add_time=deal.add_time,
                 update_time=deal.update_time,
                 days_since_last_update=deal.days_since_last_update,
