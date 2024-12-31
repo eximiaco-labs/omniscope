@@ -13,4 +13,5 @@ class Deal(BaseModel):
     account_manager_name: str
     add_time: Optional[datetime]
     update_time: Optional[datetime]
-    days_since_last_update: Optional[int] = 0 
+    days_since_last_update: Optional[int] = 0
+    everhour_id: Optional[str] = None

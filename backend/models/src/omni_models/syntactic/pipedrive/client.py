@@ -59,8 +59,9 @@ class Pipedrive:
             'status': status
         }
         json = self._fetch_all('deals', params=params)
+        result = [Deal(**deal) for deal in json]
 
-        return [Deal(**stage) for stage in json]
+        return result
 
     @cache
     def fetch_stages_in_pipeline(self, pipeline_id):

@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .user import User
 from .person import Person
@@ -74,4 +74,5 @@ class Deal(BaseModel):
     owner_name: str
     cc_email: str
     org_hidden: bool
-    person_hidden: bool 
+    person_hidden: bool
+    everhour_id: Optional[str] = Field(alias="46bcd25adcfe725f7191739a91fffdd2a6f82d2f")

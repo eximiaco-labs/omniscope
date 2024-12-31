@@ -40,6 +40,7 @@ class SalesFunnelB2B(SemanticModel):
                 stage_order_nr=stage.order_nr,
                 account_manager_id=deal.user_id.id,
                 account_manager_name=deal.user_id.name,
+                everhour_id=deal.everhour_id,
                 client_name=deal.org_id.name if deal.org_id else None,
                 days_since_last_update=(datetime.now() - deal.update_time).days,
             )
@@ -61,6 +62,7 @@ class SalesFunnelB2B(SemanticModel):
                 account_manager_id=deal.user_id.id,
                 account_manager_name=deal.user_id.name,
                 client_name=deal.org_id.name if deal.org_id else None,
+                everhour_id=deal.everhour_id,
                 days_since_last_update=(datetime.now() - deal.update_time).days,
             )
             for stage in self.stages
