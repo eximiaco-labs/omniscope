@@ -38,6 +38,12 @@ class SponsorsRepository:
             self.__build_data()
 
         return self.__data.get(slug)
+    
+    def get_by_name(self, name: str) -> Sponsor:
+        if self.__data is None:
+            self.__build_data()
+        
+        return next((sponsor for sponsor in self.__data.values() if sponsor.name == name), None)
 
     def __build_data(self):
         all_cases = self.cases_repository.get_all().values()
