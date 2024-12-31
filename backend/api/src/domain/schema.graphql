@@ -192,8 +192,11 @@ type ActiveDeal {
   clientOrProspectName: String!
   client: Client
   accountManager: AccountManager
-  addTime: String
-  updateTime: String
+  sponsor: Sponsor
+  addTime: Date
+  wonTime: Date
+  updateTime: Date
   daysSinceLastUpdate: Int
   everhourId: String
+  status: String
 } 

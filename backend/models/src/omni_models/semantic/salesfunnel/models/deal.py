@@ -8,12 +8,15 @@ class Deal(BaseModel):
     stage_id: int
     stage_name: str
     stage_order_nr: int
+    sponsor_name: Optional[str]
     client_name: Optional[str]
     account_manager_id: int
     account_manager_name: str
     add_time: Optional[datetime]
+    won_time: Optional[datetime]
     update_time: Optional[datetime]
     everhour_id: Optional[str] = None
+    status: Optional[str] = None
 
     @computed_field
     def days_since_last_update(self) -> int:
@@ -44,5 +47,9 @@ class Deal(BaseModel):
         if 'org_id' in data:
             org = data.pop('org_id')
             data['client_name'] = org.get('name') if org else None
+            
+        if 'person_id' in data:
+            person = data.pop('person_id')
+            data['sponsor_name'] = person.get('name') if person else None
 
         return data

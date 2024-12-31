@@ -29,8 +29,19 @@ def resolve_active_deal_account_manager(deal, info):
     
     if not account_manager_name:
         return None
-        
+
     return globals.omni_models.workers.get_by_name(account_manager_name)
+
+def resolve_active_deal_sponsor(deal, info):
+    if isinstance(deal, dict):
+        sponsor_name = deal.get('sponsor_name')
+    else:
+        sponsor_name = deal.sponsor_name
+    
+    if not sponsor_name:
+        return None
+    
+    return globals.omni_models.sponsors.get_by_name(sponsor_name)
 
 def compute_active_deals(account_manager_slug=None, account_manager_name=None):
     all_deals = globals.omni_models.active_deals.get_all()
