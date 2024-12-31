@@ -113,6 +113,8 @@ type Case {
   timesheets: Timesheets
   isStale: Boolean!
   ontologyUrl: String
+
+  deals: [ActiveDeal]
   
   timesheet(slug: String!, filters: [FilterInput]): TimesheetSummary
   forecast(dateOfInterest: Date, filters: [FilterInput]): Forecast!
@@ -193,4 +195,5 @@ type ActiveDeal {
   addTime: String
   updateTime: String
   daysSinceLastUpdate: Int
+  everhourId: String
 } 
