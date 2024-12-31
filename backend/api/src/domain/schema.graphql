@@ -189,7 +189,7 @@ type ActiveDeal {
   stageId: Int!
   stageName: String!
   stageOrderNr: Int!
-  clientOrProspectName: String!
+  clientOrProspectName: String
   client: Client
   accountManager: AccountManager
   sponsor: Sponsor
