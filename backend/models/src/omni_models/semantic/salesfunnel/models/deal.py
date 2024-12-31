@@ -8,7 +8,7 @@ class Deal(BaseModel):
     stage_id: int
     stage_name: str
     stage_order_nr: int
-    client_name: str
+    client_name: Optional[str]
     account_manager_id: int
     account_manager_name: str
     add_time: Optional[datetime]

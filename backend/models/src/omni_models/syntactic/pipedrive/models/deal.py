@@ -12,7 +12,7 @@ class Deal(BaseModel):
     creator_user_id: User
     user_id: User
     person_id: Optional[Person]
-    org_id: Organization
+    org_id: Optional[Organization]
     stage_id: int
     title: str
     value: float
@@ -61,7 +61,7 @@ class Deal(BaseModel):
     channel_id: Optional[str]
     stage_order_nr: int
     person_name: Optional[str]
-    org_name: str
+    org_name: Optional[str]
     next_activity_subject: Optional[str]
     next_activity_type: Optional[str]
     next_activity_duration: Optional[str]
@@ -70,7 +70,7 @@ class Deal(BaseModel):
     weighted_value: float
     formatted_weighted_value: str
     weighted_value_currency: str
-    rotten_time: datetime
+    rotten_time: Optional[datetime]
     owner_name: str
     cc_email: str
     org_hidden: bool
