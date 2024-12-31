@@ -1,3 +1,4 @@
+from omni_models.semantic.salesfunnel import Deal
 from omni_models.syntactic import EventDetail
 from omni_models.semantic import Ontology, Case, TimeTracker, Project
 import omni_models.semantic.ontology as o
@@ -5,7 +6,9 @@ from typing import Optional, Dict, List
 from omni_models.domain.clients import ClientsRepository
 from pydantic import BaseModel
 from datetime import datetime, date
+
 import omni_utils.helpers.numbers as numbers
+from omni_models.domain.active_deals import ActiveDealsRepository
 
 
 class Case(BaseModel):
@@ -31,6 +34,7 @@ class Case(BaseModel):
     last_updated: Optional[datetime] = None
     sponsor: Optional[str] = None
     offers_ids: Optional[List[int]] = []
+    deals: List[Deal] = []
 
 
     def find_client_name(self, clients_repository: ClientsRepository):
@@ -120,11 +124,13 @@ class CasesRepository:
     def __init__(self,
                  ontology: Optional[Ontology] = None,
                  tracker: Optional[TimeTracker] = None,
-                 clients_repository: ClientsRepository = None
+                 clients_repository: Optional[ClientsRepository]= None,
+                 deals_repository: Optional[ActiveDealsRepository] = None
                  ):
         self.ontology = ontology or Ontology()
         self.tracker = tracker or TimeTracker()
         self.clients_repository = clients_repository
+        self.deals_repository = deals_repository
         self.__data: Dict[int, Case] = None
 
     def get_all(self) -> Dict[str, Case]:
@@ -284,4 +290,10 @@ class CasesRepository:
                 ):
                     case.fixed_fee += (tracker_project.billing.fee / 100)
 
+        for case in cases_dict.values():
+            for tracker_project in case.tracker_info:
+                deal = self.deals_repository.get_by_everhour_id(tracker_project.id)
+                if deal:
+                    case.deals.append(deal)
+                    
         self.__data = cases_dict

@@ -71,7 +71,12 @@ def build_case_dictionary(map, case):
             ]
         else:
             result['tracker'] = []
-
+    
+    # if 'deals' in map:
+    #     result['deals'] = [
+    #         deal.model_dump(exclude_unset=False, exclude_defaults=False, computed=True)
+    #         for deal in case.deals
+    #     ]
 
     if 'timesheets' in map:
         timesheets_map = map['timesheets']

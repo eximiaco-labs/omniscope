@@ -27,12 +27,13 @@ class OmniModels:
         self.crm = CRM(pipedrive=self.salesfunnel.pipedrive)
 
         self.workers: WorkersRepository = WorkersRepository(self.ontology, self.tracker, self.insights, self.tasksmanager, self.salesfunnel)
+        self.active_deals = ActiveDealsRepository(self.salesfunnel)
         self.clients = ClientsRepository(self.ontology, self.tracker, self.workers)
-        self.cases = CasesRepository(self.ontology, self.tracker, self.clients)
+        self.cases = CasesRepository(self.ontology, self.tracker, self.clients, self.active_deals)
         self.projects = ProjectsRepository(self.tasksmanager)
         self.sponsors = SponsorsRepository(self.cases, self.crm)
         self.products_or_services = OffersRepository(self.ontology)
-        self.active_deals = ActiveDealsRepository(self.salesfunnel, self.clients, self.workers)
+        
 
     def get_tasks_for_worker_df(self, worker_id) -> list:
         worker = self.workers.get_by_id(worker_id)

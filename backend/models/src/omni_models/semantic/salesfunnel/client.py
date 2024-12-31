@@ -30,21 +30,17 @@ class SalesFunnelB2B(SemanticModel):
     @property
     def active_deals(self) -> List[Deal]:
         return [
-            Deal(
-                id=deal.id,
-                title=deal.title,
-                add_time=deal.add_time,
-                update_time=deal.update_time,
-                stage_id=stage.id,
-                stage_name=stage.name,
-                stage_order_nr=stage.order_nr,
-                account_manager_id=deal.user_id.id,
-                account_manager_name=deal.user_id.name,
-                client_name=deal.org_id.name if deal.org_id else None,
-                days_since_last_update=(datetime.now() - deal.update_time).days,
-            )
+            Deal(**deal.model_dump(), stage=stage)
             for stage in self.stages
             for deal in self.pipedrive.fetch_active_deals_in_stage(stage.id)
+        ]
+        
+    @property
+    def won_deals(self) -> List[Deal]:
+        return [
+            Deal(**deal.model_dump(), stage=stage)
+            for stage in self.stages
+            for deal in self.pipedrive.fetch_active_deals_in_stage(stage.id, 'won')
         ]
 
     @property

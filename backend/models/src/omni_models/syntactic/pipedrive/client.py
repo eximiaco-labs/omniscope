@@ -53,14 +53,15 @@ class Pipedrive:
         return all_data
 
     @cache
-    def fetch_active_deals_in_stage(self, stage_id):
+    def fetch_active_deals_in_stage(self, stage_id, status ='open'):
         params = {
             'stage_id': stage_id,
-            'status': 'open'
+            'status': status
         }
         json = self._fetch_all('deals', params=params)
+        result = [Deal(**deal) for deal in json]
 
-        return [Deal(**stage) for stage in json]
+        return result
 
     @cache
     def fetch_stages_in_pipeline(self, pipeline_id):

@@ -8,7 +8,7 @@ from .sponsors import resolve_sponsor_forecast, resolve_sponsor_timesheet, resol
 from .cases import resolve_case_forecast, resolve_case_timesheet, resolve_cases, resolve_case
 from .offers import resolve_offers, resolve_offer
 from .projects import resolve_projects
-from .active_deals import resolve_active_deals, resolve_active_deal, compute_active_deals
+from .active_deals import resolve_active_deals, resolve_active_deal, compute_active_deals, resolve_active_deal_client, resolve_active_deal_account_manager, resolve_active_deal_sponsor
 
 def setup_query_for_domain(query: QueryType):
     query.set_field("accountManagers", resolve_account_managers)
@@ -32,6 +32,7 @@ def setup_query_for_domain(query: QueryType):
     client_type.set_field('timesheet', resolve_client_timesheet)
     client_type.set_field('forecast', resolve_client_forecast)
     
+    
     account_manager_type = ObjectType('AccountManager')
     account_manager_type.set_field('timesheet', resolve_account_manager_timesheet)
     account_manager_type.set_field('cases', resolve_account_manager_cases)
@@ -51,4 +52,9 @@ def setup_query_for_domain(query: QueryType):
     case_type.set_field('timesheet', resolve_case_timesheet)
     case_type.set_field('forecast', resolve_case_forecast)
     
-    return [client_type, account_manager_type, consultant_or_engineer_type, sponsor_type, case_type]
+    active_deal_type = ObjectType('ActiveDeal')
+    active_deal_type.set_field('client', resolve_active_deal_client)
+    active_deal_type.set_field('accountManager', resolve_active_deal_account_manager)
+    active_deal_type.set_field('sponsor', resolve_active_deal_sponsor)
+    
+    return [client_type, account_manager_type, consultant_or_engineer_type, sponsor_type, case_type, active_deal_type]

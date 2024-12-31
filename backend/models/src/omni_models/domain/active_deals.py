@@ -3,7 +3,6 @@ from typing import Dict, List, Optional
 from datetime import datetime
 
 from omni_models.semantic import SalesFunnelB2B
-from omni_models.domain import Worker, Client
 
 class ActiveDeal(BaseModel):
     id: int
@@ -11,47 +10,50 @@ class ActiveDeal(BaseModel):
     stage_id: int 
     stage_name: str
     stage_order_nr: int
-    client_or_prospect_name: str
-    client: Optional[Client] = None
-    account_manager: Optional[Worker] = None
+    client_or_prospect_name: Optional[str] = None
+    account_manager_name: Optional[str] = None
+    sponsor_name: Optional[str] = None
     add_time: Optional[datetime]
+    won_time: Optional[datetime] = None
     update_time: Optional[datetime]
     days_since_last_update: Optional[int] = 0
-
-
+    everhour_id: Optional[str] = None
+    status: Optional[str] = "open"
+    
 class ActiveDealsRepository:
-    def __init__(self, salesfunnel: SalesFunnelB2B, clients_repository, workers_repository):
-        self.clients_repository = clients_repository
-        self.workers_repository = workers_repository
+    def __init__(self, salesfunnel: SalesFunnelB2B):
         self.salesfunnel = salesfunnel
         self.__data = None
+        self.__won_deals = None
+        self.__active_deals = None
 
     def get_all(self) -> List[ActiveDeal]:
         if self.__data is None:
             self.__build_data()
-        
         return self.__data
 
     def get_by_id(self, id: int) -> Optional[ActiveDeal]:
         if self.__data is None:
             self.__build_data()
-
         return next((deal for deal in self.__data if deal.id == id), None)
+    
+    def get_by_everhour_id(self, everhour_id: str) -> Optional[ActiveDeal]:
+        if self.__data is None:
+            self.__build_data()
+        return next((deal for deal in self.__data if deal.everhour_id == everhour_id), None)
+
+    def __create_active_deal(self, deal) -> ActiveDeal:
+        return ActiveDeal(**deal.model_dump())
 
     def __build_data(self):
-        self.__data = [
-            ActiveDeal(
-                id=deal.id,
-                title=deal.title,
-                stage_id=deal.stage_id,
-                stage_name=deal.stage_name,
-                stage_order_nr=deal.stage_order_nr,
-                client_or_prospect_name=deal.client_name,
-                client=self.clients_repository.get_by_name(deal.client_name),
-                account_manager=self.workers_repository.get_by_name(deal.account_manager_name),
-                add_time=deal.add_time,
-                update_time=deal.update_time,
-                days_since_last_update=deal.days_since_last_update
-            )
+        self.__active_deals = [
+            self.__create_active_deal(deal)
             for deal in self.salesfunnel.active_deals
         ]
+        
+        self.__won_deals = [
+            self.__create_active_deal(deal) 
+            for deal in self.salesfunnel.won_deals
+        ]
+
+        self.__data = self.__active_deals + self.__won_deals
