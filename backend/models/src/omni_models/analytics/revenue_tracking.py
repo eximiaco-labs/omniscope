@@ -503,7 +503,9 @@ def compute_pre_contracted_revenue_tracking(
                                 sponsor_info["penalty"] = sponsor_info["penalty"] + penalty
                                 client_info["penalty"] = client_info["penalty"] + penalty
                                 account_manager_info["penalty"] = account_manager_info["penalty"] + penalty
-                                kind_info["penalty"] = kind_info["penalty"] + penalty  
+                                kind_info["penalty"] = kind_info["penalty"] + penalty 
+                            else:
+                                partial_fee += fee_per_worker
                                 
                             
                 # TODO: Verificar se tem algum colaborador lançando horas no primeiro dia de trabalho do mês

@@ -11,20 +11,22 @@ from omni_models.semantic.salesfunnel import (
 )
 
 from omni_models.semantic.tasksmanager import (
-    Project, ProjectsDataFrame, Task, TasksManager,
+    Project as TaskProject, ProjectsDataFrame, Task, TasksManager,
 )
 
 from omni_models.semantic.timetracker import (
-    Appointment, AppointmentsDataFrame, Project, TimeTracker,
+    TimeTracker, Appointment, Project, TimeBudget
 )
 
 from omni_models.semantic.crm import (
     CRM, Person
 )
 
-__all__ = ['AccountManager', 'Activity', 'Appointment',
-           'AppointmentsDataFrame', 'Case', 'Class', 'Client', 'CommonQueries',
-           'Deal', 'Entry', 'Insight', 'Insights', 'Ontology', 'Project',
-           'ProjectsDataFrame', 'SalesFunnelB2B', 'Stage', 'Task',
-           'TasksManager', 'TimeTracker', 'Worker', 'WorkerPost', 'insights',
-           'ontology', 'salesfunnel', 'tasksmanager', 'timetracker', 'crm', 'CRM', 'Person']
+__all__ = [
+    'AccountManager', 'Activity', 'Appointment',
+    'Case', 'Class', 'Client', 'CRM',
+    'Deal', 'Entry', 'Insight', 'Insights', 'Ontology', 
+    'Person', 'TaskProject', 'Project', 'ProjectsDataFrame', 
+    'SalesFunnelB2B', 'Stage', 'Task', 'TasksManager', 
+    'TimeTracker', 'TimeBudget', 'Worker', 'WorkerPost'
+]
