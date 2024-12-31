@@ -120,6 +120,13 @@ export function getAboutUsSidebarItems() {
       title: "Cases",
       url: "/about-us/cases",
       icon: TrophyIcon,
+      subItems: [
+        {
+          title: "Tracking Projects",
+          url: "/about-us/cases/tracking-projects",
+          icon: TrophyIcon,
+        },
+      ],
     },
     {
       title: "Projects",
