@@ -1006,6 +1006,8 @@ type YearlyForecast {
   year: Int!
   goal: Float!
   byMonth: [YearlyForecastByMonth!]!
+  workingDays: Int!
+  realizedWorkingDays: Int!
 }
 
 type YearlyForecastByMonth {

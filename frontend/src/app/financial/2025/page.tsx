@@ -18,6 +18,8 @@ const YEARLY_FORECAST_QUERY = gql`
     yearlyForecast(year: $year) {
       year
       goal
+      workingDays
+      realizedWorkingDays
       byMonth {
         month
         goal
@@ -64,7 +66,9 @@ interface ForecastTableProps {
 }
 
 const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
-  const currentMonth = new Date().getMonth() + 1;
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
 
   const totalGoal = months.reduce((sum, month) => sum + month.goal, 0);
   const totalWorkingDays = months.reduce(
@@ -99,6 +103,13 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
     totalExpectedConsultingPreFee + 
     totalExpectedHandsOnFee + 
     totalExpectedSquadFee;
+
+  function isMonthInPast(month: number) {
+    if (month === 12) {
+      return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
+    }
+    return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
+  }
 
   return (
     <Table>
@@ -284,18 +295,17 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
           {months.map((month, idx) => (
             <TableCellComponent
               key={month.month}
-              value={month.month <= currentMonth ? month.actual : 0}
-              normalizedValue={month.month <= currentMonth ? month.actual : 0}
-              previousValue={idx > 0 ? (months[idx - 1].month <= currentMonth ? months[idx - 1].actual : 0) : undefined}
-              normalizedPreviousValue={idx > 0 ? (months[idx - 1].month <= currentMonth ? months[idx - 1].actual : 0) : undefined}
+              value={isMonthInPast(month.month) ? month.actual : 0}
+              normalizedValue={isMonthInPast(month.month) ? month.actual : 0}
+              previousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actual : 0) : undefined}
+              normalizedPreviousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actual : 0) : undefined}
               normalized={false}
               className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
-
             />
           ))}
           <TableCellComponent
-            value={months.reduce((sum, month) => sum + (month.month <= currentMonth ? month.actual : 0), 0)}
-            normalizedValue={months.reduce((sum, month) => sum + (month.month <= currentMonth ? month.actual : 0), 0)}
+            value={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+            normalizedValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
             normalized={false}
             className="border-x border-gray-400"
           />
@@ -314,8 +324,19 @@ export default function YearlyForecast2025() {
   if (error) return <div>Error loading data: {error.message}</div>;
 
   const forecast = data?.yearlyForecast;
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  function isMonthInPast(month: number) {
+    if (month === 12) {
+      return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
+    }
+    return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
+  }
+
   const totalActual = forecast.byMonth.reduce((sum: number, month: any) => 
-    sum + (month.month <= new Date().getMonth() + 1 ? month.actual : 0), 0
+    sum + (isMonthInPast(month.month) ? month.actual : 0), 0
   );
   const remaining = forecast.goal - totalActual;
 
@@ -328,7 +349,7 @@ export default function YearlyForecast2025() {
         Yearly Forecast {forecast.year}
       </h2>
       
-      <div className="grid grid-cols-3 gap-4 mb-8 text-center">
+      <div className="grid grid-cols-4 gap-4 mb-8 text-center">
         <div className="p-4 bg-blue-50 rounded-lg">
           <div className="text-lg text-gray-600">Annual Goal</div>
           <div className="text-2xl font-bold text-blue-600">{formatCurrency(forecast.goal)}</div>
@@ -339,6 +360,15 @@ export default function YearlyForecast2025() {
             {formatCurrency(totalActual)}
             <div className="text-sm">
               {((totalActual / forecast.goal) * 100).toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className="p-4 bg-purple-50 rounded-lg">
+          <div className="text-lg text-gray-600">Working Days</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {forecast.realizedWorkingDays}/{forecast.workingDays}
+            <div className="text-sm">
+              {((forecast.realizedWorkingDays / forecast.workingDays) * 100).toFixed(1)}%
             </div>
           </div>
         </div>
