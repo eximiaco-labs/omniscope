@@ -64,7 +64,9 @@ interface ForecastTableProps {
 }
 
 const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
-  const currentMonth = new Date().getMonth() + 1;
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
 
   const totalGoal = months.reduce((sum, month) => sum + month.goal, 0);
   const totalWorkingDays = months.reduce(
@@ -99,6 +101,13 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
     totalExpectedConsultingPreFee + 
     totalExpectedHandsOnFee + 
     totalExpectedSquadFee;
+
+  function isMonthInPast(month: number) {
+    if (month === 12) {
+      return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
+    }
+    return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
+  }
 
   return (
     <Table>
@@ -284,18 +293,17 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
           {months.map((month, idx) => (
             <TableCellComponent
               key={month.month}
-              value={month.month <= currentMonth ? month.actual : 0}
-              normalizedValue={month.month <= currentMonth ? month.actual : 0}
-              previousValue={idx > 0 ? (months[idx - 1].month <= currentMonth ? months[idx - 1].actual : 0) : undefined}
-              normalizedPreviousValue={idx > 0 ? (months[idx - 1].month <= currentMonth ? months[idx - 1].actual : 0) : undefined}
+              value={isMonthInPast(month.month) ? month.actual : 0}
+              normalizedValue={isMonthInPast(month.month) ? month.actual : 0}
+              previousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actual : 0) : undefined}
+              normalizedPreviousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actual : 0) : undefined}
               normalized={false}
               className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
-
             />
           ))}
           <TableCellComponent
-            value={months.reduce((sum, month) => sum + (month.month <= currentMonth ? month.actual : 0), 0)}
-            normalizedValue={months.reduce((sum, month) => sum + (month.month <= currentMonth ? month.actual : 0), 0)}
+            value={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+            normalizedValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
             normalized={false}
             className="border-x border-gray-400"
           />
@@ -314,8 +322,19 @@ export default function YearlyForecast2025() {
   if (error) return <div>Error loading data: {error.message}</div>;
 
   const forecast = data?.yearlyForecast;
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  function isMonthInPast(month: number) {
+    if (month === 12) {
+      return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
+    }
+    return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
+  }
+
   const totalActual = forecast.byMonth.reduce((sum: number, month: any) => 
-    sum + (month.month <= new Date().getMonth() + 1 ? month.actual : 0), 0
+    sum + (isMonthInPast(month.month) ? month.actual : 0), 0
   );
   const remaining = forecast.goal - totalActual;
 
