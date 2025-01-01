@@ -14,25 +14,27 @@ def resolve_yearly_forecast(_, info, year=None):
     main_goal = 30000000
     
     actual = 0
+    current_date = datetime.now()
+    current_year = current_date.year
+    current_month = current_date.month
     
     by_month = []
+    revenue_tracking = None
     for month in range(1, 13):
         m = month - 1 if month > 1 else 12
         y = year if month > 1 else year - 1
         expected_consulting_fee = get_expected_regular_consulting_revenue(y, m)
         expected_pre_contracted_revenue = get_expected_pre_contracted_revenue(y, m)
         
-        current_date = datetime.now()
-        current_year = current_date.year
-        current_month = current_date.month
-        
-        revenue_tracking = None
         discount = main_goal / (13 - month)
         if (y == current_year and m == current_month):
             revenue_tracking = compute_revenue_tracking(current_date)
         elif y < current_year or (y == current_year and m < current_month):
-            discount = revenue_tracking["total"]
-            revenue_tracking = compute_revenue_tracking(get_last_day_of_month(datetime(y, m, 1)))
+            last_day_of_month = get_last_day_of_month(datetime(y, m, 1))
+            revenue_tracking = compute_revenue_tracking(last_day_of_month)
+            discount = revenue_tracking["total"] 
+        else:
+            revenue_tracking = None
             
         actual += revenue_tracking["total"] if revenue_tracking else 0
         
