@@ -1273,6 +1273,7 @@ class ConsultantSummary:
             for sponsor in client["by_sponsor"]
             for case in sponsor["by_case"]
             for project in case["by_project"]
+            if "by_worker" in project
             for worker in project["by_worker"]
             if worker["name"] == consultant_name
         )
@@ -1284,6 +1285,7 @@ class ConsultantSummary:
             for sponsor in client["by_sponsor"]
             for case in sponsor["by_case"]
             for project in case["by_project"]
+            if "by_worker" in project
             for worker in project["by_worker"]
             if worker["name"] == consultant_name
         )
@@ -1295,8 +1297,9 @@ class ConsultantSummary:
             for sponsor in client["by_sponsor"]
             for case in sponsor["by_case"]
             for project in case["by_project"]
+            if "by_worker" in project and project["kind"] == "consulting"
             for worker in project["by_worker"]
-            if worker["name"] == consultant_name and project["kind"] == "consulting"
+            if worker["name"] == consultant_name
         )
         
         consultant = globals.omni_models.workers.get_by_name(consultant_name)
@@ -1311,17 +1314,22 @@ class ConsultantSummary:
         
     @staticmethod
     def build_list(pre_contracted, regular):
+        consultant_names = set()
+        
+        # Collect consultant names safely checking for by_worker
+        for data in [regular, pre_contracted]:
+            for account_manager in data["monthly"]["by_account_manager"]:
+                for client in account_manager["by_client"]:
+                    for sponsor in client["by_sponsor"]:
+                        for case in sponsor["by_case"]:
+                            for project in case["by_project"]:
+                                if "by_worker" in project:
+                                    for worker in project["by_worker"]:
+                                        consultant_names.add(worker["name"])
+        
         return [
             ConsultantSummary.build(consultant_name, pre_contracted, regular)
-            for consultant_name in set(
-                worker["name"]
-                for account_manager in regular["monthly"]["by_account_manager"]
-                for client in account_manager["by_client"]
-                for sponsor in client["by_sponsor"]
-                for case in sponsor["by_case"]
-                for project in case["by_project"]
-                for worker in project["by_worker"]
-            )
+            for consultant_name in consultant_names
         ]
     
 def compute_summaries(pre_contracted, regular):

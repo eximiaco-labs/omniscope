@@ -352,7 +352,8 @@ def compute_forecast(date_of_interest = None, filters = None):
         
         def adjust_entity(entity):
             if slug == 'consulting':
-                entity.projected = (entity.in_analysis / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
+                divisor = forecast_working_days.in_analysis_partial or 1
+                entity.projected = (entity.in_analysis / divisor) * forecast_working_days.in_analysis
                 
                 previous_value = entity.one_month_ago
                 two_months_ago_value = entity.two_months_ago
@@ -368,7 +369,8 @@ def compute_forecast(date_of_interest = None, filters = None):
                     entity.expected_historical = previous_value * 0.6 + two_months_ago_value * 0.25 + three_months_ago_value * 0.15
                     
             elif slug == 'consulting_pre':
-                entity.projected = (entity.in_analysis / forecast_working_days.in_analysis_partial) * forecast_working_days.in_analysis
+                divisor = forecast_working_days.in_analysis_partial or 1
+                entity.projected = (entity.in_analysis / divisor) * forecast_working_days.in_analysis
                
                
         for client in by_client:
