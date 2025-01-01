@@ -52,10 +52,27 @@ def resolve_yearly_forecast(_, info, year=None):
         main_goal -= discount
         
         
+    total_working_days = sum(len(get_working_days_in_month(y, m)) for m in range(1, 13))
+    
+    realized_working_days = 0
+    current_date = datetime.now()
+    
+    for month in range(1, 13):
+        y = year if month > 1 else year - 1
+        m = month - 1 if month > 1 else 12
+        
+        if y < current_date.year or (y == current_date.year and m < current_date.month):
+            realized_working_days += len(get_working_days_in_month(y, m))
+        elif y == current_date.year and m == current_date.month:
+            working_days = get_working_days_in_month(y, m)
+            realized_working_days += sum(1 for day in working_days if day.date() <= current_date.date())
+    
     return { 
         "year": year,
         "goal": 30000000,
-        "by_month": by_month
+        "by_month": by_month,
+        "working_days": total_working_days,
+        "realized_working_days": realized_working_days
     }
     
     

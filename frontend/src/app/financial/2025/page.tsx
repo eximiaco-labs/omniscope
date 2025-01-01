@@ -18,6 +18,8 @@ const YEARLY_FORECAST_QUERY = gql`
     yearlyForecast(year: $year) {
       year
       goal
+      workingDays
+      realizedWorkingDays
       byMonth {
         month
         goal
@@ -347,7 +349,7 @@ export default function YearlyForecast2025() {
         Yearly Forecast {forecast.year}
       </h2>
       
-      <div className="grid grid-cols-3 gap-4 mb-8 text-center">
+      <div className="grid grid-cols-4 gap-4 mb-8 text-center">
         <div className="p-4 bg-blue-50 rounded-lg">
           <div className="text-lg text-gray-600">Annual Goal</div>
           <div className="text-2xl font-bold text-blue-600">{formatCurrency(forecast.goal)}</div>
@@ -358,6 +360,15 @@ export default function YearlyForecast2025() {
             {formatCurrency(totalActual)}
             <div className="text-sm">
               {((totalActual / forecast.goal) * 100).toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className="p-4 bg-purple-50 rounded-lg">
+          <div className="text-lg text-gray-600">Working Days</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {forecast.realizedWorkingDays}/{forecast.workingDays}
+            <div className="text-sm">
+              {((forecast.realizedWorkingDays / forecast.workingDays) * 100).toFixed(1)}%
             </div>
           </div>
         </div>
