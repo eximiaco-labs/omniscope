@@ -27,7 +27,7 @@ type Allocation {
 type AllocationByKind {
   consulting: [AllocationEntry!]!
   internal: [AllocationEntry!]!
-  hands_on: [AllocationEntry!]!
+  handsOn: [AllocationEntry!]!
   squad: [AllocationEntry!]!
 }
 
