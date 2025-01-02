@@ -13,6 +13,8 @@ interface ContributionProps {
   year?: number;
   workerName?: string;
   clientName?: string;
+  sponsor?: string;
+  caseTitle?: string;
 }
 
 interface WeekInfo {
@@ -74,7 +76,7 @@ const ALLOCATION_QUERY = gql`
   }
 `;
 
-const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName, clientName }) => {
+const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName, clientName, sponsor, caseTitle }) => {
   const [selectedKind, setSelectedKind] = useState<string>('consulting');
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
@@ -97,6 +99,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     ...(clientName ? [{
       field: "ClientName",
       selectedValues: [clientName]
+    }] : []),
+    ...(sponsor ? [{
+      field: "Sponsor",
+      selectedValues: [sponsor]
+    }] : []),
+    ...(caseTitle ? [{
+      field: "CaseTitle",
+      selectedValues: [caseTitle]
     }] : [])
   ];
 
@@ -519,7 +529,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
               {monthGroups.map(group => (
                 <th 
                   key={`${group.month}-${group.startIndex}`} 
-                  className="p-2 text-xs text-gray-400 text-left font-normal"
+                  className="p-2 text-xs text-gray-600 text-left font-normal"
                   colSpan={group.count}
                 >
                   {group.month}
@@ -530,7 +540,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
           <tbody>
             {dayRows.map(row => (
               <tr key={row.dayName}>
-                <td className="text-xs text-gray-400 font-normal">{row.dayName}</td>
+                <td className="text-xs text-gray-600 font-normal">{row.dayName}</td>
                 {row.cells.map(cell => (
                   <TooltipProvider key={cell.key}>
                     <Tooltip>
