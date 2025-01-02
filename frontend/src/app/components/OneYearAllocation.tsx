@@ -90,7 +90,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   sponsor,
   caseTitle,
 }) => {
-  const [selectedKind, setSelectedKind] = useState<string>("consulting");
+  // Initialize with empty string to ensure we select first non-zero value
+  const [selectedKind, setSelectedKind] = useState<string>("");
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
@@ -167,6 +168,18 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
         );
       }
     });
+  }
+
+  // Set initial selected kind to first non-zero value if not already set
+  if (selectedKind === "") {
+    const firstNonZeroKind = Object.entries(totals).find(
+      ([_, value]) => value > 0
+    )?.[0];
+    if (firstNonZeroKind) {
+      setSelectedKind(firstNonZeroKind);
+    } else {
+      setSelectedKind("consulting"); // Fallback if no non-zero values
+    }
   }
 
   // Process hours data into a map for easy lookup
