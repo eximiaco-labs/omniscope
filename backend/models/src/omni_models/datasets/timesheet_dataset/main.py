@@ -1,7 +1,5 @@
 import logging
-from datetime import datetime, timedelta
-from typing import List
-
+from datetime import datetime
 import pandas as pd
 import numpy as np
 
@@ -12,68 +10,7 @@ from omni_utils.helpers.weeks import Weeks
 from omni_utils.helpers.slug import slugify
 from omni_models.omnimodels import OmniModels
 
-class TimesheetMemoryCache:
-    def __init__(self):
-        self.cache = []
-
-    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
-        for m in self.cache:
-            if m['after'] <= after and m['before'] >= before:
-                df = m['result'].data
-                df = df[df['Date'] >= after.date()]
-                df = df[df['Date'] <= before.date()]
-                return SummarizablePowerDataFrame(df)
-        return None
-    
-    def add(self, after: datetime, before: datetime, result: SummarizablePowerDataFrame):
-        self.cache.append({
-            "after": after,
-            "before": before,
-            "result": result, 
-            "created_at": datetime.now()
-        })
-
-    def list_cache(self, after, before):
-        if after:
-            if isinstance(after, str):
-                after = datetime.strptime(after, '%Y-%m-%d').date()
-            elif isinstance(after, datetime):
-                after = after.date()
-                
-        if before:
-            if isinstance(before, str):
-                before = datetime.strptime(before, '%Y-%m-%d').date()
-            elif isinstance(before, datetime):
-                before = before.date()
-        
-        return [
-            {
-                "after": m['after'],
-                "before": m['before'],
-                "created_at": m['created_at']
-            }
-            for m in self.cache
-            if (after is None or after >= m['after']) and (before is None or before <= m['before'])
-        ]
-        
-    def invalidate(self, after, before):
-        if after:
-            if isinstance(after, str):
-                after = datetime.strptime(after, '%Y-%m-%d').date()
-            elif isinstance(after, datetime):
-                after = after.date()
-                
-        if before:
-            if isinstance(before, str):
-                before = datetime.strptime(before, '%Y-%m-%d').date()
-            elif isinstance(before, datetime):
-                before = before.date()
-                
-        self.cache = [
-            m 
-            for m in self.cache 
-            if (after is None or after >= m['after']) and (before is None or before <= m['before'])
-        ]
+from .models.memory_cache import TimesheetMemoryCache
 
 class TimesheetDataset(OmniDataset):
     def __init__(self, models: OmniModels = None):
@@ -89,7 +26,6 @@ class TimesheetDataset(OmniDataset):
 
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
-        
         result = self.memory.get(after, before)
         if result:
             self.logger.info(f"Getting appointments from cache from {after} to {before}.")
@@ -104,10 +40,8 @@ class TimesheetDataset(OmniDataset):
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
         
-        
         start_time = datetime.now()
         self.logger.info(f"Enriching timesheet data")
-        
         
         # Check if df is empty
         if df.empty:
@@ -305,7 +239,6 @@ class TimesheetDataset(OmniDataset):
                 'CaseTitle',
                 'Sponsor',
                 'SponsorSlug',
-                #'Case',
                 'ClientId',
                 'ClientName',
                 'ClientSlug',
@@ -330,4 +263,4 @@ class TimesheetDataset(OmniDataset):
                 .filter_by(by='CreatedAtWeek', not_equals_to=previous6)
                 )
 
-        return data
+        return data 
