@@ -18,3 +18,20 @@ type StalenessWorker {
   name: String!
   slug: String!
 }
+
+type Allocation {
+  byKind: AllocationByKind!
+  filterableFields: [FilterableField!]!
+}
+
+type AllocationByKind {
+  consulting: [AllocationEntry!]!
+  internal: [AllocationEntry!]!
+  hands_on: [AllocationEntry!]!
+  squad: [AllocationEntry!]!
+}
+
+type AllocationEntry {
+  date: Date!
+  hours: Float!
+}
