@@ -7,6 +7,29 @@ interface ContributionProps {
   year?: number;
 }
 
+interface WeekInfo {
+  key: string;
+  label: string;
+  date: Date;
+  weekNumber: number;
+}
+
+interface DayCell {
+  key: string;
+  label: string;
+}
+
+interface DayRow {
+  dayName: string;
+  cells: DayCell[];
+}
+
+interface MonthGroup {
+  month: string;
+  startIndex: number;
+  count: number;
+}
+
 const ALLOCATION_QUERY = gql`
   query AllocationOfYear($startDate: Date!, $endDate: Date!, $filters: [FilterInput!]) {
     allocation(startDate: $startDate, endDate: $endDate, filters: $filters) {
@@ -33,26 +56,21 @@ const ALLOCATION_QUERY = gql`
 `;
 
 const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
-  // If no month specified, use January (1)
   const currentDate = new Date();
-  const specifiedMonth = month || currentDate.getMonth() + 1; // getMonth() returns 0-11
+  const specifiedMonth = month || currentDate.getMonth() + 1;
   const specifiedYear = year || currentDate.getFullYear();
 
   // Calculate end date (last day of specified month/year)
   const endDate = new Date(specifiedYear, specifiedMonth, 0);
   
   // Calculate start date (first day, 11 months before specified month/year)
-  // Handle negative months by adjusting the year
-  const startMonth = specifiedMonth - 12;
-  const yearAdjustment = Math.floor(startMonth / 12);
-  const adjustedStartMonth = startMonth < 1 ? startMonth + 12 : startMonth;
-  const startDate = new Date(specifiedYear + yearAdjustment, adjustedStartMonth, 1);
+  const startDate = new Date(specifiedYear, specifiedMonth - 12, 1);
 
   const { loading, error, data } = useQuery(ALLOCATION_QUERY, {
     variables: {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
-      filters: null // Changed to null since it's optional
+      filters: null
     }
   });
 
@@ -74,6 +92,122 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
       }
     });
   }
+
+  // Helper function to get ISO week number
+  const getWeekNumber = (date: Date) => {
+    const target = new Date(date.valueOf());
+    const dayNumber = (date.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNumber + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    }
+    return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+  };
+
+  // Helper function to format date
+  const formatDate = (date: Date) => {
+    return {
+      month: date.toLocaleString('en', { month: 'short' }),
+      week: getWeekNumber(date),
+      day: date.getDate(),
+      dayOfWeek: date.getDay(),
+      monthNum: date.getMonth(),
+      year: date.getFullYear()
+    };
+  };
+
+  // Generate weeks array
+  const generateWeeks = () => {
+    const weeks = [];
+    let currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+      // Get the dates for all days in this week
+      const weekDates = [];
+      const weekStart = new Date(currentDate);
+      
+      // Ensure we're starting from Sunday
+      const daysSinceLastSunday = weekStart.getDay();
+      weekStart.setDate(weekStart.getDate() - daysSinceLastSunday);
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + i);
+        weekDates.push(date);
+      }
+
+      // Determine which month this week belongs to using Friday (index 5)
+      const weekFriday = weekDates[5]; // Friday is the determining day
+      const formatted = formatDate(weekFriday);
+
+      weeks.push({
+        key: currentDate.toISOString(),
+        label: formatted.month,
+        date: new Date(currentDate),
+        weekNumber: formatted.week
+      });
+
+      // Move to next week
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+    return weeks;
+  };
+
+  // Group weeks by month
+  const groupWeeksByMonth = (weeks: WeekInfo[]): MonthGroup[] => {
+    const groups: MonthGroup[] = [];
+    let currentGroup = { month: '', startIndex: 0, count: 0 };
+
+    weeks.forEach((week, index) => {
+      if (currentGroup.month === '') {
+        currentGroup = { month: week.label, startIndex: index, count: 1 };
+      } else if (currentGroup.month === week.label) {
+        currentGroup.count++;
+      } else {
+        groups.push({ ...currentGroup });
+        currentGroup = { month: week.label, startIndex: index, count: 1 };
+      }
+    });
+
+    if (currentGroup.count > 0) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  };
+
+  // Generate days for each week
+  const generateDayRows = (weeks: WeekInfo[]): DayRow[] => {
+    return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((dayName, dayIndex) => {
+      const dayCells = weeks.map(week => {
+        const dayDate = new Date(week.date);
+        // Adjust to the correct day of the week
+        const diff = dayIndex - dayDate.getDay();
+        dayDate.setDate(dayDate.getDate() + diff);
+
+        // Check if the adjusted date is within our range
+        if (dayDate >= startDate && dayDate <= endDate) {
+          const formatted = formatDate(dayDate);
+          return {
+            key: dayDate.toISOString(),
+            label: `${formatted.month} ${formatted.day.toString().padStart(2, '0')}`
+          };
+        }
+        return { key: `empty-${week.key}-${dayIndex}`, label: '' };
+      });
+
+      return {
+        dayName,
+        cells: dayCells
+      };
+    });
+  };
+
+  const weeks = generateWeeks();
+  const monthGroups = groupWeeksByMonth(weeks);
+  const dayRows = generateDayRows(weeks);
 
   return (
     <div>
@@ -105,42 +239,26 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
             <thead>
               <tr>
                 <th className="p-2 border text-sm font-medium">Day</th>
-                {(() => {
-                  const weeks = [];
-                  let currentDate = new Date(startDate);
-                  
-                  while (currentDate <= endDate) {
-                    weeks.push(
-                      <th key={currentDate.toISOString()} className="p-2 border text-sm font-medium">
-                        {currentDate.toLocaleString('en', { month: 'short' })} W{Math.ceil(currentDate.getDate() / 7)}
-                      </th>
-                    );
-                    
-                    // Move to next week
-                    currentDate.setDate(currentDate.getDate() + 7);
-                  }
-                  return weeks;
-                })()}
+                {monthGroups.map(group => (
+                  <th 
+                    key={`${group.month}-${group.startIndex}`} 
+                    className="p-2 border text-sm font-medium"
+                    colSpan={group.count}
+                  >
+                    {group.month}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
-                <tr key={day}>
-                  <td className="p-2 border text-sm font-medium">{day}</td>
-                  {(() => {
-                    const cells = [];
-                    let currentDate = new Date(startDate);
-                    
-                    while (currentDate <= endDate) {
-                      cells.push(
-                        <td key={currentDate.toISOString()} className="p-2 border"></td>
-                      );
-                      
-                      // Move to next week
-                      currentDate.setDate(currentDate.getDate() + 7);
-                    }
-                    return cells;
-                  })()}
+              {dayRows.map(row => (
+                <tr key={row.dayName}>
+                  <td className="p-2 border text-sm font-medium">{row.dayName}</td>
+                  {row.cells.map(cell => (
+                    <td key={cell.key} className="p-2 border text-sm">
+                      {cell.label}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
