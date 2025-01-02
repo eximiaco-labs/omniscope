@@ -75,6 +75,7 @@ const ALLOCATION_QUERY = gql`
 
 const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName }) => {
   const [selectedKind, setSelectedKind] = useState<string>('consulting');
+  const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
   const specifiedYear = year || currentDate.getFullYear();
@@ -240,8 +241,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
-    const darken = 0.7; // 30% darker
-    return `rgba(${Math.floor(r * darken)}, ${Math.floor(g * darken)}, ${Math.floor(b * darken)}, ${opacity + 0.2})`;
+    const darken = 0.6 - (opacity * 0.2); // More contrast for borders
+    return `rgba(${Math.floor(r * darken)}, ${Math.floor(g * darken)}, ${Math.floor(b * darken)}, ${opacity + 0.3})`;
   };
 
   // Helper function to get bin index for hours
@@ -287,11 +288,18 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
 
   // Helper function to get color with opacity
   const getColorWithOpacity = (color: string, opacity: number) => {
-    // Convert hex to RGB and apply opacity
+    // Convert hex to RGB and apply opacity with increased contrast
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    
+    // Increase contrast by adjusting the RGB values based on opacity
+    const contrastFactor = 0.7 + (opacity * 0.3); // Will be between 0.7 and 1.0
+    const adjustedR = Math.round(r * contrastFactor);
+    const adjustedG = Math.round(g * contrastFactor);
+    const adjustedB = Math.round(b * contrastFactor);
+    
+    return `rgba(${adjustedR}, ${adjustedG}, ${adjustedB}, ${opacity})`;
   };
 
   // Calculate histogram data
@@ -303,27 +311,67 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
 
     if (allHours.length === 0) return [];
 
-    const maxHours = Math.max(...allHours);
-    const minHours = Math.min(...allHours);
-    const range = maxHours - minHours;
-    const binSize = range / 10;
+    // Sort hours to analyze distribution
+    const sortedHours = [...allHours].sort((a, b) => a - b);
+    
+    // Find unique values with a small tolerance to group very close values
+    const tolerance = 0.1; // 6 minutes tolerance
+    const uniqueValues = sortedHours.reduce((acc, curr) => {
+      if (acc.length === 0 || Math.abs(curr - acc[acc.length - 1]) > tolerance) {
+        acc.push(curr);
+      }
+      return acc;
+    }, [] as number[]);
 
-    // Initialize bins
-    const bins = Array.from({ length: 10 }, (_, i) => ({
-      min: minHours + (i * binSize),
-      max: minHours + ((i + 1) * binSize),
-      count: 0,
-      // Linear opacity from 0.1 to 0.9 based on bin index
-      opacity: 0.1 + (i * 0.08)
-    }));
+    // If we have very few unique values, use them directly as bin boundaries
+    if (uniqueValues.length <= 5) {
+      const bins = uniqueValues.map((value, i) => ({
+        min: value - tolerance/2,
+        max: value + tolerance/2,
+        count: sortedHours.filter(h => Math.abs(h - value) <= tolerance).length,
+        opacity: 0.3 + (i * (0.6 / Math.max(1, uniqueValues.length - 1)))
+      }));
+      return bins;
+    }
 
-    // Count hours into bins
-    allHours.forEach(hours => {
-      const binIndex = Math.min(Math.floor((hours - minHours) / binSize), 9);
-      bins[binIndex].count++;
-    });
+    // For more distributed values, create adaptive bins
+    const minHours = sortedHours[0];
+    const maxHours = sortedHours[sortedHours.length - 1];
+    
+    // Start with a target of 5 bins
+    let targetBins = 5;
+    let binSize = (maxHours - minHours) / targetBins;
+    
+    // Create initial bins
+    const bins: { min: number; max: number; count: number; opacity: number }[] = [];
+    let currentMin = minHours;
+    
+    while (currentMin < maxHours) {
+      const currentMax = Math.min(maxHours, currentMin + binSize);
+      const count = sortedHours.filter(h => h >= currentMin && h < currentMax).length;
+      
+      // Only add bin if it has values
+      if (count > 0) {
+        bins.push({
+          min: currentMin,
+          max: currentMax,
+          count,
+          opacity: 0.3 + (bins.length * (0.6 / Math.min(4, targetBins - 1)))
+        });
+      }
+      
+      currentMin = currentMax;
+    }
 
     return bins;
+  };
+
+  // Helper function to check if hours fall within selected bin
+  const isInSelectedBin = (hours: number, histogramData: any[]) => {
+    if (selectedBinIndex === null) return true;
+    if (hours === 0) return false;
+    const bin = histogramData[selectedBinIndex];
+    return bin && hours >= bin.min && hours <= bin.max;
   };
 
   const weeks = generateWeeks();
@@ -339,7 +387,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
             <div 
               className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'consulting' ? 'ring-2 ring-blue-500' : ''}`}
               style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}
-              onClick={() => setSelectedKind('consulting')}
+              onClick={() => {
+                setSelectedKind('consulting');
+                setSelectedBinIndex(null);
+              }}
             >
               <h3 className="font-semibold">Consulting</h3>
               <p>{totals.consulting.toFixed(1)}h</p>
@@ -347,7 +398,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
             <div 
               className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'handsOn' ? 'ring-2 ring-blue-500' : ''}`}
               style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}
-              onClick={() => setSelectedKind('handsOn')}
+              onClick={() => {
+                setSelectedKind('handsOn');
+                setSelectedBinIndex(null);
+              }}
             >
               <h3 className="font-semibold">Hands On</h3>
               <p>{totals.handsOn.toFixed(1)}h</p>
@@ -355,7 +409,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
             <div 
               className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'squad' ? 'ring-2 ring-blue-500' : ''}`}
               style={{ backgroundColor: `${STAT_COLORS.squad}20` }}
-              onClick={() => setSelectedKind('squad')}
+              onClick={() => {
+                setSelectedKind('squad');
+                setSelectedBinIndex(null);
+              }}
             >
               <h3 className="font-semibold">Squad</h3>
               <p>{totals.squad.toFixed(1)}h</p>
@@ -363,7 +420,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
             <div 
               className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'internal' ? 'ring-2 ring-blue-500' : ''}`}
               style={{ backgroundColor: `${STAT_COLORS.internal}20` }}
-              onClick={() => setSelectedKind('internal')}
+              onClick={() => {
+                setSelectedKind('internal');
+                setSelectedBinIndex(null);
+              }}
             >
               <h3 className="font-semibold">Internal</h3>
               <p>{totals.internal.toFixed(1)}h</p>
@@ -374,33 +434,30 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
       {data && histogramData.length > 0 && (
         <div className="mt-8 mb-4">
           <h3 className="text-sm font-medium mb-2">Hours Distribution</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr>
-                  {histogramData.map((bin, index) => (
-                    <th key={index} className="p-2 border text-xs font-medium">
-                      {bin.min.toFixed(1)}-{bin.max.toFixed(1)}h
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  {histogramData.map((bin, index) => (
-                    <td 
-                      key={index} 
-                      className="p-2 border text-center transition-colors"
-                      style={{ 
-                        backgroundColor: getColorWithOpacity(STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], bin.opacity * 0.5)
-                      }}
-                    >
-                      <div className="text-sm font-medium">{bin.count}</div>
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {histogramData.map((bin, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
+                  ${selectedBinIndex === index ? 'ring-2 ring-blue-500' : ''}`}
+                style={{ 
+                  backgroundColor: getColorWithOpacity(STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], bin.opacity * 0.5)
+                }}
+                onClick={() => setSelectedBinIndex(selectedBinIndex === index ? null : index)}
+              >
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium text-gray-600">
+                    {bin.min.toFixed(1)}h - {bin.max.toFixed(1)}h
+                  </span>
+                  <span className="text-lg font-semibold mt-1">
+                    {bin.count}
+                  </span>
+                  <span className="text-xs text-gray-500 mt-1">
+                    occurrences
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -435,21 +492,21 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
                             <div className="flex items-center justify-center">
                               {cell.label && (
                                 <div 
-                                  className="w-2.5 h-2.5 rounded-[1px]"
+                                  className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200"
                                   style={{ 
                                     backgroundColor: cell.hours > 0 
                                       ? getColorWithOpacity(
                                           STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], 
                                           histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
                                         )
-                                      : 'rgba(200, 200, 200, 0.3)', // light gray for zero/no hours
+                                      : 'rgba(200, 200, 200, 0.1)', // Lighter gray for zero/no hours
                                     border: `1px solid ${cell.hours > 0 
                                       ? getDarkerColor(
                                           STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
                                           histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
                                         )
-                                      : 'rgba(150, 150, 150, 0.5)' // darker gray for zero/no hours borders
-                                    }`
+                                      : 'rgba(150, 150, 150, 0.2)'}`, // Lighter gray for zero/no hours borders
+                                    opacity: isInSelectedBin(cell.hours, histogramData) ? 1 : 0.1
                                   }}
                                 />
                               )}
