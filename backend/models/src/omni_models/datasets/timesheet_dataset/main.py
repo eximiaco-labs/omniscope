@@ -38,8 +38,7 @@ class TimesheetDataset(OmniDataset):
     def get_filterable_fields(self):
         return ['Kind', 'AccountManagerName', 'ClientName', 'CaseTitle', 'Sponsor', 'WorkerName']
 
-    @cache
-    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
+    def _get_allocation_data(self, after: datetime, before: datetime):
         result = self.memory.get(after, before)
         if result:
             self.logger.info(f"Getting appointments from cache from {after} to {before}.")
@@ -54,6 +53,10 @@ class TimesheetDataset(OmniDataset):
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
         
+        return df
+    @cache
+    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
+        df = self._get_allocation_data(after, before)
         start_time = datetime.now()
         self.logger.info(f"Enriching timesheet data")
         
