@@ -79,6 +79,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
   const specifiedYear = year || currentDate.getFullYear();
+  const tolerance = 0.1; // 6 minutes tolerance
 
   // Calculate end date (last day of specified month/year)
   const endDate = new Date(specifiedYear, specifiedMonth, 0);
@@ -302,8 +303,31 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     return `rgba(${adjustedR}, ${adjustedG}, ${adjustedB}, ${opacity})`;
   };
 
+  // Helper function to check if hours fall within selected bin
+  const isInSelectedBin = (hours: number, histogramData: any[]) => {
+    if (selectedBinIndex === null) return true;
+    if (hours === 0) return false;
+    const bin = histogramData[selectedBinIndex];
+    if (!bin) return false;
+    
+    // For discrete values (when we have few unique values)
+    if (bin.isDiscrete) {
+      return Math.abs(hours - bin.value) <= tolerance;
+    }
+    
+    // For continuous ranges
+    return hours >= bin.min && (
+      // Include the max value in the last bin
+      (selectedBinIndex === histogramData.length - 1)
+        ? hours <= bin.max
+        : hours < bin.max
+    );
+  };
+
   // Calculate histogram data
   const calculateHistogram = () => {
+    const tolerance = 0.1; // 6 minutes tolerance
+    
     // Get all non-zero hours for the selected kind
     const allHours = Object.values(hoursMap)
       .map(day => day[selectedKind as keyof typeof totals])
@@ -315,7 +339,6 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     const sortedHours = [...allHours].sort((a, b) => a - b);
     
     // Find unique values with a small tolerance to group very close values
-    const tolerance = 0.1; // 6 minutes tolerance
     const uniqueValues = sortedHours.reduce((acc, curr) => {
       if (acc.length === 0 || Math.abs(curr - acc[acc.length - 1]) > tolerance) {
         acc.push(curr);
@@ -328,6 +351,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
       const bins = uniqueValues.map((value, i) => ({
         min: value - tolerance/2,
         max: value + tolerance/2,
+        value: value, // Store the exact value for discrete bins
+        isDiscrete: true,
         count: sortedHours.filter(h => Math.abs(h - value) <= tolerance).length,
         opacity: 0.3 + (i * (0.6 / Math.max(1, uniqueValues.length - 1)))
       }));
@@ -343,18 +368,32 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     let binSize = (maxHours - minHours) / targetBins;
     
     // Create initial bins
-    const bins: { min: number; max: number; count: number; opacity: number }[] = [];
+    const bins: { 
+      min: number; 
+      max: number; 
+      count: number; 
+      opacity: number;
+      isDiscrete: boolean;
+    }[] = [];
     let currentMin = minHours;
     
     while (currentMin < maxHours) {
       const currentMax = Math.min(maxHours, currentMin + binSize);
-      const count = sortedHours.filter(h => h >= currentMin && h < currentMax).length;
+      const count = sortedHours.filter(h => 
+        h >= currentMin && (
+          // Include the max value in the last bin
+          bins.length === targetBins - 1
+            ? h <= currentMax
+            : h < currentMax
+        )
+      ).length;
       
       // Only add bin if it has values
       if (count > 0) {
         bins.push({
           min: currentMin,
           max: currentMax,
+          isDiscrete: false,
           count,
           opacity: 0.3 + (bins.length * (0.6 / Math.min(4, targetBins - 1)))
         });
@@ -364,14 +403,6 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     }
 
     return bins;
-  };
-
-  // Helper function to check if hours fall within selected bin
-  const isInSelectedBin = (hours: number, histogramData: any[]) => {
-    if (selectedBinIndex === null) return true;
-    if (hours === 0) return false;
-    const bin = histogramData[selectedBinIndex];
-    return bin && hours >= bin.min && hours <= bin.max;
   };
 
   const weeks = generateWeeks();
