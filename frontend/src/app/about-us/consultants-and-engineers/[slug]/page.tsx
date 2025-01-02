@@ -421,7 +421,7 @@ export default function ConsultantPage() {
 
       {staleliness && <CaseStatusOverview staleliness={staleliness} />}
 
-      <OneYearAllocation />
+      <OneYearAllocation workerName={name} />
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 

@@ -11,6 +11,7 @@ import {
 interface ContributionProps {
   month?: number;
   year?: number;
+  workerName?: string;
 }
 
 interface WeekInfo {
@@ -72,7 +73,7 @@ const ALLOCATION_QUERY = gql`
   }
 `;
 
-const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
+const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName }) => {
   const [selectedKind, setSelectedKind] = useState<string>('consulting');
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
@@ -84,11 +85,17 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
   // Calculate start date (first day, 11 months before specified month/year)
   const startDate = new Date(specifiedYear, specifiedMonth - 12, 1);
 
+  // Create filters if workerName is provided
+  const filters = workerName ? [{
+    field: "WorkerName",
+    selectedValues: [workerName]
+  }] : null;
+
   const { loading, error, data } = useQuery(ALLOCATION_QUERY, {
     variables: {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
-      filters: null
+      filters
     }
   });
 
