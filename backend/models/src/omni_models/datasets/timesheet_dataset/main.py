@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import os
@@ -38,7 +38,24 @@ class TimesheetDataset(OmniDataset):
     def get_filterable_fields(self):
         return ['Kind', 'AccountManagerName', 'ClientName', 'CaseTitle', 'Sponsor', 'WorkerName']
 
-    def _get_allocation_data(self, after: datetime, before: datetime):
+    @cache
+    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
+        first_day_of_month = after.replace(day=1)
+        df = pd.DataFrame()
+        
+        while first_day_of_month < before:
+            last_day_of_month = first_day_of_month.replace(day=calendar.monthrange(first_day_of_month.year, first_day_of_month.month)[1])
+            result = self._get(first_day_of_month, last_day_of_month)
+            df = pd.concat([df, result.data])
+            
+            first_day_of_month = last_day_of_month + timedelta(days=1)
+        
+        df = df[df['Date'] >= after.date()]
+        df = df[df['Date'] <= before.date()]
+        
+        return SummarizablePowerDataFrame(df)
+        
+    def _get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
         result = self.memory.get(after, before)
         if result:
             self.logger.info(f"Getting appointments from cache from {after} to {before}.")
@@ -52,11 +69,7 @@ class TimesheetDataset(OmniDataset):
         
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
-        
-        return df
-    @cache
-    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
-        df = self._get_allocation_data(after, before)
+    
         start_time = datetime.now()
         self.logger.info(f"Enriching timesheet data")
         
