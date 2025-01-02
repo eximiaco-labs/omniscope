@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { gql, useQuery, ApolloError } from '@apollo/client';
-import { STAT_COLORS } from '../constants/colors';
+import React, { useState } from "react";
+import { gql, useQuery, ApolloError } from "@apollo/client";
+import { STAT_COLORS } from "../constants/colors";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
+import SectionHeader from "@/components/SectionHeader";
 
 interface ContributionProps {
   month?: number;
@@ -43,16 +44,21 @@ interface MonthGroup {
 }
 
 interface DayHours {
-  [key: string]: { // date as string
+  [key: string]: {
+    // date as string
     consulting: number;
     handsOn: number;
     squad: number;
     internal: number;
-  }
+  };
 }
 
 const ALLOCATION_QUERY = gql`
-  query AllocationOfYear($startDate: Date!, $endDate: Date!, $filters: [FilterInput!]) {
+  query AllocationOfYear(
+    $startDate: Date!
+    $endDate: Date!
+    $filters: [FilterInput!]
+  ) {
     allocation(startDate: $startDate, endDate: $endDate, filters: $filters) {
       byKind {
         consulting {
@@ -76,8 +82,15 @@ const ALLOCATION_QUERY = gql`
   }
 `;
 
-const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName, clientName, sponsor, caseTitle }) => {
-  const [selectedKind, setSelectedKind] = useState<string>('consulting');
+const OneYearAllocation: React.FC<ContributionProps> = ({
+  month,
+  year,
+  workerName,
+  clientName,
+  sponsor,
+  caseTitle,
+}) => {
+  const [selectedKind, setSelectedKind] = useState<string>("consulting");
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
@@ -86,36 +99,52 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
 
   // Calculate end date (last day of specified month/year)
   const endDate = new Date(specifiedYear, specifiedMonth, 0);
-  
+
   // Calculate start date (first day, 11 months before specified month/year)
   const startDate = new Date(specifiedYear, specifiedMonth - 12, 1);
 
   // Create filters combining workerName and clientName if provided
   const filters = [
-    ...(workerName ? [{
-      field: "WorkerName",
-      selectedValues: [workerName]
-    }] : []),
-    ...(clientName ? [{
-      field: "ClientName",
-      selectedValues: [clientName]
-    }] : []),
-    ...(sponsor ? [{
-      field: "Sponsor",
-      selectedValues: [sponsor]
-    }] : []),
-    ...(caseTitle ? [{
-      field: "CaseTitle",
-      selectedValues: [caseTitle]
-    }] : [])
+    ...(workerName
+      ? [
+          {
+            field: "WorkerName",
+            selectedValues: [workerName],
+          },
+        ]
+      : []),
+    ...(clientName
+      ? [
+          {
+            field: "ClientName",
+            selectedValues: [clientName],
+          },
+        ]
+      : []),
+    ...(sponsor
+      ? [
+          {
+            field: "Sponsor",
+            selectedValues: [sponsor],
+          },
+        ]
+      : []),
+    ...(caseTitle
+      ? [
+          {
+            field: "CaseTitle",
+            selectedValues: [caseTitle],
+          },
+        ]
+      : []),
   ];
 
   const { loading, error, data } = useQuery(ALLOCATION_QUERY, {
     variables: {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      filters: filters.length > 0 ? filters : null
-    }
+      startDate: startDate.toISOString().split("T")[0],
+      endDate: endDate.toISOString().split("T")[0],
+      filters: filters.length > 0 ? filters : null,
+    },
   });
 
   if (loading) return <div>Loading...</div>;
@@ -126,13 +155,16 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     consulting: 0,
     handsOn: 0,
     squad: 0,
-    internal: 0
+    internal: 0,
   };
 
   if (data?.allocation?.byKind) {
     Object.entries(data.allocation.byKind).forEach(([kind, entries]) => {
       if (Array.isArray(entries) && kind in totals) {
-        totals[kind as keyof typeof totals] = entries.reduce((sum, entry) => sum + entry.hours, 0);
+        totals[kind as keyof typeof totals] = entries.reduce(
+          (sum, entry) => sum + entry.hours,
+          0
+        );
       }
     });
   }
@@ -142,14 +174,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   if (data?.allocation?.byKind) {
     Object.entries(data.allocation.byKind).forEach(([kind, entries]) => {
       if (Array.isArray(entries)) {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           const date = entry.date;
           if (!hoursMap[date]) {
             hoursMap[date] = {
               consulting: 0,
               handsOn: 0,
               squad: 0,
-              internal: 0
+              internal: 0,
             };
           }
           hoursMap[date][kind as keyof typeof totals] = entry.hours;
@@ -166,7 +198,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     const firstThursday = target.valueOf();
     target.setMonth(0, 1);
     if (target.getDay() !== 4) {
-      target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
     }
     return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
   };
@@ -174,12 +206,12 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   // Helper function to format date
   const formatDate = (date: Date) => {
     return {
-      month: date.toLocaleString('en', { month: 'short' }),
+      month: date.toLocaleString("en", { month: "short" }),
       week: getWeekNumber(date),
       day: date.getDate(),
       dayOfWeek: date.getDay(),
       monthNum: date.getMonth(),
-      year: date.getFullYear()
+      year: date.getFullYear(),
     };
   };
 
@@ -187,16 +219,16 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   const generateWeeks = () => {
     const weeks = [];
     let currentDate = new Date(startDate);
-    
+
     while (currentDate <= endDate) {
       // Get the dates for all days in this week
       const weekDates = [];
       const weekStart = new Date(currentDate);
-      
+
       // Ensure we're starting from Sunday
       const daysSinceLastSunday = weekStart.getDay();
       weekStart.setDate(weekStart.getDate() - daysSinceLastSunday);
-      
+
       for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
         date.setDate(weekStart.getDate() + i);
@@ -211,7 +243,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
         key: currentDate.toISOString(),
         label: formatted.month,
         date: new Date(currentDate),
-        weekNumber: formatted.week
+        weekNumber: formatted.week,
       });
 
       // Move to next week
@@ -223,10 +255,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   // Group weeks by month
   const groupWeeksByMonth = (weeks: WeekInfo[]): MonthGroup[] => {
     const groups: MonthGroup[] = [];
-    let currentGroup = { month: '', startIndex: 0, count: 0 };
+    let currentGroup = { month: "", startIndex: 0, count: 0 };
 
     weeks.forEach((week, index) => {
-      if (currentGroup.month === '') {
+      if (currentGroup.month === "") {
         currentGroup = { month: week.label, startIndex: index, count: 1 };
       } else if (currentGroup.month === week.label) {
         currentGroup.count++;
@@ -245,13 +277,15 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
 
   // Helper function to format tooltip content
   const formatTooltip = (date: string, label: string, hours: number) => {
-    if (!label) return '';
+    if (!label) return "";
     const dateObj = new Date(date);
-    const formattedDate = dateObj.toLocaleString('en', { 
-      month: 'short',
-      day: '2-digit'
+    const formattedDate = dateObj.toLocaleString("en", {
+      month: "short",
+      day: "2-digit",
     });
-    return `${formattedDate} - ${hours > 0 ? `${hours.toFixed(1)}h` : 'No hours'}`;
+    return `${formattedDate} - ${
+      hours > 0 ? `${hours.toFixed(1)}h` : "No hours"
+    }`;
   };
 
   // Helper function to get darker color for border
@@ -259,49 +293,58 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
-    const darken = 0.6 - (opacity * 0.2); // More contrast for borders
-    return `rgba(${Math.floor(r * darken)}, ${Math.floor(g * darken)}, ${Math.floor(b * darken)}, ${opacity + 0.3})`;
+    const darken = 0.6 - opacity * 0.2; // More contrast for borders
+    return `rgba(${Math.floor(r * darken)}, ${Math.floor(
+      g * darken
+    )}, ${Math.floor(b * darken)}, ${opacity + 0.3})`;
   };
 
   // Helper function to get bin index for hours
   const getBinIndex = (hours: number, histogramData: any[]) => {
     if (hours === 0 || histogramData.length === 0) return -1;
-    return histogramData.findIndex(bin => hours >= bin.min && hours <= bin.max);
+    return histogramData.findIndex(
+      (bin) => hours >= bin.min && hours <= bin.max
+    );
   };
 
   // Modify generateDayRows to include full date for tooltip
   const generateDayRows = (weeks: WeekInfo[]): DayRow[] => {
-    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName, dayIndex) => {
-      const dayCells = weeks.map(week => {
-        const dayDate = new Date(week.date);
-        const diff = dayIndex - dayDate.getDay();
-        dayDate.setDate(dayDate.getDate() + diff);
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+      (dayName, dayIndex) => {
+        const dayCells = weeks.map((week) => {
+          const dayDate = new Date(week.date);
+          const diff = dayIndex - dayDate.getDay();
+          dayDate.setDate(dayDate.getDate() + diff);
 
-        if (dayDate >= startDate && dayDate <= endDate) {
-          const formatted = formatDate(dayDate);
-          const dateStr = dayDate.toISOString().split('T')[0];
-          const hours = hoursMap[dateStr]?.[selectedKind as keyof typeof totals] || 0;
-          
+          if (dayDate >= startDate && dayDate <= endDate) {
+            const formatted = formatDate(dayDate);
+            const dateStr = dayDate.toISOString().split("T")[0];
+            const hours =
+              hoursMap[dateStr]?.[selectedKind as keyof typeof totals] || 0;
+
+            return {
+              key: dayDate.toISOString(),
+              label: `${formatted.month} ${formatted.day
+                .toString()
+                .padStart(2, "0")}`,
+              hours,
+              fullDate: dateStr,
+            };
+          }
           return {
-            key: dayDate.toISOString(),
-            label: `${formatted.month} ${formatted.day.toString().padStart(2, '0')}`,
-            hours,
-            fullDate: dateStr
+            key: `empty-${week.key}-${dayIndex}`,
+            label: "",
+            hours: 0,
+            fullDate: "",
           };
-        }
-        return { 
-          key: `empty-${week.key}-${dayIndex}`, 
-          label: '', 
-          hours: 0,
-          fullDate: ''
-        };
-      });
+        });
 
-      return {
-        dayName,
-        cells: dayCells
-      };
-    });
+        return {
+          dayName,
+          cells: dayCells,
+        };
+      }
+    );
   };
 
   // Helper function to get color with opacity
@@ -310,13 +353,13 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
-    
+
     // Increase contrast by adjusting the RGB values based on opacity
-    const contrastFactor = 0.7 + (opacity * 0.3); // Will be between 0.7 and 1.0
+    const contrastFactor = 0.7 + opacity * 0.3; // Will be between 0.7 and 1.0
     const adjustedR = Math.round(r * contrastFactor);
     const adjustedG = Math.round(g * contrastFactor);
     const adjustedB = Math.round(b * contrastFactor);
-    
+
     return `rgba(${adjustedR}, ${adjustedG}, ${adjustedB}, ${opacity})`;
   };
 
@@ -326,38 +369,42 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     if (hours === 0) return false;
     const bin = histogramData[selectedBinIndex];
     if (!bin) return false;
-    
+
     // For discrete values (when we have few unique values)
     if (bin.isDiscrete) {
       return Math.abs(hours - bin.value) <= tolerance;
     }
-    
+
     // For continuous ranges
-    return hours >= bin.min && (
+    return (
+      hours >= bin.min &&
       // Include the max value in the last bin
-      (selectedBinIndex === histogramData.length - 1)
+      (selectedBinIndex === histogramData.length - 1
         ? hours <= bin.max
-        : hours < bin.max
+        : hours < bin.max)
     );
   };
 
   // Calculate histogram data
   const calculateHistogram = () => {
     const tolerance = 0.1; // 6 minutes tolerance
-    
+
     // Get all non-zero hours for the selected kind
     const allHours = Object.values(hoursMap)
-      .map(day => day[selectedKind as keyof typeof totals])
-      .filter(hours => hours > 0);
+      .map((day) => day[selectedKind as keyof typeof totals])
+      .filter((hours) => hours > 0);
 
     if (allHours.length === 0) return [];
 
     // Sort hours to analyze distribution
     const sortedHours = [...allHours].sort((a, b) => a - b);
-    
+
     // Find unique values with a small tolerance to group very close values
     const uniqueValues = sortedHours.reduce((acc, curr) => {
-      if (acc.length === 0 || Math.abs(curr - acc[acc.length - 1]) > tolerance) {
+      if (
+        acc.length === 0 ||
+        Math.abs(curr - acc[acc.length - 1]) > tolerance
+      ) {
         acc.push(curr);
       }
       return acc;
@@ -366,12 +413,13 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     // If we have very few unique values, use them directly as bin boundaries
     if (uniqueValues.length <= 5) {
       const bins = uniqueValues.map((value, i) => ({
-        min: value - tolerance/2,
-        max: value + tolerance/2,
+        min: value - tolerance / 2,
+        max: value + tolerance / 2,
         value: value, // Store the exact value for discrete bins
         isDiscrete: true,
-        count: sortedHours.filter(h => Math.abs(h - value) <= tolerance).length,
-        opacity: 0.3 + (i * (0.6 / Math.max(1, uniqueValues.length - 1)))
+        count: sortedHours.filter((h) => Math.abs(h - value) <= tolerance)
+          .length,
+        opacity: 0.3 + i * (0.6 / Math.max(1, uniqueValues.length - 1)),
       }));
       return bins;
     }
@@ -379,32 +427,30 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
     // For more distributed values, create adaptive bins
     const minHours = sortedHours[0];
     const maxHours = sortedHours[sortedHours.length - 1];
-    
+
     // Start with a target of 5 bins
     let targetBins = 5;
     let binSize = (maxHours - minHours) / targetBins;
-    
+
     // Create initial bins
-    const bins: { 
-      min: number; 
-      max: number; 
-      count: number; 
+    const bins: {
+      min: number;
+      max: number;
+      count: number;
       opacity: number;
       isDiscrete: boolean;
     }[] = [];
     let currentMin = minHours;
-    
+
     while (currentMin < maxHours) {
       const currentMax = Math.min(maxHours, currentMin + binSize);
-      const count = sortedHours.filter(h => 
-        h >= currentMin && (
+      const count = sortedHours.filter(
+        (h) =>
+          h >= currentMin &&
           // Include the max value in the last bin
-          bins.length === targetBins - 1
-            ? h <= currentMax
-            : h < currentMax
-        )
+          (bins.length === targetBins - 1 ? h <= currentMax : h < currentMax)
       ).length;
-      
+
       // Only add bin if it has values
       if (count > 0) {
         bins.push({
@@ -412,10 +458,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
           max: currentMax,
           isDiscrete: false,
           count,
-          opacity: 0.3 + (bins.length * (0.6 / Math.min(4, targetBins - 1)))
+          opacity: 0.3 + bins.length * (0.6 / Math.min(4, targetBins - 1)),
         });
       }
-      
+
       currentMin = currentMax;
     }
 
@@ -430,52 +476,70 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   const renderKinds = () => {
     if (!data) return null;
 
+    const totalHours = totals.consulting + totals.handsOn + totals.squad + totals.internal;
+
     return (
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div 
-            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'consulting' ? 'ring-2 ring-blue-500' : ''}`}
+          <div
+            className={`p-4 rounded-lg cursor-pointer transition-all ${
+              selectedKind === "consulting" ? "ring-2 ring-blue-500" : ""
+            } ${totals.consulting === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}
             onClick={() => {
-              setSelectedKind('consulting');
-              setSelectedBinIndex(null);
+              if (totals.consulting > 0) {
+                setSelectedKind("consulting");
+                setSelectedBinIndex(null);
+              }
             }}
           >
             <h3 className="font-semibold">Consulting</h3>
-            <p>{totals.consulting.toFixed(1)}h</p>
+            <p>{((totals.consulting / totalHours) * 100).toFixed(1)}%</p>
           </div>
-          <div 
-            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'handsOn' ? 'ring-2 ring-blue-500' : ''}`}
+          <div
+            className={`p-4 rounded-lg cursor-pointer transition-all ${
+              selectedKind === "handsOn" ? "ring-2 ring-blue-500" : ""
+            } ${totals.handsOn === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}
             onClick={() => {
-              setSelectedKind('handsOn');
-              setSelectedBinIndex(null);
+              if (totals.handsOn > 0) {
+                setSelectedKind("handsOn");
+                setSelectedBinIndex(null);
+              }
             }}
           >
             <h3 className="font-semibold">Hands On</h3>
-            <p>{totals.handsOn.toFixed(1)}h</p>
+            <p>{((totals.handsOn / totalHours) * 100).toFixed(1)}%</p>
           </div>
-          <div 
-            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'squad' ? 'ring-2 ring-blue-500' : ''}`}
+          <div
+            className={`p-4 rounded-lg cursor-pointer transition-all ${
+              selectedKind === "squad" ? "ring-2 ring-blue-500" : ""
+            } ${totals.squad === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{ backgroundColor: `${STAT_COLORS.squad}20` }}
             onClick={() => {
-              setSelectedKind('squad');
-              setSelectedBinIndex(null);
+              if (totals.squad > 0) {
+                setSelectedKind("squad");
+                setSelectedBinIndex(null);
+              }
             }}
           >
             <h3 className="font-semibold">Squad</h3>
-            <p>{totals.squad.toFixed(1)}h</p>
+            <p>{((totals.squad / totalHours) * 100).toFixed(1)}%</p>
           </div>
-          <div 
-            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'internal' ? 'ring-2 ring-blue-500' : ''}`}
+          <div
+            className={`p-4 rounded-lg cursor-pointer transition-all ${
+              selectedKind === "internal" ? "ring-2 ring-blue-500" : ""
+            } ${totals.internal === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{ backgroundColor: `${STAT_COLORS.internal}20` }}
             onClick={() => {
-              setSelectedKind('internal');
-              setSelectedBinIndex(null);
+              if (totals.internal > 0) {
+                setSelectedKind("internal");
+                setSelectedBinIndex(null);
+              }
             }}
           >
             <h3 className="font-semibold">Internal</h3>
-            <p>{totals.internal.toFixed(1)}h</p>
+            <p>{((totals.internal / totalHours) * 100).toFixed(1)}%</p>
           </div>
         </div>
       </div>
@@ -493,22 +557,23 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
             <div
               key={index}
               className={`p-4 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
-                ${selectedBinIndex === index ? 'ring-2 ring-blue-500' : ''}`}
-              style={{ 
-                backgroundColor: getColorWithOpacity(STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], bin.opacity * 0.5)
+                ${selectedBinIndex === index ? "ring-2 ring-blue-500" : ""}`}
+              style={{
+                backgroundColor: getColorWithOpacity(
+                  STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
+                  bin.opacity * 0.5
+                ),
               }}
-              onClick={() => setSelectedBinIndex(selectedBinIndex === index ? null : index)}
+              onClick={() =>
+                setSelectedBinIndex(selectedBinIndex === index ? null : index)
+              }
             >
               <div className="flex flex-col">
                 <span className="text-xs font-medium text-gray-600">
                   {bin.min.toFixed(1)}h - {bin.max.toFixed(1)}h
                 </span>
-                <span className="text-lg font-semibold mt-1">
-                  {bin.count}
-                </span>
-                <span className="text-xs text-gray-500 mt-1">
-                  occurrences
-                </span>
+                <span className="text-lg font-semibold mt-1">{bin.count}</span>
+                <span className="text-xs text-gray-500 mt-1">occurrences</span>
               </div>
             </div>
           ))}
@@ -526,9 +591,9 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
           <thead>
             <tr>
               <th className="text-xs text-gray-400"></th>
-              {monthGroups.map(group => (
-                <th 
-                  key={`${group.month}-${group.startIndex}`} 
+              {monthGroups.map((group) => (
+                <th
+                  key={`${group.month}-${group.startIndex}`}
                   className="p-2 text-xs text-gray-600 text-left font-normal"
                   colSpan={group.count}
                 >
@@ -538,34 +603,56 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
             </tr>
           </thead>
           <tbody>
-            {dayRows.map(row => (
+            {dayRows.map((row) => (
               <tr key={row.dayName}>
-                <td className="text-xs text-gray-600 font-normal">{row.dayName}</td>
-                {row.cells.map(cell => (
+                <td className="text-xs text-gray-600 font-normal">
+                  {row.dayName}
+                </td>
+                {row.cells.map((cell) => (
                   <TooltipProvider key={cell.key}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <td 
-                          className="text-xs hover:bg-gray-50"
-                        >
+                        <td className="text-xs hover:bg-gray-50">
                           <div className="flex items-center justify-center">
                             {cell.label && (
-                              <div 
+                              <div
                                 className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200"
-                                style={{ 
-                                  backgroundColor: cell.hours > 0 
-                                    ? getColorWithOpacity(
-                                        STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], 
-                                        histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
-                                      )
-                                    : 'rgba(200, 200, 200, 0.1)',
-                                  border: `1px solid ${cell.hours > 0 
-                                    ? getDarkerColor(
-                                        STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
-                                        histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
-                                      )
-                                    : 'rgba(150, 150, 150, 0.2)'}`,
-                                  opacity: isInSelectedBin(cell.hours, histogramData) ? 1 : 0.1
+                                style={{
+                                  backgroundColor:
+                                    cell.hours > 0
+                                      ? getColorWithOpacity(
+                                          STAT_COLORS[
+                                            selectedKind as keyof typeof STAT_COLORS
+                                          ],
+                                          histogramData[
+                                            getBinIndex(
+                                              cell.hours,
+                                              histogramData
+                                            )
+                                          ]?.opacity || 0
+                                        )
+                                      : "rgba(200, 200, 200, 0.1)",
+                                  border: `1px solid ${
+                                    cell.hours > 0
+                                      ? getDarkerColor(
+                                          STAT_COLORS[
+                                            selectedKind as keyof typeof STAT_COLORS
+                                          ],
+                                          histogramData[
+                                            getBinIndex(
+                                              cell.hours,
+                                              histogramData
+                                            )
+                                          ]?.opacity || 0
+                                        )
+                                      : "rgba(150, 150, 150, 0.2)"
+                                  }`,
+                                  opacity: isInSelectedBin(
+                                    cell.hours,
+                                    histogramData
+                                  )
+                                    ? 1
+                                    : 0.1,
                                 }}
                               />
                             )}
@@ -574,7 +661,13 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
                       </TooltipTrigger>
                       {cell.label && (
                         <TooltipContent>
-                          <p>{formatTooltip(cell.fullDate, cell.label, cell.hours)}</p>
+                          <p>
+                            {formatTooltip(
+                              cell.fullDate,
+                              cell.label,
+                              cell.hours
+                            )}
+                          </p>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -592,10 +685,22 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   if (error) return <div>Error: {(error as ApolloError).message}</div>;
 
   return (
-    <div>
-      {renderKinds()}
-      {renderHistogram()}
-      {renderAllocationGrid()}
+    <div className="mb-8">
+      <SectionHeader
+        title="One Year Allocation"
+        subtitle={`${startDate.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })} TO ${endDate.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })}`}
+      />
+      <div className="ml-2 mr-2">
+        {renderKinds()}
+        {renderHistogram()}
+        {renderAllocationGrid()}
+      </div>
     </div>
   );
 };
