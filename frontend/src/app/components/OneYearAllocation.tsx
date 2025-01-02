@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, ApolloError } from '@apollo/client';
 import { STAT_COLORS } from '../constants/colors';
 import {
   Tooltip,
@@ -12,6 +12,7 @@ interface ContributionProps {
   month?: number;
   year?: number;
   workerName?: string;
+  clientName?: string;
 }
 
 interface WeekInfo {
@@ -73,7 +74,7 @@ const ALLOCATION_QUERY = gql`
   }
 `;
 
-const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName }) => {
+const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerName, clientName }) => {
   const [selectedKind, setSelectedKind] = useState<string>('consulting');
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
@@ -87,22 +88,28 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   // Calculate start date (first day, 11 months before specified month/year)
   const startDate = new Date(specifiedYear, specifiedMonth - 12, 1);
 
-  // Create filters if workerName is provided
-  const filters = workerName ? [{
-    field: "WorkerName",
-    selectedValues: [workerName]
-  }] : null;
+  // Create filters combining workerName and clientName if provided
+  const filters = [
+    ...(workerName ? [{
+      field: "WorkerName",
+      selectedValues: [workerName]
+    }] : []),
+    ...(clientName ? [{
+      field: "ClientName",
+      selectedValues: [clientName]
+    }] : [])
+  ];
 
   const { loading, error, data } = useQuery(ALLOCATION_QUERY, {
     variables: {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
-      filters
+      filters: filters.length > 0 ? filters : null
     }
   });
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (error) return <div>Error: {(error as ApolloError).message}</div>;
 
   // Calculate total hours for each kind
   const totals = {
@@ -254,7 +261,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
 
   // Modify generateDayRows to include full date for tooltip
   const generateDayRows = (weeks: WeekInfo[]): DayRow[] => {
-    return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((dayName, dayIndex) => {
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName, dayIndex) => {
       const dayCells = weeks.map(week => {
         const dayDate = new Date(week.date);
         const diff = dayIndex - dayDate.getDay();
@@ -410,154 +417,175 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year, workerNam
   const dayRows = generateDayRows(weeks);
   const histogramData = calculateHistogram();
 
-  return (
-    <div>
-      {data && (
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div 
-              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'consulting' ? 'ring-2 ring-blue-500' : ''}`}
-              style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}
-              onClick={() => {
-                setSelectedKind('consulting');
-                setSelectedBinIndex(null);
-              }}
-            >
-              <h3 className="font-semibold">Consulting</h3>
-              <p>{totals.consulting.toFixed(1)}h</p>
-            </div>
-            <div 
-              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'handsOn' ? 'ring-2 ring-blue-500' : ''}`}
-              style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}
-              onClick={() => {
-                setSelectedKind('handsOn');
-                setSelectedBinIndex(null);
-              }}
-            >
-              <h3 className="font-semibold">Hands On</h3>
-              <p>{totals.handsOn.toFixed(1)}h</p>
-            </div>
-            <div 
-              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'squad' ? 'ring-2 ring-blue-500' : ''}`}
-              style={{ backgroundColor: `${STAT_COLORS.squad}20` }}
-              onClick={() => {
-                setSelectedKind('squad');
-                setSelectedBinIndex(null);
-              }}
-            >
-              <h3 className="font-semibold">Squad</h3>
-              <p>{totals.squad.toFixed(1)}h</p>
-            </div>
-            <div 
-              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'internal' ? 'ring-2 ring-blue-500' : ''}`}
-              style={{ backgroundColor: `${STAT_COLORS.internal}20` }}
-              onClick={() => {
-                setSelectedKind('internal');
-                setSelectedBinIndex(null);
-              }}
-            >
-              <h3 className="font-semibold">Internal</h3>
-              <p>{totals.internal.toFixed(1)}h</p>
-            </div>
+  const renderKinds = () => {
+    if (!data) return null;
+
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div 
+            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'consulting' ? 'ring-2 ring-blue-500' : ''}`}
+            style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}
+            onClick={() => {
+              setSelectedKind('consulting');
+              setSelectedBinIndex(null);
+            }}
+          >
+            <h3 className="font-semibold">Consulting</h3>
+            <p>{totals.consulting.toFixed(1)}h</p>
+          </div>
+          <div 
+            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'handsOn' ? 'ring-2 ring-blue-500' : ''}`}
+            style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}
+            onClick={() => {
+              setSelectedKind('handsOn');
+              setSelectedBinIndex(null);
+            }}
+          >
+            <h3 className="font-semibold">Hands On</h3>
+            <p>{totals.handsOn.toFixed(1)}h</p>
+          </div>
+          <div 
+            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'squad' ? 'ring-2 ring-blue-500' : ''}`}
+            style={{ backgroundColor: `${STAT_COLORS.squad}20` }}
+            onClick={() => {
+              setSelectedKind('squad');
+              setSelectedBinIndex(null);
+            }}
+          >
+            <h3 className="font-semibold">Squad</h3>
+            <p>{totals.squad.toFixed(1)}h</p>
+          </div>
+          <div 
+            className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'internal' ? 'ring-2 ring-blue-500' : ''}`}
+            style={{ backgroundColor: `${STAT_COLORS.internal}20` }}
+            onClick={() => {
+              setSelectedKind('internal');
+              setSelectedBinIndex(null);
+            }}
+          >
+            <h3 className="font-semibold">Internal</h3>
+            <p>{totals.internal.toFixed(1)}h</p>
           </div>
         </div>
-      )}
-      {data && histogramData.length > 0 && (
-        <div className="mt-8 mb-4">
-          <h3 className="text-sm font-medium mb-2">Hours Distribution</h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {histogramData.map((bin, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
-                  ${selectedBinIndex === index ? 'ring-2 ring-blue-500' : ''}`}
-                style={{ 
-                  backgroundColor: getColorWithOpacity(STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], bin.opacity * 0.5)
-                }}
-                onClick={() => setSelectedBinIndex(selectedBinIndex === index ? null : index)}
-              >
-                <div className="flex flex-col">
-                  <span className="text-xs font-medium text-gray-600">
-                    {bin.min.toFixed(1)}h - {bin.max.toFixed(1)}h
-                  </span>
-                  <span className="text-lg font-semibold mt-1">
-                    {bin.count}
-                  </span>
-                  <span className="text-xs text-gray-500 mt-1">
-                    occurrences
-                  </span>
-                </div>
+      </div>
+    );
+  };
+
+  const renderHistogram = () => {
+    if (!data || histogramData.length === 0) return null;
+
+    return (
+      <div className="mt-8 mb-4">
+        <h3 className="text-sm font-medium mb-2">Hours Distribution</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {histogramData.map((bin, index) => (
+            <div
+              key={index}
+              className={`p-4 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
+                ${selectedBinIndex === index ? 'ring-2 ring-blue-500' : ''}`}
+              style={{ 
+                backgroundColor: getColorWithOpacity(STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], bin.opacity * 0.5)
+              }}
+              onClick={() => setSelectedBinIndex(selectedBinIndex === index ? null : index)}
+            >
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-gray-600">
+                  {bin.min.toFixed(1)}h - {bin.max.toFixed(1)}h
+                </span>
+                <span className="text-lg font-semibold mt-1">
+                  {bin.count}
+                </span>
+                <span className="text-xs text-gray-500 mt-1">
+                  occurrences
+                </span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      )}
-      {data && (
-        <div className="mt-8 overflow-x-auto">
-          <table className="min-w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="p-2 border text-sm font-medium">Day</th>
-                {monthGroups.map(group => (
-                  <th 
-                    key={`${group.month}-${group.startIndex}`} 
-                    className="p-2 border text-sm font-medium text-left"
-                    colSpan={group.count}
-                  >
-                    {group.month}
-                  </th>
+      </div>
+    );
+  };
+
+  const renderAllocationGrid = () => {
+    if (!data) return null;
+
+    return (
+      <div className="mt-8 overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr>
+              <th className="text-xs text-gray-400"></th>
+              {monthGroups.map(group => (
+                <th 
+                  key={`${group.month}-${group.startIndex}`} 
+                  className="p-2 text-xs text-gray-400 text-left font-normal"
+                  colSpan={group.count}
+                >
+                  {group.month}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {dayRows.map(row => (
+              <tr key={row.dayName}>
+                <td className="text-xs text-gray-400 font-normal">{row.dayName}</td>
+                {row.cells.map(cell => (
+                  <TooltipProvider key={cell.key}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <td 
+                          className="text-xs hover:bg-gray-50"
+                        >
+                          <div className="flex items-center justify-center">
+                            {cell.label && (
+                              <div 
+                                className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200"
+                                style={{ 
+                                  backgroundColor: cell.hours > 0 
+                                    ? getColorWithOpacity(
+                                        STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], 
+                                        histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
+                                      )
+                                    : 'rgba(200, 200, 200, 0.1)',
+                                  border: `1px solid ${cell.hours > 0 
+                                    ? getDarkerColor(
+                                        STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
+                                        histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
+                                      )
+                                    : 'rgba(150, 150, 150, 0.2)'}`,
+                                  opacity: isInSelectedBin(cell.hours, histogramData) ? 1 : 0.1
+                                }}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      </TooltipTrigger>
+                      {cell.label && (
+                        <TooltipContent>
+                          <p>{formatTooltip(cell.fullDate, cell.label, cell.hours)}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {dayRows.map(row => (
-                <tr key={row.dayName}>
-                  <td className="p-2 border text-sm font-medium">{row.dayName}</td>
-                  {row.cells.map(cell => (
-                    <TooltipProvider key={cell.key}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <td 
-                            className="p-2 border text-sm hover:bg-gray-50"
-                          >
-                            <div className="flex items-center justify-center">
-                              {cell.label && (
-                                <div 
-                                  className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200"
-                                  style={{ 
-                                    backgroundColor: cell.hours > 0 
-                                      ? getColorWithOpacity(
-                                          STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], 
-                                          histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
-                                        )
-                                      : 'rgba(200, 200, 200, 0.1)', // Lighter gray for zero/no hours
-                                    border: `1px solid ${cell.hours > 0 
-                                      ? getDarkerColor(
-                                          STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
-                                          histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
-                                        )
-                                      : 'rgba(150, 150, 150, 0.2)'}`, // Lighter gray for zero/no hours borders
-                                    opacity: isInSelectedBin(cell.hours, histogramData) ? 1 : 0.1
-                                  }}
-                                />
-                              )}
-                            </div>
-                          </td>
-                        </TooltipTrigger>
-                        {cell.label && (
-                          <TooltipContent>
-                            <p>{formatTooltip(cell.fullDate, cell.label, cell.hours)}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {(error as ApolloError).message}</div>;
+
+  return (
+    <div>
+      {renderKinds()}
+      {renderHistogram()}
+      {renderAllocationGrid()}
     </div>
   );
 };
