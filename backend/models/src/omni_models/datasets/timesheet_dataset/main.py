@@ -2,6 +2,8 @@ import logging
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import os
+from pathlib import Path
 
 from omni_utils.decorators.cache import cache
 from omni_models.base.powerdataframe import SummarizablePowerDataFrame
@@ -10,13 +12,25 @@ from omni_utils.helpers.weeks import Weeks
 from omni_utils.helpers.slug import slugify
 from omni_models.omnimodels import OmniModels
 
+import calendar
+
 from .models.memory_cache import TimesheetMemoryCache
+from .models.disk_cache import TimesheetDiskCache
 
 class TimesheetDataset(OmniDataset):
     def __init__(self, models: OmniModels = None):
         self.models = models or OmniModels()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.memory = TimesheetMemoryCache()
+        
+        api_key = os.getenv('EVERHOUR_API_KEY')
+        if not api_key:
+            raise ValueError("EVERHOUR_API_KEY environment variable is required")
+            
+        cache_dir = Path("ts_2024")
+        self.disk = TimesheetDiskCache(cache_dir, api_key)
+        
+        self._ensure_2024()
 
     def get_treemap_path(self):
         return 'TimeInHs', ['Kind', 'ClientName', 'WorkerName']
@@ -264,3 +278,36 @@ class TimesheetDataset(OmniDataset):
                 )
 
         return data 
+    
+    def _ensure_2024(self):
+        """Ensures all 2024 timesheet data is cached to disk."""
+        months = {
+            'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
+            'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08',
+            'set': '09', 'out': '10', 'nov': '11', 'dez': '12'
+        }
+        
+        self.logger.info("Ensuring 2024 timesheet data is cached...")
+        
+        for month_name, month_num in months.items():
+            filename = f"{month_name}_2024"
+            s = datetime(2024, int(month_num), 1, 0, 0, 0)
+            e = datetime(2024, int(month_num), calendar.monthrange(2024, int(month_num))[1], 23, 59, 59)
+            
+            # Check if month data is already cached
+            cached_data = self.disk.load(filename)
+            if cached_data is not None:
+                self.memory.add(s, e, cached_data)
+                self.logger.info(f"Month {month_name}_2024 already cached")
+                continue
+                
+            # If not cached, fetch from API
+            self.logger.info(f"Fetching {month_name}_2024 from API...")
+            dataset = self.get(s, e)
+            
+            if dataset is not None:
+                self.logger.info(f"Saving {month_name}_2024 to disk cache...")
+                self.disk.save(dataset, filename)
+                self.memory.add(s, e, dataset)
+            else:
+                self.logger.warning(f"No data available for {month_name}_2024")
