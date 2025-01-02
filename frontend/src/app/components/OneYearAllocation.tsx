@@ -220,7 +220,27 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
   // Helper function to format tooltip content
   const formatTooltip = (date: string, label: string, hours: number) => {
     if (!label) return '';
-    return `${date} - ${selectedKind}: ${hours > 0 ? `${hours.toFixed(1)}h` : 'No hours'}`;
+    const dateObj = new Date(date);
+    const formattedDate = dateObj.toLocaleString('en', { 
+      month: 'short',
+      day: '2-digit'
+    });
+    return `${formattedDate} - ${hours > 0 ? `${hours.toFixed(1)}h` : 'No hours'}`;
+  };
+
+  // Helper function to get darker color for border
+  const getDarkerColor = (color: string, opacity: number) => {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    const darken = 0.7; // 30% darker
+    return `rgba(${Math.floor(r * darken)}, ${Math.floor(g * darken)}, ${Math.floor(b * darken)}, ${opacity + 0.2})`;
+  };
+
+  // Helper function to get bin index for hours
+  const getBinIndex = (hours: number, histogramData: any[]) => {
+    if (hours === 0 || histogramData.length === 0) return -1;
+    return histogramData.findIndex(bin => hours >= bin.min && hours <= bin.max);
   };
 
   // Modify generateDayRows to include full date for tooltip
@@ -405,12 +425,28 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
                           <td 
                             className="p-2 border text-sm hover:bg-gray-50"
                           >
-                            {cell.label}
-                            {cell.hours > 0 && (
-                              <div className="text-xs text-gray-600">
-                                {cell.hours.toFixed(1)}h
-                              </div>
-                            )}
+                            <div className="flex items-center justify-center">
+                              {cell.label && (
+                                <div 
+                                  className="w-2.5 h-2.5 rounded-[1px]"
+                                  style={{ 
+                                    backgroundColor: cell.hours > 0 
+                                      ? getColorWithOpacity(
+                                          STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], 
+                                          histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
+                                        )
+                                      : 'rgba(200, 200, 200, 0.3)', // light gray for zero/no hours
+                                    border: `1px solid ${cell.hours > 0 
+                                      ? getDarkerColor(
+                                          STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
+                                          histogramData[getBinIndex(cell.hours, histogramData)]?.opacity || 0
+                                        )
+                                      : 'rgba(150, 150, 150, 0.5)' // darker gray for zero/no hours borders
+                                    }`
+                                  }}
+                                />
+                              )}
+                            </div>
                           </td>
                         </TooltipTrigger>
                         {cell.label && (
