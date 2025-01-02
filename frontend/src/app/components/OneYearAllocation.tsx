@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { gql, useQuery } from '@apollo/client';
 import { STAT_COLORS } from '../constants/colors';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ContributionProps {
   month?: number;
@@ -17,6 +23,8 @@ interface WeekInfo {
 interface DayCell {
   key: string;
   label: string;
+  hours: number;
+  fullDate: string;
 }
 
 interface DayRow {
@@ -28,6 +36,15 @@ interface MonthGroup {
   month: string;
   startIndex: number;
   count: number;
+}
+
+interface DayHours {
+  [key: string]: { // date as string
+    consulting: number;
+    handsOn: number;
+    squad: number;
+    internal: number;
+  }
 }
 
 const ALLOCATION_QUERY = gql`
@@ -56,6 +73,7 @@ const ALLOCATION_QUERY = gql`
 `;
 
 const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
+  const [selectedKind, setSelectedKind] = useState<string>('consulting');
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
   const specifiedYear = year || currentDate.getFullYear();
@@ -89,6 +107,27 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
     Object.entries(data.allocation.byKind).forEach(([kind, entries]) => {
       if (Array.isArray(entries) && kind in totals) {
         totals[kind as keyof typeof totals] = entries.reduce((sum, entry) => sum + entry.hours, 0);
+      }
+    });
+  }
+
+  // Process hours data into a map for easy lookup
+  const hoursMap: DayHours = {};
+  if (data?.allocation?.byKind) {
+    Object.entries(data.allocation.byKind).forEach(([kind, entries]) => {
+      if (Array.isArray(entries)) {
+        entries.forEach(entry => {
+          const date = entry.date;
+          if (!hoursMap[date]) {
+            hoursMap[date] = {
+              consulting: 0,
+              handsOn: 0,
+              squad: 0,
+              internal: 0
+            };
+          }
+          hoursMap[date][kind as keyof typeof totals] = entry.hours;
+        });
       }
     });
   }
@@ -178,24 +217,38 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
     return groups;
   };
 
-  // Generate days for each week
+  // Helper function to format tooltip content
+  const formatTooltip = (date: string, label: string, hours: number) => {
+    if (!label) return '';
+    return `${date} - ${selectedKind}: ${hours > 0 ? `${hours.toFixed(1)}h` : 'No hours'}`;
+  };
+
+  // Modify generateDayRows to include full date for tooltip
   const generateDayRows = (weeks: WeekInfo[]): DayRow[] => {
     return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((dayName, dayIndex) => {
       const dayCells = weeks.map(week => {
         const dayDate = new Date(week.date);
-        // Adjust to the correct day of the week
         const diff = dayIndex - dayDate.getDay();
         dayDate.setDate(dayDate.getDate() + diff);
 
-        // Check if the adjusted date is within our range
         if (dayDate >= startDate && dayDate <= endDate) {
           const formatted = formatDate(dayDate);
+          const dateStr = dayDate.toISOString().split('T')[0];
+          const hours = hoursMap[dateStr]?.[selectedKind as keyof typeof totals] || 0;
+          
           return {
             key: dayDate.toISOString(),
-            label: `${formatted.month} ${formatted.day.toString().padStart(2, '0')}`
+            label: `${formatted.month} ${formatted.day.toString().padStart(2, '0')}`,
+            hours,
+            fullDate: dateStr
           };
         }
-        return { key: `empty-${week.key}-${dayIndex}`, label: '' };
+        return { 
+          key: `empty-${week.key}-${dayIndex}`, 
+          label: '', 
+          hours: 0,
+          fullDate: ''
+        };
       });
 
       return {
@@ -205,31 +258,122 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
     });
   };
 
+  // Helper function to get color with opacity
+  const getColorWithOpacity = (color: string, opacity: number) => {
+    // Convert hex to RGB and apply opacity
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  // Calculate histogram data
+  const calculateHistogram = () => {
+    // Get all non-zero hours for the selected kind
+    const allHours = Object.values(hoursMap)
+      .map(day => day[selectedKind as keyof typeof totals])
+      .filter(hours => hours > 0);
+
+    if (allHours.length === 0) return [];
+
+    const maxHours = Math.max(...allHours);
+    const minHours = Math.min(...allHours);
+    const range = maxHours - minHours;
+    const binSize = range / 10;
+
+    // Initialize bins
+    const bins = Array.from({ length: 10 }, (_, i) => ({
+      min: minHours + (i * binSize),
+      max: minHours + ((i + 1) * binSize),
+      count: 0,
+      // Linear opacity from 0.1 to 0.9 based on bin index
+      opacity: 0.1 + (i * 0.08)
+    }));
+
+    // Count hours into bins
+    allHours.forEach(hours => {
+      const binIndex = Math.min(Math.floor((hours - minHours) / binSize), 9);
+      bins[binIndex].count++;
+    });
+
+    return bins;
+  };
+
   const weeks = generateWeeks();
   const monthGroups = groupWeeksByMonth(weeks);
   const dayRows = generateDayRows(weeks);
+  const histogramData = calculateHistogram();
 
   return (
     <div>
       {data && (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg" style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}>
+            <div 
+              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'consulting' ? 'ring-2 ring-blue-500' : ''}`}
+              style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}
+              onClick={() => setSelectedKind('consulting')}
+            >
               <h3 className="font-semibold">Consulting</h3>
               <p>{totals.consulting.toFixed(1)}h</p>
             </div>
-            <div className="p-4 rounded-lg" style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}>
+            <div 
+              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'handsOn' ? 'ring-2 ring-blue-500' : ''}`}
+              style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}
+              onClick={() => setSelectedKind('handsOn')}
+            >
               <h3 className="font-semibold">Hands On</h3>
               <p>{totals.handsOn.toFixed(1)}h</p>
             </div>
-            <div className="p-4 rounded-lg" style={{ backgroundColor: `${STAT_COLORS.squad}20` }}>
+            <div 
+              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'squad' ? 'ring-2 ring-blue-500' : ''}`}
+              style={{ backgroundColor: `${STAT_COLORS.squad}20` }}
+              onClick={() => setSelectedKind('squad')}
+            >
               <h3 className="font-semibold">Squad</h3>
               <p>{totals.squad.toFixed(1)}h</p>
             </div>
-            <div className="p-4 rounded-lg" style={{ backgroundColor: `${STAT_COLORS.internal}20` }}>
+            <div 
+              className={`p-4 rounded-lg cursor-pointer transition-all ${selectedKind === 'internal' ? 'ring-2 ring-blue-500' : ''}`}
+              style={{ backgroundColor: `${STAT_COLORS.internal}20` }}
+              onClick={() => setSelectedKind('internal')}
+            >
               <h3 className="font-semibold">Internal</h3>
               <p>{totals.internal.toFixed(1)}h</p>
             </div>
+          </div>
+        </div>
+      )}
+      {data && histogramData.length > 0 && (
+        <div className="mt-8 mb-4">
+          <h3 className="text-sm font-medium mb-2">Hours Distribution</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr>
+                  {histogramData.map((bin, index) => (
+                    <th key={index} className="p-2 border text-xs font-medium">
+                      {bin.min.toFixed(1)}-{bin.max.toFixed(1)}h
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {histogramData.map((bin, index) => (
+                    <td 
+                      key={index} 
+                      className="p-2 border text-center transition-colors"
+                      style={{ 
+                        backgroundColor: getColorWithOpacity(STAT_COLORS[selectedKind as keyof typeof STAT_COLORS], bin.opacity * 0.5)
+                      }}
+                    >
+                      <div className="text-sm font-medium">{bin.count}</div>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -242,7 +386,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
                 {monthGroups.map(group => (
                   <th 
                     key={`${group.month}-${group.startIndex}`} 
-                    className="p-2 border text-sm font-medium"
+                    className="p-2 border text-sm font-medium text-left"
                     colSpan={group.count}
                   >
                     {group.month}
@@ -255,9 +399,27 @@ const OneYearAllocation: React.FC<ContributionProps> = ({ month, year }) => {
                 <tr key={row.dayName}>
                   <td className="p-2 border text-sm font-medium">{row.dayName}</td>
                   {row.cells.map(cell => (
-                    <td key={cell.key} className="p-2 border text-sm">
-                      {cell.label}
-                    </td>
+                    <TooltipProvider key={cell.key}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <td 
+                            className="p-2 border text-sm hover:bg-gray-50"
+                          >
+                            {cell.label}
+                            {cell.hours > 0 && (
+                              <div className="text-xs text-gray-600">
+                                {cell.hours.toFixed(1)}h
+                              </div>
+                            )}
+                          </td>
+                        </TooltipTrigger>
+                        {cell.label && (
+                          <TooltipContent>
+                            <p>{formatTooltip(cell.fullDate, cell.label, cell.hours)}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                   ))}
                 </tr>
               ))}
