@@ -129,6 +129,11 @@ export function getAboutUsSidebarItems() {
       ],
     },
     {
+      title: "Deals",
+      url: "/about-us/deals",
+      icon: PercentIcon,
+    },
+    {
       title: "Projects",
       url: "/about-us/projects",
       icon: CalendarIcon,
