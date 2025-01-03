@@ -23,6 +23,7 @@ interface Deal {
   clientOrProspectName: string;
   updateTime: string;
   stageName: string;
+  stageOrderNr: number;
 }
 
 interface GroupedDeals {
@@ -36,6 +37,173 @@ interface DealsTableProps {
   groupedDeals: GroupedDeals[];
 }
 
+interface StageSummary {
+  stageName: string;
+  stageOrderNr: number;
+  prospectsCount: number;
+  clientsCount: number;
+  total: number;
+  prospectsColumnPercentage: number;
+  clientsColumnPercentage: number;
+  prospectsRowPercentage: number;
+  clientsRowPercentage: number;
+  totalColumnPercentage: number;
+}
+
+function SummaryTable({ prospects, clientDeals }: { prospects: Deal[], clientDeals: Deal[] }) {
+  const getStageSummaries = (): StageSummary[] => {
+    const allDeals = [...prospects, ...clientDeals];
+    const stages = new Map<string, StageSummary>();
+    const grandTotal = allDeals.length;
+
+    // Initialize stages with all unique stage names
+    allDeals.forEach(deal => {
+      if (!stages.has(deal.stageName)) {
+        stages.set(deal.stageName, {
+          stageName: deal.stageName,
+          stageOrderNr: deal.stageOrderNr,
+          prospectsCount: 0,
+          clientsCount: 0,
+          total: 0,
+          prospectsColumnPercentage: 0,
+          clientsColumnPercentage: 0,
+          prospectsRowPercentage: 0,
+          clientsRowPercentage: 0,
+          totalColumnPercentage: 0
+        });
+      }
+    });
+
+    // Count deals for each stage
+    prospects.forEach(deal => {
+      const summary = stages.get(deal.stageName)!;
+      summary.prospectsCount++;
+      summary.total++;
+    });
+
+    clientDeals.forEach(deal => {
+      const summary = stages.get(deal.stageName)!;
+      summary.clientsCount++;
+      summary.total++;
+    });
+
+    // Calculate percentages
+    const totalProspects = prospects.length;
+    const totalClients = clientDeals.length;
+
+    stages.forEach(summary => {
+      // Column percentages (relative to total of each column)
+      summary.prospectsColumnPercentage = totalProspects > 0 ? (summary.prospectsCount / totalProspects) * 100 : 0;
+      summary.clientsColumnPercentage = totalClients > 0 ? (summary.clientsCount / totalClients) * 100 : 0;
+      summary.totalColumnPercentage = grandTotal > 0 ? (summary.total / grandTotal) * 100 : 0;
+      
+      // Row percentages (relative to row total)
+      summary.prospectsRowPercentage = summary.total > 0 ? (summary.prospectsCount / summary.total) * 100 : 0;
+      summary.clientsRowPercentage = summary.total > 0 ? (summary.clientsCount / summary.total) * 100 : 0;
+    });
+
+    // Convert to array and sort by stageOrderNr
+    return Array.from(stages.values())
+      .sort((a, b) => a.stageOrderNr - b.stageOrderNr);
+  };
+
+  const summaries = getStageSummaries();
+  const totals = {
+    prospectsCount: prospects.length,
+    clientsCount: clientDeals.length,
+    total: prospects.length + clientDeals.length,
+    prospectsPercentage: 100,
+    clientsPercentage: 100,
+    totalPercentage: 100
+  };
+
+  return (
+    <div className="mb-16">
+      <SectionHeader title="Pipeline Summary" subtitle="Deals by stage" />
+      <div className="ml-2 mr-2">
+        <Table className="[&_tr>*:first-child]:border-l-0 [&_tr>*:last-child]:border-r-0">
+          <TableHeader>
+            <TableRow className="border-b-2 border-gray-200">
+              <TableHead className="w-1/3 h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-b">Stage</TableHead>
+              <TableHead className="w-[80px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Prospects/Leads</TableHead>
+              <TableHead className="w-[80px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Clients</TableHead>
+              <TableHead className="w-[80px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {summaries.map((summary) => (
+              <TableRow key={summary.stageName} className="h-[57px] hover:bg-gray-50 border-b">
+                <TableCell className="px-6 text-[12px] border-x">
+                  {summary.stageName}
+                </TableCell>
+                <TableCell className="w-[80px] text-right relative border-x">
+                  <div className="absolute top-0 left-1 text-[8px] text-gray-400">
+                    {summary.prospectsRowPercentage > 0 && `${summary.prospectsRowPercentage.toFixed(1)}%`}
+                  </div>
+                  <div className="text-center">{summary.prospectsCount}</div>
+                  <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
+                    <span></span>
+                    <span className="text-gray-400">
+                      {summary.prospectsColumnPercentage > 0 && `${summary.prospectsColumnPercentage.toFixed(1)}%`}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="w-[80px] text-right relative border-x">
+                  <div className="absolute top-0 left-1 text-[8px] text-gray-400">
+                    {summary.clientsRowPercentage > 0 && `${summary.clientsRowPercentage.toFixed(1)}%`}
+                  </div>
+                  <div className="text-center">{summary.clientsCount}</div>
+                  <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
+                    <span></span>
+                    <span className="text-gray-400">
+                      {summary.clientsColumnPercentage > 0 && `${summary.clientsColumnPercentage.toFixed(1)}%`}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="w-[80px] text-right relative border-x">
+                  <div className="text-center">{summary.total}</div>
+                  <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
+                    <span></span>
+                    <span className="text-gray-400">
+                      {summary.totalColumnPercentage > 0 && `${summary.totalColumnPercentage.toFixed(1)}%`}
+                    </span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            <TableRow className="h-[57px] bg-gray-50 font-medium">
+              <TableCell className="px-6 text-[12px] border-x">
+                Total
+              </TableCell>
+              <TableCell className="w-[80px] text-right relative border-x">
+                <div className="text-center">{totals.prospectsCount}</div>
+                <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
+                  <span></span>
+                  <span className="text-gray-400">100%</span>
+                </div>
+              </TableCell>
+              <TableCell className="w-[80px] text-right relative border-x">
+                <div className="text-center">{totals.clientsCount}</div>
+                <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
+                  <span></span>
+                  <span className="text-gray-400">100%</span>
+                </div>
+              </TableCell>
+              <TableCell className="w-[80px] text-right relative border-x">
+                <div className="text-center">{totals.total}</div>
+                <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
+                  <span></span>
+                  <span className="text-gray-400">100%</span>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
 const GET_ACTIVE_DEALS = gql`
   query GetActiveDeals {
     activeDeals {
@@ -47,6 +215,7 @@ const GET_ACTIVE_DEALS = gql`
       clientOrProspectName
       updateTime
       stageName
+      stageOrderNr
     }
   }
 `;
@@ -175,6 +344,8 @@ export default function DealsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <SummaryTable prospects={prospects} clientDeals={clientDeals} />
+      
       <DealsTable 
         title="Prospects and Qualified Leads"
         subtitle={`${groupedProspects.length} prospects/leads with ${prospects.length} open deals`}
