@@ -43,7 +43,7 @@ class ActiveDealsRepository:
         return next((deal for deal in self.__data if deal.everhour_id == everhour_id), None)
 
     def __create_active_deal(self, deal) -> ActiveDeal:
-        return ActiveDeal(**deal.model_dump())
+        return ActiveDeal(**deal.model_dump(), client_or_prospect_name=deal.client_name)
 
     def __build_data(self):
         self.__active_deals = [
