@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SectionHeader from "@/components/SectionHeader";
+import { Stat } from "@/app/components/analytics/stat";
 
 interface ContributionProps {
   month?: number;
@@ -491,68 +492,82 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
 
     const totalHours = totals.consulting + totals.handsOn + totals.squad + totals.internal;
 
+    type KindType = 'consulting' | 'handsOn' | 'squad' | 'internal';
+
+    const getStatClassName = (kind: KindType) => {
+      return `transform cursor-pointer transition-all duration-300 ${
+        selectedKind === kind ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
+      } ${totals[kind] === 0 ? 'opacity-50 cursor-not-allowed' : ''}`;
+    };
+
+    const handleKindClick = (kind: KindType) => {
+      if (totals[kind] > 0) {
+        setSelectedKind(selectedKind === kind ? '' : kind);
+        setSelectedBinIndex(null);
+      }
+    };
+
+    const getKindColor = (kind: KindType) => {
+      switch (kind) {
+        case 'consulting':
+          return "#F59E0B";
+        case 'handsOn':
+          return "#8B5CF6";
+        case 'squad':
+          return "#3B82F6";
+        case 'internal':
+          return "#10B981";
+        default:
+          return "#6B7280";
+      }
+    };
+
     return (
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div
-            className={`p-4 rounded-lg cursor-pointer transition-all ${
-              selectedKind === "consulting" ? "ring-2 ring-blue-500" : ""
-            } ${totals.consulting === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: `${STAT_COLORS.consulting}20` }}
-            onClick={() => {
-              if (totals.consulting > 0) {
-                setSelectedKind("consulting");
-                setSelectedBinIndex(null);
-              }
-            }}
+            className={getStatClassName("consulting")}
+            onClick={() => handleKindClick("consulting")}
           >
-            <h3 className="font-semibold">Consulting</h3>
-            <p>{((totals.consulting / totalHours) * 100).toFixed(1)}%</p>
+            <Stat
+              title="Consulting"
+              value={totals.consulting.toString()}
+              color={getKindColor("consulting")}
+              total={totalHours}
+            />
           </div>
           <div
-            className={`p-4 rounded-lg cursor-pointer transition-all ${
-              selectedKind === "handsOn" ? "ring-2 ring-blue-500" : ""
-            } ${totals.handsOn === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: `${STAT_COLORS.handsOn}20` }}
-            onClick={() => {
-              if (totals.handsOn > 0) {
-                setSelectedKind("handsOn");
-                setSelectedBinIndex(null);
-              }
-            }}
+            className={getStatClassName("handsOn")}
+            onClick={() => handleKindClick("handsOn")}
           >
-            <h3 className="font-semibold">Hands On</h3>
-            <p>{((totals.handsOn / totalHours) * 100).toFixed(1)}%</p>
+            <Stat
+              title="Hands On"
+              value={totals.handsOn.toString()}
+              color={getKindColor("handsOn")}
+              total={totalHours}
+            />
           </div>
           <div
-            className={`p-4 rounded-lg cursor-pointer transition-all ${
-              selectedKind === "squad" ? "ring-2 ring-blue-500" : ""
-            } ${totals.squad === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: `${STAT_COLORS.squad}20` }}
-            onClick={() => {
-              if (totals.squad > 0) {
-                setSelectedKind("squad");
-                setSelectedBinIndex(null);
-              }
-            }}
+            className={getStatClassName("squad")}
+            onClick={() => handleKindClick("squad")}
           >
-            <h3 className="font-semibold">Squad</h3>
-            <p>{((totals.squad / totalHours) * 100).toFixed(1)}%</p>
+            <Stat
+              title="Squad"
+              value={totals.squad.toString()}
+              color={getKindColor("squad")}
+              total={totalHours}
+            />
           </div>
           <div
-            className={`p-4 rounded-lg cursor-pointer transition-all ${
-              selectedKind === "internal" ? "ring-2 ring-blue-500" : ""
-            } ${totals.internal === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: `${STAT_COLORS.internal}20` }}
-            onClick={() => {
-              if (totals.internal > 0) {
-                setSelectedKind("internal");
-                setSelectedBinIndex(null);
-              }
-            }}
+            className={getStatClassName("internal")}
+            onClick={() => handleKindClick("internal")}
           >
-            <h3 className="font-semibold">Internal</h3>
-            <p>{((totals.internal / totalHours) * 100).toFixed(1)}%</p>
+            <Stat
+              title="Internal"
+              value={totals.internal.toString()}
+              color={getKindColor("internal")}
+              total={totalHours}
+            />
           </div>
         </div>
       </div>
