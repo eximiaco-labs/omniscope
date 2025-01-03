@@ -76,7 +76,7 @@ function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
   return (
     <div>
       <SectionHeader title={title} subtitle={subtitle} />
-      <div className="mt-8 px-2">
+      <div className="ml-2 mr-2">
         <Table>
           <TableHeader>
             <TableRow className="border-b-2 border-gray-200">
