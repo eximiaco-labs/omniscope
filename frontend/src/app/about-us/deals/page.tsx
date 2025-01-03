@@ -22,6 +22,7 @@ interface Deal {
   status: string;
   clientOrProspectName: string;
   updateTime: string;
+  stageName: string;
 }
 
 interface GroupedDeals {
@@ -45,6 +46,7 @@ const GET_ACTIVE_DEALS = gql`
       status
       clientOrProspectName
       updateTime
+      stageName
     }
   }
 `;
@@ -83,6 +85,7 @@ function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
               <TableHead className="text-center w-12 h-10 align-middle font-medium text-muted-foreground">#</TableHead>
               <TableHead className="w-1/3 h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-gray-100">Name</TableHead>
               <TableHead className="h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-gray-100">Title</TableHead>
+              <TableHead className="h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-gray-100">Stage</TableHead>
               <TableHead className="h-10 px-6 text-left align-middle font-medium text-muted-foreground border-l border-gray-100">Last Update</TableHead>
             </TableRow>
           </TableHeader>
@@ -119,6 +122,9 @@ function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
                   <TableCell className="px-6 text-[12px] border-x border-gray-100">
                     {deal.title}
                   </TableCell>
+                  <TableCell className="px-6 text-[12px] border-x border-gray-100">
+                    {deal.stageName}
+                  </TableCell>
                   <TableCell className="px-6 text-xs text-gray-500">
                     {formatDate(deal.updateTime)}
                   </TableCell>
@@ -128,7 +134,7 @@ function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
             {groupedDeals.length === 0 && (
               <TableRow>
                 <TableCell 
-                  colSpan={4} 
+                  colSpan={5}
                   className="text-center text-gray-500 py-8 px-6"
                 >
                   No deals found
