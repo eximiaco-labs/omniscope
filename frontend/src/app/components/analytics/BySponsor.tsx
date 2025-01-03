@@ -31,10 +31,10 @@ export function BySponsor({ timesheet, className }: BySponsorProps & { className
   const data = {
     uniqueItems: timesheet.uniqueSponsors,
     byKind: {
-      consulting: { uniqueItems: timesheet.byKind.consulting.uniqueSponsors },
-      squad: { uniqueItems: timesheet.byKind.squad.uniqueSponsors },
-      internal: { uniqueItems: timesheet.byKind.internal.uniqueSponsors },
-      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueSponsors },
+      consulting: { uniqueItems: timesheet.byKind?.consulting?.uniqueSponsors ?? 0 },
+      squad: { uniqueItems: timesheet.byKind?.squad?.uniqueSponsors ?? 0 },
+      internal: { uniqueItems: timesheet.byKind?.internal?.uniqueSponsors ?? 0 },
+      handsOn: { uniqueItems: timesheet.byKind?.handsOn?.uniqueSponsors ?? 0 },
     },
     byItem: timesheet.bySponsor,
   };

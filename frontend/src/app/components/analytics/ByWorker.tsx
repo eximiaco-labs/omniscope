@@ -31,10 +31,10 @@ export function ByWorker({ timesheet, className }: ByWorkerProps & { className?:
   const data = {
     uniqueItems: timesheet.uniqueWorkers,
     byKind: {
-      consulting: { uniqueItems: timesheet.byKind.consulting.uniqueWorkers },
-      squad: { uniqueItems: timesheet.byKind.squad.uniqueWorkers },
-      internal: { uniqueItems: timesheet.byKind.internal.uniqueWorkers },
-      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueWorkers },
+      consulting: { uniqueItems: timesheet.byKind?.consulting?.uniqueWorkers ?? 0 },
+      squad: { uniqueItems: timesheet.byKind?.squad?.uniqueWorkers ?? 0 },
+      internal: { uniqueItems: timesheet.byKind?.internal?.uniqueWorkers ?? 0 },
+      handsOn: { uniqueItems: timesheet.byKind?.handsOn?.uniqueWorkers ?? 0 },
     },
     byItem: timesheet.byWorker,
   };

@@ -18,8 +18,7 @@ interface ByWorkingDayProps {
       };
     };
     byDate: Array<{
-      date: string;
-      totalHours: number;
+      name: string;
       totalConsultingHours: number;
       totalSquadHours: number;
       totalInternalHours: number;
@@ -32,17 +31,14 @@ export function ByWorkingDay({ timesheet, className }: ByWorkingDayProps & { cla
   const data = {
     uniqueItems: timesheet.uniqueWorkingDays,
     byKind: {
-      consulting: { uniqueItems: timesheet.byKind.consulting.uniqueWorkingDays },
-      squad: { uniqueItems: timesheet.byKind.squad.uniqueWorkingDays },
-      internal: { uniqueItems: timesheet.byKind.internal.uniqueWorkingDays },
-      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueWorkingDays },
+      consulting: { uniqueItems: timesheet.byKind?.consulting?.uniqueWorkingDays ?? 0 },
+      squad: { uniqueItems: timesheet.byKind?.squad?.uniqueWorkingDays ?? 0 },
+      internal: { uniqueItems: timesheet.byKind?.internal?.uniqueWorkingDays ?? 0 },
+      handsOn: { uniqueItems: timesheet.byKind?.handsOn?.uniqueWorkingDays ?? 0 },
     },
     byItem: timesheet.byDate.map(day => ({
-      name: day.date,
-      totalConsultingHours: day.totalConsultingHours,
-      totalSquadHours: day.totalSquadHours,
-      totalInternalHours: day.totalInternalHours,
-      totalHandsOnHours: day.totalHandsOnHours,
+      ...day,
+      name: new Date(day.name).toLocaleDateString(),
     })),
   };
 

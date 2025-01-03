@@ -33,10 +33,10 @@ export function ByClient({ timesheet, className }: ByClientProps & { className?:
   const data = {
     uniqueItems: timesheet.uniqueClients,
     byKind: {
-      consulting: { uniqueItems: timesheet.byKind.consulting.uniqueClients },
-      squad: { uniqueItems: timesheet.byKind.squad.uniqueClients },
-      internal: { uniqueItems: timesheet.byKind.internal.uniqueClients },
-      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueClients },
+      consulting: { uniqueItems: timesheet.byKind?.consulting?.uniqueClients ?? 0 },
+      squad: { uniqueItems: timesheet.byKind?.squad?.uniqueClients ?? 0 },
+      internal: { uniqueItems: timesheet.byKind?.internal?.uniqueClients ?? 0 },
+      handsOn: { uniqueItems: timesheet.byKind?.handsOn?.uniqueClients ?? 0 },
     },
     byItem: timesheet.byClient,
   };

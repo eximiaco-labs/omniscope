@@ -563,14 +563,13 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     if (!data || histogramData.length === 0) return null;
 
     return (
-      <div className="mt-8 mb-4">
-        <h3 className="text-sm font-medium mb-2">Hours Distribution</h3>
+      <div className="mt-4 mb-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {histogramData.map((bin, index) => (
             <div
               key={index}
-              className={`p-4 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
-                ${selectedBinIndex === index ? "ring-2 ring-blue-500" : ""}`}
+              className={`p-2 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
+                ${selectedBinIndex === index ? "ring-2 ring-blue-500 hover:ring-2 hover:ring-blue-500" : ""}`}
               style={{
                 backgroundColor: getColorWithOpacity(
                   STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
@@ -585,8 +584,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                 <span className="text-xs font-medium text-gray-600">
                   {bin.min.toFixed(1)}h - {bin.max.toFixed(1)}h
                 </span>
-                <span className="text-lg font-semibold mt-1">{bin.count}</span>
-                <span className="text-xs text-gray-500 mt-1">occurrences</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-lg font-semibold">{bin.count}</span>
+                  <span className="text-xs text-gray-500">occurrences</span>
+                </div>
               </div>
             </div>
           ))}
