@@ -66,6 +66,7 @@ type Query {
   yearlyForecast(year: Int): YearlyForecast!
 
   inConsulting(dateOfInterest: Date): InConsulting!
+  allocation(startDate: Date, endDate: Date, filters: [FilterInput]): Allocation!
 }
 
 type CacheItem {

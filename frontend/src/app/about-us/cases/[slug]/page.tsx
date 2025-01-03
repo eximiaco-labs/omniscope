@@ -31,6 +31,7 @@ import { StatType } from "@/app/constants/colors";
 import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
 import { getFlag } from "@/app/flags";
 import { useSession } from "next-auth/react";
+import OneYearAllocation from "@/app/components/OneYearAllocation";
 
 interface WorkerSummary {
   worker: string;
@@ -341,6 +342,8 @@ export default function CasePage() {
           </div>
         </div>
       )}
+
+      <OneYearAllocation caseTitle={caseItem.title} />
 
       <div className="mt-4">
         <SectionHeader title="Side by Side Analysis" subtitle="" />

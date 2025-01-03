@@ -30,6 +30,7 @@ import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProg
 import { getFlag } from "@/app/flags";
 import { useSession } from "next-auth/react";
 import { GraphVizDaily } from "@/app/financial/revenue-forecast/GraphVizDaily";
+import OneYearAllocation from "@/app/components/OneYearAllocation";
 
 interface WorkerSummary {
   worker: string;
@@ -501,6 +502,8 @@ export default function ClientPage() {
           </div>
         </>
       )}
+
+      <OneYearAllocation clientName={clientData.client.name} />
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 

@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import { Heading } from "@/components/catalyst/heading";
 import { Card } from "@/components/ui/card";
+import OneYearAllocation from "@/app/components/OneYearAllocation";
 
 interface ClientSummary {
   client: string;
@@ -419,6 +420,8 @@ export default function ConsultantPage() {
       </div>
 
       {staleliness && <CaseStatusOverview staleliness={staleliness} />}
+
+      <OneYearAllocation workerName={name} />
 
       <SectionHeader title="Side by Side Analysis" subtitle="" />
 

@@ -31,10 +31,10 @@ export function ByAccountManager({ timesheet, className }: ByAccountManagerProps
   const data = {
     uniqueItems: timesheet.uniqueAccountManagers,
     byKind: {
-      consulting: { uniqueItems: timesheet.byKind.consulting.uniqueAccountManagers },
-      squad: { uniqueItems: timesheet.byKind.squad.uniqueAccountManagers },
-      internal: { uniqueItems: timesheet.byKind.internal.uniqueAccountManagers },
-      handsOn: { uniqueItems: timesheet.byKind.handsOn.uniqueAccountManagers },
+      consulting: { uniqueItems: timesheet.byKind?.consulting?.uniqueAccountManagers ?? 0 },
+      squad: { uniqueItems: timesheet.byKind?.squad?.uniqueAccountManagers ?? 0 },
+      internal: { uniqueItems: timesheet.byKind?.internal?.uniqueAccountManagers ?? 0 },
+      handsOn: { uniqueItems: timesheet.byKind?.handsOn?.uniqueAccountManagers ?? 0 },
     },
     byItem: timesheet.byAccountManager,
   };

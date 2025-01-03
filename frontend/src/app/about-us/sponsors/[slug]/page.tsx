@@ -35,6 +35,7 @@
   import { getFlag } from "@/app/flags";
   import { RevenueProgression } from "@/app/financial/revenue-forecast/RevenueProgression";
   import { useSession } from "next-auth/react";
+import OneYearAllocation from "@/app/components/OneYearAllocation";
 
   interface WorkerSummary {
     worker: string;
@@ -505,6 +506,8 @@
             <RevenueProgression data={sponsorData.sponsor} />
           </div>
         )}
+
+        <OneYearAllocation sponsor={sponsorData.sponsor.name} />
 
         <div className="mt-4">
           <section>

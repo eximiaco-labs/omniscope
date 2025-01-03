@@ -1,9 +1,9 @@
 import logging
 from datetime import datetime, timedelta
-from typing import List
-
 import pandas as pd
 import numpy as np
+import os
+from pathlib import Path
 
 from omni_utils.decorators.cache import cache
 from omni_models.base.powerdataframe import SummarizablePowerDataFrame
@@ -12,74 +12,25 @@ from omni_utils.helpers.weeks import Weeks
 from omni_utils.helpers.slug import slugify
 from omni_models.omnimodels import OmniModels
 
-class TimesheetMemoryCache:
-    def __init__(self):
-        self.cache = []
+import calendar
 
-    def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
-        for m in self.cache:
-            if m['after'] <= after and m['before'] >= before:
-                df = m['result'].data
-                df = df[df['Date'] >= after.date()]
-                df = df[df['Date'] <= before.date()]
-                return SummarizablePowerDataFrame(df)
-        return None
-    
-    def add(self, after: datetime, before: datetime, result: SummarizablePowerDataFrame):
-        self.cache.append({
-            "after": after,
-            "before": before,
-            "result": result, 
-            "created_at": datetime.now()
-        })
-
-    def list_cache(self, after, before):
-        if after:
-            if isinstance(after, str):
-                after = datetime.strptime(after, '%Y-%m-%d').date()
-            elif isinstance(after, datetime):
-                after = after.date()
-                
-        if before:
-            if isinstance(before, str):
-                before = datetime.strptime(before, '%Y-%m-%d').date()
-            elif isinstance(before, datetime):
-                before = before.date()
-        
-        return [
-            {
-                "after": m['after'],
-                "before": m['before'],
-                "created_at": m['created_at']
-            }
-            for m in self.cache
-            if (after is None or after >= m['after']) and (before is None or before <= m['before'])
-        ]
-        
-    def invalidate(self, after, before):
-        if after:
-            if isinstance(after, str):
-                after = datetime.strptime(after, '%Y-%m-%d').date()
-            elif isinstance(after, datetime):
-                after = after.date()
-                
-        if before:
-            if isinstance(before, str):
-                before = datetime.strptime(before, '%Y-%m-%d').date()
-            elif isinstance(before, datetime):
-                before = before.date()
-                
-        self.cache = [
-            m 
-            for m in self.cache 
-            if (after is None or after >= m['after']) and (before is None or before <= m['before'])
-        ]
+from .models.memory_cache import TimesheetMemoryCache
+from .models.disk_cache import TimesheetDiskCache
 
 class TimesheetDataset(OmniDataset):
     def __init__(self, models: OmniModels = None):
         self.models = models or OmniModels()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.memory = TimesheetMemoryCache()
+        
+        api_key = os.getenv('EVERHOUR_API_KEY')
+        if not api_key:
+            raise ValueError("EVERHOUR_API_KEY environment variable is required")
+            
+        cache_dir = Path("ts_2024")
+        self.disk = TimesheetDiskCache(cache_dir, api_key)
+        
+        self._ensure_2024()
 
     def get_treemap_path(self):
         return 'TimeInHs', ['Kind', 'ClientName', 'WorkerName']
@@ -89,7 +40,22 @@ class TimesheetDataset(OmniDataset):
 
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
+        first_day_of_month = after.replace(day=1)
+        df = pd.DataFrame()
         
+        while first_day_of_month < before:
+            last_day_of_month = first_day_of_month.replace(day=calendar.monthrange(first_day_of_month.year, first_day_of_month.month)[1])
+            result = self._get(first_day_of_month, last_day_of_month)
+            df = pd.concat([df, result.data])
+            
+            first_day_of_month = last_day_of_month + timedelta(days=1)
+        
+        df = df[df['Date'] >= after.date()]
+        df = df[df['Date'] <= before.date()]
+        
+        return SummarizablePowerDataFrame(df)
+        
+    def _get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:
         result = self.memory.get(after, before)
         if result:
             self.logger.info(f"Getting appointments from cache from {after} to {before}.")
@@ -103,11 +69,9 @@ class TimesheetDataset(OmniDataset):
         
         data = [ap.to_dict() for ap in raw]
         df = pd.DataFrame(data)
-        
-        
+    
         start_time = datetime.now()
         self.logger.info(f"Enriching timesheet data")
-        
         
         # Check if df is empty
         if df.empty:
@@ -305,7 +269,6 @@ class TimesheetDataset(OmniDataset):
                 'CaseTitle',
                 'Sponsor',
                 'SponsorSlug',
-                #'Case',
                 'ClientId',
                 'ClientName',
                 'ClientSlug',
@@ -330,4 +293,37 @@ class TimesheetDataset(OmniDataset):
                 .filter_by(by='CreatedAtWeek', not_equals_to=previous6)
                 )
 
-        return data
+        return data 
+    
+    def _ensure_2024(self):
+        """Ensures all 2024 timesheet data is cached to disk."""
+        months = {
+            'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
+            'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08',
+            'set': '09', 'out': '10', 'nov': '11', 'dez': '12'
+        }
+        
+        self.logger.info("Ensuring 2024 timesheet data is cached...")
+        
+        for month_name, month_num in months.items():
+            filename = f"{month_name}_2024"
+            s = datetime(2024, int(month_num), 1, 0, 0, 0)
+            e = datetime(2024, int(month_num), calendar.monthrange(2024, int(month_num))[1], 23, 59, 59)
+            
+            # Check if month data is already cached
+            cached_data = self.disk.load(filename)
+            if cached_data is not None:
+                self.memory.add(s, e, cached_data)
+                self.logger.info(f"Month {month_name}_2024 already cached")
+                continue
+                
+            # If not cached, fetch from API
+            self.logger.info(f"Fetching {month_name}_2024 from API...")
+            dataset = self.get(s, e)
+            
+            if dataset is not None:
+                self.logger.info(f"Saving {month_name}_2024 to disk cache...")
+                self.disk.save(dataset, filename)
+                self.memory.add(s, e, dataset)
+            else:
+                self.logger.warning(f"No data available for {month_name}_2024")
