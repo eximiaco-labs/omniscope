@@ -675,51 +675,115 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
       day: 'numeric'
     });
 
+    // Determine which columns to show based on filters
+    const showWorkerColumn = !workerName;
+    const showClientColumn = !clientName;
+
     return (
       <Sheet open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
-        <SheetContent>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>{formattedDate}</SheetTitle>
+            <SheetTitle className="text-base">{formattedDate}</SheetTitle>
+            {(clientName || workerName) && (
+              <div className="text-xs text-gray-500">
+                {clientName && (
+                  <a 
+                    href={`/about-us/clients/${clientName.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {clientName}
+                  </a>
+                )}
+                {clientName && workerName && " • "}
+                {workerName && (
+                  <a 
+                    href={`/about-us/consultants-and-engineers/${workerName.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {workerName}
+                  </a>
+                )}
+              </div>
+            )}
           </SheetHeader>
-          <div className="mt-6">
+          <div className="mt-4">
             {appointmentsLoading ? (
               <div className="flex items-center justify-center py-4">
-                <span className="text-sm text-gray-500">Loading...</span>
+                <span className="text-xs text-gray-500">Loading...</span>
               </div>
             ) : appointmentsData?.timesheet?.appointments?.length ? (
-              <div className="space-y-4">
-                {appointmentsData.timesheet.appointments.map((appointment: any, index: number) => (
-                  <div key={index} className="p-4 rounded-lg border border-gray-200">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <a 
-                          href={`/about-us/clients/${appointment.clientSlug}`}
-                          className="text-sm font-medium hover:underline"
+              <div className="relative">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        {showWorkerColumn && (
+                          <th className="py-2 text-left font-medium text-gray-500">Worker</th>
+                        )}
+                        {showClientColumn && (
+                          <th className="py-2 text-left font-medium text-gray-500">Client</th>
+                        )}
+                        <th className="py-2 text-left font-medium text-gray-500 w-16">Hours</th>
+                        <th className="py-2 text-left font-medium text-gray-500">Comment</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {appointmentsData.timesheet.appointments.map((appointment: any, index: number) => (
+                        <tr 
+                          key={index}
+                          className="hover:bg-gray-50 transition-colors"
                         >
-                          {appointment.clientName}
-                        </a>
-                        <a 
-                          href={`/about-us/consultants-and-engineers/${appointment.workerSlug}`}
-                          className="block text-sm text-gray-500 hover:underline"
+                          {showWorkerColumn && (
+                            <td className="py-2 pr-3">
+                              <a 
+                                href={`/about-us/consultants-and-engineers/${appointment.workerSlug}`}
+                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                {appointment.workerName}
+                              </a>
+                            </td>
+                          )}
+                          {showClientColumn && (
+                            <td className="py-2 pr-3">
+                              <a 
+                                href={`/about-us/clients/${appointment.clientSlug}`}
+                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                {appointment.clientName}
+                              </a>
+                            </td>
+                          )}
+                          <td className="py-2 pr-3 font-medium text-gray-900 tabular-nums">
+                            {appointment.timeInHs.toFixed(1)}h
+                          </td>
+                          <td className="py-2 pr-3 text-gray-500 max-w-xs truncate">
+                            {appointment.comment || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-gray-200">
+                        <td 
+                          colSpan={showWorkerColumn && showClientColumn ? 2 : 1} 
+                          className="py-2 text-right font-medium text-gray-500"
                         >
-                          {appointment.workerName}
-                        </a>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {appointment.timeInHs.toFixed(1)}h
-                      </span>
-                    </div>
-                    {appointment.comment && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        {appointment.comment}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                          Total:
+                        </td>
+                        <td className="py-2 pr-3 font-medium text-gray-900 tabular-nums">
+                          {appointmentsData.timesheet.appointments
+                            .reduce((sum: number, app: any) => sum + app.timeInHs, 0)
+                            .toFixed(1)}h
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
             ) : (
               <div className="flex items-center justify-center py-4">
-                <span className="text-sm text-gray-500">No appointments found</span>
+                <span className="text-xs text-gray-500">No appointments found</span>
               </div>
             )}
           </div>
