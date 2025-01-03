@@ -50,6 +50,34 @@ interface StageSummary {
   totalColumnPercentage: number;
 }
 
+interface SummaryTableCellProps {
+  count: number;
+  rowPercentage?: number;
+  columnPercentage?: number;
+  isTotal?: boolean;
+  className?: string;
+}
+
+function SummaryTableCell({ count, rowPercentage, columnPercentage, isTotal, className }: SummaryTableCellProps) {
+  return (
+    <TableCell className={`text-right relative border-x ${count === 0 ? 'text-gray-300' : ''} ${className || ''}`}>
+      {rowPercentage !== undefined && rowPercentage > 0 && (
+        <div className="absolute top-0 left-1 text-[8px] text-gray-400">
+          {rowPercentage.toFixed(1)}%
+        </div>
+      )}
+      <div className="text-center">{count}</div>
+      {!isTotal && columnPercentage !== undefined && columnPercentage > 0 && (
+        <div className="absolute bottom-0 right-1 w-full text-[8px]">
+          <span className="text-gray-400">
+            {columnPercentage.toFixed(1)}%
+          </span>
+        </div>
+      )}
+    </TableCell>
+  );
+}
+
 function SummaryTable({ prospects, clientDeals }: { prospects: Deal[], clientDeals: Deal[] }) {
   const getStageSummaries = (): StageSummary[] => {
     const allDeals = [...prospects, ...clientDeals];
@@ -112,9 +140,8 @@ function SummaryTable({ prospects, clientDeals }: { prospects: Deal[], clientDea
     prospectsCount: prospects.length,
     clientsCount: clientDeals.length,
     total: prospects.length + clientDeals.length,
-    prospectsPercentage: 100,
-    clientsPercentage: 100,
-    totalPercentage: 100
+    prospectsRowPercentage: prospects.length > 0 ? (prospects.length / (prospects.length + clientDeals.length)) * 100 : 0,
+    clientsRowPercentage: clientDeals.length > 0 ? (clientDeals.length / (prospects.length + clientDeals.length)) * 100 : 0
   };
 
   return (
@@ -124,78 +151,53 @@ function SummaryTable({ prospects, clientDeals }: { prospects: Deal[], clientDea
         <Table className="[&_tr>*:first-child]:border-l-0 [&_tr>*:last-child]:border-r-0">
           <TableHeader>
             <TableRow className="border-b-2 border-gray-200">
-              <TableHead className="w-1/3 h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-b">Stage</TableHead>
-              <TableHead className="w-[80px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Prospects/Leads</TableHead>
-              <TableHead className="w-[80px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Clients</TableHead>
-              <TableHead className="w-[80px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Total</TableHead>
+              <TableHead className="h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-b">Stage</TableHead>
+              <TableHead className="w-[150px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Prospects/Leads</TableHead>
+              <TableHead className="w-[150px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Clients</TableHead>
+              <TableHead className="w-[150px] h-10 px-6 text-center align-middle font-medium text-muted-foreground border-x border-b">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {summaries.map((summary) => (
               <TableRow key={summary.stageName} className="h-[57px] hover:bg-gray-50 border-b">
-                <TableCell className="px-6 text-[12px] border-x">
+                <TableCell className="px-6 border-x">
                   {summary.stageName}
                 </TableCell>
-                <TableCell className="w-[80px] text-right relative border-x">
-                  <div className="absolute top-0 left-1 text-[8px] text-gray-400">
-                    {summary.prospectsRowPercentage > 0 && `${summary.prospectsRowPercentage.toFixed(1)}%`}
-                  </div>
-                  <div className="text-center">{summary.prospectsCount}</div>
-                  <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
-                    <span></span>
-                    <span className="text-gray-400">
-                      {summary.prospectsColumnPercentage > 0 && `${summary.prospectsColumnPercentage.toFixed(1)}%`}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="w-[80px] text-right relative border-x">
-                  <div className="absolute top-0 left-1 text-[8px] text-gray-400">
-                    {summary.clientsRowPercentage > 0 && `${summary.clientsRowPercentage.toFixed(1)}%`}
-                  </div>
-                  <div className="text-center">{summary.clientsCount}</div>
-                  <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
-                    <span></span>
-                    <span className="text-gray-400">
-                      {summary.clientsColumnPercentage > 0 && `${summary.clientsColumnPercentage.toFixed(1)}%`}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="w-[80px] text-right relative border-x">
-                  <div className="text-center">{summary.total}</div>
-                  <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
-                    <span></span>
-                    <span className="text-gray-400">
-                      {summary.totalColumnPercentage > 0 && `${summary.totalColumnPercentage.toFixed(1)}%`}
-                    </span>
-                  </div>
-                </TableCell>
+                <SummaryTableCell 
+                  count={summary.prospectsCount}
+                  rowPercentage={summary.prospectsRowPercentage}
+                  columnPercentage={summary.prospectsColumnPercentage}
+                />
+                <SummaryTableCell 
+                  count={summary.clientsCount}
+                  rowPercentage={summary.clientsRowPercentage}
+                  columnPercentage={summary.clientsColumnPercentage}
+                />
+                <SummaryTableCell 
+                  count={summary.total}
+                  columnPercentage={summary.totalColumnPercentage}
+                  className="w-[80px]"
+                />
               </TableRow>
             ))}
             <TableRow className="h-[57px] bg-gray-50 font-medium">
               <TableCell className="px-6 text-[12px] border-x">
                 Total
               </TableCell>
-              <TableCell className="w-[80px] text-right relative border-x">
-                <div className="text-center">{totals.prospectsCount}</div>
-                <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
-                  <span></span>
-                  <span className="text-gray-400">100%</span>
-                </div>
-              </TableCell>
-              <TableCell className="w-[80px] text-right relative border-x">
-                <div className="text-center">{totals.clientsCount}</div>
-                <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
-                  <span></span>
-                  <span className="text-gray-400">100%</span>
-                </div>
-              </TableCell>
-              <TableCell className="w-[80px] text-right relative border-x">
-                <div className="text-center">{totals.total}</div>
-                <div className="absolute bottom-0 w-full flex justify-between text-[8px] px-1">
-                  <span></span>
-                  <span className="text-gray-400">100%</span>
-                </div>
-              </TableCell>
+              <SummaryTableCell 
+                count={totals.prospectsCount}
+                rowPercentage={totals.prospectsRowPercentage}
+                isTotal
+              />
+              <SummaryTableCell 
+                count={totals.clientsCount}
+                rowPercentage={totals.clientsRowPercentage}
+                isTotal
+              />
+              <SummaryTableCell 
+                count={totals.total}
+                isTotal
+              />
             </TableRow>
           </TableBody>
         </Table>
@@ -278,7 +280,7 @@ function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
                         {groupIndex + 1}
                       </TableCell>
                       <TableCell
-                        className="px-6 text-[12px] border-x border-gray-100"
+                        className="px-6 border-x border-gray-100"
                         rowSpan={group.deals.length}
                       >
                         {group.clientName}
