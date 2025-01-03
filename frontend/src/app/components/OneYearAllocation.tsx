@@ -9,6 +9,12 @@ import {
 } from "@/components/ui/tooltip";
 import SectionHeader from "@/components/SectionHeader";
 import { Stat } from "@/app/components/analytics/stat";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface ContributionProps {
   month?: number;
@@ -78,6 +84,21 @@ const ALLOCATION_QUERY = gql`
           date
           hours
         }
+      }
+    }
+  }
+`;
+
+const DAILY_APPOINTMENTS_QUERY = gql`
+  query DailyAppointments($slug: String!, $filters: [FilterInput!]) {
+    timesheet(slug: $slug, filters: $filters) {
+      appointments {
+        clientName
+        clientSlug
+        workerName
+        workerSlug
+        comment
+        timeInHs
       }
     }
   }
@@ -165,6 +186,30 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
       filters: filters.length > 0 ? filters : null,
     },
   });
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // Add query for appointments
+  const { data: appointmentsData, loading: appointmentsLoading } = useQuery(
+    DAILY_APPOINTMENTS_QUERY,
+    {
+      variables: {
+        slug: selectedDate 
+          ? `timesheet-${
+              // Format date from YYYY-MM-DD to DD-MM-YYYY-DD-MM-YYYY
+              selectedDate.split('-').reverse().join('-')}-${
+              selectedDate.split('-').reverse().join('-')
+            }`
+          : "",
+        filters: filters.length > 0 ? filters : null,
+      },
+      skip: !selectedDate,
+    }
+  );
+
+  const handleDateClick = (date: string) => {
+    setSelectedDate(date);
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {(error as ApolloError).message}</div>;
@@ -620,6 +665,69 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     );
   };
 
+  const renderAppointmentsSheet = () => {
+    if (!selectedDate) return null;
+
+    const formattedDate = new Date(selectedDate).toLocaleDateString("en-US", {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    return (
+      <Sheet open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>{formattedDate}</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6">
+            {appointmentsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <span className="text-sm text-gray-500">Loading...</span>
+              </div>
+            ) : appointmentsData?.timesheet?.appointments?.length ? (
+              <div className="space-y-4">
+                {appointmentsData.timesheet.appointments.map((appointment: any, index: number) => (
+                  <div key={index} className="p-4 rounded-lg border border-gray-200">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <a 
+                          href={`/about-us/clients/${appointment.clientSlug}`}
+                          className="text-sm font-medium hover:underline"
+                        >
+                          {appointment.clientName}
+                        </a>
+                        <a 
+                          href={`/about-us/consultants-and-engineers/${appointment.workerSlug}`}
+                          className="block text-sm text-gray-500 hover:underline"
+                        >
+                          {appointment.workerName}
+                        </a>
+                      </div>
+                      <span className="text-sm font-medium">
+                        {appointment.timeInHs.toFixed(1)}h
+                      </span>
+                    </div>
+                    {appointment.comment && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        {appointment.comment}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-4">
+                <span className="text-sm text-gray-500">No appointments found</span>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  };
+
   const renderAllocationGrid = () => {
     if (!data) return null;
 
@@ -654,7 +762,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                           <div className="flex items-center justify-center">
                             {cell.label && (
                               <div
-                                className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200"
+                                className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200 cursor-pointer"
                                 style={{
                                   backgroundColor:
                                     cell.hours > 0
@@ -688,6 +796,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                                     ? 1
                                     : 0.1,
                                 }}
+                                onClick={() => cell.fullDate && handleDateClick(cell.fullDate)}
                               />
                             )}
                           </div>
@@ -734,6 +843,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
         {renderKinds()}
         {renderHistogram()}
         {renderAllocationGrid()}
+        {renderAppointmentsSheet()}
       </div>
     </div>
   );
