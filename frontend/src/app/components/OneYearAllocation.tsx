@@ -91,8 +91,25 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   sponsor,
   caseTitle,
 }) => {
+  type KindType = 'consulting' | 'handsOn' | 'squad' | 'internal';
+
+  const getKindColor = (kind: KindType) => {
+    switch (kind) {
+      case 'consulting':
+        return "#F59E0B";
+      case 'handsOn':
+        return "#8B5CF6";
+      case 'squad':
+        return "#3B82F6";
+      case 'internal':
+        return "#10B981";
+      default:
+        return "#6B7280";
+    }
+  };
+
   // Initialize with empty string to ensure we select first non-zero value
-  const [selectedKind, setSelectedKind] = useState<string>("");
+  const [selectedKind, setSelectedKind] = useState<KindType | ''>('');
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
@@ -172,14 +189,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   }
 
   // Set initial selected kind to first non-zero value if not already set
-  if (selectedKind === "") {
+  if (selectedKind === '') {
     const firstNonZeroKind = Object.entries(totals).find(
       ([_, value]) => value > 0
-    )?.[0];
+    )?.[0] as KindType;
     if (firstNonZeroKind) {
       setSelectedKind(firstNonZeroKind);
     } else {
-      setSelectedKind("consulting"); // Fallback if no non-zero values
+      setSelectedKind('consulting');
     }
   }
 
@@ -492,8 +509,6 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
 
     const totalHours = totals.consulting + totals.handsOn + totals.squad + totals.internal;
 
-    type KindType = 'consulting' | 'handsOn' | 'squad' | 'internal';
-
     const getStatClassName = (kind: KindType) => {
       return `transform cursor-pointer transition-all duration-300 ${
         selectedKind === kind ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
@@ -504,21 +519,6 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
       if (totals[kind] > 0) {
         setSelectedKind(selectedKind === kind ? '' : kind);
         setSelectedBinIndex(null);
-      }
-    };
-
-    const getKindColor = (kind: KindType) => {
-      switch (kind) {
-        case 'consulting':
-          return "#F59E0B";
-        case 'handsOn':
-          return "#8B5CF6";
-        case 'squad':
-          return "#3B82F6";
-        case 'internal':
-          return "#10B981";
-        default:
-          return "#6B7280";
       }
     };
 
@@ -587,8 +587,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                 ${selectedBinIndex === index ? "ring-2 ring-blue-500 hover:ring-2 hover:ring-blue-500" : ""}`}
               style={{
                 backgroundColor: getColorWithOpacity(
-                  STAT_COLORS[selectedKind as keyof typeof STAT_COLORS],
-                  bin.opacity * 0.5
+                  getKindColor(selectedKind as KindType),
+                  selectedKind ? bin.opacity : 0.3
                 ),
               }}
               onClick={() =>
@@ -615,7 +615,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     if (!data) return null;
 
     return (
-      <div className="mt-8 overflow-x-auto">
+      <div className="mt-4 overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr>
@@ -623,7 +623,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               {monthGroups.map((group) => (
                 <th
                   key={`${group.month}-${group.startIndex}`}
-                  className="p-2 text-xs text-gray-600 text-left font-normal"
+                  className="text-xs text-gray-600 text-left font-normal"
                   colSpan={group.count}
                 >
                   {group.month}
@@ -650,9 +650,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                                   backgroundColor:
                                     cell.hours > 0
                                       ? getColorWithOpacity(
-                                          STAT_COLORS[
-                                            selectedKind as keyof typeof STAT_COLORS
-                                          ],
+                                          getKindColor(selectedKind as KindType),
                                           histogramData[
                                             getBinIndex(
                                               cell.hours,
@@ -664,9 +662,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                                   border: `1px solid ${
                                     cell.hours > 0
                                       ? getDarkerColor(
-                                          STAT_COLORS[
-                                            selectedKind as keyof typeof STAT_COLORS
-                                          ],
+                                          getKindColor(selectedKind as KindType),
                                           histogramData[
                                             getBinIndex(
                                               cell.hours,
