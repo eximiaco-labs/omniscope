@@ -355,10 +355,13 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const formatTooltip = (date: string, label: string, hours: number) => {
     if (!label) return "";
     const dateObj = new Date(date);
+    dateObj.setDate(dateObj.getDate() + 1); // Add one day to fix timezone issue
+
     const formattedDate = dateObj.toLocaleString("en", {
       month: "short",
       day: "2-digit",
     });
+
     return `${formattedDate} - ${
       hours > 0 ? `${hours.toFixed(1)}h` : "No hours"
     }`;
@@ -668,7 +671,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const renderAppointmentsSheet = () => {
     if (!selectedDate) return null;
 
-    const formattedDate = new Date(selectedDate).toLocaleDateString("en-US", {
+    const dateObj = new Date(selectedDate); 
+    dateObj.setDate(dateObj.getDate() + 1); // Add one day to fix timezone issue
+
+    const formattedDate = dateObj.toLocaleDateString("en-US", {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
