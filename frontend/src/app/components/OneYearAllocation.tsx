@@ -9,6 +9,12 @@ import {
 } from "@/components/ui/tooltip";
 import SectionHeader from "@/components/SectionHeader";
 import { Stat } from "@/app/components/analytics/stat";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface ContributionProps {
   month?: number;
@@ -83,6 +89,21 @@ const ALLOCATION_QUERY = gql`
   }
 `;
 
+const DAILY_APPOINTMENTS_QUERY = gql`
+  query DailyAppointments($slug: String!, $filters: [FilterInput!]) {
+    timesheet(slug: $slug, filters: $filters) {
+      appointments {
+        clientName
+        clientSlug
+        workerName
+        workerSlug
+        comment
+        timeInHs
+      }
+    }
+  }
+`;
+
 const OneYearAllocation: React.FC<ContributionProps> = ({
   month,
   year,
@@ -91,17 +112,17 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   sponsor,
   caseTitle,
 }) => {
-  type KindType = 'consulting' | 'handsOn' | 'squad' | 'internal';
+  type KindType = "consulting" | "handsOn" | "squad" | "internal";
 
   const getKindColor = (kind: KindType) => {
     switch (kind) {
-      case 'consulting':
+      case "consulting":
         return "#F59E0B";
-      case 'handsOn':
+      case "handsOn":
         return "#8B5CF6";
-      case 'squad':
+      case "squad":
         return "#3B82F6";
-      case 'internal':
+      case "internal":
         return "#10B981";
       default:
         return "#6B7280";
@@ -109,7 +130,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   };
 
   // Initialize with empty string to ensure we select first non-zero value
-  const [selectedKind, setSelectedKind] = useState<KindType | ''>('');
+  const [selectedKind, setSelectedKind] = useState<KindType | "">("");
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
@@ -166,6 +187,29 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     },
   });
 
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // Add query for appointments
+  const { data: appointmentsData, loading: appointmentsLoading } = useQuery(
+    DAILY_APPOINTMENTS_QUERY,
+    {
+      variables: {
+        slug: selectedDate
+          ? `timesheet-${
+              // Format date from YYYY-MM-DD to DD-MM-YYYY-DD-MM-YYYY
+              selectedDate.split("-").reverse().join("-")
+            }-${selectedDate.split("-").reverse().join("-")}`
+          : "",
+        filters: filters.length > 0 ? filters : null,
+      },
+      skip: !selectedDate,
+    }
+  );
+
+  const handleDateClick = (date: string) => {
+    setSelectedDate(date);
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {(error as ApolloError).message}</div>;
 
@@ -189,14 +233,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   }
 
   // Set initial selected kind to first non-zero value if not already set
-  if (selectedKind === '') {
+  if (selectedKind === "") {
     const firstNonZeroKind = Object.entries(totals).find(
       ([_, value]) => value > 0
     )?.[0] as KindType;
     if (firstNonZeroKind) {
       setSelectedKind(firstNonZeroKind);
     } else {
-      setSelectedKind('consulting');
+      setSelectedKind("consulting");
     }
   }
 
@@ -310,10 +354,13 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const formatTooltip = (date: string, label: string, hours: number) => {
     if (!label) return "";
     const dateObj = new Date(date);
+    dateObj.setDate(dateObj.getDate() + 1); // Add one day to fix timezone issue
+
     const formattedDate = dateObj.toLocaleString("en", {
       month: "short",
       day: "2-digit",
     });
+
     return `${formattedDate} - ${
       hours > 0 ? `${hours.toFixed(1)}h` : "No hours"
     }`;
@@ -507,17 +554,20 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const renderKinds = () => {
     if (!data) return null;
 
-    const totalHours = totals.consulting + totals.handsOn + totals.squad + totals.internal;
+    const totalHours =
+      totals.consulting + totals.handsOn + totals.squad + totals.internal;
 
     const getStatClassName = (kind: KindType) => {
       return `transform cursor-pointer transition-all duration-300 ${
-        selectedKind === kind ? 'ring-2 ring-black shadow-lg scale-105' : 'hover:scale-102'
-      } ${totals[kind] === 0 ? 'opacity-50 cursor-not-allowed' : ''}`;
+        selectedKind === kind
+          ? "ring-2 ring-black shadow-lg scale-105"
+          : "hover:scale-102"
+      } ${totals[kind] === 0 ? "opacity-50 cursor-not-allowed" : ""}`;
     };
 
     const handleKindClick = (kind: KindType) => {
       if (totals[kind] > 0) {
-        setSelectedKind(selectedKind === kind ? '' : kind);
+        setSelectedKind(selectedKind === kind ? "" : kind);
         setSelectedBinIndex(null);
       }
     };
@@ -534,6 +584,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.consulting.toString()}
               color={getKindColor("consulting")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
           <div
@@ -545,6 +596,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.handsOn.toString()}
               color={getKindColor("handsOn")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
           <div
@@ -556,6 +608,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.squad.toString()}
               color={getKindColor("squad")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
           <div
@@ -567,6 +620,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.internal.toString()}
               color={getKindColor("internal")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
         </div>
@@ -577,14 +631,23 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const renderHistogram = () => {
     if (!data || histogramData.length === 0) return null;
 
+    const totalOccurrences = histogramData.reduce(
+      (sum, bin) => sum + bin.count,
+      0
+    );
+
     return (
       <div className="mt-4 mb-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {histogramData.map((bin, index) => (
             <div
               key={index}
-              className={`p-2 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300
-                ${selectedBinIndex === index ? "ring-2 ring-blue-500 hover:ring-2 hover:ring-blue-500" : ""}`}
+              className={`p-2 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300 relative
+                ${
+                  selectedBinIndex === index
+                    ? "ring-2 ring-blue-500 hover:ring-2 hover:ring-blue-500"
+                    : ""
+                }`}
               style={{
                 backgroundColor: getColorWithOpacity(
                   getKindColor(selectedKind as KindType),
@@ -604,6 +667,9 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                   <span className="text-xs text-gray-500">occurrences</span>
                 </div>
               </div>
+              <div className="absolute bottom-1 right-2 text-xs opacity-90">
+                {((bin.count / totalOccurrences) * 100).toFixed(1)}%
+              </div>
             </div>
           ))}
         </div>
@@ -611,8 +677,168 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     );
   };
 
+  const renderAppointmentsSheet = () => {
+    if (!selectedDate) return null;
+
+    const dateObj = new Date(selectedDate);
+    dateObj.setDate(dateObj.getDate() + 1); // Add one day to fix timezone issue
+
+    const formattedDate = dateObj.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    // Determine which columns to show based on filters
+    const showWorkerColumn = !workerName;
+    const showClientColumn = !clientName;
+
+    return (
+      <Sheet open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-base">{formattedDate}</SheetTitle>
+            {(clientName || workerName) && (
+              <div className="text-xs text-gray-500">
+                {clientName && (
+                  <a
+                    href={`/about-us/clients/${clientName
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {clientName}
+                  </a>
+                )}
+                {clientName && workerName && " • "}
+                {workerName && (
+                  <a
+                    href={`/about-us/consultants-and-engineers/${workerName
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {workerName}
+                  </a>
+                )}
+              </div>
+            )}
+          </SheetHeader>
+          <div className="mt-4">
+            {appointmentsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <span className="text-xs text-gray-500">Loading...</span>
+              </div>
+            ) : appointmentsData?.timesheet?.appointments?.length ? (
+              <div className="relative">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        {showWorkerColumn && (
+                          <th className="py-2 text-left font-medium text-gray-500">
+                            Worker
+                          </th>
+                        )}
+                        {showClientColumn && (
+                          <th className="py-2 text-left font-medium text-gray-500">
+                            Client
+                          </th>
+                        )}
+                        <th className="py-2 text-left font-medium text-gray-500 w-16">
+                          Hours
+                        </th>
+                        <th className="py-2 text-left font-medium text-gray-500">
+                          Comment
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {appointmentsData.timesheet.appointments.map(
+                        (appointment: any, index: number) => (
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
+                            {showWorkerColumn && (
+                              <td className="py-2 pr-3">
+                                <a
+                                  href={`/about-us/consultants-and-engineers/${appointment.workerSlug}`}
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {appointment.workerName}
+                                </a>
+                              </td>
+                            )}
+                            {showClientColumn && (
+                              <td className="py-2 pr-3">
+                                <a
+                                  href={`/about-us/clients/${appointment.clientSlug}`}
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {appointment.clientName}
+                                </a>
+                              </td>
+                            )}
+                            <td className="py-2 pr-3 font-medium text-gray-900 tabular-nums">
+                              {appointment.timeInHs.toFixed(1)}h
+                            </td>
+                            <td className="py-2 pr-3 text-gray-500 max-w-xs truncate">
+                              {appointment.comment || "-"}
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-gray-200">
+                        <td
+                          colSpan={showWorkerColumn && showClientColumn ? 2 : 1}
+                          className="py-2 text-right font-medium text-gray-500"
+                        >
+                          Total:
+                        </td>
+                        <td className="py-2 pr-3 font-medium text-gray-900 tabular-nums">
+                          {appointmentsData.timesheet.appointments
+                            .reduce(
+                              (sum: number, app: any) => sum + app.timeInHs,
+                              0
+                            )
+                            .toFixed(1)}
+                          h
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-4">
+                <span className="text-xs text-gray-500">
+                  No appointments found
+                </span>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  };
+
   const renderAllocationGrid = () => {
     if (!data) return null;
+
+    const number_of_days = dayRows[0].cells.length;
+    var totalHoursRow = new Array(number_of_days).fill(0);
+    for (let i = 0; i < number_of_days; i++) {
+      for (let j = 0; j < dayRows.length; j++) {
+        if (dayRows[j].cells.length > i) {
+          totalHoursRow[i] += dayRows[j].cells[i].hours;
+        }
+      }
+    }
 
     return (
       <div className="mt-4 overflow-x-auto">
@@ -645,12 +871,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                           <div className="flex items-center justify-center">
                             {cell.label && (
                               <div
-                                className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200"
+                                className="w-2.5 h-2.5 rounded-[1px] transition-opacity duration-200 cursor-pointer"
                                 style={{
                                   backgroundColor:
                                     cell.hours > 0
                                       ? getColorWithOpacity(
-                                          getKindColor(selectedKind as KindType),
+                                          getKindColor(
+                                            selectedKind as KindType
+                                          ),
                                           histogramData[
                                             getBinIndex(
                                               cell.hours,
@@ -662,7 +890,9 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                                   border: `1px solid ${
                                     cell.hours > 0
                                       ? getDarkerColor(
-                                          getKindColor(selectedKind as KindType),
+                                          getKindColor(
+                                            selectedKind as KindType
+                                          ),
                                           histogramData[
                                             getBinIndex(
                                               cell.hours,
@@ -679,6 +909,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                                     ? 1
                                     : 0.1,
                                 }}
+                                onClick={() =>
+                                  cell.fullDate &&
+                                  handleDateClick(cell.fullDate)
+                                }
                               />
                             )}
                           </div>
@@ -700,6 +934,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                 ))}
               </tr>
             ))}
+            <tr>
+              <td className="text-xs text-gray-600 font-normal">Total (h)</td>
+              {totalHoursRow.map((cell, index) => (
+                <td key={index} className="text-[8px] text-gray-600 font-normal">
+                  {Number.isInteger(cell) ? cell.toString() : cell.toFixed(1)}
+                </td>
+              ))}
+            </tr>
           </tbody>
         </table>
       </div>
@@ -725,6 +967,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
         {renderKinds()}
         {renderHistogram()}
         {renderAllocationGrid()}
+        {renderAppointmentsSheet()}
       </div>
     </div>
   );

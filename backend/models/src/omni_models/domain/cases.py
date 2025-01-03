@@ -293,7 +293,7 @@ class CasesRepository:
         for case in cases_dict.values():
             for tracker_project in case.tracker_info:
                 deal = self.deals_repository.get_by_everhour_id(tracker_project.id)
-                if deal:
+                if deal and (deal not in case.deals):
                     case.deals.append(deal)
                     
         self.__data = cases_dict

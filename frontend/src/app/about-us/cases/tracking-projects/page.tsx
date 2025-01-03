@@ -88,7 +88,7 @@ export default function TrackingProjectsPage() {
                   {cases.map((caseItem: any) =>
                     caseItem.tracker?.map((tracker: any) => {
                       const matchingDeal = caseItem.deals?.find(
-                        (deal: any) => deal.everhourId === tracker.id
+                        (deal: any) => deal.everhourId && deal.everhourId.split(";").includes(tracker.id)
                       );
                       const salesCycle =
                         matchingDeal?.addTime && matchingDeal?.wonTime
