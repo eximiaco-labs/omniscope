@@ -29,6 +29,12 @@ interface GroupedDeals {
   deals: Deal[];
 }
 
+interface DealsTableProps {
+  title: string;
+  subtitle: string;
+  groupedDeals: GroupedDeals[];
+}
+
 const GET_ACTIVE_DEALS = gql`
   query GetActiveDeals {
     activeDeals {
@@ -43,64 +49,39 @@ const GET_ACTIVE_DEALS = gql`
   }
 `;
 
-export default function DealsPage() {
-  const { loading, error, data } = useQuery<{ activeDeals: Deal[] }>(GET_ACTIVE_DEALS);
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', { 
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
 
-  if (loading) return <div className="p-8">Loading...</div>;
-  if (error) return <div className="p-8">Error: {error.message}</div>;
+const getDaysSinceLastUpdate = (dateString: string) => {
+  const lastUpdate = new Date(dateString);
+  const today = new Date();
+  const diffTime = Math.abs(today.getTime() - lastUpdate.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
 
-  const prospects = data?.activeDeals.filter(deal => !deal.client && deal.status === "open") ?? [];
+const getRowHighlightClass = (updateTime: string) => {
+  const daysSinceUpdate = getDaysSinceLastUpdate(updateTime);
+  if (daysSinceUpdate > 90) return 'bg-red-50';
+  if (daysSinceUpdate > 30) return 'bg-yellow-50';
+  return '';
+};
 
-  // Group deals by client name and sort by client name
-  const groupedDeals = prospects.reduce<GroupedDeals[]>((acc, deal) => {
-    const existingGroup = acc.find(group => group.clientName === deal.clientOrProspectName);
-    if (existingGroup) {
-      existingGroup.deals.push(deal);
-    } else {
-      acc.push({ clientName: deal.clientOrProspectName, deals: [deal] });
-    }
-    return acc;
-  }, []).sort((a, b) => a.clientName.localeCompare(b.clientName));
-
-  const totalProspects = groupedDeals.length;
-  const totalDeals = prospects.length;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { 
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-  };
-
-  const getDaysSinceLastUpdate = (dateString: string) => {
-    const lastUpdate = new Date(dateString);
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - lastUpdate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  const getRowHighlightClass = (updateTime: string) => {
-    const daysSinceUpdate = getDaysSinceLastUpdate(updateTime);
-    if (daysSinceUpdate > 90) return 'bg-red-50';
-    if (daysSinceUpdate > 30) return 'bg-yellow-50';
-    return '';
-  };
-
+function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <SectionHeader
-        title="Prospects and Qualified Leads"
-        subtitle={`${totalProspects} prospects/leads with ${totalDeals} open deals`}
-      />
-
+    <div>
+      <SectionHeader title={title} subtitle={subtitle} />
       <div className="mt-8 px-2">
         <Table>
           <TableHeader>
             <TableRow className="border-b-2 border-gray-200">
               <TableHead className="text-center w-12 h-10 align-middle font-medium text-muted-foreground">#</TableHead>
-              <TableHead className="w-1/3 h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-gray-100">Prospect/Lead Name</TableHead>
+              <TableHead className="w-1/3 h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-gray-100">Name</TableHead>
               <TableHead className="h-10 px-6 text-left align-middle font-medium text-muted-foreground border-x border-gray-100">Title</TableHead>
               <TableHead className="h-10 px-6 text-left align-middle font-medium text-muted-foreground border-l border-gray-100">Last Update</TableHead>
             </TableRow>
@@ -150,12 +131,56 @@ export default function DealsPage() {
                   colSpan={4} 
                   className="text-center text-gray-500 py-8 px-6"
                 >
-                  No prospects or qualified leads found
+                  No deals found
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+      </div>
+    </div>
+  );
+}
+
+export default function DealsPage() {
+  const { loading, error, data } = useQuery<{ activeDeals: Deal[] }>(GET_ACTIVE_DEALS);
+
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (error) return <div className="p-8">Error: {error.message}</div>;
+
+  const prospects = data?.activeDeals.filter(deal => !deal.client && deal.status === "open") ?? [];
+  const clientDeals = data?.activeDeals.filter(deal => deal.client && deal.status === "open") ?? [];
+
+  const groupDeals = (deals: Deal[]): GroupedDeals[] => {
+    return deals.reduce<GroupedDeals[]>((acc, deal) => {
+      const clientName = deal.client?.name || deal.clientOrProspectName;
+      const existingGroup = acc.find(group => group.clientName === clientName);
+      if (existingGroup) {
+        existingGroup.deals.push(deal);
+      } else {
+        acc.push({ clientName, deals: [deal] });
+      }
+      return acc;
+    }, []).sort((a, b) => a.clientName.localeCompare(b.clientName));
+  };
+
+  const groupedProspects = groupDeals(prospects);
+  const groupedClientDeals = groupDeals(clientDeals);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <DealsTable 
+        title="Prospects and Qualified Leads"
+        subtitle={`${groupedProspects.length} prospects/leads with ${prospects.length} open deals`}
+        groupedDeals={groupedProspects}
+      />
+      
+      <div className="mt-16">
+        <DealsTable 
+          title="Client Opportunities"
+          subtitle={`${groupedClientDeals.length} clients with ${clientDeals.length} open deals`}
+          groupedDeals={groupedClientDeals}
+        />
       </div>
     </div>
   );
