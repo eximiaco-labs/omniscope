@@ -10,6 +10,7 @@ class Deal(BaseModel):
     stage_order_nr: int
     sponsor_name: Optional[str]
     client_name: Optional[str]
+    probability: Optional[float]
     account_manager_id: int
     account_manager_name: str
     add_time: Optional[datetime]

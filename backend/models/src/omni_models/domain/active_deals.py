@@ -10,6 +10,7 @@ class ActiveDeal(BaseModel):
     stage_id: int 
     stage_name: str
     stage_order_nr: int
+    probability: Optional[float] = None
     client_or_prospect_name: Optional[str] = None
     account_manager_name: Optional[str] = None
     sponsor_name: Optional[str] = None

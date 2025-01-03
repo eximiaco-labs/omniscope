@@ -199,4 +199,5 @@ type ActiveDeal {
   daysSinceLastUpdate: Int
   everhourId: String
   status: String
+  probability: Float
 } 
