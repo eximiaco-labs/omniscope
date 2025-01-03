@@ -534,6 +534,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.consulting.toString()}
               color={getKindColor("consulting")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
           <div
@@ -545,6 +546,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.handsOn.toString()}
               color={getKindColor("handsOn")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
           <div
@@ -556,6 +558,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.squad.toString()}
               color={getKindColor("squad")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
           <div
@@ -567,6 +570,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               value={totals.internal.toString()}
               color={getKindColor("internal")}
               total={totalHours}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </div>
         </div>
