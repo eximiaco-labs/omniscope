@@ -5,7 +5,7 @@ from datetime import datetime
 class Task(BaseModel):
     id: str
     name: str
-    due_on: Optional[datetime] = Field(alias='dueOn')
+    due_on: Optional[datetime] = Field(alias='dueOn', default=None)
     projects: List[str]
     
     @field_validator('due_on', mode='before')

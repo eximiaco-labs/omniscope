@@ -81,7 +81,7 @@ class Everhour:
     @cache
     def fetch_project_tasks(self, project_id: str) -> List[Task]:
         params = {
-            "limit": 10000,
+            "limit": 250,
             "page": 1
         }
         json = self.fetch(f"projects/{project_id}/tasks", params=params)
@@ -101,7 +101,7 @@ class Everhour:
     def _search_tasks_json(self, query: str) -> List[Dict[str, Any]]:
         params = {
             "query": query,
-            "searchInClosed": True
+            "searchInClosed": "true"
         }
         json = self.fetch("tasks/search", params=params)
         return json
