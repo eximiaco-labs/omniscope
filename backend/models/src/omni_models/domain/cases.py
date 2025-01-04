@@ -296,4 +296,19 @@ class CasesRepository:
                 if deal and (deal not in case.deals):
                     case.deals.append(deal)
                     
+        for case in cases_dict.values():
+            for tracker_project in case.tracker_info:
+                if tracker_project.status == 'archived' and tracker_project.kind != 'consulting':
+                    if not tracker_project.due_on:
+                        due_on = None
+                        if tracker_project.name.endswith("- 2024"):
+                            due_on = datetime(year=2024, month=12, day=31, hour=23, minute=59, second= 59)
+                        elif case.end_of_contract:
+                            due_on = case.end_of_contract
+                        elif case.is_active:
+                            due_on = self.tracker.find_project_due_on(tracker_project.id)
+                            
+                        if due_on:
+                            tracker_project.due_on = due_on
+                    
         self.__data = cases_dict

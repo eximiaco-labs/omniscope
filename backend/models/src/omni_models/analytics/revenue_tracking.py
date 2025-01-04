@@ -333,7 +333,7 @@ def compute_pre_contracted_revenue_tracking(
                 if project.created_at > date_of_interest:
                     fee = 0
                     
-                if project.due_on and project.due_on < date_of_interest:
+                if project.due_on and (project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on) < (date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest):
                     fee = 0
                 
                 should_do_pro_rata = (
