@@ -1,11 +1,11 @@
 from typing import Optional, List
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 from datetime import datetime
 
 class Task(BaseModel):
     id: str
     name: str
-    due_on: Optional[datetime] = None
+    due_on: Optional[datetime] = Field(alias='dueOn')
     projects: List[str]
     
     @field_validator('due_on', mode='before')
@@ -14,6 +14,3 @@ class Task(BaseModel):
         if isinstance(value, str):
             return datetime.strptime(value, "%Y-%m-%d")
         return value
-
-    class Config:
-        populate_by_name = True 
