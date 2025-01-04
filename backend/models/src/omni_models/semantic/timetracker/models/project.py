@@ -24,7 +24,7 @@ class Project(e.Project):
 
     @classmethod
     def from_base_instance(cls, base_instance: e.Project, client: Client):
-        base_dict = base_instance.dict()
+        base_dict = base_instance.model_dump()
         base_dict['is_squad'] = client.is_squad if client else False
         base_dict['is_eximiaco'] = client.is_eximiaco if client else True
         base_dict['is_handson'] = client.is_handson if client else False

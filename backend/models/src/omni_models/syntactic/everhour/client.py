@@ -57,17 +57,22 @@ class Everhour:
             )
             for ap in json
         ]
-
-    @cache
-    def fetch_all_projects(self, status: Optional[str] = None) -> List[Project]:
+    
+    def fetch_all_projects_json(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
         params = {
             "limit": 10000,
             "page": 1
         }
+        
         if status:
             params["status"] = status
-            
+
         json = self.fetch("projects", params=params)
+        return json
+
+    @cache
+    def fetch_all_projects(self, status: Optional[str] = None) -> List[Project]:
+        json = self.fetch_all_projects_json(status)
         return [
             Project(**p)
             for p in json
@@ -76,7 +81,7 @@ class Everhour:
     @cache
     def fetch_project_tasks(self, project_id: str) -> List[Task]:
         params = {
-            "limit": 10000,
+            "limit": 250,
             "page": 1
         }
         json = self.fetch(f"projects/{project_id}/tasks", params=params)
@@ -96,7 +101,7 @@ class Everhour:
     def _search_tasks_json(self, query: str) -> List[Dict[str, Any]]:
         params = {
             "query": query,
-            "searchInClosed": False
+            "searchInClosed": "true"
         }
         json = self.fetch("tasks/search", params=params)
         return json

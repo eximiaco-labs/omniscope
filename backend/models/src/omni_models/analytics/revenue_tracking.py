@@ -330,6 +330,12 @@ def compute_pre_contracted_revenue_tracking(
             elif case.pre_contracted_value:
                 fee = project.billing.fee / 100
                 
+                if project.created_at > date_of_interest:
+                    fee = 0
+                    
+                if project.due_on and (project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on) < (date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest):
+                    fee = 0
+                
                 should_do_pro_rata = (
                     case.start_of_contract 
                     and case.start_of_contract.year == date_of_interest.year 
@@ -351,7 +357,7 @@ def compute_pre_contracted_revenue_tracking(
                 result = {
                     "kind": project.kind,
                     "name": project.name,
-                    "fee": project.billing.fee / 100,
+                    "fee": fee,
                     "hours": project_df["TimeInHs"].sum() if len(project_df) > 0 else 0,
                     "fixed": True
                 }

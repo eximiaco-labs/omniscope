@@ -71,3 +71,23 @@ class TimeTracker(SemanticModel):
                     result[project_id].due_on = task.due_on
 
         return result 
+    
+    def enforce_due_on(self, project: Project):
+        if project.status != 'archived':
+            return
+        
+        if project.due_on:
+            return
+        
+        tasks = self.everhour.fetch_project_tasks(project.id)
+        for task in tasks:
+            if task.name == 'Encerramento' and task.due_on:
+                project.due_on = task.due_on
+                break
+            
+    def find_project_due_on(self, project_id: str) -> datetime:
+        tasks = self.everhour.fetch_project_tasks(project_id)
+        for task in tasks:
+            if task.name == 'Encerramento' and task.due_on:
+                return task.due_on
+        return None
