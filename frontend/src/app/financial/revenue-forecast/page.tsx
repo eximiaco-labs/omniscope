@@ -16,6 +16,7 @@ import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
 import { ConsultingPreTable } from "./ConsultingPreTable";
 import { GraphVizDaily } from "./GraphVizDaily";
+import OneYearAllocation from "@/app/components/OneYearAllocation";
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -211,6 +212,8 @@ export default function RevenueForecastPage() {
             },
           ]}
         />
+
+        <OneYearAllocation kind="consulting" hideTotals={true} />
 
         <ConsultingTable
           title="Consulting"
