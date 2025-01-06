@@ -23,6 +23,8 @@ interface ContributionProps {
   clientName?: string;
   sponsor?: string;
   caseTitle?: string;
+  kind?: "consulting" | "handsOn" | "squad" | "internal";
+  hideTotals?: boolean;
 }
 
 interface WeekInfo {
@@ -111,6 +113,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   clientName,
   sponsor,
   caseTitle,
+  kind,
+  hideTotals = false,
 }) => {
   type KindType = "consulting" | "handsOn" | "squad" | "internal";
 
@@ -130,7 +134,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   };
 
   // Initialize with empty string to ensure we select first non-zero value
-  const [selectedKind, setSelectedKind] = useState<KindType | "">("");
+  const [selectedKind, setSelectedKind] = useState<KindType | "">(kind || "");
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
@@ -174,6 +178,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
           {
             field: "CaseTitle",
             selectedValues: [caseTitle],
+          },
+        ]
+      : []),
+    ...(kind
+      ? [
+          {
+            field: "Kind",
+            selectedValues: [kind.charAt(0).toUpperCase() + kind.slice(1)],
           },
         ]
       : []),
@@ -232,8 +244,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     });
   }
 
-  // Set initial selected kind to first non-zero value if not already set
-  if (selectedKind === "") {
+  // Set initial selected kind to first non-zero value if not already set and kind is not provided
+  if (selectedKind === "" && !kind) {
     const firstNonZeroKind = Object.entries(totals).find(
       ([_, value]) => value > 0
     )?.[0] as KindType;
@@ -552,7 +564,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const histogramData = calculateHistogram();
 
   const renderKinds = () => {
-    if (!data) return null;
+    if (!data || kind) return null;
 
     const totalHours =
       totals.consulting + totals.handsOn + totals.squad + totals.internal;
@@ -637,21 +649,21 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     );
 
     return (
-      <div className="mt-4 mb-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="mt-2 mb-2">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {histogramData.map((bin, index) => (
             <div
               key={index}
-              className={`p-2 rounded-lg cursor-pointer transition-all hover:ring-1 hover:ring-gray-300 relative
+              className={`p-1.5 rounded cursor-pointer transition-all hover:ring-1 hover:ring-gray-200 relative
                 ${
                   selectedBinIndex === index
-                    ? "ring-2 ring-blue-500 hover:ring-2 hover:ring-blue-500"
+                    ? "ring-1 ring-gray-400 hover:ring-gray-400"
                     : ""
                 }`}
               style={{
                 backgroundColor: getColorWithOpacity(
                   getKindColor(selectedKind as KindType),
-                  selectedKind ? bin.opacity : 0.3
+                  selectedKind ? bin.opacity * 0.7 : 0.2
                 ),
               }}
               onClick={() =>
@@ -659,16 +671,16 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               }
             >
               <div className="flex flex-col">
-                <span className="text-xs font-medium text-gray-600">
+                <span className="text-[10px] font-medium text-gray-600">
                   {bin.min.toFixed(1)}h - {bin.max.toFixed(1)}h
                 </span>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-lg font-semibold">{bin.count}</span>
-                  <span className="text-xs text-gray-500">occurrences</span>
+                <div className="flex items-center gap-0.5">
+                  <span className="text-sm font-medium">{bin.count}</span>
+                  <span className="text-[10px] text-gray-500">×</span>
                 </div>
               </div>
-              <div className="absolute bottom-1 right-2 text-xs opacity-90">
-                {((bin.count / totalOccurrences) * 100).toFixed(1)}%
+              <div className="absolute bottom-1 right-1.5 text-[9px] text-gray-500">
+                {((bin.count / totalOccurrences) * 100).toFixed(0)}%
               </div>
             </div>
           ))}
@@ -934,14 +946,16 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                 ))}
               </tr>
             ))}
-            <tr>
-              <td className="text-xs text-gray-600 font-normal">Total (h)</td>
-              {totalHoursRow.map((cell, index) => (
-                <td key={index} className="text-[8px] text-gray-600 font-normal">
-                  {Number.isInteger(cell) ? cell.toString() : cell.toFixed(1)}
-                </td>
-              ))}
-            </tr>
+            {!hideTotals && (
+              <tr>
+                <td className="text-xs text-gray-600 font-normal">Total (h)</td>
+                {totalHoursRow.map((cell, index) => (
+                  <td key={index} className="text-[8px] text-gray-600 font-normal">
+                    {Number.isInteger(cell) ? cell.toString() : cell.toFixed(1)}
+                  </td>
+                ))}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -950,11 +964,17 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {(error as ApolloError).message}</div>;
+  
+  var title = "One Year Allocation"
+  if (kind) {
+    const capitalizedKind = kind.charAt(0).toUpperCase() + kind.slice(1);
+    title = `${title} - ${capitalizedKind}`
+  }
 
   return (
     <div className="mb-8">
       <SectionHeader
-        title="One Year Allocation"
+        title={title}
         subtitle={`${startDate.toLocaleDateString("en-US", {
           month: "short",
           year: "numeric",
