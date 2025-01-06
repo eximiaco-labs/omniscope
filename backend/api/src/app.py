@@ -108,6 +108,6 @@ if __name__ == '__main__':
         app.logger.setLevel(logging.INFO)
 
     app.logger.info("Starting the application")
-    globals.update()
+    # globals.update()
 
     app.run(debug=args.verbose,host="0.0.0.0",port=5001)
