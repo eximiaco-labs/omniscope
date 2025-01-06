@@ -181,6 +181,14 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
           },
         ]
       : []),
+    ...(kind
+      ? [
+          {
+            field: "Kind",
+            selectedValues: [kind.charAt(0).toUpperCase() + kind.slice(1)],
+          },
+        ]
+      : []),
   ];
 
   const { loading, error, data } = useQuery(ALLOCATION_QUERY, {
@@ -959,7 +967,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   
   var title = "One Year Allocation"
   if (kind) {
-    title = `${title} - ${kind}`
+    const capitalizedKind = kind.charAt(0).toUpperCase() + kind.slice(1);
+    title = `${title} - ${capitalizedKind}`
   }
 
   return (
