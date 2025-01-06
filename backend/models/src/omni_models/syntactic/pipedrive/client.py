@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 import requests
+import time
 from omni_utils.decorators.cache import cache
 
 from .models.activity import Activity
@@ -27,9 +28,24 @@ class Pipedrive:
         params['limit'] = 500
         params['start'] = start
 
-        response = self.session.get(url, params=params)
-        response.raise_for_status()  # Proper error handling
-        return response.json()
+        retries = 0
+        max_retries = 3
+        
+        while True:
+            try:
+                response = self.session.get(url, params=params)
+                response.raise_for_status()  # Proper error handling
+                return response.json()
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 429:  # Too Many Requests
+                    if retries >= max_retries:
+                        print(f"Maximum retry attempts ({max_retries}) reached for rate limit. Raising exception...")
+                        raise
+                    retries += 1
+                    print(f"Rate limit exceeded for Pipedrive API. Waiting 2 seconds before retry {retries}/{max_retries}...")
+                    time.sleep(2)
+                    continue
+                raise  # Re-raise other HTTP errors
 
     @staticmethod
     def __has_next_page(data):
@@ -51,6 +67,9 @@ class Pipedrive:
 
         # Create DataFrame from all data at once
         return all_data
+    
+    @cache(remember=True)
+    
 
     @cache
     def fetch_active_deals_in_stage(self, stage_id, status ='open'):
@@ -80,7 +99,7 @@ class Pipedrive:
             for activity in json
         ]
 
-    @cache
+    @cache(remember=True)
     def fetch_people(self):
         params = {
             'fields': 'picture_id'

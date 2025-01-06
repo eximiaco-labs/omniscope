@@ -50,8 +50,9 @@ class TimesheetDataset(OmniDataset):
             
             first_day_of_month = last_day_of_month + timedelta(days=1)
         
-        df = df[df['Date'] >= after.date()]
-        df = df[df['Date'] <= before.date()]
+        if len(df) > 0:
+            df = df[df['Date'] >= after.date()]
+            df = df[df['Date'] <= before.date()]
         
         return SummarizablePowerDataFrame(df)
         
