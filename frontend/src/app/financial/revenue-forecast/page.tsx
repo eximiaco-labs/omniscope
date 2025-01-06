@@ -188,11 +188,11 @@ export default function RevenueForecastPage() {
               title: "Consulting",
               subtitle: "By Consultant",
             },
-            {
-              id: "consultingFuture",
-              title: "Consulting",
-              subtitle: "Next three months",
-            },
+            // {
+            //   id: "consultingFuture",
+            //   title: "Consulting",
+            //   subtitle: "Next three months",
+            // },
             {
               id: "consultingPre",
               title: "Consulting Pre",
@@ -213,7 +213,9 @@ export default function RevenueForecastPage() {
           ]}
         />
 
-        <OneYearAllocation kind="consulting" hideTotals={true} />
+        <div className="mt-4">
+          <OneYearAllocation kind="consulting" hideTotals={true} />
+        </div>
 
         <ConsultingTable
           title="Consulting"
@@ -245,7 +247,7 @@ export default function RevenueForecastPage() {
           setNormalized={setNormalized}
         />
 
-        <ConsultingTableFuture
+        {/* <ConsultingTableFuture
           title="Consulting"
           tableData={forecastData.consulting}
           tableId="consultingFuture"
@@ -259,7 +261,7 @@ export default function RevenueForecastPage() {
           toggleClient={toggleClient}
           setNormalized={setNormalized}
           setUseHistorical={setUseHistorical}
-        />
+        /> */}
 
         <ConsultingPreTable
           title="Consulting Pre"
@@ -271,6 +273,10 @@ export default function RevenueForecastPage() {
           toggleClient={(clientSlug) => toggleClient(clientSlug, "consultingPre")}
         />
 
+        <div className="mt-4">
+          <OneYearAllocation kind="handsOn" hideTotals={true} />
+        </div>
+
         <OtherTable
           title="Hands On"
           tableData={forecastData.handsOn}
@@ -281,6 +287,10 @@ export default function RevenueForecastPage() {
           requestSort={requestSort}
           toggleClient={toggleClient}
         />
+
+        <div className="mt-4">
+          <OneYearAllocation kind="squad" hideTotals={true} />
+        </div>
 
         <OtherTable
           title="Squad"
