@@ -956,11 +956,16 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {(error as ApolloError).message}</div>;
+  
+  var title = "One Year Allocation"
+  if (kind) {
+    title = `${title} - ${kind}`
+  }
 
   return (
     <div className="mb-8">
       <SectionHeader
-        title="One Year Allocation"
+        title={title}
         subtitle={`${startDate.toLocaleDateString("en-US", {
           month: "short",
           year: "numeric",
