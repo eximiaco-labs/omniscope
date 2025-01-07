@@ -21,6 +21,7 @@ import {
   UsersIcon,
   SettingsIcon,
   CheckCheckIcon,
+  BookOpenIcon,
 } from "lucide-react";
 
 import { useSession } from "next-auth/react";
@@ -34,6 +35,7 @@ import {
   getAdministrativeSidebarItems,
   getFinancialSidebarItems,
   getOperationalSummariesSidebarItems,
+  getOntologySidebarItems,
 } from "@/app/navigation";
 
 import React from "react";
@@ -87,9 +89,8 @@ export function OmniSidebar() {
   const [analyticsItems, setAnalyticsItems] = React.useState<MenuItem[]>([]);
   const [aboutUsItems, setAboutUsItems] = React.useState<MenuItem[]>([]);
   const [adminItems, setAdminItems] = React.useState<MenuItem[]>([]);
-  const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>(
-    []
-  );
+  const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>([]);
+  const [ontologyItems, setOntologyItems] = React.useState<MenuItem[]>([]);
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
   const [activeItems, setActiveItems] = React.useState<MenuItem[]>([]);
@@ -103,12 +104,14 @@ export function OmniSidebar() {
       const operationalSummaries = await getOperationalSummariesSidebarItems();
       const aboutUs = await getAboutUsSidebarItems();
       const admin = await getAdministrativeSidebarItems();
+      const ontology = await getOntologySidebarItems();
 
       setFinancialItems(financial);
       setAnalyticsItems(analytics);
       setAboutUsItems(aboutUs);
       setAdminItems(admin);
       setOperationalItems(operationalSummaries);
+      setOntologyItems(ontology);
 
       // Determine active section based on current path
       let initialSection = "Analytics";
@@ -146,6 +149,12 @@ export function OmniSidebar() {
       if (isAboutUsPath) {
         initialSection = "About Us";
         initialItems = aboutUs;
+      }
+
+      const isOntologyPath = ontologyItems.some((item: MenuItem) => pathname.startsWith(item.url));
+      if (isOntologyPath) {
+        initialSection = "Ontology";
+        initialItems = ontologyItems;
       }
 
       const isAdminPath = admin.some((item) => pathname.startsWith(item.url));
@@ -220,6 +229,12 @@ export function OmniSidebar() {
                       tooltip: "Operational",
                     },
                     {
+                      section: "Ontology",
+                      items: ontologyItems,
+                      icon: BookOpenIcon,
+                      tooltip: "Ontology",
+                    },
+                    {
                       section: "Administrative",
                       items: adminItems,
                       icon: SettingsIcon,
@@ -281,7 +296,7 @@ export function OmniSidebar() {
                       isActive={pathname.startsWith(item.url)}
                     >
                       <Link href={item.url}>
-                        {/* <item.icon /> */}
+                        <item.icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -291,6 +306,7 @@ export function OmniSidebar() {
                           <SidebarMenuSubItem key={subItem.title}>
                             <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
                               <Link href={subItem.url}>
+                                <subItem.icon className="size-4" />
                                 <span>{subItem.title}</span>
                               </Link>
                             </SidebarMenuSubButton>

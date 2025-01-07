@@ -19,6 +19,7 @@ import {
   ClockIcon,
   ClipboardListIcon,
   AlertCircleIcon,
+  BookIcon,
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -163,6 +164,16 @@ export function getOperationalSummariesSidebarItems() {
       title: "Projects Due Dates",
       url: "/operational-summaries/due-on-projects",
       icon: CalendarIcon,
+    },
+  ];
+}
+
+export function getOntologySidebarItems() {
+  return [
+    {
+      title: "Classes",
+      url: "/ontology/classes",
+      icon: BookIcon,
     },
   ];
 }
