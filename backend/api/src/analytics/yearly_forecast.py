@@ -37,10 +37,17 @@ def resolve_yearly_forecast(_, info, year=None):
             forecast_doi = compute_forecast(date_of_interest)
             
         goal = main_goal / (13 - month)
+        month_actual = 0
         if y < current_year or (y == current_year and m < current_month):
             goal = 0
-            discount = forecast 
-            #actual += revenue_tracking["total"] if (y != current_year or m != current_month) else 0
+            
+            month_actual = forecast["summary"]["realized"]
+            discount = month_actual
+            actual += month_actual
+        elif y == current_year and m == current_month:
+            month_actual = forecast["summary"]["realized"]
+            # discount = month_actual
+            actual += month_actual
     
         
         by_month.append({
@@ -51,10 +58,10 @@ def resolve_yearly_forecast(_, info, year=None):
             "expected_squad_fee": forecast_doi["by_kind"]["squad"]['totals'].in_analysis,
             "expected_hands_on_fee": forecast_doi["by_kind"]["hands_on"]['totals'].in_analysis,
             "expected_consulting_pre_fee": forecast_doi["by_kind"]["consulting_pre"]['totals'].in_analysis,
-            "actual": revenue_tracking["total"] if revenue_tracking else 0
+            "actual": month_actual
         })
         
-        #main_goal -= discount
+        main_goal -= discount
         
         
     total_working_days = sum(len(get_working_days_in_month(y, m)) for m in range(1, 13))
