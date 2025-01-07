@@ -67,8 +67,26 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
         if len(df) == 0:
             return default_result, pro_rata_info
     
-    case_ids = df["CaseId"].unique()
+    case_ids = sorted(set(df["CaseId"].unique()))
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
+    doi = date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest
+    active_cases = [
+        case
+        for case in globals.omni_models.cases.get_all().values()
+        if (
+            case.is_active
+            or (
+                (not case.start_of_contract or case.start_of_contract <= doi) and
+                (not case.end_of_contract or case.end_of_contract >= doi)
+            ) 
+        )
+    ]
+    case_ids2 = sorted(set([case.id for case in active_cases]))
+    for case_id in case_ids:
+        if case_id not in case_ids2:
+            case = globals.omni_models.cases.get_by_id(case_id)
+            active_cases.append(case)
+    
     account_managers_names = sorted(set(_get_account_manager_name(case) for case in active_cases))
     
     by_account_manager = []
@@ -330,10 +348,13 @@ def compute_pre_contracted_revenue_tracking(
             elif case.pre_contracted_value:
                 fee = project.billing.fee / 100
                 
-                if project.created_at > date_of_interest:
+                created_at = project.created_at.date() if hasattr(project.created_at, 'date') else project.created_at
+                date_of_interest = date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest
+                if created_at > date_of_interest:
                     fee = 0
                     
-                if project.due_on and (project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on) < (date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest):
+                due_on = project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on
+                if due_on and due_on < date_of_interest:
                     fee = 0
                 
                 should_do_pro_rata = (
