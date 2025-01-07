@@ -297,6 +297,16 @@ def compute_pre_contracted_revenue_tracking(
     def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame, pro_rata_info):
         project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
         result = None
+        
+        created_at = project.created_at.date() if hasattr(project.created_at, 'date') else project.created_at
+        date_of_interest = date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest
+        if created_at > date_of_interest:
+            return None
+            
+        due_on = project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on
+        if due_on and due_on < date_of_interest:
+            return None
+            
         if project.billing and project.billing.fee and project.billing.fee != 0:
             if project.budget and project.budget.period == 'general':
 
@@ -348,15 +358,6 @@ def compute_pre_contracted_revenue_tracking(
             elif case.pre_contracted_value:
                 fee = project.billing.fee / 100
                 
-                created_at = project.created_at.date() if hasattr(project.created_at, 'date') else project.created_at
-                date_of_interest = date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest
-                if created_at > date_of_interest:
-                    fee = 0
-                    
-                due_on = project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on
-                if due_on and due_on < date_of_interest:
-                    fee = 0
-                
                 should_do_pro_rata = (
                     case.start_of_contract 
                     and case.start_of_contract.year == date_of_interest.year 
@@ -384,8 +385,6 @@ def compute_pre_contracted_revenue_tracking(
                 }
             else:
                 project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
-                if len(project_df) == 0:
-                    return None
                     
                 partial = False
                 fee = project.billing.fee / 100
@@ -543,7 +542,7 @@ def compute_pre_contracted_revenue_tracking(
                     "kind": project.kind,
                     "name": project.name,
                     "fee": partial_fee if partial else fee,
-                    "hours": project_df["TimeInHs"].sum(),
+                    "hours": project_df["TimeInHs"].sum() if len(project_df) > 0 else 0,
                     "partial": partial,
                     "fixed": True
                 }
