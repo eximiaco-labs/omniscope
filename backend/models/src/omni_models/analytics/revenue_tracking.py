@@ -34,41 +34,40 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
         }
         current_day = current_day + timedelta(days=1)
         
-    
-    default_result = {
-        "monthly": {
-            "total": 0,
-            "total_consulting_fee": 0,
-            "total_consulting_fee_new": 0,
-            "total_consulting_pre_fee": 0,
-            "total_consulting_hours": 0,
-            "total_consulting_pre_hours": 0,
-            "total_hands_on_fee": 0,
-            "total_squad_fee": 0,
-            "by_account_manager": []
-        },
-        "daily": []
-    }
-    
     pro_rata_info = { "by_kind": [] }
     
-    if df is None or len(df) == 0:
-        return default_result, pro_rata_info
         
-    df = df[df["Kind"] != INTERNAL_KIND]
-    if len(df) == 0:
-        return default_result, pro_rata_info
+    df = df[df["Kind"] != INTERNAL_KIND] if len(df) > 0 else df
+    # if len(df) == 0:
+    #     return default_result, pro_rata_info
     
-    if account_manager_name_or_slug:
+    if account_manager_name_or_slug and len(df) > 0:
         df_ = df[df["AccountManagerName"] == account_manager_name_or_slug]
         if len(df_) == 0:
             df_ = df[df["AccountManagerSlug"] == account_manager_name_or_slug]
         df = df_
-        if len(df) == 0:
-            return default_result, pro_rata_info
+        
     
-    case_ids = df["CaseId"].unique()
+    case_ids = sorted(set(df["CaseId"].unique())) if len(df) > 0 else []
     active_cases = [globals.omni_models.cases.get_by_id(case_id) for case_id in case_ids]
+    doi = date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest
+    active_cases = [
+        case
+        for case in globals.omni_models.cases.get_all().values()
+        if (
+            case.is_active
+            or (
+                (case.end_of_contract and case.end_of_contract >= doi) and
+                (not case.start_of_contract or case.start_of_contract <= doi)
+            ) 
+        )
+    ]
+    case_ids2 = sorted(set([case.id for case in active_cases]))
+    for case_id in case_ids:
+        if case_id not in case_ids2:
+            case = globals.omni_models.cases.get_by_id(case_id)
+            active_cases.append(case)
+    
     account_managers_names = sorted(set(_get_account_manager_name(case) for case in active_cases))
     
     by_account_manager = []
@@ -243,7 +242,7 @@ def compute_regular_revenue_tracking(
 ):
     def process_project(date_of_interest: date, _, project, timesheet_df, pro_rata_info):
         if project.rate and project.rate.rate:
-            project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+            project_df = timesheet_df[timesheet_df["ProjectId"] == project.id] if len(timesheet_df) > 0 else pd.DataFrame()
             if len(project_df) > 0:
                 by_worker = []
                 for worker_name in project_df["WorkerName"].unique():
@@ -277,8 +276,18 @@ def compute_pre_contracted_revenue_tracking(
     account_manager_name_or_slug: str = None
 ):
     def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame, pro_rata_info):
-        project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+        project_df = timesheet_df[timesheet_df["ProjectId"] == project.id] if len(timesheet_df) > 0 else pd.DataFrame()
         result = None
+        
+        created_at = project.created_at.date() if hasattr(project.created_at, 'date') else project.created_at
+        date_of_interest = date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest
+        if created_at > date_of_interest:
+            return None
+            
+        due_on = project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on
+        if due_on and due_on < date_of_interest:
+            return None
+            
         if project.billing and project.billing.fee and project.billing.fee != 0:
             if project.budget and project.budget.period == 'general':
 
@@ -330,12 +339,6 @@ def compute_pre_contracted_revenue_tracking(
             elif case.pre_contracted_value:
                 fee = project.billing.fee / 100
                 
-                if project.created_at > date_of_interest:
-                    fee = 0
-                    
-                if project.due_on and (project.due_on.date() if hasattr(project.due_on, 'date') else project.due_on) < (date_of_interest.date() if hasattr(date_of_interest, 'date') else date_of_interest):
-                    fee = 0
-                
                 should_do_pro_rata = (
                     case.start_of_contract 
                     and case.start_of_contract.year == date_of_interest.year 
@@ -362,9 +365,7 @@ def compute_pre_contracted_revenue_tracking(
                     "fixed": True
                 }
             else:
-                project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
-                if len(project_df) == 0:
-                    return None
+                project_df = timesheet_df[timesheet_df["ProjectId"] == project.id] if len(timesheet_df) > 0 else pd.DataFrame()
                     
                 partial = False
                 fee = project.billing.fee / 100
@@ -382,7 +383,7 @@ def compute_pre_contracted_revenue_tracking(
                         
                     if is_last_day_of_month:
                         
-                        workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index()
+                        workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index() if len(project_df) > 0 else pd.DataFrame()
                         if len(workers_hours) == 0:
                             return None
                             
@@ -522,7 +523,7 @@ def compute_pre_contracted_revenue_tracking(
                     "kind": project.kind,
                     "name": project.name,
                     "fee": partial_fee if partial else fee,
-                    "hours": project_df["TimeInHs"].sum(),
+                    "hours": project_df["TimeInHs"].sum() if len(project_df) > 0 else 0,
                     "partial": partial,
                     "fixed": True
                 }

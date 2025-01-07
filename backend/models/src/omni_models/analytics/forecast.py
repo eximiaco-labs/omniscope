@@ -301,8 +301,10 @@ def compute_forecast(date_of_interest = None, filters = None):
                     
                     hours_in_month = 0
                     daily_approved_hours = wah / 5
+            
                     
-                    due_on = project_.due_on.date() if project_.due_on else case_.end_of_contract
+                    due_on = project_.due_on if project_.due_on else case_.end_of_contract
+                    due_on = due_on.date() if hasattr(due_on, 'date') else due_on
                     
                     for day in range(1, days_in_month + 1):
                         date = datetime(year, month, day)
