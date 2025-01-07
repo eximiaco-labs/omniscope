@@ -76,8 +76,8 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
         if (
             case.is_active
             or (
-                (not case.start_of_contract or case.start_of_contract <= doi) and
-                (not case.end_of_contract or case.end_of_contract >= doi)
+                (case.end_of_contract and case.end_of_contract >= doi) and
+                (not case.start_of_contract or case.start_of_contract <= doi)
             ) 
         )
     ]

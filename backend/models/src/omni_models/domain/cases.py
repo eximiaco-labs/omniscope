@@ -298,7 +298,7 @@ class CasesRepository:
                     
         for case in cases_dict.values():
             for tracker_project in case.tracker_info:
-                if tracker_project.status == 'archived' and tracker_project.kind != 'consulting':
+                if tracker_project.status == 'archived':
                     if not tracker_project.due_on:
                         due_on = None
                         if tracker_project.name.endswith("- 2024"):
@@ -306,7 +306,8 @@ class CasesRepository:
                         elif case.end_of_contract:
                             due_on = case.end_of_contract
                         elif case.is_active:
-                            due_on = self.tracker.find_project_due_on(tracker_project.id)
+                            if tracker_project.kind != 'consulting':
+                                due_on = self.tracker.find_project_due_on(tracker_project.id)
                             
                         if due_on:
                             tracker_project.due_on = due_on
