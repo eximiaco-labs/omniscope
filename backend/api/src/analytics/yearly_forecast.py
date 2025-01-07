@@ -36,15 +36,16 @@ def resolve_yearly_forecast(_, info, year=None):
             forecast = compute_forecast(last_day_of_month)
             forecast_doi = compute_forecast(date_of_interest)
             
-            
+        goal = main_goal / (13 - month)
         if y < current_year or (y == current_year and m < current_month):
+            goal = 0
             discount = forecast 
             #actual += revenue_tracking["total"] if (y != current_year or m != current_month) else 0
     
         
         by_month.append({
             "month": m,
-            "goal": main_goal / (13 - month),
+            "goal": goal,
             "working_days": len(get_working_days_in_month(y, m)),
             "expected_consulting_fee": forecast_doi["by_kind"]["consulting"]['totals'].expected,
             "expected_squad_fee": forecast_doi["by_kind"]["squad"]['totals'].in_analysis,

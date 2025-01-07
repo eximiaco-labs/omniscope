@@ -295,7 +295,7 @@ def compute_pre_contracted_revenue_tracking(
     account_manager_name_or_slug: str = None
 ):
     def process_project(date_of_interest: date, case: Case, project, timesheet_df: pd.DataFrame, pro_rata_info):
-        project_df = timesheet_df[timesheet_df["ProjectId"] == project.id]
+        project_df = timesheet_df[timesheet_df["ProjectId"] == project.id] if len(timesheet_df) > 0 else pd.DataFrame()
         result = None
         
         created_at = project.created_at.date() if hasattr(project.created_at, 'date') else project.created_at
