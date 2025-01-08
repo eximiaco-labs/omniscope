@@ -123,8 +123,20 @@ enum SortOrder {
     DESC
 }"""
 
-def generate_team_type(types: list[Type[BaseModel]]) -> str:
-    """Generate the Team type definition dynamically based on available types"""
+def generate_schema(types: list[Type[BaseModel]], context_name: str) -> str:
+    """Generate complete GraphQL schema from types"""
+    type_definitions = []
+    
+    # Add base collection types
+    type_definitions.append(generate_collection_metadata_type())
+    type_definitions.append(generate_filter_types())
+    
+    # Add model types
+    for cls in types:
+        type_definitions.append(generate_type(cls))
+        type_definitions.append(generate_collection_type(cls))
+    
+    # Generate context type
     field_definitions = []
     for cls in types:
         # Collection field
@@ -138,32 +150,16 @@ def generate_team_type(types: list[Type[BaseModel]]) -> str:
             single_name = cls.__name__[0].lower() + cls.__name__[1:]
             args = ", ".join(f"{field}: String" for field in identifier_fields)
             field_definitions.append(f"    {single_name}({args}): {cls.__name__}")
-        
-    return f"""type Team {{
+    
+    context_type = f"""type {context_name} {{
 {chr(10).join(field_definitions)}
 }}"""
-
-def generate_query_type() -> str:
-    """Generate the Query type definition"""
-    return """extend type Query {
-    team: Team!
-}"""
-
-def generate_schema(types: list[Type[BaseModel]]) -> str:
-    """Generate complete GraphQL schema from types"""
-    type_definitions = []
+    type_definitions.append(context_type)
     
-    # Add base collection types
-    type_definitions.append(generate_collection_metadata_type())
-    type_definitions.append(generate_filter_types())
-    
-    # Add model types
-    for cls in types:
-        type_definitions.append(generate_type(cls))
-        type_definitions.append(generate_collection_type(cls))
-    
-    # Add team and query types
-    type_definitions.append(generate_team_type(types))
-    type_definitions.append(generate_query_type())
+    # Add query type
+    query_type = f"""extend type Query {{
+    {context_name[0].lower() + context_name[1:]}: {context_name}!
+}}"""
+    type_definitions.append(query_type)
     
     return "\n\n".join(type_definitions) 

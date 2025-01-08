@@ -1,6 +1,6 @@
 from typing import Dict, List
 from pydantic import BaseModel, Field
-from .fields import Id
+from core.fields import Id
 
 class Engineer(BaseModel):
     id: str = Id(description="The unique identifier of the engineer")

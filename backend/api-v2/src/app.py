@@ -1,4 +1,11 @@
 import os
+import sys
+from pathlib import Path
+
+# Add src directory to Python path
+src_dir = Path(__file__).parent
+sys.path.insert(0, str(src_dir))
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ariadne import make_executable_schema, graphql_sync, snake_case_fallback_resolvers
