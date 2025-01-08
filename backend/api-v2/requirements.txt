@@ -1,8 +1,8 @@
-Flask==3.0.0
-Flask-CORS==4.0.0
-ariadne==0.20.1
-pydantic==2.5.3
+Flask
+Flask-CORS
+ariadne
+pydantic
 
 # Dev dependencies
-pytest==7.4.3
-pytest-cov==4.1.0
+pytest
+pytest-cov

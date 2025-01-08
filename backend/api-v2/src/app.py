@@ -14,6 +14,9 @@ from ariadne.explorer import ExplorerGraphiQL
 from team.resolvers.team import query, team
 from team.schema import schema as team_schema
 
+from omni_shared.settings import auth_settings 
+from omni_shared.settings import graphql_settings
+
 app = Flask(__name__)
 CORS(app)
 

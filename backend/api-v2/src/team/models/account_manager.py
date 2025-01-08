@@ -2,6 +2,7 @@ from typing import Dict, List
 from pydantic import BaseModel, Field
 from core.fields import Id
 
+
 class AccountManager(BaseModel):
     id: int = Id(description="The unique identifier of the account manager")
     slug: str = Id(description="URL-friendly identifier of the account manager")
