@@ -1,15 +1,10 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from ariadne import make_executable_schema, graphql_sync, snake_case_fallback_resolvers, QueryType, ObjectType
+from ariadne import make_executable_schema, graphql_sync, snake_case_fallback_resolvers
 from ariadne.explorer import ExplorerGraphiQL
 
-from team.resolvers.team import (
-    resolve_team,
-    resolve_team_account_managers,
-    resolve_team_consultants,
-    resolve_team_engineers
-)
+from team.resolvers.team import query, team
 from team.schema import schema as team_schema
 
 app = Flask(__name__)
@@ -26,16 +21,6 @@ type_defs = [
     base_schema,
     team_schema
 ]
-
-# Query resolvers
-query = QueryType()
-query.set_field("team", resolve_team)
-
-# Team resolvers
-team = ObjectType("Team")
-team.set_field("accountManagers", resolve_team_account_managers)
-team.set_field("consultants", resolve_team_consultants)
-team.set_field("engineers", resolve_team_engineers)
 
 schema = make_executable_schema(
     type_defs,

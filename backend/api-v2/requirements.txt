@@ -1,20 +1,8 @@
-requests
-Flask
-Flask-CORS
-flask_httpauth
-ariadne
-elasticsearch
+Flask==3.0.0
+Flask-CORS==4.0.0
+ariadne==0.20.1
+pydantic==2.5.3
 
-google-auth
-pytest
-pytest-cov
-pytest-mock
-pytest-parametrize
-
-pydantic
-pytz
-bokeh
-python-dotenv
-validators
-pandas
-jwt
+# Dev dependencies
+pytest==7.4.3
+pytest-cov==4.1.0
