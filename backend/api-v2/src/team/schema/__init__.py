@@ -1,7 +1,7 @@
-from ..models import AccountManager, Consultant, Engineer
+from ..models import AccountManager, ConsultantOrEngineer
 from core.generator import generate_schema
 
-types = [AccountManager, Consultant, Engineer]
+types = [AccountManager, ConsultantOrEngineer]
 schema = generate_schema(types, "Team")
 
 __all__ = ['schema'] 
