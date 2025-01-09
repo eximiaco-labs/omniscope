@@ -1,5 +1,33 @@
 from typing import Type, List
 from pydantic import BaseModel
+import re
+
+def pluralize(name: str) -> str:
+    """
+    Pluralize a camelCase name considering compound words.
+    Example: consultantOrEngineer -> consultantsOrEngineers
+    """
+    # Split on 'Or' and 'And' to handle each part separately
+    parts = re.split(r'(Or|And)', name)
+    
+    # Pluralize each word part (not the connectors)
+    for i in range(0, len(parts), 2):
+        word = parts[i]
+        if word:  # Skip empty strings
+            # Basic English pluralization rules
+            if word.endswith('y'):
+                parts[i] = word[:-1] + 'ies'
+            elif word.endswith(('s', 'sh', 'ch', 'x', 'z')):
+                parts[i] = word + 'es'
+            else:
+                parts[i] = word + 's'
+    
+    return ''.join(parts)
+
+def to_camel_case(snake_str: str) -> str:
+    """Convert a string from snake_case to camelCase."""
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
 
 def get_identifier_fields(cls: Type[BaseModel]) -> List[str]:
     """Get all fields marked as identifiers"""
@@ -139,17 +167,19 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str) -> str:
     # Generate context type
     field_definitions = []
     for cls in types:
-        # Collection field
-        collection_name = cls.__name__[0].lower() + cls.__name__[1:] + "s"
+        # Get the base name in camelCase
+        base_name = to_camel_case(cls.__name__[0].lower() + cls.__name__[1:])
+        
+        # Collection field - properly pluralized
+        collection_name = pluralize(base_name)
         collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
         field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
         if identifier_fields:
-            single_name = cls.__name__[0].lower() + cls.__name__[1:]
             args = ", ".join(f"{field}: String" for field in identifier_fields)
-            field_definitions.append(f"    {single_name}({args}): {cls.__name__}")
+            field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
     
     context_type = f"""type {context_name} {{
 {chr(10).join(field_definitions)}

@@ -57,9 +57,9 @@ def resolve_team_account_manager(obj, info, id: str = None, slug: str = None):
         
     return convert_worker_to_account_manager(worker).model_dump()
 
-@team.field("consultantOrEngineers")
+@team.field("consultantsOrEngineers")
 @collection
-def resolve_team_consultant_or_engineers(obj, info):
+def resolve_team_consultants_or_engineers(obj, info):
     source = [
         worker for worker in globals.omni_models.workers.get_all().values()
         if worker.kind == WorkerKind.CONSULTANT
