@@ -1,8 +1,5 @@
 from ariadne import QueryType, ObjectType
 from ..models import AccountManager, ConsultantOrEngineer
-from ..models import (
-    get_consultants_or_engineers, get_consultant_or_engineer_by_id, get_consultant_or_engineer_by_slug
-)
 
 from omni_shared import globals
 from omni_models.domain import WorkerKind

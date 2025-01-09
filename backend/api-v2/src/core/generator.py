@@ -151,13 +151,23 @@ enum SortOrder {
     DESC
 }"""
 
-def generate_schema(types: list[Type[BaseModel]], context_name: str) -> str:
-    """Generate complete GraphQL schema from types"""
+def generate_base_schema() -> str:
+    """Generate the base schema types that should be defined only once"""
     type_definitions = []
     
     # Add base collection types
     type_definitions.append(generate_collection_metadata_type())
     type_definitions.append(generate_filter_types())
+    
+    return "\n\n".join(type_definitions)
+
+def generate_schema(types: list[Type[BaseModel]], context_name: str, include_base_types: bool = False) -> str:
+    """Generate complete GraphQL schema from types"""
+    type_definitions = []
+    
+    # Add base types only if requested
+    if include_base_types:
+        type_definitions.append(generate_base_schema())
     
     # Add model types
     for cls in types:
@@ -181,12 +191,13 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str) -> str:
             args = ", ".join(f"{field}: String" for field in identifier_fields)
             field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
     
+    # Add context type
     context_type = f"""type {context_name} {{
 {chr(10).join(field_definitions)}
 }}"""
     type_definitions.append(context_type)
     
-    # Add query type
+    # Add query type extension
     query_type = f"""extend type Query {{
     {context_name[0].lower() + context_name[1:]}: {context_name}!
 }}"""
