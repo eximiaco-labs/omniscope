@@ -24,3 +24,12 @@ def resolve_ontology(*_):
 def resolve_classes(obj, info):
     classes = globals.omni_models.ontology.classes
     return [convert_ontology_class_to_model(c) for c in classes]
+
+@ontology.field("class")
+def resolve_class(obj, info, id: str = None, slug: str = None):
+    classes = globals.omni_models.ontology.classes
+    if id is not None:
+        ontology_class   = next((c for c in classes if c.slug == id), None)
+    elif slug is not None:
+        ontology_class = next((c for c in classes if c.slug == slug), None)
+    return convert_ontology_class_to_model(ontology_class)
