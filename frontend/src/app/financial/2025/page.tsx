@@ -9,9 +9,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 import { formatCurrency } from "@/lib/utils";
 import { TableCellComponent } from "../revenue-forecast/components/TableCell";
 import SectionHeader from "@/components/SectionHeader";
+import { STAT_COLORS } from "@/app/constants/colors";
 
 const YEARLY_FORECAST_QUERY = gql`
   query YearlyForecast($year: Int!) {
@@ -70,6 +87,7 @@ interface ForecastTableProps {
   }[];
   forecast: {
     goal: number;
+    year: number;
   };
 }
 
@@ -132,6 +150,13 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
     totalExpectedSquadFee;
 
   function isMonthInPast(month: number) {
+    if (month === 12) {
+      return currentYear > 2024 || (currentYear === 2024 && currentMonth > 12);
+    }
+    return currentYear > 2025 || (currentYear === 2025 && currentMonth > month);
+  }
+
+  function isMonthInPastOrCurrent(month: number) {
     if (month === 12) {
       return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
     }
@@ -454,6 +479,10 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
   );
 };
 
+function formatMillions(value: number): string {
+  return `${(value / 1000000).toFixed(1)}M`;
+}
+
 export default function YearlyForecast2025() {
   const { data, loading, error } = useQuery(YEARLY_FORECAST_QUERY, {
     variables: { year: 2025 },
@@ -469,18 +498,106 @@ export default function YearlyForecast2025() {
 
   function isMonthInPast(month: number) {
     if (month === 12) {
+      return currentYear > 2024 || (currentYear === 2024 && currentMonth > 12);
+    }
+    return currentYear > 2025 || (currentYear === 2025 && currentMonth > month);
+  }
+
+  function isMonthInPastOrCurrent(month: number) {
+    if (month === 12) {
       return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
     }
     return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
   }
 
-  const totalActual = forecast.byMonth.reduce((sum: number, month: any) => 
-    sum + (isMonthInPast(month.month) ? month.actual : 0), 0
-  );
+  // Calculate monthly data for the chart
+  const monthlyData = forecast.byMonth.map((month: any) => {
+    const isPast = isMonthInPast(month.month);
+    
+    // For past months, use actual values, for current and future months use expected values
+    const consultingValue = isPast ? month.actualConsultingFee : month.expectedConsultingFee;
+    const consultingPreValue = isPast ? month.actualConsultingPreFee : month.expectedConsultingPreFee;
+    const handsOnValue = isPast ? month.actualHandsOnFee : month.expectedHandsOnFee;
+    const squadValue = isPast ? month.actualSquadFee : month.expectedSquadFee;
+    
+    return {
+      month: monthNames[month.month - 1],
+      consulting: consultingValue,
+      consultingPre: consultingPreValue,
+      handsOn: handsOnValue,
+      squad: squadValue,
+      total: consultingValue + consultingPreValue + handsOnValue + squadValue,
+      isCurrentMonth: currentYear === 2025 && currentMonth === month.month
+    };
+  });
+
+  // Calculate accumulated data
+  const accumulatedData = monthlyData.reduce((acc: any[], curr: {
+    month: string;
+    consulting: number;
+    consultingPre: number;
+    handsOn: number;
+    squad: number;
+    total: number;
+    isCurrentMonth: boolean;
+  }, idx: number) => {
+    const previous = idx > 0 ? acc[idx - 1] : {
+      consulting: 0,
+      consultingPre: 0,
+      handsOn: 0,
+      squad: 0,
+      total: 0
+    };
+
+    acc.push({
+      month: curr.month,
+      consulting: previous.consulting + curr.consulting,
+      consultingPre: previous.consultingPre + curr.consultingPre,
+      handsOn: previous.handsOn + curr.handsOn,
+      squad: previous.squad + curr.squad,
+      total: previous.total + curr.total,
+      isCurrentMonth: curr.isCurrentMonth
+    });
+
+    return acc;
+  }, []);
+
+  const chartConfig = {
+    consulting: {
+      label: "Consulting",
+      color: STAT_COLORS.consulting,
+    },
+    consultingPre: {
+      label: "Pre-Contracted Consulting",
+      color: STAT_COLORS.consulting,
+    },
+    handsOn: {
+      label: "Hands-On",
+      color: STAT_COLORS.handsOn,
+    },
+    squad: {
+      label: "Squad",
+      color: STAT_COLORS.squad,
+    },
+  };
+
+  const getSeriesLabel = (name: string): string => {
+    const key = name as keyof typeof chartConfig;
+    return chartConfig[key]?.label || name;
+  };
+
+  const totalActual = forecast.byMonth.reduce((sum: number, month: any) => {
+    const isPastOrCurrent = isMonthInPastOrCurrent(month.month);
+    const monthValue = isPastOrCurrent ? month.actual : 0;
+    return sum + monthValue;
+  }, 0);
   const remaining = forecast.goal - totalActual;
 
   const firstHalf = forecast.byMonth.slice(0, 6);
   const secondHalf = forecast.byMonth.slice(6, 12);
+
+  // Get the expected annual total from the last month's accumulated value
+  const expectedAnnual = accumulatedData[accumulatedData.length - 1].total;
 
   return (
     <div className="container mx-auto py-8">
@@ -488,36 +605,213 @@ export default function YearlyForecast2025() {
         Yearly Forecast {forecast.year}
       </h2>
       
-      <div className="grid grid-cols-4 gap-4 mb-8 text-center">
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <div className="text-lg text-gray-600">Annual Goal</div>
-          <div className="text-2xl font-bold text-blue-600">{formatCurrency(forecast.goal)}</div>
+      <div className="grid grid-cols-5 gap-4 mb-8 text-center">
+        <div className="p-4 bg-white border border-black rounded-lg">
+          <div className="text-lg text-gray-900">Annual Goal</div>
+          <div className="text-2xl font-bold text-black">{formatCurrency(forecast.goal)}</div>
         </div>
-        <div className="p-4 bg-green-50 rounded-lg">
-          <div className="text-lg text-gray-600">Realized</div>
-          <div className="text-2xl font-bold text-green-600">
+        <div className="p-4 bg-white border border-black rounded-lg">
+          <div className="text-lg text-gray-900">Realized</div>
+          <div className="text-2xl font-bold text-black">
             {formatCurrency(totalActual)}
             <div className="text-sm">
               {((totalActual / forecast.goal) * 100).toFixed(1)}%
             </div>
           </div>
         </div>
-        <div className="p-4 bg-purple-50 rounded-lg">
-          <div className="text-lg text-gray-600">Working Days</div>
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="p-4 bg-white border border-black rounded-lg">
+          <div className="text-lg text-gray-900">Expected (Annual)</div>
+          <div className="text-2xl font-bold text-black">
+            {formatCurrency(expectedAnnual)}
+            <div className="text-sm">
+              {((expectedAnnual / forecast.goal) * 100).toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className="p-4 bg-white border border-black rounded-lg">
+          <div className="text-lg text-gray-900">Working Days</div>
+          <div className="text-2xl font-bold text-black">
             {forecast.realizedWorkingDays}/{forecast.workingDays}
             <div className="text-sm">
               {((forecast.realizedWorkingDays / forecast.workingDays) * 100).toFixed(1)}%
             </div>
           </div>
         </div>
-        <div className="p-4 bg-orange-50 rounded-lg">
-          <div className="text-lg text-gray-600">Remaining</div>
-          <div className="text-2xl font-bold text-orange-600">
+        <div className="p-4 bg-white border border-black rounded-lg">
+          <div className="text-lg text-gray-900">Remaining</div>
+          <div className="text-2xl font-bold text-black">
             {formatCurrency(remaining)}
             <div className="text-sm">
               {((remaining / forecast.goal) * 100).toFixed(1)}%
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-8 mb-8">
+        <div>
+          <div className="text-lg font-medium mb-2">Monthly Revenue</div>
+          <div className="w-full h-[400px]">
+            <AreaChart
+              width={550}
+              height={400}
+              data={monthlyData}
+              margin={{
+                left: 12,
+                right: 24,
+                top: 20,
+                bottom: 20,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value: string) => value.slice(0, 3)}
+                style={{ fontSize: '10px' }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value: number) => formatMillions(value)}
+                style={{ fontSize: '10px' }}
+              />
+              <Tooltip
+                cursor={false}
+                formatter={(value: number, name: string) => [formatCurrency(value), getSeriesLabel(name)]}
+                labelFormatter={(label: string) => {
+                  const monthData = monthlyData.find((m: { month: string; isCurrentMonth: boolean; total: number }) => m.month === label);
+                  return `${label}${monthData?.isCurrentMonth ? ' (Current)' : ''}\nTotal: ${formatCurrency(monthData?.total || 0)}`;
+                }}
+                contentStyle={{ fontSize: '12px', whiteSpace: 'pre-line' }}
+              />
+              <Area
+                dataKey="squad"
+                type="monotone"
+                fill={chartConfig.squad.color}
+                fillOpacity={0.6}
+                stroke={chartConfig.squad.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.squad.label}
+              />
+              <Area
+                dataKey="handsOn"
+                type="monotone"
+                fill={chartConfig.handsOn.color}
+                fillOpacity={0.6}
+                stroke={chartConfig.handsOn.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.handsOn.label}
+              />
+              <Area
+                dataKey="consultingPre"
+                type="monotone"
+                fill={chartConfig.consultingPre.color}
+                fillOpacity={0.4}
+                stroke={chartConfig.consultingPre.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.consultingPre.label}
+              />
+              <Area
+                dataKey="consulting"
+                type="monotone"
+                fill={chartConfig.consulting.color}
+                fillOpacity={0.2}
+                stroke={chartConfig.consulting.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.consulting.label}
+              />
+            </AreaChart>
+          </div>
+        </div>
+        <div>
+          <div className="text-lg font-medium mb-2">Accumulated Revenue</div>
+          <div className="w-full h-[400px]">
+            <AreaChart
+              width={550}
+              height={400}
+              data={accumulatedData}
+              margin={{
+                left: 12,
+                right: 24,
+                top: 20,
+                bottom: 20,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value: string) => value.slice(0, 3)}
+                style={{ fontSize: '10px' }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value: number) => formatMillions(value)}
+                style={{ fontSize: '10px' }}
+              />
+              <Tooltip
+                cursor={false}
+                formatter={(value: number, name: string) => [formatCurrency(value), getSeriesLabel(name)]}
+                labelFormatter={(label: string) => {
+                  const monthData = accumulatedData.find((m: { month: string; isCurrentMonth: boolean; total: number }) => m.month === label);
+                  const isLastMonth = label === monthNames[11];
+                  return `${label}${monthData?.isCurrentMonth ? ' (Current)' : ''}\nTotal${isLastMonth ? ' (Expected)' : ''}: ${formatCurrency(monthData?.total || 0)}`;
+                }}
+                contentStyle={{ fontSize: '12px', whiteSpace: 'pre-line' }}
+              />
+              <Area
+                dataKey="squad"
+                type="monotone"
+                fill={chartConfig.squad.color}
+                fillOpacity={0.6}
+                stroke={chartConfig.squad.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.squad.label}
+              />
+              <Area
+                dataKey="handsOn"
+                type="monotone"
+                fill={chartConfig.handsOn.color}
+                fillOpacity={0.6}
+                stroke={chartConfig.handsOn.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.handsOn.label}
+              />
+              <Area
+                dataKey="consultingPre"
+                type="monotone"
+                fill={chartConfig.consultingPre.color}
+                fillOpacity={0.4}
+                stroke={chartConfig.consultingPre.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.consultingPre.label}
+              />
+              <Area
+                dataKey="consulting"
+                type="monotone"
+                fill={chartConfig.consulting.color}
+                fillOpacity={0.2}
+                stroke={chartConfig.consulting.color}
+                strokeWidth={2}
+                stackId="a"
+                name={chartConfig.consulting.label}
+              />
+            </AreaChart>
           </div>
         </div>
       </div>
