@@ -56,7 +56,7 @@ class Deal(BaseModel):
     local_lost_date: Optional[date]
     local_close_date: Optional[date]
     origin: str
-    origin_id: Optional[int]
+    origin_id: Optional[str]
     channel: Optional[int]
     channel_id: Optional[str]
     stage_order_nr: int
