@@ -120,39 +120,8 @@ class TimesheetResponse(BaseModel):
 
 def summarize(df: pd.DataFrame) -> TimesheetSummary:
     if len(df) == 0:
-        return TimesheetSummary(
-            total_entries=0,
-            total_hours=0,
-            unique_clients=0, 
-            unique_workers=0,
-            unique_cases=0,
-            unique_working_days=0,
-            unique_sponsors=0,
-            unique_account_managers=0,
-            unique_weeks=0,
-            average_hours_per_entry=0,
-            std_dev_hours_per_entry=0,
-            average_hours_per_day=0,
-            std_dev_hours_per_day=0,
-            average_hours_per_worker=0,
-            std_dev_hours_per_worker=0,
-            average_hours_per_client=0,
-            std_dev_hours_per_client=0,
-            average_hours_per_case=0,
-            std_dev_hours_per_case=0,
-            average_hours_per_sponsor=0,
-            std_dev_hours_per_sponsor=0,
-            average_hours_per_account_manager=0,
-            std_dev_hours_per_account_manager=0,
-            average_hours_per_week=0,
-            std_dev_hours_per_week=0,
-            total_squad_hours=0,
-            total_consulting_hours=0,
-            total_internal_hours=0,
-            total_hands_on_hours=0,
-            weekly_hours=[]
-        )
-
+        return TimesheetSummary()
+        
     # Perform groupby operations once
     group_operations = {
         "date": df.groupby("Date")["TimeInHs"],
@@ -253,52 +222,45 @@ def summarize_by_group(
 
     summaries = []
     for group_value, group_df in df.groupby(group_column):
-        base_summary = summarize(group_df)
-        
-        summary_dict = base_summary.dict()
-        summary_dict[name_key] = group_value
+        summary = summary_class(**summarize(group_df).dict())
+        setattr(summary, name_key, group_value)
 
         for kind in ['Squad', 'Consulting', 'Internal', 'HandsOn']:
             kind_hours = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()
-            summary_dict[f"total_{kind.lower()}_hours"] = kind_hours
+            setattr(summary, f"total_{kind.lower()}_hours", kind_hours)
 
         if map and 'byKind' in map:
-            summary_dict["by_kind"] = summarize_by_kind(group_df, map['byKind'])
+            summary.by_kind = summarize_by_kind(group_df, map['byKind'])
         
         if group_column != 'Week' and map and 'byWeek' in map:
-            summary_dict['by_week'] = summarize_by_week(group_df, map['byWeek'])
+            summary.by_week = summarize_by_week(group_df, map['byWeek'])
 
         if group_column == 'CaseTitle' and 'caseDetails' in map:
             from domain.cases import build_case_dictionary
             
             details_obj = globals.omni_models.cases.get_by_title(group_value)
-            if details_obj:
-                summary_dict['case_details'] = build_case_dictionary(map['caseDetails'], details_obj)
-            else:
-                summary_dict['case_details'] = {}
+            summary.case_details = build_case_dictionary(map['caseDetails'], details_obj) if details_obj else {}
         
         if group_column == 'CaseTitle' and 'workers' in map:
-            summary_dict['workers'] = group_df['WorkerName'].unique().tolist()
+            summary.workers = group_df['WorkerName'].unique().tolist()
 
         if group_column == 'CaseTitle' and 'workersByTrackingProject' in map:
             wdf = group_df[group_df['CaseTitle'] == group_value]
             workersByTrackingProject = wdf.groupby('ProjectId')['WorkerName'].agg(list).reset_index()
-            project_workers = [
+            summary.workers_by_tracking_project = [
                 {
                     'project_id': row['ProjectId'],
                     'workers': sorted(set(row['WorkerName']))
                 }   
                 for _, row in workersByTrackingProject.iterrows()
             ]
-            summary_dict['workers_by_tracking_project'] = project_workers
             
         if group_column == 'CaseTitle' and 'byWorker' in map:
-            summary_dict['by_worker'] = summarize_by_worker(group_df, map['byWorker'])
+            summary.by_worker = summarize_by_worker(group_df, map['byWorker'])
 
-        summaries.append(summary_class(**summary_dict))
+        summaries.append(summary)
 
-    summaries = sorted(summaries, key=lambda x: x.total_hours, reverse=True)
-    return summaries
+    return sorted(summaries, key=lambda x: x.total_hours, reverse=True)
 
 def summarize_by_worker(df: pd.DataFrame, map: Dict) -> List[NamedGroupSummary]:
     return summarize_by_group(df, 'WorkerName', summary_class=NamedGroupSummary, map=map)
