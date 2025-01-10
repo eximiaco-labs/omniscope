@@ -29,6 +29,10 @@ const YEARLY_FORECAST_QUERY = gql`
         expectedHandsOnFee
         expectedSquadFee
         actual
+        actualConsultingFee
+        actualConsultingPreFee
+        actualHandsOnFee
+        actualSquadFee
       }
     }
   }
@@ -59,6 +63,10 @@ interface ForecastTableProps {
     expectedHandsOnFee: number;
     expectedSquadFee: number;
     actual: number;
+    actualConsultingFee: number;
+    actualConsultingPreFee: number;
+    actualHandsOnFee: number;
+    actualSquadFee: number;
   }[];
   forecast: {
     goal: number;
@@ -89,6 +97,25 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
   );
   const totalExpectedSquadFee = months.reduce(
     (sum, month) => sum + month.expectedSquadFee,
+    0
+  );
+
+  const totalActualConsultingFee = months.reduce(
+    (sum, month) => sum + month.actualConsultingFee,
+    0
+  );
+  const totalActualConsultingPreFee = months.reduce(
+    (sum, month) => sum + month.actualConsultingPreFee,
+    0
+  );
+
+  const totalActualHandsOnFee = months.reduce(
+    (sum, month) => sum + month.actualHandsOnFee,
+    0
+  );
+  
+  const totalActualSquadFee = months.reduce(
+    (sum, month) => sum + month.actualSquadFee,
     0
   );
 
@@ -310,6 +337,118 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
             className="border-x border-gray-400"
           />
         </TableRow>
+        {totalActualConsultingFee > 0 && (
+          <TableRow className="h-[57px] border-b-[1px]">
+            <TableCell className="border-r border-gray-400 pl-8">
+              Consulting
+            </TableCell>
+            {months.map((month, idx) => (
+              <TableCellComponent
+                key={month.month}
+                value={isMonthInPast(month.month) ? month.actualConsultingFee : 0}
+                normalizedValue={isMonthInPast(month.month) ? month.actualConsultingFee : 0}
+                totalValue={isMonthInPast(month.month) ? month.actual : 0}
+                normalizedTotalValue={isMonthInPast(month.month) ? month.actual : 0}
+                previousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualConsultingFee : 0) : undefined}
+                normalizedPreviousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualConsultingFee : 0) : undefined}
+                normalized={false}
+                className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
+              />
+            ))}
+            <TableCellComponent
+              value={totalActualConsultingFee}
+              normalizedValue={totalActualConsultingFee}
+              totalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalizedTotalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalized={false}
+              className="border-x border-gray-400"
+            />
+          </TableRow>
+        )}
+        {totalActualConsultingPreFee > 0 && (
+          <TableRow className="h-[57px] border-b-[1px]">
+            <TableCell className="border-r border-gray-400 pl-8">
+              Pre-Contracted Consulting
+            </TableCell>
+            {months.map((month, idx) => (
+              <TableCellComponent
+                key={month.month}
+                value={isMonthInPast(month.month) ? month.actualConsultingPreFee : 0}
+                normalizedValue={isMonthInPast(month.month) ? month.actualConsultingPreFee : 0}
+                totalValue={isMonthInPast(month.month) ? month.actual : 0}
+                normalizedTotalValue={isMonthInPast(month.month) ? month.actual : 0}
+                previousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualConsultingPreFee : 0) : undefined}
+                normalizedPreviousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualConsultingPreFee : 0) : undefined}
+                normalized={false}
+                className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
+              />
+            ))}
+            <TableCellComponent
+              value={totalActualConsultingPreFee}
+              normalizedValue={totalActualConsultingPreFee}
+              totalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalizedTotalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalized={false}
+              className="border-x border-gray-400"
+            />
+          </TableRow>
+        )}
+        {totalActualHandsOnFee > 0 && (
+          <TableRow className="h-[57px] border-b-[1px]">
+            <TableCell className="border-r border-gray-400 pl-8">
+              Hands-On
+            </TableCell>
+            {months.map((month, idx) => (
+              <TableCellComponent
+                key={month.month}
+                value={isMonthInPast(month.month) ? month.actualHandsOnFee : 0}
+                normalizedValue={isMonthInPast(month.month) ? month.actualHandsOnFee : 0}
+                totalValue={isMonthInPast(month.month) ? month.actual : 0}
+                normalizedTotalValue={isMonthInPast(month.month) ? month.actual : 0}
+                previousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualHandsOnFee : 0) : undefined}
+                normalizedPreviousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualHandsOnFee : 0) : undefined}
+                normalized={false}
+                className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
+              />
+            ))}
+            <TableCellComponent
+              value={totalActualHandsOnFee}
+              normalizedValue={totalActualHandsOnFee}
+              totalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalizedTotalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalized={false}
+              className="border-x border-gray-400"
+            />
+          </TableRow>
+        )}
+        {totalActualSquadFee > 0 && (
+          <TableRow className="h-[57px] border-b-[1px]">
+            <TableCell className="border-r border-gray-400 pl-8">
+              Squad
+            </TableCell>
+            {months.map((month, idx) => (
+              <TableCellComponent
+                key={month.month}
+                value={isMonthInPast(month.month) ? month.actualSquadFee : 0}
+                normalizedValue={isMonthInPast(month.month) ? month.actualSquadFee : 0}
+                totalValue={isMonthInPast(month.month) ? month.actual : 0}
+                normalizedTotalValue={isMonthInPast(month.month) ? month.actual : 0}
+                previousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualSquadFee : 0) : undefined}
+                normalizedPreviousValue={idx > 0 ? (isMonthInPast(months[idx - 1].month) ? months[idx - 1].actualSquadFee : 0) : undefined}
+                normalized={false}
+                className={`border-x border-gray-400 ${month.month === currentMonth ? 'bg-blue-50' : ''}`}
+              />
+            ))}
+            <TableCellComponent
+              value={totalActualSquadFee}
+              normalizedValue={totalActualSquadFee}
+              totalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalizedTotalValue={months.reduce((sum, month) => sum + (isMonthInPast(month.month) ? month.actual : 0), 0)}
+              normalized={false}
+              className="border-x border-gray-400"
+            />
+          </TableRow>
+        )}
       </TableBody>
     </Table>
   );
