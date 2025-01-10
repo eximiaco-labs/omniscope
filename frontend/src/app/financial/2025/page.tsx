@@ -574,8 +574,13 @@ export default function YearlyForecast2025() {
 
   const totalActual = forecast.byMonth.reduce((sum: number, month: any) => {
     const isPast = isMonthInPast(month.month);
-    const monthValue = isPast ? month.actual : 0;
-    return sum + monthValue;
+    const isCurrentMonth = currentYear === 2025 && currentMonth === month.month;
+    return sum + ((isPast || isCurrentMonth) ? (
+      month.actualConsultingFee +
+      month.actualConsultingPreFee +
+      month.actualHandsOnFee +
+      month.actualSquadFee
+    ) : 0);
   }, 0);
   const remaining = forecast.goal - totalActual;
 
