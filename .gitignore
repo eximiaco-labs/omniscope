@@ -105,6 +105,7 @@ src/flask_session/
 nb/cache/
 src/cache/
 
+
 frontend/yarn.lock
 # Uncomment if you're using Poetry
 # poetry.lock
@@ -115,3 +116,15 @@ frontend/yarn.lock
 # Uncomment if you're using PDM
 # pdm.lock
 # .pdm.toml
+ts_2024/abr_2024.timesheet
+ts_2024/ago_2024.timesheet
+ts_2024/dez_2024.timesheet
+ts_2024/fev_2024.timesheet
+ts_2024/jan_2024.timesheet
+ts_2024/jul_2024.timesheet
+ts_2024/jun_2024.timesheet
+ts_2024/mai_2024.timesheet
+ts_2024/mar_2024.timesheet
+ts_2024/nov_2024.timesheet
+ts_2024/out_2024.timesheet
+ts_2024/set_2024.timesheet
