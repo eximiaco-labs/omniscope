@@ -59,6 +59,9 @@ class Pipedrive:
             data = self.__fetch(entity, start, params)
             if data is None or 'data' not in data:
                 break
+            if data['data'] is None:
+                break
+            
             all_data.extend(data['data'])
 
             if not self.__has_next_page(data):

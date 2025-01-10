@@ -338,7 +338,7 @@ export default function DealsPage() {
         acc.push({ clientName, deals: [deal] });
       }
       return acc;
-    }, []).sort((a, b) => a.clientName.localeCompare(b.clientName));
+    }, []).sort((a, b) => a.clientName?.localeCompare(b.clientName));
   };
 
   const groupedProspects = groupDeals(prospects);
