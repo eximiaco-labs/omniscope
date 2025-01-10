@@ -46,76 +46,72 @@ class TimesheetAppointment(BaseModel):
     week: str
 
 class TimesheetSummary(BaseModel):
-    total_entries: int
-    total_hours: float
-    unique_clients: int
-    unique_workers: int
-    unique_cases: int
-    unique_working_days: int
-    unique_sponsors: int
-    unique_account_managers: int
-    unique_weeks: int
-    average_hours_per_entry: float
-    std_dev_hours_per_entry: float
-    average_hours_per_day: float
-    std_dev_hours_per_day: float
-    average_hours_per_worker: float
-    std_dev_hours_per_worker: float
-    average_hours_per_client: float
-    std_dev_hours_per_client: float
-    average_hours_per_case: float
-    std_dev_hours_per_case: float
-    average_hours_per_sponsor: float
-    std_dev_hours_per_sponsor: float
-    average_hours_per_account_manager: float
-    std_dev_hours_per_account_manager: float
-    average_hours_per_week: float
+    total_entries: int = 0
+    total_hours: float = 0
+    unique_clients: int = 0
+    unique_workers: int = 0
+    unique_cases: int = 0
+    unique_working_days: int = 0
+    unique_sponsors: int = 0
+    unique_account_managers: int = 0
+    unique_weeks: int = 0
+    average_hours_per_entry: float = 0
+    std_dev_hours_per_entry: float = 0
+    average_hours_per_day: float = 0
+    std_dev_hours_per_day: float = 0
+    average_hours_per_worker: float = 0
+    std_dev_hours_per_worker: float = 0
+    average_hours_per_client: float = 0
+    std_dev_hours_per_client: float = 0
+    average_hours_per_case: float = 0
+    std_dev_hours_per_case: float = 0
+    average_hours_per_sponsor: float = 0
+    std_dev_hours_per_sponsor: float = 0
+    average_hours_per_account_manager: float = 0
+    std_dev_hours_per_account_manager: float = 0
+    average_hours_per_week: float = 0
     std_dev_hours_per_week: float
-    total_squad_hours: float
-    total_consulting_hours: float
-    total_internal_hours: float
-    total_hands_on_hours: float
-    weekly_hours: List[WeeklyHours]
-
-class GroupSummary(TimesheetSummary):
     total_squad_hours: float = 0
     total_consulting_hours: float = 0
     total_internal_hours: float = 0
     total_hands_on_hours: float = 0
+    weekly_hours: List[WeeklyHours] = []
+
+class GroupSummary(TimesheetSummary):
     by_kind: Optional[Dict[str, TimesheetSummary]] = None
-    by_week: Optional[List["WeekGroupSummary"]] = Field(None, description="List of week summaries")
-    by_worker: Optional[List["NamedGroupSummary"]] = Field(None, description="List of worker summaries")
+    by_week: Optional[List["WeekTimesheetSummary"]] = Field(None, description="List of week summaries")
+    by_worker: Optional[List["NamedTimesheetSummary"]] = Field(None, description="List of worker summaries")
 
     class Config:
         arbitrary_types_allowed = True
 
-class NamedGroupSummary(GroupSummary):
+class NamedTimesheetSummary(GroupSummary):
     name: str = Field(..., description="Name field for group summaries")
 
-class TitledGroupSummary(GroupSummary):
+class TitledTimesheetSummary(GroupSummary):
     title: str = Field(..., description="Title field for case summaries")
     case_details: Optional[Dict[str, Any]] = None
     workers: Optional[List[str]] = None
     workers_by_tracking_project: Optional[List[Dict[str, Any]]] = None
 
-class DateGroupSummary(GroupSummary):
+class DateTimesheetSummary(GroupSummary):
     date: datetime = Field(..., description="Date field for date summaries")
 
-class WeekGroupSummary(GroupSummary):
+class WeekTimesheetSummary(GroupSummary):
     week: str = Field(..., description="Week field for week summaries")
 
-class TimesheetResponse(BaseModel):
+class Timesheet(BaseModel):
     summary: TimesheetSummary
     business_calendar: Optional[BusinessCalendar] = None
     by_kind: Optional[Dict[str, TimesheetSummary]] = None
-    by_worker: Optional[List[NamedGroupSummary]] = None
-    by_client: Optional[List[NamedGroupSummary]] = None
-    by_case: Optional[List[TitledGroupSummary]] = None
-    by_sponsor: Optional[List[NamedGroupSummary]] = None
-    by_account_manager: Optional[List[NamedGroupSummary]] = None
-    by_date: Optional[List[DateGroupSummary]] = None
-    by_week: Optional[List[WeekGroupSummary]] = None
-    by_offer: Optional[List[NamedGroupSummary]] = None
+    by_worker: Optional[List[NamedTimesheetSummary]] = None
+    by_client: Optional[List[NamedTimesheetSummary]] = None
+    by_case: Optional[List[TitledTimesheetSummary]] = None
+    by_sponsor: Optional[List[NamedTimesheetSummary]] = None
+    by_account_manager: Optional[List[NamedTimesheetSummary]] = None
+    by_date: Optional[List[DateTimesheetSummary]] = None
+    by_week: Optional[List[WeekTimesheetSummary]] = None
+    by_offer: Optional[List[NamedTimesheetSummary]] = None
     appointments: Optional[List[TimesheetAppointment]] = None
 
 def summarize(df: pd.DataFrame) -> TimesheetSummary:
@@ -262,39 +258,39 @@ def summarize_by_group(
 
     return sorted(summaries, key=lambda x: x.total_hours, reverse=True)
 
-def summarize_by_worker(df: pd.DataFrame, map: Dict) -> List[NamedGroupSummary]:
-    return summarize_by_group(df, 'WorkerName', summary_class=NamedGroupSummary, map=map)
+def summarize_by_worker(df: pd.DataFrame, map: Dict) -> List[NamedTimesheetSummary]:
+    return summarize_by_group(df, 'WorkerName', summary_class=NamedTimesheetSummary, map=map)
 
-def summarize_by_client(df: pd.DataFrame, map: Dict) -> List[NamedGroupSummary]:
-    return summarize_by_group(df, 'ClientName', summary_class=NamedGroupSummary, map=map)
+def summarize_by_client(df: pd.DataFrame, map: Dict) -> List[NamedTimesheetSummary]:
+    return summarize_by_group(df, 'ClientName', summary_class=NamedTimesheetSummary, map=map)
 
-def summarize_by_case(df: pd.DataFrame, map: Dict) -> List[TitledGroupSummary]:
-    return summarize_by_group(df, 'CaseTitle', name_key="title", summary_class=TitledGroupSummary, map=map)
+def summarize_by_case(df: pd.DataFrame, map: Dict) -> List[TitledTimesheetSummary]:
+    return summarize_by_group(df, 'CaseTitle', name_key="title", summary_class=TitledTimesheetSummary, map=map)
 
-def summarize_by_sponsor(df: pd.DataFrame, map: Dict) -> List[NamedGroupSummary]:
-    return summarize_by_group(df, 'Sponsor', summary_class=NamedGroupSummary, map=map)
+def summarize_by_sponsor(df: pd.DataFrame, map: Dict) -> List[NamedTimesheetSummary]:
+    return summarize_by_group(df, 'Sponsor', summary_class=NamedTimesheetSummary, map=map)
 
-def summarize_by_account_manager(df: pd.DataFrame, map: Dict) -> List[NamedGroupSummary]:
-    return summarize_by_group(df, 'AccountManagerName', summary_class=NamedGroupSummary, map=map)
+def summarize_by_account_manager(df: pd.DataFrame, map: Dict) -> List[NamedTimesheetSummary]:
+    return summarize_by_group(df, 'AccountManagerName', summary_class=NamedTimesheetSummary, map=map)
 
-def summarize_by_date(df: pd.DataFrame, map: Dict) -> List[DateGroupSummary]:
-    return summarize_by_group(df, 'Date', name_key="date", summary_class=DateGroupSummary, map=map)
+def summarize_by_date(df: pd.DataFrame, map: Dict) -> List[DateTimesheetSummary]:
+    return summarize_by_group(df, 'Date', name_key="date", summary_class=DateTimesheetSummary, map=map)
 
-def summarize_by_week(df: pd.DataFrame, map: Dict) -> List[WeekGroupSummary]:
+def summarize_by_week(df: pd.DataFrame, map: Dict) -> List[WeekTimesheetSummary]:
     if len(df) == 0:
         return []
 
-    summaries = summarize_by_group(df, 'Week', name_key="week", summary_class=WeekGroupSummary, map=map)
+    summaries = summarize_by_group(df, 'Week', name_key="week", summary_class=WeekTimesheetSummary, map=map)
     
     # Sort the summaries based on the 'week' key
     sorted_summaries = sorted(summaries, key=lambda x: datetime.strptime(x.week.split(' - ')[0], '%d/%m'))
     
     return sorted_summaries
 
-def summarize_by_offer(df: pd.DataFrame, map: Dict) -> List[NamedGroupSummary]:
-    return summarize_by_group(df, 'ProductsOrServices', name_key="name", summary_class=NamedGroupSummary, map=map)
+def summarize_by_offer(df: pd.DataFrame, map: Dict) -> List[NamedTimesheetSummary]:
+    return summarize_by_group(df, 'ProductsOrServices', name_key="name", summary_class=NamedTimesheetSummary, map=map)
 
-def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None) -> TimesheetResponse:
+def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None) -> Timesheet:
     if not slug.startswith('timesheet-'):
         slug = f'timesheet-{slug}'
 
@@ -399,7 +395,7 @@ def compute_timesheet(map, slug: str=None, kind: str="ALL", filters = None) -> T
         
         response_dict['appointments'] = summarize_appointments(df, globals.omni_datasets.timesheets.get_all_fields())
 
-    return TimesheetResponse(**response_dict)
+    return Timesheet(**response_dict)
 
 def resolve_timesheet(_, info, slug: str, kind: str = "ALL", filters = None):
     map = build_fields_map(info)
