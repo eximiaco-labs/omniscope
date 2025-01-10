@@ -151,13 +151,6 @@ const ForecastTable = ({ months, forecast }: ForecastTableProps) => {
 
   function isMonthInPast(month: number) {
     if (month === 12) {
-      return currentYear > 2024 || (currentYear === 2024 && currentMonth > 12);
-    }
-    return currentYear > 2025 || (currentYear === 2025 && currentMonth > month);
-  }
-
-  function isMonthInPastOrCurrent(month: number) {
-    if (month === 12) {
       return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
     }
     return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
@@ -503,13 +496,6 @@ export default function YearlyForecast2025() {
     return currentYear > 2025 || (currentYear === 2025 && currentMonth > month);
   }
 
-  function isMonthInPastOrCurrent(month: number) {
-    if (month === 12) {
-      return currentYear > 2024 || (currentYear === 2024 && currentMonth >= 12);
-    }
-    return currentYear > 2025 || (currentYear === 2025 && currentMonth >= month);
-  }
-
   // Calculate monthly data for the chart
   const monthlyData = forecast.byMonth.map((month: any) => {
     const isPast = isMonthInPast(month.month);
@@ -587,8 +573,8 @@ export default function YearlyForecast2025() {
   };
 
   const totalActual = forecast.byMonth.reduce((sum: number, month: any) => {
-    const isPastOrCurrent = isMonthInPastOrCurrent(month.month);
-    const monthValue = isPastOrCurrent ? month.actual : 0;
+    const isPast = isMonthInPast(month.month);
+    const monthValue = isPast ? month.actual : 0;
     return sum + monthValue;
   }, 0);
   const remaining = forecast.goal - totalActual;
