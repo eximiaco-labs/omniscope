@@ -355,7 +355,7 @@ def compute_pre_contracted_revenue_tracking(
                 )
                 
                 if should_do_pro_rata:
-                    fee = fee * (calendar.monthrange(date_of_interest.year, date_of_interest.month)[1] / date_of_interest.day)
+                    fee = fee * (case.end_of_contract.day / calendar.monthrange(date_of_interest.year, date_of_interest.month)[1])
                 
                 result = {
                     "kind": project.kind,

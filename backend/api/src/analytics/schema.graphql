@@ -1019,6 +1019,10 @@ type YearlyForecastByMonth {
   expectedHandsOnFee: Float!
   expectedSquadFee: Float!
   actual: Float!
+  actualConsultingFee: Float!
+  actualConsultingPreFee: Float!
+  actualHandsOnFee: Float!
+  actualSquadFee: Float!
 }
 
 # In Consulting
