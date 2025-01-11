@@ -1,4 +1,4 @@
-from typing import Type, List, Optional, Union
+from typing import Type, List, Optional, Union, Any, Dict, Callable
 from pydantic import BaseModel
 from datetime import datetime
 import re
@@ -140,17 +140,74 @@ def get_type_name(type_obj):
         return type_map.get(name, name)
     return "JSON"  # Fallback to JSON for unknown types
 
-def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str:
-    """Generate GraphQL type definition from a Pydantic model"""
+def generate_default_resolver(field_name: str) -> Callable:
+    """Generate a default resolver for collection fields"""
+    def resolver(obj: Any, info: Any, filter: Dict = None, sort: Dict = None, pagination: Dict = None) -> Dict[str, Any]:
+        # Get the data from the field
+        data = getattr(obj, field_name, None)
+        
+        # If data is None or not a list, return empty collection
+        if data is None:
+            return {
+                "data": [],
+                "metadata": {
+                    "total": 0,
+                    "filtered": 0
+                }
+            }
+            
+        # Ensure data is a list
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+            
+        total = len(data)
+        filtered_data = list(data)  # Make a copy to not modify original
+        
+        # Apply filters if provided
+        if filter and filter.get("field") and filter.get("value"):
+            field = filter["field"]
+            value = filter["value"]
+            filtered_data = [
+                item for item in filtered_data 
+                if hasattr(item, field) and getattr(item, field) == value
+            ]
+            
+        # Apply sorting if provided
+        if sort and sort.get("field"):
+            reverse = sort.get("order", "ASC") == "DESC"
+            filtered_data.sort(
+                key=lambda x: getattr(x, sort["field"], None),
+                reverse=reverse
+            )
+            
+        # Apply pagination if provided
+        if pagination:
+            offset = pagination.get("offset", 0)
+            limit = pagination.get("limit", 20)
+            filtered_data = filtered_data[offset:offset + limit]
+            
+        return {
+            "data": filtered_data,
+            "metadata": {
+                "total": total,
+                "filtered": len(filtered_data)
+            }
+        }
+        
+    return resolver
+
+def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
+    """Generate GraphQL type definition from a Pydantic model and its resolvers"""
     if generated_types is None:
         generated_types = set()
         
     if cls.__name__ in generated_types:
-        return ""
+        return "", {}
         
     generated_types.add(cls.__name__)
     field_definitions = []
     type_definitions = []
+    resolvers = {}
     
     # Generate the base type first
     type_def = f"""type {cls.__name__} {{
@@ -181,29 +238,36 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
         # Determine GraphQL type
         if is_dict:
             if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
-                nested_type = generate_type(inner_type, generated_types)
+                nested_type, nested_resolvers = generate_type(inner_type, generated_types)
                 if nested_type:
                     type_definitions.append(nested_type)
+                    resolvers.update(nested_resolvers)
                 gql_type = f"{inner_type.__name__}Collection"
                 field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                # Generate resolver for this field
+                resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
         elif is_list:
             if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
-                nested_type = generate_type(inner_type, generated_types)
+                nested_type, nested_resolvers = generate_type(inner_type, generated_types)
                 if nested_type:
                     type_definitions.append(nested_type)
+                    resolvers.update(nested_resolvers)
                 gql_type = f"{inner_type.__name__}Collection"
                 field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                # Generate resolver for this field
+                resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
         elif isinstance(inner_type, type):
             if issubclass(inner_type, BaseModel):
-                nested_type = generate_type(inner_type, generated_types)
+                nested_type, nested_resolvers = generate_type(inner_type, generated_types)
                 if nested_type:
                     type_definitions.append(nested_type)
+                    resolvers.update(nested_resolvers)
                 gql_type = get_type_name(inner_type)
             elif inner_type == str:
                 gql_type = "String"
@@ -231,8 +295,8 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
 }}"""
     
     if type_definitions:
-        return "\n\n".join([type_def] + type_definitions)
-    return type_def
+        return "\n\n".join([type_def] + type_definitions), resolvers
+    return type_def, resolvers
 
 def generate_collection_type(cls: Type[BaseModel]) -> str:
     """Generate GraphQL collection type for a model"""
@@ -301,10 +365,11 @@ def generate_base_schema() -> str:
     
     return "\n\n".join(type_definitions)
 
-def generate_schema(types: list[Type[BaseModel]], context_name: str, include_base_types: bool = False) -> str:
-    """Generate complete GraphQL schema from types"""
+def generate_schema(types: list[Type[BaseModel]], context_name: str, include_base_types: bool = False) -> tuple[str, Dict[str, Callable]]:
+    """Generate complete GraphQL schema from types and their resolvers"""
     type_definitions = []
     generated_types = set()
+    all_resolvers = {}
     
     # Add base types only if requested
     if include_base_types:
@@ -312,9 +377,10 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
     
     # Add model types
     for cls in types:
-        type_def = generate_type(cls, generated_types)
+        type_def, resolvers = generate_type(cls, generated_types)
         if type_def:
             type_definitions.append(type_def)
+            all_resolvers.update(resolvers)
     
     # Generate context type
     field_definitions = []
@@ -327,6 +393,8 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
+            # Generate resolver for the collection field
+            all_resolvers[f"{context_name}.{collection_name}"] = generate_default_resolver(collection_name)
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
@@ -353,4 +421,4 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
 }}"""
         type_definitions.append(query_type)
     
-    return "\n\n".join(type_definitions)
+    return "\n\n".join(type_definitions), all_resolvers
