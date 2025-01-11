@@ -131,13 +131,20 @@ def summarize_by_group(
         source_summary = summarize(group_df)
         source_summary_as_dict = source_summary.model_dump()
         source_summary_as_dict[name_key] = group_value
-        summary = summary_class(**source_summary_as_dict)
         
-        #setattr(summary, name_key, group_value)
-
+        # Calculate kind hours before creating the model
+        kind_hours = {}
         for kind in ['Squad', 'Consulting', 'Internal', 'HandsOn']:
-            kind_hours = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()
-            setattr(summary, f"total_{kind.lower()}_hours", kind_hours)
+            kind_df = group_df[group_df['Kind'] == kind]
+            hours = float(kind_df['TimeInHs'].sum() or 0.0)
+            kind_key = f"total_{kind.lower()}_hours"
+            if kind == 'HandsOn':
+                kind_key = "total_hands_on_hours"
+            kind_hours[kind_key] = hours
+            
+        # Merge all dictionaries
+        summary_dict = {**source_summary_as_dict, **kind_hours}
+        summary = summary_class(**summary_dict)
 
         if map and 'byKind' in map:
             summary.by_kind = summarize_by_kind(group_df, map['byKind'])
