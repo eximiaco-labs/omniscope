@@ -128,8 +128,12 @@ def summarize_by_group(
 
     summaries = []
     for group_value, group_df in df.groupby(group_column):
-        summary = summary_class(**summarize(group_df).dict())
-        setattr(summary, name_key, group_value)
+        source_summary = summarize(group_df)
+        source_summary_as_dict = source_summary.model_dump()
+        source_summary_as_dict[name_key] = group_value
+        summary = summary_class(**source_summary_as_dict)
+        
+        #setattr(summary, name_key, group_value)
 
         for kind in ['Squad', 'Consulting', 'Internal', 'HandsOn']:
             kind_hours = group_df[group_df['Kind'] == kind]['TimeInHs'].sum()

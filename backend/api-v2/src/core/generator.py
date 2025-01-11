@@ -152,6 +152,16 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
     field_definitions = []
     type_definitions = []
     
+    # Generate the base type first
+    type_def = f"""type {cls.__name__} {{
+{chr(10).join(field_definitions)}
+}}"""
+    
+    # Generate collection type immediately after the base type
+    collection_type = generate_collection_type(cls)
+    type_definitions.append(collection_type)
+    generated_types.add(f"{cls.__name__}Collection")
+    
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
         is_optional = field.default is None and getattr(field_type, "__origin__", None) is Optional
@@ -174,7 +184,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
                 nested_type = generate_type(inner_type, generated_types)
                 if nested_type:
                     type_definitions.append(nested_type)
-                gql_type = f"[{get_type_name(inner_type)}]"
+                gql_type = f"{inner_type.__name__}Collection"
                 field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 continue
             else:
@@ -184,7 +194,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
                 nested_type = generate_type(inner_type, generated_types)
                 if nested_type:
                     type_definitions.append(nested_type)
-                gql_type = f"[{get_type_name(inner_type)}]"
+                gql_type = f"{inner_type.__name__}Collection"
                 field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 continue
             else:
@@ -214,13 +224,14 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
             gql_type = "String"  # Fallback type
             
         field_definitions.append(f"    {camel_field_name}: {gql_type}{'!' if not is_optional else ''}")
-        
+    
+    # Update the type definition with the field definitions
     type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
 }}"""
-
+    
     if type_definitions:
-        return "\n\n".join(type_definitions + [type_def])
+        return "\n\n".join([type_def] + type_definitions)
     return type_def
 
 def generate_collection_type(cls: Type[BaseModel]) -> str:
@@ -316,8 +327,6 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
-            # Add collection type
-            type_definitions.append(generate_collection_type(cls))
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
