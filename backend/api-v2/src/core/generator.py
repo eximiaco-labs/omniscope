@@ -1,5 +1,6 @@
-from typing import Type, List
+from typing import Type, List, Optional, Union
 from pydantic import BaseModel
+from datetime import datetime
 import re
 
 def pluralize(name: str) -> str:
@@ -74,29 +75,150 @@ def generate_input_type(cls: Type[BaseModel], suffix: str = "Input") -> str:
 {chr(10).join(field_definitions)}
 }}"""
 
-def generate_type(cls: Type[BaseModel]) -> str:
+def get_field_type(field_type):
+    """Helper function to get the actual type from a potentially wrapped type (Optional, List, etc)"""
+    if hasattr(field_type, "__origin__"):
+        origin = field_type.__origin__
+        if origin in (Optional, Union):
+            # Get the first non-None type
+            for arg in field_type.__args__:
+                if arg != type(None):  # noqa
+                    return get_field_type(arg)
+        if origin in (list, List):
+            return list
+        if origin == dict:
+            return dict
+        return origin
+    return field_type
+
+def get_inner_type(field_type):
+    """Helper function to get the actual inner type, handling Optional, List, Dict etc"""
+    if hasattr(field_type, "__origin__"):
+        origin = field_type.__origin__
+        if origin in (Optional, Union):
+            # Get the first non-None type
+            for arg in field_type.__args__:
+                if arg != type(None):  # noqa
+                    return get_inner_type(arg)
+        if origin in (list, List):
+            inner = field_type.__args__[0]
+            if hasattr(inner, "__origin__"):
+                return get_inner_type(inner)
+            return inner
+        if origin == dict:
+            value_type = field_type.__args__[1]
+            if hasattr(value_type, "__origin__"):
+                return get_inner_type(value_type)
+            return value_type
+    return field_type
+
+def get_type_name(type_obj):
+    """Helper function to get the type name, handling ForwardRef"""
+    if hasattr(type_obj, "__name__"):
+        # Map Python types to GraphQL types
+        type_map = {
+            "str": "String",
+            "Any": "JSON",  # Using JSON for Any type
+            "dict": "JSON",
+            "Dict": "JSON",
+            "list": "JSON",
+            "List": "JSON"
+        }
+        name = type_obj.__name__
+        return type_map.get(name, name)
+    if hasattr(type_obj, "__forward_arg__"):
+        # Map forward references
+        type_map = {
+            "str": "String",
+            "Any": "JSON",
+            "dict": "JSON",
+            "Dict": "JSON",
+            "list": "JSON",
+            "List": "JSON"
+        }
+        name = type_obj.__forward_arg__
+        return type_map.get(name, name)
+    return "JSON"  # Fallback to JSON for unknown types
+
+def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str:
     """Generate GraphQL type definition from a Pydantic model"""
+    if generated_types is None:
+        generated_types = set()
+        
+    if cls.__name__ in generated_types:
+        return ""
+        
+    generated_types.add(cls.__name__)
     field_definitions = []
+    type_definitions = []
+    
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
-        gql_type = "String"
+        is_optional = field.default is None and getattr(field_type, "__origin__", None) is Optional
         
-        if field_type == str:
-            gql_type = "String"
-        elif field_type == int:
-            gql_type = "Int"
-        elif field_type == float:
-            gql_type = "Float"
-        elif field_type == bool:
-            gql_type = "Boolean"
-        elif field_name == "id":
-            gql_type = "ID"
+        # Get the actual type and inner type
+        actual_type = get_field_type(field_type)
+        inner_type = get_inner_type(field_type)
+        
+        # Initialize type variables
+        is_list = actual_type == list
+        is_dict = actual_type == dict
+        gql_type = None
+        
+        # Determine GraphQL type
+        if is_dict:
+            if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
+                nested_type = generate_type(inner_type, generated_types)
+                if nested_type:
+                    type_definitions.append(nested_type)
+                gql_type = f"[{get_type_name(inner_type)}]"
+                field_definitions.append(f"    {field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                continue
+            else:
+                gql_type = f"[{get_type_name(inner_type)}]"
+        elif is_list:
+            if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
+                nested_type = generate_type(inner_type, generated_types)
+                if nested_type:
+                    type_definitions.append(nested_type)
+                gql_type = f"[{get_type_name(inner_type)}]"
+                field_definitions.append(f"    {field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                continue
+            else:
+                gql_type = f"[{get_type_name(inner_type)}]"
+        elif isinstance(inner_type, type):
+            if issubclass(inner_type, BaseModel):
+                nested_type = generate_type(inner_type, generated_types)
+                if nested_type:
+                    type_definitions.append(nested_type)
+                gql_type = get_type_name(inner_type)
+            elif inner_type == str:
+                gql_type = "String"
+            elif inner_type == int:
+                gql_type = "Int"
+            elif inner_type == float:
+                gql_type = "Float"
+            elif inner_type == bool:
+                gql_type = "Boolean"
+            elif inner_type == datetime:
+                gql_type = "DateTime"
+            elif field_name == "id":
+                gql_type = "ID"
+            elif hasattr(inner_type, "__name__"):
+                gql_type = get_type_name(inner_type)
+        
+        if gql_type is None:
+            gql_type = "String"  # Fallback type
             
-        field_definitions.append(f"    {field_name}: {gql_type}!")
+        field_definitions.append(f"    {field_name}: {gql_type}{'!' if not is_optional else ''}")
         
-    return f"""type {cls.__name__} {{
+    type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
 }}"""
+
+    if type_definitions:
+        return "\n\n".join(type_definitions + [type_def])
+    return type_def
 
 def generate_collection_type(cls: Type[BaseModel]) -> str:
     """Generate GraphQL collection type for a model"""
@@ -155,6 +277,10 @@ def generate_base_schema() -> str:
     """Generate the base schema types that should be defined only once"""
     type_definitions = []
     
+    # Add scalar types
+    type_definitions.append("scalar DateTime")
+    type_definitions.append("scalar JSON")  # Add JSON scalar type
+    
     # Add base collection types
     type_definitions.append(generate_collection_metadata_type())
     type_definitions.append(generate_filter_types())
@@ -164,6 +290,7 @@ def generate_base_schema() -> str:
 def generate_schema(types: list[Type[BaseModel]], context_name: str, include_base_types: bool = False) -> str:
     """Generate complete GraphQL schema from types"""
     type_definitions = []
+    generated_types = set()
     
     # Add base types only if requested
     if include_base_types:
@@ -171,9 +298,9 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
     
     # Add model types
     for cls in types:
-        type_definitions.append(generate_type(cls))
-        if context_name:
-            type_definitions.append(generate_collection_type(cls))
+        type_def = generate_type(cls, generated_types)
+        if type_def:
+            type_definitions.append(type_def)
     
     # Generate context type
     field_definitions = []
@@ -186,6 +313,8 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
+            # Add collection type
+            type_definitions.append(generate_collection_type(cls))
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
