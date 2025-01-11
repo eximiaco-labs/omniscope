@@ -37,16 +37,21 @@ def summarize(df: pd.DataFrame) -> TimesheetSummary:
     group_results = {k: g.agg(['sum', 'mean', 'std']) for k, g in group_operations.items()}
 
     # Calculate statistics
-    total_hours = df["TimeInHs"].sum()
-    average_hours_per_entry = total_hours / len(df) if len(df) > 0 else 0
+    total_hours = float(df["TimeInHs"].sum())
+    average_hours_per_entry = total_hours / len(df) if len(df) > 0 else 0.0
 
     weekly_summary = group_operations['week'].sum().reset_index()
     weeks = []
     for _, row in weekly_summary.iterrows():
         weeks.append(WeeklyHours(
             week=row['Week'],
-            hours=row['TimeInHs']
+            hours=float(row['TimeInHs'])
         ))
+
+    # Extract scalar values from Series
+    def get_agg_value(group: str, agg: str, default: float = 0.0) -> float:
+        value = group_results[group][agg]
+        return float(value.iloc[0]) if not pd.isna(value.iloc[0]) else default
 
     return TimesheetSummary(
         total_entries=len(df),
@@ -59,25 +64,25 @@ def summarize(df: pd.DataFrame) -> TimesheetSummary:
         unique_account_managers=df["AccountManagerSlug"].nunique(),
         unique_weeks=df["Week"].nunique(),
         average_hours_per_entry=average_hours_per_entry,
-        std_dev_hours_per_entry=df["TimeInHs"].std(),
-        average_hours_per_day=group_results["date"]['mean'],
-        std_dev_hours_per_day=group_results["date"]['std'],
-        average_hours_per_worker=group_results["worker"]['mean'],
-        std_dev_hours_per_worker=group_results["worker"]['std'],
-        average_hours_per_client=group_results["client"]['mean'],
-        std_dev_hours_per_client=group_results["client"]['std'],
-        average_hours_per_case=group_results["case"]['mean'],
-        std_dev_hours_per_case=group_results["case"]['std'],
-        average_hours_per_sponsor=group_results["sponsor"]['mean'],
-        std_dev_hours_per_sponsor=group_results["sponsor"]['std'],
-        average_hours_per_account_manager=group_results["account_manager"]['mean'],
-        std_dev_hours_per_account_manager=group_results["account_manager"]['std'],
-        average_hours_per_week=group_results["week"]['mean'],
-        std_dev_hours_per_week=group_results["week"]['std'],
-        total_squad_hours=df[df['Kind'] == 'Squad']['TimeInHs'].sum(),
-        total_consulting_hours=df[df['Kind'] == 'Consulting']['TimeInHs'].sum(),
-        total_internal_hours=df[df['Kind'] == 'Internal']['TimeInHs'].sum(),
-        total_hands_on_hours=df[df['Kind'] == 'HandsOn']['TimeInHs'].sum(),
+        std_dev_hours_per_entry=float(df["TimeInHs"].std() or 0.0),
+        average_hours_per_day=get_agg_value("date", "mean"),
+        std_dev_hours_per_day=get_agg_value("date", "std"),
+        average_hours_per_worker=get_agg_value("worker", "mean"),
+        std_dev_hours_per_worker=get_agg_value("worker", "std"),
+        average_hours_per_client=get_agg_value("client", "mean"),
+        std_dev_hours_per_client=get_agg_value("client", "std"),
+        average_hours_per_case=get_agg_value("case", "mean"),
+        std_dev_hours_per_case=get_agg_value("case", "std"),
+        average_hours_per_sponsor=get_agg_value("sponsor", "mean"),
+        std_dev_hours_per_sponsor=get_agg_value("sponsor", "std"),
+        average_hours_per_account_manager=get_agg_value("account_manager", "mean"),
+        std_dev_hours_per_account_manager=get_agg_value("account_manager", "std"),
+        average_hours_per_week=get_agg_value("week", "mean"),
+        std_dev_hours_per_week=get_agg_value("week", "std"),
+        total_squad_hours=float(df[df['Kind'] == 'Squad']['TimeInHs'].sum() or 0.0),
+        total_consulting_hours=float(df[df['Kind'] == 'Consulting']['TimeInHs'].sum() or 0.0),
+        total_internal_hours=float(df[df['Kind'] == 'Internal']['TimeInHs'].sum() or 0.0),
+        total_hands_on_hours=float(df[df['Kind'] == 'HandsOn']['TimeInHs'].sum() or 0.0),
         weekly_hours=weeks
     )
 
@@ -234,7 +239,9 @@ def compute_timesheet(map: Dict, slug: str, filters = None) -> Timesheet:
         filters
     )
     
-    response_dict = {}
+    response_dict = {
+        'slug': slug,
+    }
     
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
@@ -243,8 +250,9 @@ def compute_timesheet(map: Dict, slug: str, filters = None) -> Timesheet:
     }
     
     # Base summary
-    if base_fields:
+    if "summary" in requested_fields:
         response_dict['summary'] = summarize(df)
+    
         
     if 'businessCalendar' in requested_fields:
         calendar = compute_business_calendar(dates[0], dates[1])

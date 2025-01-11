@@ -16,6 +16,7 @@ from team.schema import schema as team_schema
 from ontology.resolvers.ontology import query as ontology_query, ontology
 from ontology.schema import schema as ontology_schema
 from timesheet.schema import schema as timesheet_schema
+from timesheet.resolvers import query as timesheet_query
 
 from core.generator import generate_base_schema
 
@@ -49,7 +50,7 @@ type_defs = [
 
 schema = make_executable_schema(
     type_defs,
-    [base_query, team_query, team, ontology_query, ontology],
+    [base_query, team_query, team, ontology_query, ontology, timesheet_query],
     snake_case_fallback_resolvers
 )
 
