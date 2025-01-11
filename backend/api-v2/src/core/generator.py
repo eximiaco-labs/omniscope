@@ -143,8 +143,10 @@ def get_type_name(type_obj):
 def generate_default_resolver(field_name: str) -> Callable:
     """Generate a default resolver for collection fields"""
     def resolver(obj: Any, info: Any, filter: Dict = None, sort: Dict = None, pagination: Dict = None) -> Dict[str, Any]:
-        # Get the data from the field
-        data = getattr(obj, field_name, None)
+        if isinstance(obj, dict):
+            data = obj.get(field_name)
+        else:
+            data = getattr(obj, field_name, None)
         
         # If data is None or not a list, return empty collection
         if data is None:
@@ -244,7 +246,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     resolvers.update(nested_resolvers)
                 gql_type = f"{inner_type.__name__}Collection"
                 field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
-                # Generate resolver for this field
+                # Generate resolver for discovered nested types
                 resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
             else:
@@ -257,7 +259,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     resolvers.update(nested_resolvers)
                 gql_type = f"{inner_type.__name__}Collection"
                 field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
-                # Generate resolver for this field
+                # Generate resolver for discovered nested types
                 resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
             else:
@@ -393,8 +395,8 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
-            # Generate resolver for the collection field
-            all_resolvers[f"{context_name}.{collection_name}"] = generate_default_resolver(collection_name)
+            # Do not generate resolver for root types
+            # They should be handled by the context resolver
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
