@@ -165,6 +165,9 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
         is_dict = actual_type == dict
         gql_type = None
         
+        # Convert field name to camelCase
+        camel_field_name = to_camel_case(field_name)
+        
         # Determine GraphQL type
         if is_dict:
             if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
@@ -172,7 +175,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
                 if nested_type:
                     type_definitions.append(nested_type)
                 gql_type = f"[{get_type_name(inner_type)}]"
-                field_definitions.append(f"    {field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
@@ -182,7 +185,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
                 if nested_type:
                     type_definitions.append(nested_type)
                 gql_type = f"[{get_type_name(inner_type)}]"
-                field_definitions.append(f"    {field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
@@ -210,7 +213,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> str
         if gql_type is None:
             gql_type = "String"  # Fallback type
             
-        field_definitions.append(f"    {field_name}: {gql_type}{'!' if not is_optional else ''}")
+        field_definitions.append(f"    {camel_field_name}: {gql_type}{'!' if not is_optional else ''}")
         
     type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
