@@ -3,6 +3,45 @@ from pydantic import BaseModel
 from datetime import datetime
 import re
 
+class GlobalTypeRegistry:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.types = {}
+            cls._instance.query_fields = []
+        return cls._instance
+
+    def register_type(self, type_name: str, type_def: str):
+        # Special handling for Query type
+        if type_name == "Query":
+            # Extract fields from the Query type extension
+            field_lines = type_def.split("\n")[1:-1]  # Skip first and last lines
+            self.query_fields.extend(line.strip() for line in field_lines if line.strip())
+        else:
+            self.types[type_name] = type_def
+    
+    def is_registered(self, type_name: str) -> bool:
+        return type_name in self.types
+
+    def get_all_types(self) -> Dict[str, str]:
+        types = dict(self.types)
+        if self.query_fields:
+            query_type = """type Query {
+%s
+}""" % "\n".join(self.query_fields)
+            types["Query"] = query_type
+        return types
+
+    def generate_sdl(self) -> str:
+        return "\n\n".join(self.get_all_types().values())
+    
+    def clear(self):
+        self.types = {}
+        self.query_fields = []
+        
+
 def pluralize(name: str) -> str:
     """
     Pluralize a camelCase name considering compound words.
@@ -40,13 +79,25 @@ def get_identifier_fields(cls: Type[BaseModel]) -> List[str]:
 
 def generate_enum_type(enum_cls) -> str:
     """Generate GraphQL enum type from Python enum"""
+    registry = GlobalTypeRegistry()
+    if registry.is_registered(enum_cls.__name__):
+        return ""
+        
     values = [f"    {name}" for name in enum_cls.__members__]
-    return f"""enum {enum_cls.__name__} {{
+    enum_type = f"""enum {enum_cls.__name__} {{
 {chr(10).join(values)}
 }}"""
+    registry.register_type(enum_cls.__name__, enum_type)
+    return enum_type
 
 def generate_input_type(cls: Type[BaseModel], suffix: str = "Input") -> str:
     """Generate GraphQL input type from Pydantic model"""
+    registry = GlobalTypeRegistry()
+    type_name = f"{cls.__name__}{suffix}"
+    
+    if registry.is_registered(type_name):
+        return ""
+        
     field_definitions = []
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
@@ -71,9 +122,11 @@ def generate_input_type(cls: Type[BaseModel], suffix: str = "Input") -> str:
         else:
             field_definitions.append(f"    {field_name}: {gql_type}!")
             
-    return f"""input {cls.__name__}{suffix} {{
+    input_type = f"""input {type_name} {{
 {chr(10).join(field_definitions)}
 }}"""
+    registry.register_type(type_name, input_type)
+    return input_type
 
 def get_field_type(field_type):
     """Helper function to get the actual type from a potentially wrapped type (Optional, List, etc)"""
@@ -205,6 +258,11 @@ def generate_default_resolver(field_name: str) -> Callable:
 
 def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
     """Generate GraphQL type definition from a Pydantic model and its resolvers"""
+    registry = GlobalTypeRegistry()
+    
+    if registry.is_registered(cls.__name__):
+        return "", {}
+        
     if generated_types is None:
         generated_types = set()
         
@@ -300,6 +358,9 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
 }}"""
+
+    # Register the type
+    registry.register_type(cls.__name__, type_def)
     
     if type_definitions:
         return "\n\n".join([type_def] + type_definitions), resolvers
@@ -307,24 +368,45 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
 
 def generate_collection_type(cls: Type[BaseModel]) -> str:
     """Generate GraphQL collection type for a model"""
-    return f"""type {cls.__name__}Collection {{
+    registry = GlobalTypeRegistry()
+    type_name = f"{cls.__name__}Collection"
+    
+    if registry.is_registered(type_name):
+        return ""
+        
+    collection_type = f"""type {type_name} {{
     data: [{cls.__name__}!]!
     metadata: CollectionMetadata!
 }}"""
+    registry.register_type(type_name, collection_type)
+    return collection_type
 
 def generate_collection_metadata_type() -> str:
-    return """type CollectionMetadata {
+    registry = GlobalTypeRegistry()
+    if registry.is_registered("CollectionMetadata"):
+        return ""
+        
+    metadata_type = """type CollectionMetadata {
     total: Int!
     filtered: Int!
 }"""
+    registry.register_type("CollectionMetadata", metadata_type)
+    return metadata_type
 
 def generate_filter_types() -> str:
-    return """input RangeFilterInput {
+    registry = GlobalTypeRegistry()
+    type_definitions = []
+    
+    if not registry.is_registered("RangeFilterInput"):
+        range_filter = """input RangeFilterInput {
     min: Float
     max: Float
-}
+}"""
+        registry.register_type("RangeFilterInput", range_filter)
+        type_definitions.append(range_filter)
 
-input FilterOperatorInput {
+    if not registry.is_registered("FilterOperatorInput"):
+        filter_operator = """input FilterOperatorInput {
     eq: String
     neq: String
     gt: Float
@@ -333,44 +415,73 @@ input FilterOperatorInput {
     lte: Float
     contains: String
     range: RangeFilterInput
-}
+}"""
+        registry.register_type("FilterOperatorInput", filter_operator)
+        type_definitions.append(filter_operator)
 
-input FilterInput {
+    if not registry.is_registered("FilterInput"):
+        filter_input = """input FilterInput {
     and: [FilterInput!]
     or: [FilterInput!]
     not: FilterInput
     field: String
     value: FilterOperatorInput
-}
+}"""
+        registry.register_type("FilterInput", filter_input)
+        type_definitions.append(filter_input)
 
-input SortInput {
+    if not registry.is_registered("SortInput"):
+        sort_input = """input SortInput {
     field: String!
     order: SortOrder! = ASC
-}
+}"""
+        registry.register_type("SortInput", sort_input)
+        type_definitions.append(sort_input)
 
-input PaginationInput {
+    if not registry.is_registered("PaginationInput"):
+        pagination_input = """input PaginationInput {
     limit: Int! = 20
     offset: Int! = 0
-}
+}"""
+        registry.register_type("PaginationInput", pagination_input)
+        type_definitions.append(pagination_input)
 
-enum SortOrder {
+    if not registry.is_registered("SortOrder"):
+        sort_order = """enum SortOrder {
     ASC
     DESC
 }"""
+        registry.register_type("SortOrder", sort_order)
+        type_definitions.append(sort_order)
+
+    return "\n\n".join(type_definitions) if type_definitions else ""
 
 def generate_base_schema() -> str:
     """Generate the base schema types that should be defined only once"""
+    registry = GlobalTypeRegistry()
     type_definitions = []
     
     # Add scalar types
-    type_definitions.append("scalar DateTime")
-    type_definitions.append("scalar JSON")  # Add JSON scalar type
+    if not registry.is_registered("DateTime"):
+        scalar_datetime = "scalar DateTime"
+        registry.register_type("DateTime", scalar_datetime)
+        type_definitions.append(scalar_datetime)
+
+    if not registry.is_registered("JSON"):
+        scalar_json = "scalar JSON"
+        registry.register_type("JSON", scalar_json)
+        type_definitions.append(scalar_json)
     
     # Add base collection types
-    type_definitions.append(generate_collection_metadata_type())
-    type_definitions.append(generate_filter_types())
+    metadata_type = generate_collection_metadata_type()
+    if metadata_type:
+        type_definitions.append(metadata_type)
+        
+    filter_types = generate_filter_types()
+    if filter_types:
+        type_definitions.append(filter_types)
     
-    return "\n\n".join(type_definitions)
+    return "\n\n".join(type_definitions) if type_definitions else ""
 
 def generate_schema(types: list[Type[BaseModel]], context_name: str, include_base_types: bool = False) -> tuple[str, Dict[str, Callable]]:
     """Generate complete GraphQL schema from types and their resolvers"""
@@ -380,7 +491,9 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
     
     # Add base types only if requested
     if include_base_types:
-        type_definitions.append(generate_base_schema())
+        base_schema = generate_base_schema()
+        if base_schema:
+            type_definitions.append(base_schema)
     
     # Add model types
     for cls in types:
@@ -410,22 +523,27 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
     
     # Add context type
+    registry = GlobalTypeRegistry()
     if context_name:
-        context_type = f"""type {context_name} {{
+        if not registry.is_registered(context_name):
+            context_type = f"""type {context_name} {{
 {chr(10).join(field_definitions)}
 }}"""
-        type_definitions.append(context_type)
+            registry.register_type(context_name, context_type)
+            type_definitions.append(context_type)
     
-        # Add query type extension
-        query_type = f"""extend type Query {{
+            # Add query type extension
+            query_type = f"""extend type Query {{
 {context_name[0].lower() + context_name[1:]}: {context_name}!
 }}"""
-        type_definitions.append(query_type)
+            registry.register_type("Query", query_type)
+            type_definitions.append(query_type)
     
     else:
         query_type = f"""extend type Query {{
 {chr(10).join(field_definitions)}
 }}"""
+        registry.register_type("Query", query_type)
         type_definitions.append(query_type)
     
     return "\n\n".join(type_definitions), all_resolvers

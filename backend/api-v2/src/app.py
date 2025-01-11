@@ -21,7 +21,7 @@ from ontology.schema import schema as ontology_schema
 from timesheet.schema import schema as timesheet_schema
 from timesheet.resolvers import query as timesheet_query
 
-from core.generator import generate_base_schema
+from core.generator import generate_base_schema, GlobalTypeRegistry
 
 from omni_shared.settings import auth_settings 
 from omni_shared.settings import graphql_settings
@@ -62,6 +62,10 @@ for field_path, resolver_fn in timesheet_resolvers.items():
     # Add to resolver types if new
     if type_obj not in resolver_types:
         resolver_types.append(type_obj)
+        
+registry = GlobalTypeRegistry()
+print(registry.generate_sdl())
+
 
 type_defs = [
     base_schema,
