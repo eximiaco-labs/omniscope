@@ -172,7 +172,8 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
     # Add model types
     for cls in types:
         type_definitions.append(generate_type(cls))
-        type_definitions.append(generate_collection_type(cls))
+        if context_name:
+            type_definitions.append(generate_collection_type(cls))
     
     # Generate context type
     field_definitions = []
@@ -181,9 +182,10 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
         base_name = to_camel_case(cls.__name__[0].lower() + cls.__name__[1:])
         
         # Collection field - properly pluralized
-        collection_name = pluralize(base_name)
-        collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
-        field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
+        if context_name:
+            collection_name = pluralize(base_name)
+            collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
+            field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)

@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel
 
+from core.fields import Id
+
 from .summary import TimesheetSummary
 from .business_calendar import BusinessCalendar
 from .named_summary import NamedTimesheetSummary
@@ -10,7 +12,8 @@ from .week_summary import WeekTimesheetSummary
 from .appointment import TimesheetAppointment
 
 class Timesheet(BaseModel):
-    summary: TimesheetSummary
+    slug: str = Id(description="The URL-friendly identifier of the timesheet")
+    summary: Optional[TimesheetSummary] = None
     business_calendar: Optional[BusinessCalendar] = None
     by_kind: Optional[Dict[str, TimesheetSummary]] = None
     by_worker: Optional[List[NamedTimesheetSummary]] = None
