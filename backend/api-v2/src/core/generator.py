@@ -192,15 +192,22 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
     
     # Add context type
-    context_type = f"""type {context_name} {{
+    if context_name:
+        context_type = f"""type {context_name} {{
 {chr(10).join(field_definitions)}
 }}"""
-    type_definitions.append(context_type)
+        type_definitions.append(context_type)
     
-    # Add query type extension
-    query_type = f"""extend type Query {{
-    {context_name[0].lower() + context_name[1:]}: {context_name}!
+        # Add query type extension
+        query_type = f"""extend type Query {{
+{context_name[0].lower() + context_name[1:]}: {context_name}!
 }}"""
-    type_definitions.append(query_type)
+        type_definitions.append(query_type)
     
-    return "\n\n".join(type_definitions) 
+    else:
+        query_type = f"""extend type Query {{
+{chr(10).join(field_definitions)}
+}}"""
+        type_definitions.append(query_type)
+    
+    return "\n\n".join(type_definitions)

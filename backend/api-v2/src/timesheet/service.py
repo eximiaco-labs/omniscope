@@ -6,7 +6,7 @@ from omni_shared import globals
 from business_calendar import compute_business_calendar
 from domain.cases import build_case_dictionary
 
-from .models.timesheet import (
+from .models import (
     BusinessDay,
     BusinessCalendar,
     TimesheetAppointment,

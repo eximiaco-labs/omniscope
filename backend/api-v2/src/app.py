@@ -15,6 +15,8 @@ from team.resolvers.team import query as team_query, team
 from team.schema import schema as team_schema
 from ontology.resolvers.ontology import query as ontology_query, ontology
 from ontology.schema import schema as ontology_schema
+from timesheet.schema import schema as timesheet_schema
+
 from core.generator import generate_base_schema
 
 from omni_shared.settings import auth_settings 
@@ -41,7 +43,8 @@ type_defs = [
     base_schema,
     generate_base_schema(),  # Include base types only once
     team_schema,
-    ontology_schema
+    ontology_schema,
+    timesheet_schema
 ]
 
 schema = make_executable_schema(
