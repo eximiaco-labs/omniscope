@@ -140,6 +140,10 @@ def get_type_name(type_obj):
         return type_map.get(name, name)
     return "JSON"  # Fallback to JSON for unknown types
 
+def to_snake_case(name: str) -> str:
+    """Convert a string from camelCase to snake_case"""
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+
 def generate_default_resolver(field_name: str) -> Callable:
     """Generate a default resolver for collection fields"""
     def resolver(obj: Any, info: Any, filter: Dict = None, sort: Dict = None, pagination: Dict = None) -> Dict[str, Any]:
@@ -167,18 +171,20 @@ def generate_default_resolver(field_name: str) -> Callable:
         
         # Apply filters if provided
         if filter and filter.get("field") and filter.get("value"):
-            field = filter["field"]
+            field = to_snake_case(filter["field"])  # Convert field to snake_case
             value = filter["value"]
             filtered_data = [
                 item for item in filtered_data 
-                if hasattr(item, field) and getattr(item, field) == value
+                if (isinstance(item, dict) and field in item and item[field] == value) or
+                   (not isinstance(item, dict) and hasattr(item, field) and getattr(item, field) == value)
             ]
             
         # Apply sorting if provided
         if sort and sort.get("field"):
             reverse = sort.get("order", "ASC") == "DESC"
+            field = to_snake_case(sort["field"])  # Convert field to snake_case
             filtered_data.sort(
-                key=lambda x: getattr(x, sort["field"], None),
+                key=lambda x: x.get(field) if isinstance(x, dict) else getattr(x, field, None),
                 reverse=reverse
             )
             
@@ -195,7 +201,6 @@ def generate_default_resolver(field_name: str) -> Callable:
                 "filtered": len(filtered_data)
             }
         }
-        
     return resolver
 
 def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
