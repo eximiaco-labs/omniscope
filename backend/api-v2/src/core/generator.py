@@ -11,9 +11,10 @@ class GlobalTypeRegistry:
             cls._instance = super().__new__(cls)
             cls._instance.types = {}
             cls._instance.query_fields = []
+            cls._instance.type_parameters = {}  # Store query parameters for each type
         return cls._instance
 
-    def register_type(self, type_name: str, type_def: str):
+    def register_type(self, type_name: str, type_def: str, parameters: List[str] = None):
         # Special handling for Query type
         if type_name == "Query":
             # Extract fields from the Query type extension
@@ -21,9 +22,14 @@ class GlobalTypeRegistry:
             self.query_fields.extend(line.strip() for line in field_lines if line.strip())
         else:
             self.types[type_name] = type_def
+            if parameters:
+                self.type_parameters[type_name] = parameters
     
     def is_registered(self, type_name: str) -> bool:
         return type_name in self.types
+
+    def get_type_parameters(self, type_name: str) -> List[str]:
+        return self.type_parameters.get(type_name, [])
 
     def get_all_types(self) -> Dict[str, str]:
         types = dict(self.types)
@@ -40,6 +46,7 @@ class GlobalTypeRegistry:
     def clear(self):
         self.types = {}
         self.query_fields = []
+        self.type_parameters = {}
         
 
 def pluralize(name: str) -> str:
@@ -274,6 +281,9 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     type_definitions = []
     resolvers = {}
     
+    # Collect parameters from identifier fields
+    parameters = get_identifier_fields(cls)
+    
     # Generate the base type first
     type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
@@ -308,7 +318,13 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     type_definitions.append(nested_type)
                     resolvers.update(nested_resolvers)
                 gql_type = f"{inner_type.__name__}Collection"
-                field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                
+                # Get parameters for the inner type
+                inner_params = registry.get_type_parameters(inner_type.__name__)
+                param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
+                param_str = f"({param_args}, " if param_args else "("
+                
+                field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 # Generate resolver for discovered nested types
                 resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
@@ -321,7 +337,13 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     type_definitions.append(nested_type)
                     resolvers.update(nested_resolvers)
                 gql_type = f"{inner_type.__name__}Collection"
-                field_definitions.append(f"    {camel_field_name}(filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
+                
+                # Get parameters for the inner type
+                inner_params = registry.get_type_parameters(inner_type.__name__)
+                param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
+                param_str = f"({param_args}, " if param_args else "("
+                
+                field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 # Generate resolver for discovered nested types
                 resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
@@ -334,6 +356,13 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     type_definitions.append(nested_type)
                     resolvers.update(nested_resolvers)
                 gql_type = get_type_name(inner_type)
+                
+                # Get parameters for the inner type
+                inner_params = registry.get_type_parameters(inner_type.__name__)
+                if inner_params:
+                    param_args = ", ".join(f"{param}: String" for param in inner_params)
+                    field_definitions.append(f"    {camel_field_name}({param_args}): {gql_type}{'!' if not is_optional else ''}")
+                    continue
             elif inner_type == str:
                 gql_type = "String"
             elif inner_type == int:
@@ -359,8 +388,8 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
 {chr(10).join(field_definitions)}
 }}"""
 
-    # Register the type
-    registry.register_type(cls.__name__, type_def)
+    # Register the type with its parameters
+    registry.register_type(cls.__name__, type_def, parameters)
     
     if type_definitions:
         return "\n\n".join([type_def] + type_definitions), resolvers
