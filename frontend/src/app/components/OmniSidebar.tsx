@@ -22,6 +22,7 @@ import {
   SettingsIcon,
   CheckCheckIcon,
   BookOpenIcon,
+  BriefcaseIcon,
 } from "lucide-react";
 
 import { useSession } from "next-auth/react";
@@ -30,6 +31,7 @@ import Link from "next/link";
 import Logo from "./logo";
 
 import {
+  getTeamSidebarItems,
   getAnalyticsSidebarItems,
   getAboutUsSidebarItems,
   getAdministrativeSidebarItems,
@@ -91,6 +93,7 @@ export function OmniSidebar() {
   const [adminItems, setAdminItems] = React.useState<MenuItem[]>([]);
   const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>([]);
   const [ontologyItems, setOntologyItems] = React.useState<MenuItem[]>([]);
+  const [teamItems, setTeamItems] = React.useState<MenuItem[]>([]);
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
   const [activeItems, setActiveItems] = React.useState<MenuItem[]>([]);
@@ -105,6 +108,7 @@ export function OmniSidebar() {
       const aboutUs = await getAboutUsSidebarItems();
       const admin = await getAdministrativeSidebarItems();
       const ontology = await getOntologySidebarItems();
+      const team = await getTeamSidebarItems();
 
       setFinancialItems(financial);
       setAnalyticsItems(analytics);
@@ -112,6 +116,7 @@ export function OmniSidebar() {
       setAdminItems(admin);
       setOperationalItems(operationalSummaries);
       setOntologyItems(ontology);
+      setTeamItems(team);
 
       // Determine active section based on current path
       let initialSection = "Analytics";
@@ -161,6 +166,12 @@ export function OmniSidebar() {
       if (isAdminPath) {
         initialSection = "Administrative";
         initialItems = admin;
+      }
+
+      const isTeamPath = team.some((item) => pathname.startsWith(item.url));
+      if (isTeamPath) {
+        initialSection = "Team";
+        initialItems = team;
       }
 
       setActiveSection(initialSection);
@@ -215,6 +226,12 @@ export function OmniSidebar() {
                       items: analyticsItems,
                       icon: BarChart3Icon,
                       tooltip: "Analytics",
+                    },
+                    {
+                      section: "Team",
+                      items: teamItems,
+                      icon: BriefcaseIcon,
+                      tooltip: "Team",
                     },
                     {
                       section: "About Us",

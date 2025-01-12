@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from core.fields import Id
 from timesheet.models import Timesheet
@@ -11,4 +11,4 @@ class AccountManager(BaseModel):
     email: str = Field(..., description="The email address of the account manager")
     ontology_url: str = Field(..., description="The URL of the ontology entry of the account manager")
     photo_url: str = Field(..., description="The URL of the photo of the account manager")
-    timesheet: Timesheet = Field(..., description="Timesheet of the account manager")
+    timesheet: Optional[Timesheet] = None

@@ -24,6 +24,21 @@ import {
 
 import { getFlag } from "./flags";
 
+export function getTeamSidebarItems() {
+  return [
+    {
+      title: "Account Managers",
+      url: "/team/account-managers",
+      icon: BriefcaseIcon,
+    },
+    {
+      title: "Consultants & Engineers",
+      url: "/team/consultants-and-engineers",
+      icon: UserIcon,
+    },
+  ];
+}
+
 export function getFinancialSidebarItems(userEmail?: string | null) {
   return [
     ...(getFlag("is-fin-user", userEmail)
