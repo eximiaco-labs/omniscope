@@ -12,9 +12,10 @@ class GlobalTypeRegistry:
             cls._instance.types = {}
             cls._instance.query_fields = []
             cls._instance.type_parameters = {}  # Store query parameters for each type
+            cls._instance.resolvers = {}  # Store resolvers for each type
         return cls._instance
 
-    def register_type(self, type_name: str, type_def: str, parameters: List[str] = None):
+    def register_type(self, type_name: str, type_def: str, parameters: List[str] = None, resolvers: Dict[str, Callable] = None):
         # Special handling for Query type
         if type_name == "Query":
             # Extract fields from the Query type extension
@@ -24,6 +25,8 @@ class GlobalTypeRegistry:
             self.types[type_name] = type_def
             if parameters:
                 self.type_parameters[type_name] = parameters
+            if resolvers:
+                self.resolvers.update(resolvers)
     
     def is_registered(self, type_name: str) -> bool:
         return type_name in self.types
@@ -35,10 +38,13 @@ class GlobalTypeRegistry:
         types = dict(self.types)
         if self.query_fields:
             query_type = """type Query {
-%s
-}""" % "\n".join(self.query_fields)
+  %s
+}""" % "\n  ".join(self.query_fields)
             types["Query"] = query_type
         return types
+
+    def get_resolvers(self) -> Dict[str, Callable]:
+        return self.resolvers
 
     def generate_sdl(self) -> str:
         return "\n\n".join(self.get_all_types().values())
@@ -47,7 +53,7 @@ class GlobalTypeRegistry:
         self.types = {}
         self.query_fields = []
         self.type_parameters = {}
-        
+        self.resolvers = {}
 
 def pluralize(name: str) -> str:
     """
@@ -388,8 +394,8 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
 {chr(10).join(field_definitions)}
 }}"""
 
-    # Register the type with its parameters
-    registry.register_type(cls.__name__, type_def, parameters)
+    # Register the type with its parameters and resolvers
+    registry.register_type(cls.__name__, type_def, parameters, resolvers)
     
     if type_definitions:
         return "\n\n".join([type_def] + type_definitions), resolvers
@@ -517,6 +523,7 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
     type_definitions = []
     generated_types = set()
     all_resolvers = {}
+    registry = GlobalTypeRegistry()
     
     # Add base types only if requested
     if include_base_types:
@@ -542,23 +549,24 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
-            # Do not generate resolver for root types
-            # They should be handled by the context resolver
+            # Generate resolver for root collection
+            # all_resolvers[f"{context_name}.{collection_name}"] = generate_default_resolver(collection_name)
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
         if identifier_fields:
             args = ", ".join(f"{field}: String" for field in identifier_fields)
             field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
+            # Generate resolver for root single item
+            #all_resolvers[f"{context_name}.{base_name}"] = generate_default_resolver(base_name)
     
     # Add context type
-    registry = GlobalTypeRegistry()
     if context_name:
         if not registry.is_registered(context_name):
             context_type = f"""type {context_name} {{
 {chr(10).join(field_definitions)}
 }}"""
-            registry.register_type(context_name, context_type)
+            registry.register_type(context_name, context_type, resolvers=all_resolvers)
             type_definitions.append(context_type)
     
             # Add query type extension
@@ -572,7 +580,7 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
         query_type = f"""extend type Query {{
 {chr(10).join(field_definitions)}
 }}"""
-        registry.register_type("Query", query_type)
+        registry.register_type("Query", query_type, resolvers=all_resolvers)
         type_definitions.append(query_type)
     
     return "\n\n".join(type_definitions), all_resolvers

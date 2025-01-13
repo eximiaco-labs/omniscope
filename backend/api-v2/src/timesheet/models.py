@@ -88,12 +88,18 @@ class TimesheetAppointment(BaseModel):
     account_manager_name: str
     account_manager_slug: str
     week: str
-
+    
+class TimesheetByKind(BaseModel):
+    consulting: TimesheetSummary
+    hands_on: TimesheetSummary
+    squad: TimesheetSummary
+    internal: TimesheetSummary
+    
 class Timesheet(BaseModel):
     slug: str = Id(description="The URL-friendly identifier of the timesheet")
     summary: Optional[TimesheetSummary] = None
     business_calendar: Optional[BusinessCalendar] = None
-    by_kind: Optional[Dict[str, TimesheetSummary]] = None
+    by_kind: Optional[TimesheetByKind] = None
     by_worker: Optional[List[NamedTimesheetSummary]] = None
     by_client: Optional[List[NamedTimesheetSummary]] = None
     by_case: Optional[List[TitledTimesheetSummary]] = None

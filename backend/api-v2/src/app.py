@@ -13,13 +13,15 @@ from ariadne import make_executable_schema, graphql_sync, snake_case_fallback_re
 from ariadne.explorer import ExplorerGraphiQL
 
 from team.resolvers.team import query as team_query, team
+from timesheet.resolvers import query as timesheet_query
+from ontology.resolvers.ontology import query as ontology_query, ontology
+
 from team.schema import schema as team_schema
 
-from ontology.resolvers.ontology import query as ontology_query, ontology
 from ontology.schema import schema as ontology_schema
 
 from timesheet.schema import schema as timesheet_schema
-from timesheet.resolvers import query as timesheet_query
+
 
 from core.generator import generate_base_schema, GlobalTypeRegistry
 
@@ -43,38 +45,41 @@ base_query = QueryType()
 def resolve_version(*_):
     return "2.0.0"
 
-# Create resolver types
-resolver_types = [base_query, team_query, team, ontology_query, ontology, timesheet_query]
+# Initialize registry and add base schema
+registry = GlobalTypeRegistry()
 
-# Get SDL and resolvers from each schema
+# Add base types and schemas to registry
+registry.register_type("Query", base_schema)
+generate_base_schema()  # This will register base types in the registry
+
+# Add module schemas to registry
+team_sdl = team_schema[0] if isinstance(team_schema, tuple) else team_schema
+ontology_sdl = ontology_schema[0] if isinstance(ontology_schema, tuple) else ontology_schema
 timesheet_sdl, timesheet_resolvers = timesheet_schema
 
-# Map timesheet collection resolvers
-for field_path, resolver_fn in timesheet_resolvers.items():
+# Create resolver types list starting with base query
+resolver_types = [team_query, team, ontology_query, ontology, timesheet_query]
+
+
+for field_path, resolver_fn in registry.resolvers.items():
     type_name, field_name = field_path.split(".")
     # Get or create type object
+    print(type_name, field_name)
     type_obj = next(
         (r for r in resolver_types if isinstance(r, ObjectType) and r.name == type_name),
         ObjectType(type_name)
     )
     # Set resolver
     type_obj.set_field(field_name, resolver_fn)
-    # Add to resolver types if new
     if type_obj not in resolver_types:
         resolver_types.append(type_obj)
-        
-registry = GlobalTypeRegistry()
-print(registry.generate_sdl())
 
-
+# Get all SDL from registry
 type_defs = [
-    base_schema,
-    generate_base_schema(),  # Add base types (Collection, Filter, Sort, etc)
-    team_schema[0] if isinstance(team_schema, tuple) else team_schema,
-    ontology_schema[0] if isinstance(ontology_schema, tuple) else ontology_schema,
-    timesheet_sdl
+    registry.generate_sdl(),
 ]
 
+# Create executable schema
 schema = make_executable_schema(
     type_defs,
     resolver_types,
