@@ -216,7 +216,11 @@ export default function RevenueForecastPage() {
         />
 
         <div className="mt-4">
-          <OneYearAllocation kind="consulting" hideTotals={true} />
+          <OneYearAllocation
+            kind="consulting"
+            hideTotals={true}
+            showProjectionGraph={false}
+          />
         </div>
 
         <ConsultingTable
@@ -244,7 +248,6 @@ export default function RevenueForecastPage() {
           normalized={normalized}
           useHistorical={useHistorical}
           setUseHistorical={setUseHistorical}
-          setNormalized={setNormalized}
         />
 
         <ConsultingTableByConsultant

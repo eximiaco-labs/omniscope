@@ -15,6 +15,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { CartesianGrid, Line, ComposedChart, XAxis, YAxis, Bar, ReferenceLine, Legend } from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 interface ContributionProps {
   month?: number;
@@ -25,6 +34,7 @@ interface ContributionProps {
   caseTitle?: string;
   kind?: "consulting" | "handsOn" | "squad" | "internal";
   hideTotals?: boolean;
+  showProjectionGraph?: boolean;
 }
 
 interface WeekInfo {
@@ -88,6 +98,10 @@ const ALLOCATION_QUERY = gql`
         }
       }
     }
+
+    businessCalendar(start: $startDate, end: $endDate) {
+      workingDays
+    }
   }
 `;
 
@@ -115,6 +129,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   caseTitle,
   kind,
   hideTotals = false,
+  showProjectionGraph = true,
 }) => {
   type KindType = "consulting" | "handsOn" | "squad" | "internal";
 
@@ -136,6 +151,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   // Initialize with empty string to ensure we select first non-zero value
   const [selectedKind, setSelectedKind] = useState<KindType | "">(kind || "");
   const [selectedBinIndex, setSelectedBinIndex] = useState<number | null>(null);
+  const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
+  
   const currentDate = new Date();
   const specifiedMonth = month || currentDate.getMonth() + 1;
   const specifiedYear = year || currentDate.getFullYear();
@@ -558,6 +575,43 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     return bins;
   };
 
+  const calculateWeekdayAverages = () => {
+    if (!data) return null;
+
+    // Initialize counters for each weekday
+    const weekdayTotals = Array(7).fill(0);
+    const weekdayCounts = Array(7).fill(0);
+    let firstEntryFound = false;
+    let lastMonthStart = new Date(endDate);
+    lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+
+    // Process each day's data
+    dayRows.forEach((row, dayIndex) => {
+      row.cells.forEach((cell) => {
+        if (!cell.fullDate) return;
+
+        const date = new Date(cell.fullDate);
+        if (date > lastMonthStart) return; // Skip last month
+
+        // Check for first entry with hours
+        if (!firstEntryFound && cell.hours > 0) {
+          firstEntryFound = true;
+        }
+
+        // After first entry is found, count all days (including zeros)
+        if (firstEntryFound) {
+          weekdayTotals[dayIndex] += cell.hours;
+          weekdayCounts[dayIndex]++;
+        }
+      });
+    });
+
+    // Calculate averages
+    return weekdayTotals.map((total, index) =>
+      weekdayCounts[index] > 0 ? total / weekdayCounts[index] : 0
+    );
+  };
+
   const weeks = generateWeeks();
   const monthGroups = groupWeeksByMonth(weeks);
   const dayRows = generateDayRows(weeks);
@@ -852,6 +906,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
       }
     }
 
+    const weekdayAverages = calculateWeekdayAverages();
+
     return (
       <div className="mt-4 overflow-x-auto">
         <table className="min-w-full">
@@ -947,14 +1003,23 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               </tr>
             ))}
             {!hideTotals && (
-              <tr>
-                <td className="text-xs text-gray-600 font-normal">Total (h)</td>
-                {totalHoursRow.map((cell, index) => (
-                  <td key={index} className="text-[8px] text-gray-600 font-normal">
-                    {Number.isInteger(cell) ? cell.toString() : cell.toFixed(1)}
+              <>
+                <tr>
+                  <td className="text-xs text-gray-600 font-normal">
+                    Total (h)
                   </td>
-                ))}
-              </tr>
+                  {totalHoursRow.map((cell, index) => (
+                    <td
+                      key={index}
+                      className="text-[8px] text-gray-600 font-normal"
+                    >
+                      {Number.isInteger(cell)
+                        ? cell.toString()
+                        : cell.toFixed(1)}
+                    </td>
+                  ))}
+                </tr>
+              </>
             )}
           </tbody>
         </table>
@@ -962,13 +1027,252 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     );
   };
 
+  const renderProjectionGraph = () => {
+    if (!data || !data.businessCalendar?.workingDays) return null;
+
+    const weekdayAverages = calculateWeekdayAverages();
+    if (!weekdayAverages) return null;
+
+    // Get current month and year
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Get first and last day of current month
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
+    // Generate array of days for current month
+    const days: { date: Date; weekDay: number; dateStr: string }[] = [];
+    let currentDate = new Date(firstDay);
+    
+    // Helper to check if a date is in the working days array
+    const isWorkingDay = (dateStr: string) => {
+      // Convert the ISO date string to the same format as workingDays
+      const date = new Date(dateStr);
+      const formattedDate = date.toUTCString();
+      return data.businessCalendar.workingDays.includes(formattedDate);
+    };
+
+    // Helper to get actual hours for a date
+    const getActualHours = (dateStr: string) => {
+      if (!selectedKind) {
+        return Object.values(hoursMap[dateStr] || {}).reduce((sum, hours) => sum + hours, 0);
+      }
+      return hoursMap[dateStr]?.[selectedKind] || 0;
+    };
+
+    while (currentDate <= lastDay) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      // Include all days of the month
+      days.push({
+        date: new Date(currentDate),
+        weekDay: currentDate.getDay(),
+        dateStr,
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Calculate projection and actual values
+    let accumulatedProjected = 0;
+    let accumulatedActual = 0;
+    
+    const projection = days.map((day, index) => {
+      const projected = isWorkingDay(day.dateStr) ? weekdayAverages[day.weekDay] : 0;
+      const actual = day.date <= now ? getActualHours(day.dateStr) : 0;
+      
+      // For actual accumulation, use previous day's value if no hours today
+      if (index === 0) {
+        accumulatedActual = actual;
+        accumulatedProjected = projected;
+      } else {
+        if (actual > 0) {
+          accumulatedActual += actual;
+        }
+        if (projected > 0) {
+          accumulatedProjected += projected;
+        }
+      }
+      // if no hours today, accumulated values remain the same as previous day
+      
+      return {
+        date: day.date,
+        weekDay: day.weekDay,
+        projected,
+        actual,
+        accumulatedProjected,
+        accumulatedActual,
+        isWorkingDay: isWorkingDay(day.dateStr),
+      };
+    });
+
+    // Adjust the chart data to maintain accumulated values
+    const chartData = projection.map((day) => {
+      const isPastOrToday = day.date <= now;
+      
+      return {
+        date: day.date.toLocaleDateString("pt-BR", { day: "numeric" }),
+        expected: day.accumulatedProjected,  // Show accumulated expected for all days
+        actual: isPastOrToday ? day.accumulatedActual : undefined,
+        positiveBalance: isPastOrToday && 
+          (day.accumulatedActual - day.accumulatedProjected >= 0)
+          ? day.accumulatedActual - day.accumulatedProjected 
+          : 0,
+        negativeBalance: isPastOrToday && 
+          (day.accumulatedActual - day.accumulatedProjected < 0)
+          ? day.accumulatedActual - day.accumulatedProjected 
+          : 0,
+        dailyProjected: day.isWorkingDay ? day.projected : undefined,
+        dailyActual: isPastOrToday ? day.actual : undefined,
+      };
+    });
+
+    const totalProjected = projection.reduce((sum, day) => sum + day.projected, 0);
+    const totalActual = projection.find(day => day.date <= now)?.accumulatedActual || 0;
+
+    const chartConfig = {
+      expected: {
+        label: "Expected",
+        color: "gray",
+      },
+      actual: {
+        label: "Actual",
+        color: "black",
+      },
+      difference: {
+        label: "Balance",
+        theme: {
+          light: "#16a34a", // verde
+          dark: "#dc2626", // vermelho
+        }
+      },
+    } satisfies ChartConfig;
+
+    return (
+      <div className="mt-8">
+        <SectionHeader title="Current Month Projection" subtitle={`${firstDay.toLocaleString('en-US', { month: 'long' })} ${currentYear}`} />
+        <div className="flex flex-col gap-2">
+          <ChartContainer config={chartConfig}>
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 5, right: 12, bottom: 5, left: 12 }}
+              accessibilityLayer
+              onMouseMove={(e: any) => {
+                if (e.activeLabel) {
+                  setHighlightedDate(e.activeLabel);
+                }
+              }}
+              onMouseLeave={() => setHighlightedDate(null)}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="date" />
+              <YAxis />
+              {highlightedDate && 
+              <ReferenceLine 
+                x={highlightedDate} 
+                stroke="#666" 
+                strokeDasharray="3 3"
+              />}
+              
+              {/* Barras para o Balance */}
+              <Bar
+                dataKey="positiveBalance"
+                fill={chartConfig.difference.theme.light}
+                fillOpacity={0.8}
+                stackId="stack"
+                isAnimationActive={false}
+              />
+              <Bar 
+                dataKey="negativeBalance"
+                fill={chartConfig.difference.theme.dark}
+                fillOpacity={0.8}
+                stackId="stack"
+                isAnimationActive={false}
+              />
+
+              {/* Linhas de Expected e Actual */}
+              <Line
+                type="natural"
+                strokeWidth={2}
+                dataKey="expected"
+                stroke={chartConfig.expected.color}
+                isAnimationActive={false}
+              />
+              <Line
+                type="natural"
+                strokeWidth={2}
+                dataKey="actual"
+                stroke={chartConfig.actual.color}
+                isAnimationActive={false}
+              />
+
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    formatter={(v: any, name: any) => {
+                      if (v === undefined || v === null) return false;
+                      
+                      let label = name;
+                      let color = "";
+
+                      if (name === "positiveBalance") {
+                        label = "positive";
+                        color = chartConfig.difference.theme.light;
+                      } else if (name === "negativeBalance") {
+                        label = "negative";
+                        color = chartConfig.difference.theme.dark;
+                      } else if (name === "expected") {
+                        color = chartConfig.expected.color;
+                      } else if (name === "actual") {
+                        color = chartConfig.actual.color;
+                      } else if (name === "dailyProjected") {
+                        label = "daily projected";
+                        color = chartConfig.expected.color;
+                      } else if (name === "dailyActual") {
+                        label = "daily actual";
+                        color = chartConfig.actual.color;
+                      }
+
+                      const value = `${Number(v).toFixed(1)}h`;
+                      if (value === '0.0h') return false;
+                      
+                      return (
+                        <span style={{ color }}>
+                          {`${label}: ${value}`}
+                        </span>
+                      );
+                    }}
+                  />
+                }
+              />
+              <Legend 
+                formatter={(value) => {
+                  if (value === "positiveBalance") return "positive";
+                  if (value === "negativeBalance") return "negative";
+                  if (value === "expected") return "Expected (acc)";
+                  if (value === "actual") return "Actual (acc)";
+                  return value;
+                }}
+                iconType="square"
+                align="right"
+                verticalAlign="top"
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {(error as ApolloError).message}</div>;
-  
-  var title = "One Year Allocation"
+
+  var title = "One Year Allocation";
   if (kind) {
     const capitalizedKind = kind.charAt(0).toUpperCase() + kind.slice(1);
-    title = `${title} - ${capitalizedKind}`
+    title = `${title} - ${capitalizedKind}`;
   }
 
   return (
@@ -986,9 +1290,10 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
       <div className="ml-2 mr-2">
         {renderKinds()}
         {renderHistogram()}
-        {renderAllocationGrid()}
+        {renderAllocationGrid()}   
         {renderAppointmentsSheet()}
       </div>
+      {showProjectionGraph && renderProjectionGraph()}
     </div>
   );
 };
