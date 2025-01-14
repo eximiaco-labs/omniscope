@@ -286,7 +286,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                 wah = case_.weekly_approved_hours
                 project_ = None
                 for ti in case_.tracker_info:
-                    if ti.kind == 'consulting':
+                    if ti.kind == 'consulting' and ti.status == "open":
                         project_ = ti
                         break
                     
