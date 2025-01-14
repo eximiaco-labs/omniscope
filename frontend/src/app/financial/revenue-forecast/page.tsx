@@ -17,6 +17,8 @@ import { OtherTable } from "./OtherTable";
 import { ConsultingPreTable } from "./ConsultingPreTable";
 import { GraphVizDaily } from "./GraphVizDaily";
 import OneYearAllocation from "@/app/components/OneYearAllocation";
+import SectionHeader from "@/components/SectionHeader";
+import { OnTheTable } from "./OnTheTable";
 
 export default function RevenueForecastPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -234,6 +236,16 @@ export default function RevenueForecastPage() {
         />
 
         <GraphVizDaily data={forecastData.daily} />
+
+        <OnTheTable
+          title="On the table"
+          tableData={forecastData.consulting}
+          tableId="onTheTable"
+          normalized={normalized}
+          useHistorical={useHistorical}
+          setUseHistorical={setUseHistorical}
+          setNormalized={setNormalized}
+        />
 
         <ConsultingTableByConsultant
           title="Consulting"
