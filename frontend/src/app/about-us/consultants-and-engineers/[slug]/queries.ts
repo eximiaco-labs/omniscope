@@ -94,6 +94,21 @@ export const GET_CONSULTANT = gql`
         }
       }
     }
+
+    forecast {
+      byKind {
+        consulting {
+          byClient {
+            name
+            slug
+            inAnalysisConsultingHours
+            inAnalysis
+            projected
+            expected
+          }
+        }
+      }
+    }
   }
 `;
 
@@ -166,5 +181,23 @@ export interface Consultant {
       totalSquadHours: number;
       totalInternalHours: number;
     }>;
+  };
+}
+
+export interface QueryResponse {
+  consultantOrEngineer: Consultant;
+  forecast: {
+    byKind: {
+      consulting: {
+        byClient: Array<{
+          name: string;
+          slug: string;
+          inAnalysisConsultingHours: number;
+          inAnalysis: number;
+          projected: number;
+          expected: number;
+        }>;
+      };
+    };
   };
 }

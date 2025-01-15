@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@apollo/client";
-import { GET_CONSULTANT, Consultant } from "./queries";
+import { GET_CONSULTANT, Consultant, QueryResponse } from "./queries";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import SectionHeader from "@/components/SectionHeader";
@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Heading } from "@/components/catalyst/heading";
 import { Card } from "@/components/ui/card";
 import OneYearAllocation from "@/app/components/OneYearAllocation";
+import { AllocationOpportunitiesTable } from "./AllocationOpportunitiesTable";
 
 interface ClientSummary {
   client: string;
@@ -149,6 +150,12 @@ const SummarySection = ({
   );
 };
 
+interface ClientGap {
+  name: string;
+  gap: number;
+  hoursNeeded: number;
+}
+
 export default function ConsultantPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -156,6 +163,12 @@ export default function ConsultantPage() {
   const [selectedDatePrev, setSelectedDatePrev] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
   );
+
+  // Add sorting state
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" }>({
+    key: "hoursNeeded",
+    direction: "desc"
+  });
 
   // Previous month states
   const [selectedDayPrev, setSelectedDayPrev] = useState<number | null>(null);
@@ -211,9 +224,7 @@ export default function ConsultantPage() {
   const currentMonthDataset = getVisibleDates(selectedDateCurr);
   const previousMonthDataset = getVisibleDates(selectedDatePrev);
 
-  const { data, loading, error } = useQuery<{
-    consultantOrEngineer: Consultant;
-  }>(GET_CONSULTANT, {
+  const { data, loading, error } = useQuery<QueryResponse>(GET_CONSULTANT, {
     variables: {
       slug,
       dataset1: previousMonthDataset,
@@ -365,6 +376,29 @@ export default function ConsultantPage() {
 
     return [...createSummaries("client"), ...createSummaries("sponsor")];
   };
+
+  const handleRequestSort = (key: string) => {
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig.key === key && prevConfig.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  };
+
+  const clientsWithGap = data?.forecast?.byKind?.consulting?.byClient
+    ?.filter(client => client.projected < client.expected)
+    ?.map(client => {
+      const hourlyRate = client.inAnalysis / client.inAnalysisConsultingHours;
+      const gap = client.expected - client.projected;
+      const hoursNeeded = gap / hourlyRate;
+
+      return {
+        name: client.name,
+        hoursNeeded,
+      };
+    }) || [];
 
   return (
     <div className="w-full p-2">
@@ -555,6 +589,14 @@ export default function ConsultantPage() {
           </div>
         </div>
       </div>
+
+      {clientsWithGap.length > 0 && (
+        <AllocationOpportunitiesTable
+          clients={clientsWithGap}
+          sortConfig={sortConfig}
+          onRequestSort={handleRequestSort}
+        />
+      )}
     </div>
   );
 }
