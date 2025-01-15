@@ -3,17 +3,13 @@
 import { useState } from "react";
 import { Avatar } from "@/components/catalyst/avatar";
 import { Badge } from "@/components/catalyst/badge";
-import { Heading } from "@/components/catalyst/heading";
 import { gql, useQuery } from "@apollo/client";
 import { Stat } from "@/app/components/analytics/stat";
-import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AlertTriangle, Mail } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
   query GetAccountManagersAndTimesheet {

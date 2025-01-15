@@ -11,4 +11,6 @@ class AccountManager(BaseModel):
     email: str = Field(..., description="The email address of the account manager")
     ontology_url: str = Field(..., description="The URL of the ontology entry of the account manager")
     photo_url: str = Field(..., description="The URL of the photo of the account manager")
+    is_recognized: bool = Field(..., description="Whether the account manager is recognized")
+    errors: Optional[List[str]] = None
     timesheet: Optional[Timesheet] = None

@@ -43,7 +43,9 @@ def convert_worker_to_account_manager(worker):
         name=worker.name,
         email=worker.email or "",
         ontology_url=str(worker.ontology_url or ""),
-        photo_url=str(worker.photo_url or "")
+        photo_url=str(worker.photo_url or ""),
+        is_recognized=worker.is_recognized,
+        errors=worker.errors
     )
 
 def convert_worker_to_consultant_or_engineer(worker):
@@ -54,7 +56,9 @@ def convert_worker_to_consultant_or_engineer(worker):
         name=worker.name,
         email=worker.email or "",
         ontology_url=str(worker.ontology_url or ""),
-        photo_url=str(worker.photo_url or "")
+        photo_url=str(worker.photo_url or ""),
+        is_recognized=worker.is_recognized,
+        errors=worker.errors
     )
 
 @team.field("accountManagers")
