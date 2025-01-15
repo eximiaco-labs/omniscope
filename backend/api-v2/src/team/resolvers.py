@@ -1,5 +1,7 @@
 from ariadne import QueryType, ObjectType
-from ..models import AccountManager, ConsultantOrEngineer
+from .models import AccountManager, ConsultantOrEngineer
+from timesheet.service import compute_timesheet
+from utils.fields import build_fields_map
 
 from omni_shared import globals
 from omni_models.domain import WorkerKind
@@ -7,10 +9,31 @@ from core.decorators import collection
 
 query = QueryType()
 team = ObjectType("Team")
+account_manager = ObjectType("AccountManager")
+
+team_resolvers = [ query, team, account_manager ]
 
 @query.field("team")
 def resolve_team(*_):
     return {}
+
+@account_manager.field("timesheet")
+def resolve_account_manager_timesheet(obj, info, slug: str = None, filters = None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'AccountManagerName',
+            'selected_values': [obj['name']]
+        }
+    ] + filters
+    
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, client_filters)
+    model_dump = result.model_dump()
+    print(model_dump)
+    return model_dump
 
 def convert_worker_to_account_manager(worker):
     """Convert a Worker instance to an AccountManager instance"""

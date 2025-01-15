@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
-
+from core.generator import FilterableField
 from core.fields import Id
 
 class WeeklyHours(BaseModel):
@@ -109,3 +109,4 @@ class Timesheet(BaseModel):
     by_week: Optional[List[WeekTimesheetSummary]] = None
     by_offer: Optional[List[NamedTimesheetSummary]] = None
     appointments: Optional[List[TimesheetAppointment]] = None 
+    filterable_fields: Optional[List[FilterableField]] = None

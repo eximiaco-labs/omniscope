@@ -3,6 +3,11 @@ from pydantic import BaseModel
 from datetime import datetime
 import re
 
+class FilterableField(BaseModel):
+    field: str
+    selected_values: Optional[List[str]] = []
+    options: Optional[List[str]] = []
+
 class GlobalTypeRegistry:
     _instance = None
     
@@ -89,6 +94,10 @@ def get_identifier_fields(cls: Type[BaseModel]) -> List[str]:
         for field_name, field in cls.model_fields.items()
         if field.json_schema_extra and field.json_schema_extra.get("is_identifier")
     ]
+    
+def has_filter_field(cls: Type[BaseModel]) -> bool:
+    """Check if the model has a filter field"""
+    return "filterable_fields" in cls.model_fields
 
 def generate_enum_type(enum_cls) -> str:
     """Generate GraphQL enum type from Python enum"""
@@ -289,6 +298,9 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     
     # Collect parameters from identifier fields
     parameters = get_identifier_fields(cls)
+    if has_filter_field(cls):
+        parameters.append("filters: [DatasetFilterInput]")
+    
     
     # Generate the base type first
     type_def = f"""type {cls.__name__} {{
@@ -327,7 +339,17 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                 
                 # Get parameters for the inner type
                 inner_params = registry.get_type_parameters(inner_type.__name__)
-                param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
+                
+                if not inner_params:
+                    param_args = ""
+                else:
+                    p = [
+                        f"{param}: String" if ":" not in param else param
+                        for param in inner_params
+                    ]
+                    param_args = ", ".join(p)
+                
+                #param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
                 param_str = f"({param_args}, " if param_args else "("
                 
                 field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
@@ -336,6 +358,8 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
+        elif is_list and field_name == "filterable_fields":
+            gql_type = "[FilterableField!]"
         elif is_list:
             if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
                 nested_type, nested_resolvers = generate_type(inner_type, generated_types)
@@ -346,7 +370,17 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                 
                 # Get parameters for the inner type
                 inner_params = registry.get_type_parameters(inner_type.__name__)
-                param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
+                
+                if not inner_params:
+                    param_args = ""
+                else:
+                    p = [
+                        f"{param}: String" if ":" not in param else param
+                        for param in inner_params
+                    ]
+                    param_args = ", ".join(p)
+                
+                #param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
                 param_str = f"({param_args}, " if param_args else "("
                 
                 field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
@@ -366,7 +400,15 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                 # Get parameters for the inner type
                 inner_params = registry.get_type_parameters(inner_type.__name__)
                 if inner_params:
-                    param_args = ", ".join(f"{param}: String" for param in inner_params)
+                    #param_args = ", ".join(f"{param}: String" for param in inner_params)
+                    if not inner_params:
+                        param_args = ""
+                    else:
+                        p = [
+                            f"{param}: String" if ":" not in param else param
+                            for param in inner_params
+                        ]
+                        param_args = ", ".join(p)
                     field_definitions.append(f"    {camel_field_name}({param_args}): {gql_type}{'!' if not is_optional else ''}")
                     continue
             elif inner_type == str:
@@ -431,6 +473,25 @@ def generate_collection_metadata_type() -> str:
 def generate_filter_types() -> str:
     registry = GlobalTypeRegistry()
     type_definitions = []
+    
+    if not registry.is_registered("DatasetFilterInput"):
+        dataset_filter = """input DatasetFilterInput {
+  field: String!
+  selectedValues: [String!]!
+}"""
+        registry.register_type("DatasetFilterInput", dataset_filter)
+        type_definitions.append(dataset_filter)
+    
+    if not registry.is_registered("FilterableField"):
+        
+        dataset_filterable_fields = """type FilterableField {
+  field: String!
+  selectedValues: [String!]!
+  options: [String!]!
+}"""
+
+        registry.register_type("FilterableField", dataset_filterable_fields)
+        type_definitions.append(dataset_filterable_fields)
     
     if not registry.is_registered("RangeFilterInput"):
         range_filter = """input RangeFilterInput {
@@ -554,8 +615,11 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
         
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
+
         if identifier_fields:
             args = ", ".join(f"{field}: String" for field in identifier_fields)
+            if has_filter_field(cls):
+                args += ", filters: [DatasetFilterInput]"
             field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
             # Generate resolver for root single item
             #all_resolvers[f"{context_name}.{base_name}"] = generate_default_resolver(base_name)

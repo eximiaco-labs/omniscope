@@ -252,7 +252,10 @@ def compute_timesheet(map: Dict, slug: str, filters = None) -> Timesheet:
     
     response_dict = {
         'slug': slug,
+        'filterable_fields': result['filterable_fields']
     }
+    
+    
     
     # Check if any field other than the specific summary fields is requested
     base_fields = set(requested_fields) - {
@@ -310,5 +313,6 @@ def compute_timesheet(map: Dict, slug: str, filters = None) -> Timesheet:
         
     if 'appointments' in requested_fields:
         response_dict['appointments'] = get_appointments(df)
+        
 
     return Timesheet(**response_dict) 

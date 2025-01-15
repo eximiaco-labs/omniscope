@@ -12,7 +12,8 @@ from flask_cors import CORS
 from ariadne import make_executable_schema, graphql_sync, snake_case_fallback_resolvers, QueryType, ObjectType
 from ariadne.explorer import ExplorerGraphiQL
 
-from team.resolvers.team import query as team_query, team
+# from team.resolvers.team import query as team_query, team
+from team.resolvers import team_resolvers
 from timesheet.resolvers import query as timesheet_query
 from ontology.resolvers.ontology import query as ontology_query, ontology
 
@@ -58,7 +59,7 @@ ontology_sdl = ontology_schema[0] if isinstance(ontology_schema, tuple) else ont
 timesheet_sdl, timesheet_resolvers = timesheet_schema
 
 # Create resolver types list starting with base query
-resolver_types = [team_query, team, ontology_query, ontology, timesheet_query]
+resolver_types = team_resolvers + [ontology_query, ontology, timesheet_query]
 
 
 for field_path, resolver_fn in registry.resolvers.items():
