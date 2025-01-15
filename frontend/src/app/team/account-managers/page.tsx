@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Avatar } from "@/components/catalyst/avatar";
-import { Badge } from "@/components/catalyst/badge";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { gql, useQuery } from "@apollo/client";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 import { Stat } from "@/app/components/analytics/stat";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,47 +14,50 @@ import SectionHeader from "@/components/SectionHeader";
 
 const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
   query GetAccountManagersAndTimesheet {
-    accountManagers {
-      slug
-      name
-      email
-      position
-      photoUrl
-      isRecognized
-      errors
-    }
-    timesheet(slug: "last-six-weeks", kind: ALL) {
-      uniqueAccountManagers
-      byKind {
-        consulting {
-          uniqueAccountManagers
-        }
-        handsOn {
-          uniqueAccountManagers
-        }
-        squad {
-          uniqueAccountManagers
-        }
-        internal {
-          uniqueAccountManagers
+    team {
+      accountManagers {
+        data {
+          slug
+          name
+          email
+          position
+          photoUrl
+          isRecognized
+          errors
+          timesheet(slug: "last-six-weeks") {
+            summary {
+              totalHours
+              totalConsultingHours
+              totalHandsOnHours
+              totalSquadHours
+              totalInternalHours
+            }
+          }
         }
       }
-      byAccountManager {
-        name
-        totalHours
-        totalConsultingHours
-        totalHandsOnHours
-        totalSquadHours
-        totalInternalHours
+    }
+    timesheet(slug: "last-six-weeks") {
+      byKind {
+        consulting { uniqueAccountManagers }
+        handsOn { uniqueAccountManagers }
+        squad { uniqueAccountManagers }
+        internal { uniqueAccountManagers }
       }
     }
   }
 `;
 
 export default function AccountManagers() {
+  const client = useEdgeClient();
+  
+  if (!client) return <p>Loading client...</p>;
+  
   const { loading, error, data } = useQuery(
     GET_ACCOUNT_MANAGERS_AND_TIMESHEET,
-    { ssr: true }
+    { 
+      client,
+      ssr: true 
+    }
   );
   const [selectedStat, setSelectedStat] = useState<string>("allAccountManagers");
 
@@ -72,11 +76,9 @@ export default function AccountManagers() {
     }`;
   };
 
-  const filteredAccountManagers = data.accountManagers.filter(
+  const filteredAccountManagers = data.team.accountManagers.data.filter(
     (manager: any) => {
-      const managerData = data.timesheet.byAccountManager.find(
-        (m: any) => m.name === manager.name
-      );
+      const managerData = manager.timesheet?.summary;
       if (!managerData) return selectedStat === "allAccountManagers";
       switch (selectedStat) {
         case "total":
@@ -97,24 +99,7 @@ export default function AccountManagers() {
 
   const AccountManagerCard = ({ manager }: { manager: any }) => {
     const [isHovered, setIsHovered] = useState(false);
-    const managerData = data.timesheet.byAccountManager.find(
-      (m: any) => m.name === manager.name
-    );
-
-    const getBadgeColor = (type: string) => {
-      switch (type) {
-        case "consulting":
-          return "amber";
-        case "handsOn":
-          return "purple";
-        case "squad":
-          return "blue";
-        case "internal":
-          return "emerald";
-        default:
-          return "zinc";
-      }
-    };
+    const managerData = manager.timesheet?.summary;
 
     return (
       <Link
@@ -132,7 +117,8 @@ export default function AccountManagers() {
             !manager.email ||
             (manager.email &&
               !manager.email.endsWith("@elemarjr.com") &&
-              !manager.email.endsWith("@eximia.co"))) && (
+              !manager.email.endsWith("@eximia.co") &&
+              !manager.email.endsWith("@eximia.com"))) && (
             <div className="absolute -top-2 -left-2 z-10">
               <div className="bg-red-500 rounded-full p-1">
                 <AlertTriangle className="text-white" size={20} />
@@ -140,7 +126,9 @@ export default function AccountManagers() {
             </div>
           )}
           <CardContent className="flex flex-col items-center p-4">
-            <Avatar src={manager.photoUrl} className="size-16 mb-2" />
+            <Avatar className="size-16 mb-2">
+              <AvatarImage src={manager.photoUrl} alt={manager.name} />
+            </Avatar>
             <CardHeader className="p-0 mt-2">
               <CardTitle
                 className={`text-center text-sm ${
@@ -178,7 +166,7 @@ export default function AccountManagers() {
             {manager.errors.length > 0 && (
               <div className="mt-2 flex flex-wrap justify-center">
                 {manager.errors.map((error: string) => (
-                  <Badge key={error} color="rose" className="text-xs m-1">
+                  <Badge key={error} variant="destructive" className="text-xs m-1">
                     {error}
                   </Badge>
                 ))}
@@ -187,7 +175,7 @@ export default function AccountManagers() {
             {managerData && (
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {managerData.totalConsultingHours > 0 && (
-                  <Badge color={getBadgeColor("consulting")}>
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">
                     {managerData.totalConsultingHours
                       .toFixed(1)
                       .replace(/\.0$/, "")}
@@ -195,7 +183,7 @@ export default function AccountManagers() {
                   </Badge>
                 )}
                 {managerData.totalHandsOnHours > 0 && (
-                  <Badge color={getBadgeColor("handsOn")}>
+                  <Badge variant="outline" className="bg-violet-500/10 text-violet-500 border-violet-500/20">
                     {managerData.totalHandsOnHours
                       .toFixed(1)
                       .replace(/\.0$/, "")}
@@ -203,13 +191,13 @@ export default function AccountManagers() {
                   </Badge>
                 )}
                 {managerData.totalSquadHours > 0 && (
-                  <Badge color={getBadgeColor("squad")}>
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
                     {managerData.totalSquadHours.toFixed(1).replace(/\.0$/, "")}
                     h
                   </Badge>
                 )}
                 {managerData.totalInternalHours > 0 && (
-                  <Badge color={getBadgeColor("internal")}>
+                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
                     {managerData.totalInternalHours
                       .toFixed(1)
                       .replace(/\.0$/, "")}
@@ -239,7 +227,7 @@ export default function AccountManagers() {
               >
                 <Stat
                   title="All Managers"
-                  value={data.accountManagers.length.toString()}
+                  value={data.team.accountManagers.data.length.toString()}
                 />
               </div>
             </div>
@@ -252,7 +240,17 @@ export default function AccountManagers() {
                 >
                   <Stat
                     title="Active Managers"
-                    value={data.timesheet.uniqueAccountManagers.toString()}
+                    value={data.team.accountManagers.data.filter(
+                      (manager: any) => {
+                        const summary = manager.timesheet?.summary;
+                        return summary && (
+                          summary.totalConsultingHours > 0 ||
+                          summary.totalHandsOnHours > 0 ||
+                          summary.totalSquadHours > 0 ||
+                          summary.totalInternalHours > 0
+                        );
+                      }
+                    ).length.toString()}
                   />
                 </div>
                 <div
@@ -263,7 +261,17 @@ export default function AccountManagers() {
                     title="Consulting"
                     value={data.timesheet.byKind.consulting.uniqueAccountManagers.toString()}
                     color="#F59E0B"
-                    total={data.timesheet.uniqueAccountManagers}
+                    total={data.team.accountManagers.data.filter(
+                      (manager: any) => {
+                        const summary = manager.timesheet?.summary;
+                        return summary && (
+                          summary.totalConsultingHours > 0 ||
+                          summary.totalHandsOnHours > 0 ||
+                          summary.totalSquadHours > 0 ||
+                          summary.totalInternalHours > 0
+                        );
+                      }
+                    ).length}
                   />
                 </div>
                 <div
@@ -274,7 +282,17 @@ export default function AccountManagers() {
                     title="Hands-On"
                     value={data.timesheet.byKind.handsOn.uniqueAccountManagers.toString()}
                     color="#8B5CF6"
-                    total={data.timesheet.uniqueAccountManagers}
+                    total={data.team.accountManagers.data.filter(
+                      (manager: any) => {
+                        const summary = manager.timesheet?.summary;
+                        return summary && (
+                          summary.totalConsultingHours > 0 ||
+                          summary.totalHandsOnHours > 0 ||
+                          summary.totalSquadHours > 0 ||
+                          summary.totalInternalHours > 0
+                        );
+                      }
+                    ).length}
                   />
                 </div>
                 <div
@@ -285,7 +303,17 @@ export default function AccountManagers() {
                     title="Squad"
                     value={data.timesheet.byKind.squad.uniqueAccountManagers.toString()}
                     color="#3B82F6"
-                    total={data.timesheet.uniqueAccountManagers}
+                    total={data.team.accountManagers.data.filter(
+                      (manager: any) => {
+                        const summary = manager.timesheet?.summary;
+                        return summary && (
+                          summary.totalConsultingHours > 0 ||
+                          summary.totalHandsOnHours > 0 ||
+                          summary.totalSquadHours > 0 ||
+                          summary.totalInternalHours > 0
+                        );
+                      }
+                    ).length}
                   />
                 </div>
                 <div
@@ -296,7 +324,17 @@ export default function AccountManagers() {
                     title="Internal"
                     value={data.timesheet.byKind.internal.uniqueAccountManagers.toString()}
                     color="#10B981"
-                    total={data.timesheet.uniqueAccountManagers}
+                    total={data.team.accountManagers.data.filter(
+                      (manager: any) => {
+                        const summary = manager.timesheet?.summary;
+                        return summary && (
+                          summary.totalConsultingHours > 0 ||
+                          summary.totalHandsOnHours > 0 ||
+                          summary.totalSquadHours > 0 ||
+                          summary.totalInternalHours > 0
+                        );
+                      }
+                    ).length}
                   />
                 </div>
               </div>

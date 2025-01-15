@@ -45,6 +45,7 @@ def convert_worker_to_account_manager(worker):
         ontology_url=str(worker.ontology_url or ""),
         photo_url=str(worker.photo_url or ""),
         is_recognized=worker.is_recognized,
+        position=worker.position,
         errors=worker.errors
     )
 
@@ -58,6 +59,7 @@ def convert_worker_to_consultant_or_engineer(worker):
         ontology_url=str(worker.ontology_url or ""),
         photo_url=str(worker.photo_url or ""),
         is_recognized=worker.is_recognized,
+        position=worker.position,
         errors=worker.errors
     )
 
