@@ -32,8 +32,8 @@ export function getTeamSidebarItems() {
       icon: BriefcaseIcon,
     },
     {
-      title: "Consultants & Engineers",
-      url: "/team/consultants-and-engineers",
+      title: "Consultants or Engineers",
+      url: "/team/consultants-or-engineers",
       icon: UserIcon,
     },
   ];

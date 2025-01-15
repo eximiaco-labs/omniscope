@@ -10,8 +10,9 @@ from core.decorators import collection
 query = QueryType()
 team = ObjectType("Team")
 account_manager = ObjectType("AccountManager")
+consultant_or_engineer = ObjectType("ConsultantOrEngineer")
 
-team_resolvers = [ query, team, account_manager ]
+team_resolvers = [ query, team, account_manager, consultant_or_engineer ]
 
 @query.field("team")
 def resolve_team(*_):
@@ -25,6 +26,24 @@ def resolve_account_manager_timesheet(obj, info, slug: str = None, filters = Non
     client_filters = [
         {
             'field': 'AccountManagerName',
+            'selected_values': [obj['name']]
+        }
+    ] + filters
+    
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, client_filters)
+    model_dump = result.model_dump()
+    print(model_dump)
+    return model_dump
+
+@consultant_or_engineer.field("timesheet")
+def resolve_consultant_or_engineer_timesheet(obj, info, slug: str = None, filters = None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'WorkerName',
             'selected_values': [obj['name']]
         }
     ] + filters
@@ -60,7 +79,11 @@ def convert_worker_to_consultant_or_engineer(worker):
         photo_url=str(worker.photo_url or ""),
         is_recognized=worker.is_recognized,
         position=worker.position,
-        errors=worker.errors
+        errors=worker.errors,
+        is_ontology_author=worker.is_ontology_author,
+        is_insights_author=worker.is_insights_author,
+        is_time_tracker_worker=worker.is_time_tracker_worker,
+        is_special_projects_worker=worker.is_special_projects_worker
     )
 
 @team.field("accountManagers")
