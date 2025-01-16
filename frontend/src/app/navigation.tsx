@@ -19,7 +19,9 @@ import {
   ClockIcon,
   ClipboardListIcon,
   AlertCircleIcon,
+  BriefcaseBusinessIcon,
   BookIcon,
+  BicepsFlexedIcon
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -29,12 +31,12 @@ export function getTeamSidebarItems() {
     {
       title: "Account Managers",
       url: "/team/account-managers",
-      icon: BriefcaseIcon,
+      icon: BriefcaseBusinessIcon,
     },
     {
       title: "Consultants or Engineers",
       url: "/team/consultants-or-engineers",
-      icon: UserIcon,
+      icon: BicepsFlexedIcon,
     },
   ];
 }

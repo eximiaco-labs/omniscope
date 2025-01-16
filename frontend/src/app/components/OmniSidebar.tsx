@@ -23,6 +23,7 @@ import {
   CheckCheckIcon,
   BookOpenIcon,
   BriefcaseIcon,
+  UsersRoundIcon,
 } from "lucide-react";
 
 import { useSession } from "next-auth/react";
@@ -214,6 +215,12 @@ export function OmniSidebar() {
               <SidebarMenu>
                 {(
                   [
+                    {
+                      section: "Team",
+                      items: teamItems,
+                      icon: UsersRoundIcon,
+                      tooltip: "Team",
+                    },
                     hasFinancialAccess && {
                       section: "Financial",
                       items: financialItems,
@@ -227,12 +234,7 @@ export function OmniSidebar() {
                       icon: BarChart3Icon,
                       tooltip: "Analytics",
                     },
-                    {
-                      section: "Team",
-                      items: teamItems,
-                      icon: BriefcaseIcon,
-                      tooltip: "Team",
-                    },
+                    
                     {
                       section: "About Us",
                       items: aboutUsItems,
