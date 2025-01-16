@@ -123,3 +123,21 @@ def resolve_client_active_cases(obj, info):
         for case in source
         if case.is_active
     ]
+    
+    
+@sponsor.field("timesheet")
+def resolve_sponsor_timesheet(obj, info, slug: str = None, filters = None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'Sponsor',
+            'selected_values': [obj['name']]
+        }
+    ] + filters
+    
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, client_filters)
+    model_dump = result.model_dump()
+    return model_dump

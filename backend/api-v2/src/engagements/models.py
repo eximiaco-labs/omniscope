@@ -87,9 +87,9 @@ class Sponsor(BaseModel):
     name: str = Field(..., description="The full name of the sponsor")
     photo_url: str = Field("/images/who_is_it.jpeg", description="The URL of the sponsor's photo")
     client_id: Optional[int] = Field(None, description="The ID of the associated client")
-    # crm_id: Optional[str] = Field(None, description="The ID of the sponsor in the CRM system")
     job_title: Optional[str] = Field(None, description="The job title of the sponsor")
     linkedin_url: Optional[str] = Field(None, description="The URL of the sponsor's LinkedIn profile")
+    timesheet: Optional[Timesheet] = None
 
     @classmethod
     def from_domain(cls, domain_sponsor):
@@ -120,7 +120,7 @@ class Project(BaseModel):
     
     billing_type: Optional[str] = Field(None, description="The type of billing for this project")
     billing_fee: Optional[float] = Field(None, description="The billing fee amount")
-
+    
     @classmethod
     def from_domain(cls, domain_project):
         """Convert a domain Project instance to a Project model instance"""
