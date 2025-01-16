@@ -193,6 +193,11 @@ def get_type_name(type_obj):
         # Map Python types to GraphQL types
         type_map = {
             "str": "String",
+            "int": "Int",
+            "float": "Float",
+            "bool": "Boolean",
+            "datetime": "DateTime",
+            "date": "Date",
             "Any": "JSON",  # Using JSON for Any type
             "dict": "JSON",
             "Dict": "JSON",
@@ -205,6 +210,10 @@ def get_type_name(type_obj):
         # Map forward references
         type_map = {
             "str": "String",
+            "int": "Int",
+            "float": "Float",
+            "bool": "Boolean",
+            "datetime": "DateTime",
             "Any": "JSON",
             "dict": "JSON",
             "Dict": "JSON",
@@ -562,6 +571,11 @@ def generate_base_schema() -> str:
         scalar_datetime = "scalar DateTime"
         registry.register_type("DateTime", scalar_datetime)
         type_definitions.append(scalar_datetime)
+        
+    if not registry.is_registered("Date"):
+        scalar_date = "scalar Date"
+        registry.register_type("Date", scalar_date)
+        type_definitions.append(scalar_date)
 
     if not registry.is_registered("JSON"):
         scalar_json = "scalar JSON"

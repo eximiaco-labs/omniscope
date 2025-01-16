@@ -33,7 +33,6 @@ def resolve_account_manager_timesheet(obj, info, slug: str = None, filters = Non
     map = build_fields_map(info)
     result = compute_timesheet(map, slug, client_filters)
     model_dump = result.model_dump()
-    print(model_dump)
     return model_dump
 
 @consultant_or_engineer.field("timesheet")
