@@ -8,24 +8,37 @@ import { WorkerCard } from "./WorkerCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
-    consultantsAndEngineers {
-      slug
-      name
-      email
-      position
-      photoUrl
-      errors
-      isRecognized
-      isOntologyAuthor
-      isInsightsAuthor
-      isTimeTrackerWorker
-      isSpecialProjectsWorker
+    team {
+      consultantsOrEngineers {
+        data {
+          slug
+          name
+          email
+          position
+          photoUrl
+          errors
+          isRecognized
+          isOntologyAuthor
+          isInsightsAuthor
+          isTimeTrackerWorker
+          isSpecialProjectsWorker
+          timesheet(slug: "last-six-weeks") {
+            summary {
+              totalHours
+              totalConsultingHours
+              totalHandsOnHours
+              totalSquadHours
+              totalInternalHours
+            }
+          }
+        }
+      }
     }
-    timesheet(slug: "last-six-weeks", kind: ALL) {
-      uniqueWorkers
+    timesheet(slug: "last-six-weeks") {
       byKind {
         consulting {
           uniqueWorkers
@@ -40,20 +53,11 @@ const GET_CONSULTANTS_AND_TIMESHEET = gql`
           uniqueWorkers
         }
       }
-      byWorker {
-        name
-        totalHours
-        totalConsultingHours
-        totalHandsOnHours
-        totalSquadHours
-        totalInternalHours
-      }
     }
   }
 `;
 
-interface TimesheetWorker {
-  name: string;
+interface TimesheetSummary {
   totalHours: number;
   totalConsultingHours: number;
   totalHandsOnHours: number;
@@ -73,28 +77,40 @@ interface ConsultantEngineer {
   isInsightsAuthor: boolean;
   isTimeTrackerWorker: boolean;
   isSpecialProjectsWorker: boolean;
+  timesheet?: {
+    summary: TimesheetSummary;
+  };
 }
 
 interface TimesheetData {
-  uniqueWorkers: number;
   byKind: {
     consulting: { uniqueWorkers: number };
     handsOn: { uniqueWorkers: number };
     squad: { uniqueWorkers: number };
     internal: { uniqueWorkers: number };
   };
-  byWorker: TimesheetWorker[];
 }
 
 interface QueryData {
-  consultantsAndEngineers: ConsultantEngineer[];
+  team: {
+    consultantsOrEngineers: {
+      data: ConsultantEngineer[];
+    };
+  };
   timesheet: TimesheetData;
 }
 
 export default function ConsultantsAndEngineers() {
+  const client = useEdgeClient();
+  
+  if (!client) return <p>Loading client...</p>;
+  
   const { loading, error, data } = useQuery<QueryData>(
     GET_CONSULTANTS_AND_TIMESHEET,
-    { ssr: true }
+    { 
+      client,
+      ssr: true 
+    }
   );
   const [selectedStat, setSelectedStat] = useState<string>("allWorkers");
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,32 +131,36 @@ export default function ConsultantsAndEngineers() {
     }`;
   };
 
-  const filteredWorkers = data.consultantsAndEngineers
+  const filteredWorkers = data.team.consultantsOrEngineers.data
     .filter((worker) => 
       worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       worker.position.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((worker) => {
-      const workerData = data.timesheet.byWorker.find(
-        (w) => w.name === worker.name
-      );
-      if (!workerData) return selectedStat === "allWorkers";
+      const summary = worker.timesheet?.summary;
+      if (!summary) return selectedStat === "allWorkers";
 
       switch (selectedStat) {
         case "total":
-          return workerData.totalHours > 0;
+          return summary.totalHours > 0;
         case "consulting":
-          return workerData.totalConsultingHours > 0;
+          return summary.totalConsultingHours > 0;
         case "handsOn":
-          return workerData.totalHandsOnHours > 0;
+          return summary.totalHandsOnHours > 0;
         case "squad":
-          return workerData.totalSquadHours > 0;
+          return summary.totalSquadHours > 0;
         case "internal":
-          return workerData.totalInternalHours > 0;
+          return summary.totalInternalHours > 0;
         default:
           return true;
       }
     });
+
+  const getActiveWorkersCount = () => {
+    return data.team.consultantsOrEngineers.data.filter(
+      worker => worker.timesheet?.summary && worker.timesheet.summary.totalHours > 0
+    ).length;
+  };
 
   return (
     <>
@@ -155,7 +175,7 @@ export default function ConsultantsAndEngineers() {
               >
                 <Stat
                   title="All Workers"
-                  value={data.consultantsAndEngineers.length.toString()}
+                  value={data.team.consultantsOrEngineers.data.length.toString()}
                 />
               </div>
             </div>
@@ -168,7 +188,7 @@ export default function ConsultantsAndEngineers() {
                 >
                   <Stat
                     title="Active Workers"
-                    value={data.timesheet.uniqueWorkers.toString()}
+                    value={getActiveWorkersCount().toString()}
                   />
                 </div>
                 <div
@@ -179,7 +199,7 @@ export default function ConsultantsAndEngineers() {
                     title="Consulting"
                     value={data.timesheet.byKind.consulting.uniqueWorkers.toString()}
                     color="#F59E0B"
-                    total={data.timesheet.uniqueWorkers}
+                    total={getActiveWorkersCount()}
                   />
                 </div>
                 <div
@@ -190,7 +210,7 @@ export default function ConsultantsAndEngineers() {
                     title="Hands-On"
                     value={data.timesheet.byKind.handsOn.uniqueWorkers.toString()}
                     color="#8B5CF6"
-                    total={data.timesheet.uniqueWorkers}
+                    total={getActiveWorkersCount()}
                   />
                 </div>
                 <div
@@ -201,7 +221,7 @@ export default function ConsultantsAndEngineers() {
                     title="Squad"
                     value={data.timesheet.byKind.squad.uniqueWorkers.toString()}
                     color="#3B82F6"
-                    total={data.timesheet.uniqueWorkers}
+                    total={getActiveWorkersCount()}
                   />
                 </div>
                 <div
@@ -212,7 +232,7 @@ export default function ConsultantsAndEngineers() {
                     title="Internal"
                     value={data.timesheet.byKind.internal.uniqueWorkers.toString()}
                     color="#10B981"
-                    total={data.timesheet.uniqueWorkers}
+                    total={getActiveWorkersCount()}
                   />
                 </div>
               </div>
@@ -249,9 +269,7 @@ export default function ConsultantsAndEngineers() {
               >
                 <WorkerCard
                   worker={worker}
-                  workerData={data.timesheet.byWorker.find(
-                    (w) => w.name === worker.name
-                  )}
+                  workerData={worker.timesheet?.summary}
                 />
               </motion.div>
             ))}

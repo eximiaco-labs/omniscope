@@ -1,25 +1,35 @@
 import { useState } from "react";
 import Link from "next/link";
-import { Avatar } from "@/components/catalyst/avatar";
-import { Badge } from "@/components/catalyst/badge";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { BookOpen, Briefcase, Lightbulb, ListTodo, AlertTriangle, Mail } from "lucide-react";
 
-interface WorkerCardProps {
-  worker: any;
-  workerData: any;
+interface TimesheetSummary {
+  totalHours: number;
+  totalConsultingHours: number;
+  totalHandsOnHours: number;
+  totalSquadHours: number;
+  totalInternalHours: number;
 }
 
-const getBadgeColor = (type: string) => {
-  switch (type) {
-    case 'consulting': return 'amber';
-    case 'handsOn': return 'purple';
-    case 'squad': return 'blue';
-    case 'internal': return 'emerald';
-    default: return 'zinc';
-  }
-};
+interface WorkerCardProps {
+  worker: {
+    slug: string;
+    name: string;
+    email: string;
+    position: string;
+    photoUrl: string;
+    errors: string[];
+    isRecognized: boolean;
+    isOntologyAuthor: boolean;
+    isInsightsAuthor: boolean;
+    isTimeTrackerWorker: boolean;
+    isSpecialProjectsWorker: boolean;
+  };
+  workerData?: TimesheetSummary;
+}
 
 export function WorkerCard({ worker, workerData }: WorkerCardProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -40,7 +50,9 @@ export function WorkerCard({ worker, workerData }: WorkerCardProps) {
           </div>
         )}
         <CardContent className="flex flex-col items-center p-4">
-          <Avatar src={worker.photoUrl} className="size-16 mb-2" />
+          <Avatar className="size-16 mb-2">
+            <AvatarImage src={worker.photoUrl} alt={worker.name} />
+          </Avatar>
           <CardHeader className="p-0 mt-2">
             <CardTitle className={`text-center text-sm ${isHovered ? 'font-semibold' : ''} transition-all duration-300`}>
               {worker.name}
@@ -110,22 +122,22 @@ export function WorkerCard({ worker, workerData }: WorkerCardProps) {
           {workerData && (
             <div className="flex flex-wrap justify-center gap-1 mt-2">
               {workerData.totalConsultingHours > 0 && (
-                <Badge color={getBadgeColor('consulting')}>
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">
                   {workerData.totalConsultingHours.toFixed(1).replace(/\.0$/, '')}h
                 </Badge>
               )}
               {workerData.totalHandsOnHours > 0 && (
-                <Badge color={getBadgeColor('handsOn')}>
+                <Badge variant="outline" className="bg-violet-500/10 text-violet-500 border-violet-500/20">
                   {workerData.totalHandsOnHours.toFixed(1).replace(/\.0$/, '')}h
                 </Badge>
               )}
               {workerData.totalSquadHours > 0 && (
-                <Badge color={getBadgeColor('squad')}>
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
                   {workerData.totalSquadHours.toFixed(1).replace(/\.0$/, '')}h
                 </Badge>
               )}
               {workerData.totalInternalHours > 0 && (
-                <Badge color={getBadgeColor('internal')}>
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
                   {workerData.totalInternalHours.toFixed(1).replace(/\.0$/, '')}h
                 </Badge>
               )}
