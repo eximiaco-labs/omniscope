@@ -11,23 +11,37 @@ import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { Search, AlertTriangle } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const GET_SPONSORS_AND_TIMESHEET = gql`
   query GetSponsorsAndTimesheet {
-    sponsors {
-      slug
-      name
-      photoUrl
-      jobTitle
-      linkedinUrl
-      omniUrl
-      crmId
-      client {
-        name
+    engagements {
+      sponsors {
+        data {
+          slug
+          name
+          photoUrl
+          jobTitle
+          linkedinUrl
+          client {
+            name
+          }
+          timesheet(slug: "last-six-weeks") {
+            summary {
+              totalHours
+              totalConsultingHours
+              totalHandsOnHours
+              totalSquadHours
+              totalInternalHours
+            }
+          }
+        }
       }
     }
-    timesheet(slug: "last-six-weeks", kind: ALL) {
-      uniqueSponsors
+    timesheet(slug: "last-six-weeks") {
+      summary {
+        uniqueSponsors
+      }
       byKind {
         consulting {
           uniqueSponsors
@@ -42,24 +56,19 @@ const GET_SPONSORS_AND_TIMESHEET = gql`
           uniqueSponsors
         }
       }
-      bySponsor {
-        name
-        totalHours
-        totalConsultingHours
-        totalHandsOnHours
-        totalSquadHours
-        totalInternalHours
-      }
     }
   }
 `;
 
 export default function Sponsors() {
-  const { loading, error, data } = useQuery(GET_SPONSORS_AND_TIMESHEET, {
-    ssr: true,
-  });
+  const client = useEdgeClient();
   const [selectedStat, setSelectedStat] = useState<string>("allSponsors");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { loading, error, data } = useQuery(GET_SPONSORS_AND_TIMESHEET, {
+    client: client ?? undefined,
+    ssr: true,
+  });
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -76,16 +85,15 @@ export default function Sponsors() {
     }`;
   };
 
-  const filteredSponsors = data.sponsors
+  const sponsors = data.engagements.sponsors.data;
+  const filteredSponsors = sponsors
     .filter((sponsor: any) =>
       (sponsor.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       (sponsor.client?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (sponsor.jobTitle?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     )
     .filter((sponsor: any) => {
-      const sponsorData = data.timesheet.bySponsor.find(
-        (s: any) => s.name === sponsor.name
-      );
+      const sponsorData = sponsor.timesheet?.summary;
       if (!sponsorData) return selectedStat === "allSponsors";
       switch (selectedStat) {
         case "total":
@@ -105,24 +113,7 @@ export default function Sponsors() {
 
   const SponsorCard = ({ sponsor }: { sponsor: any }) => {
     const [isHovered, setIsHovered] = useState(false);
-    const sponsorData = data.timesheet.bySponsor.find(
-      (s: any) => s.name === sponsor.name
-    );
-
-    const getBadgeColor = (type: string) => {
-      switch (type) {
-        case "consulting":
-          return "amber";
-        case "handsOn":
-          return "purple";
-        case "squad":
-          return "blue";
-        case "internal":
-          return "emerald";
-        default:
-          return "zinc";
-      }
-    };
+    const sponsorData = sponsor.timesheet?.summary;
 
     return (
       <Link
@@ -136,13 +127,6 @@ export default function Sponsors() {
             isHovered ? "shadow-lg scale-105" : "shadow"
           } transition-all duration-300 relative`}
         >
-          {!sponsor.crmId && (
-            <div className="absolute -top-2 -left-2 z-10">
-              <div className="bg-red-500 rounded-full p-1">
-                <AlertTriangle className="text-white" size={20} />
-              </div>
-            </div>
-          )}
           <CardContent className="flex flex-col items-center p-4">
             <span className="rounded-full *:rounded-full">
               <img
@@ -215,7 +199,7 @@ export default function Sponsors() {
               >
                 <Stat
                   title="All Sponsors"
-                  value={data.sponsors.length.toString()}
+                  value={sponsors.length.toString()}
                 />
               </div>
             </div>
@@ -228,7 +212,7 @@ export default function Sponsors() {
                 >
                   <Stat
                     title="Active Sponsors"
-                    value={data.timesheet.uniqueSponsors.toString()}
+                    value={data.timesheet.summary.uniqueSponsors.toString()}
                   />
                 </div>
                 <div
@@ -239,7 +223,7 @@ export default function Sponsors() {
                     title="Consulting"
                     value={data.timesheet.byKind.consulting.uniqueSponsors.toString()}
                     color="#F59E0B"
-                    total={data.timesheet.uniqueSponsors}
+                    total={data.timesheet.summary.uniqueSponsors}
                   />
                 </div>
                 <div
@@ -250,7 +234,7 @@ export default function Sponsors() {
                     title="Hands-On"
                     value={data.timesheet.byKind.handsOn.uniqueSponsors.toString()}
                     color="#8B5CF6"
-                    total={data.timesheet.uniqueSponsors}
+                    total={data.timesheet.summary.uniqueSponsors}
                   />
                 </div>
                 <div
@@ -261,7 +245,7 @@ export default function Sponsors() {
                     title="Squad"
                     value={data.timesheet.byKind.squad.uniqueSponsors.toString()}
                     color="#3B82F6"
-                    total={data.timesheet.uniqueSponsors}
+                    total={data.timesheet.summary.uniqueSponsors}
                   />
                 </div>
                 <div
@@ -272,7 +256,7 @@ export default function Sponsors() {
                     title="Internal"
                     value={data.timesheet.byKind.internal.uniqueSponsors.toString()}
                     color="#10B981"
-                    total={data.timesheet.uniqueSponsors}
+                    total={data.timesheet.summary.uniqueSponsors}
                   />
                 </div>
               </div>
