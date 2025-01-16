@@ -16,8 +16,8 @@ class Case(BaseModel):
     ontology_url: Optional[str] = Field(None, description="The URL of the ontology entry for this case")
     omni_url: str = Field(..., description="The URL of the case's page in the Omni system")
     
-    start_of_contract: Optional[date] = Field(None, description="The start date of the contract")
-    end_of_contract: Optional[date] = Field(None, description="The end date of the contract")
+    start_of_contract: Optional[date] = None
+    end_of_contract: Optional[date] = None
     weekly_approved_hours: Optional[float] = Field(None, description="The number of approved hours per week")
     fixed_fee: Optional[float] = Field(None, description="The fixed fee amount for this case")
     

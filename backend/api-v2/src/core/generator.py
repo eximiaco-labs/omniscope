@@ -323,7 +323,9 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
-        is_optional = field.default is None and getattr(field_type, "__origin__", None) is Optional
+        has_default = field.default is not None or field.default is None and field.default_factory is None
+        is_optional_type = getattr(field_type, "__origin__", None) is Optional
+        is_optional = has_default or is_optional_type
         
         # Get the actual type and inner type
         actual_type = get_field_type(field_type)
