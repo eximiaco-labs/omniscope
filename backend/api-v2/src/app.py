@@ -76,7 +76,6 @@ for field_path, resolver_fn in registry.resolvers.items():
 
 # Get all SDL from registry
 sdl = registry.generate_sdl()
-print(sdl)
 type_defs = [
     sdl,
 ]

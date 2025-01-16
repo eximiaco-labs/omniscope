@@ -3,6 +3,26 @@ from pydantic import BaseModel
 from datetime import datetime
 import re
 
+from omni_shared import globals
+
+class GlobalRepository:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def get_by_id(self, type_name: str, id: int):
+        if type_name == "Client":
+            return globals.omni_models.clients.get_by_id(id)
+        
+    def get_resolver_by_id(self, entity_name: str, field_name: str):
+        def resolver(parent, info):
+            return self._instance.get_by_id(entity_name, parent[field_name])
+        return resolver
+              
+
 class FilterableField(BaseModel):
     field: str
     selected_values: Optional[List[str]] = []
@@ -310,7 +330,6 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     if has_filter_field(cls):
         parameters.append("filters: [DatasetFilterInput]")
     
-    
     # Generate the base type first
     type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
@@ -320,6 +339,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     collection_type = generate_collection_type(cls)
     type_definitions.append(collection_type)
     generated_types.add(f"{cls.__name__}Collection")
+    repository = GlobalRepository()
     
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
@@ -339,7 +359,23 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
         # Convert field name to camelCase
         camel_field_name = to_camel_case(field_name)
         
-        # Determine GraphQL type
+        # Handle _id fields
+        if field_name.endswith("_id"):
+            base_name = field_name[:-3]  # Remove _id suffix
+            # Convert to PascalCase
+            gql_type = "".join(word.capitalize() for word in base_name.split("_"))
+            camel_field_name = to_camel_case(base_name)
+            
+            # Add resolver that throws exception
+            resolver = repository.get_resolver_by_id(gql_type, field_name)
+            
+            # Register resolver in the registry
+            registry.resolvers[f"{cls.__name__}.{camel_field_name}"] = resolver
+            
+            field_definitions.append(f"    {camel_field_name}: {gql_type}{'!' if not is_optional else ''}")
+            continue
+        
+        # Determine GraphQL type for non-_id fields
         if is_dict:
             if isinstance(inner_type, type) and issubclass(inner_type, BaseModel):
                 nested_type, nested_resolvers = generate_type(inner_type, generated_types)
@@ -360,12 +396,11 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     ]
                     param_args = ", ".join(p)
                 
-                #param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
                 param_str = f"({param_args}, " if param_args else "("
                 
                 field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 # Generate resolver for discovered nested types
-                resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
+                registry.resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
@@ -396,7 +431,7 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                 
                 field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
                 # Generate resolver for discovered nested types
-                resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
+                registry.resolvers[f"{cls.__name__}.{camel_field_name}"] = generate_default_resolver(field_name)
                 continue
             else:
                 gql_type = f"[{get_type_name(inner_type)}]"
