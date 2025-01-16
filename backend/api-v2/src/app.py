@@ -68,7 +68,9 @@ for field_path, resolver_fn in registry.resolvers.items():
         ObjectType(type_name)
     )
     # Set resolver
-    type_obj.set_field(field_name, resolver_fn)
+    if not type_obj._resolvers.get(field_name):
+        type_obj.set_field(field_name, resolver_fn)
+    
     if type_obj not in resolver_types:
         resolver_types.append(type_obj)
 

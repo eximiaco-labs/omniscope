@@ -113,3 +113,13 @@ def resolve_client_timesheet(obj, info, slug: str = None, filters = None):
     model_dump = result.model_dump()
     return model_dump
 
+@client.field("activeCases")
+@collection
+def resolve_client_active_cases(obj, info):
+    source = globals.omni_models.cases.get_all().values()
+    source = filter(lambda case: case.client_id == obj["id"], source)
+    return [
+        Case.from_domain(case) 
+        for case in source
+        if case.is_active
+    ]
