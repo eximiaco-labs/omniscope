@@ -29,6 +29,7 @@ class FilterOperator(BaseModel):
     lte: Optional[float] = None
     contains: Optional[str] = None
     range: Optional[RangeFilter] = None
+    is_: Optional[bool] = Field(None, alias='is')
 
 class FilterInput(BaseModel):
     and_: Optional[List['FilterInput']] = Field(None, alias='and')
@@ -62,7 +63,8 @@ def apply_filters(items: List[T], filter_input: Optional[FilterInput] = None) ->
         if not filter_.field or not filter_.value:
             return True
 
-        value = getattr(item, filter_.field, None)
+        field_name = "".join(["_" + c.lower() if c.isupper() else c for c in filter_.field]).lstrip("_").replace(".", "_")
+        value = getattr(item, field_name, None)
         op = filter_.value
 
         if op.eq is not None:
@@ -84,7 +86,9 @@ def apply_filters(items: List[T], filter_input: Optional[FilterInput] = None) ->
                 return False
             if op.range.max is not None and value > op.range.max:
                 return False
-            return True
+            return True 
+        if op.is_ is not None:
+            return bool(value) == op.is_
         
         return True
 

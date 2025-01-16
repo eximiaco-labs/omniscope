@@ -557,6 +557,7 @@ def generate_filter_types() -> str:
     lte: Float
     contains: String
     range: RangeFilterInput
+    is: Boolean
 }"""
         registry.register_type("FilterOperatorInput", filter_operator)
         type_definitions.append(filter_operator)
