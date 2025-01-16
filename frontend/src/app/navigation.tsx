@@ -21,7 +21,9 @@ import {
   AlertCircleIcon,
   BriefcaseBusinessIcon,
   BookIcon,
-  BicepsFlexedIcon
+  BicepsFlexedIcon,
+  StoreIcon,
+  MonitorPlayIcon
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -37,6 +39,26 @@ export function getTeamSidebarItems() {
       title: "Consultants or Engineers",
       url: "/team/consultants-or-engineers",
       icon: BicepsFlexedIcon,
+    },
+  ];
+}
+
+export function getEngagementsSidebarItems() {
+  return [
+    {
+      title: "Clients",
+      url: "/engagements/clients",
+      icon: StoreIcon,
+    },
+    {
+      title: "Cases",
+      url: "/engagements/cases",
+      icon: MonitorPlayIcon,
+    },
+    {
+      title: "Sponsors",
+      url: "/engagements/sponsors",
+      icon: HandshakeIcon,
     },
   ];
 }

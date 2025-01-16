@@ -39,6 +39,7 @@ import {
   getFinancialSidebarItems,
   getOperationalSummariesSidebarItems,
   getOntologySidebarItems,
+  getEngagementsSidebarItems,
 } from "@/app/navigation";
 
 import React from "react";
@@ -55,6 +56,9 @@ import OmniSidebarFooter from "./OmniSidebarFooter";
 import SectionHeader from "@/components/SectionHeader";
 import { OmniCommandsButton } from "./OmniCommands";
 import { LucideIcon } from "lucide-react";
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPersonRunning, faPeopleGroup } from "@fortawesome/free-solid-svg-icons"
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -95,6 +99,7 @@ export function OmniSidebar() {
   const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>([]);
   const [ontologyItems, setOntologyItems] = React.useState<MenuItem[]>([]);
   const [teamItems, setTeamItems] = React.useState<MenuItem[]>([]);
+  const [engagementItems, setEngagementItems] = React.useState<MenuItem[]>([]);
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
   const [activeItems, setActiveItems] = React.useState<MenuItem[]>([]);
@@ -110,6 +115,7 @@ export function OmniSidebar() {
       const admin = await getAdministrativeSidebarItems();
       const ontology = await getOntologySidebarItems();
       const team = await getTeamSidebarItems();
+      const engagements = await getEngagementsSidebarItems();
 
       setFinancialItems(financial);
       setAnalyticsItems(analytics);
@@ -118,6 +124,7 @@ export function OmniSidebar() {
       setOperationalItems(operationalSummaries);
       setOntologyItems(ontology);
       setTeamItems(team);
+      setEngagementItems(engagements);
 
       // Determine active section based on current path
       let initialSection = "Analytics";
@@ -175,6 +182,12 @@ export function OmniSidebar() {
         initialItems = team;
       }
 
+      const isEngagementsPath = engagements.some((item) => pathname.startsWith(item.url));
+      if (isEngagementsPath) {
+        initialSection = "Engagements";
+        initialItems = engagements;
+      }
+
       setActiveSection(initialSection);
       setActiveItems(initialItems);
     }
@@ -218,8 +231,14 @@ export function OmniSidebar() {
                     {
                       section: "Team",
                       items: teamItems,
-                      icon: UsersRoundIcon,
+                      icon: () => <FontAwesomeIcon icon={faPeopleGroup} />,
                       tooltip: "Team",
+                    },
+                    {
+                      section: "Engagements",
+                      items: engagementItems,
+                      icon: () => <FontAwesomeIcon icon={faPersonRunning} />,
+                      tooltip: "Engagements",
                     },
                     hasFinancialAccess && {
                       section: "Financial",
