@@ -51,15 +51,16 @@ export function getEngagementsSidebarItems() {
       icon: StoreIcon,
     },
     {
-      title: "Cases",
-      url: "/engagements/cases",
-      icon: MonitorPlayIcon,
-    },
-    {
       title: "Sponsors",
       url: "/engagements/sponsors",
       icon: HandshakeIcon,
     },
+    {
+      title: "Cases",
+      url: "/engagements/cases",
+      icon: MonitorPlayIcon,
+    },
+
   ];
 }
 
