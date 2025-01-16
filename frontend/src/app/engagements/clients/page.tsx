@@ -13,11 +13,17 @@ import { Search } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
 import ClientStatsSection from "../../components/ClientStatsSection";
 import { ClientGallery } from "./ClientGallery";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 export default function Clients() {
-  const { loading, error, data } = useQuery(GET_CLIENTS, { ssr: true });
+  const client = useEdgeClient();
   const [selectedStat, setSelectedStat] = useState<string>("allClients");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { loading, error, data } = useQuery(GET_CLIENTS, { 
+    client: client ?? undefined,
+    ssr: true 
+  });
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -26,7 +32,8 @@ export default function Clients() {
     setSelectedStat(statName);
   };
 
-  const filteredClients = data.clients.filter((client: any) =>
+  const clients = data.engagements.clients.data;
+  const filteredClients = clients.filter((client: any) =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -71,14 +78,12 @@ export default function Clients() {
               title="Strategic Clients" 
               selectedStat={selectedStat}
               timesheetData={data.timesheet}
-              cases={data.cases}
             />
             <ClientGallery 
               clients={nonStrategicClients} 
               title="Other Clients" 
               selectedStat={selectedStat}
               timesheetData={data.timesheet}
-              cases={data.cases}
             />
           </motion.div>
         </AnimatePresence>

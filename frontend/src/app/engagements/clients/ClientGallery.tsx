@@ -10,35 +10,55 @@ interface ClientGalleryProps {
     name: string;
     logoUrl: string;
     slug: string;
-  }[];
-  title: string;
-  selectedStat: string;
-  timesheetData: {
-    byClient: {
-      name: string;
-      totalHours: number;
-      totalConsultingHours: number;
-      totalHandsOnHours: number;
-      totalSquadHours: number;
-      totalInternalHours: number;
-      weeklyApprovedHours?: number;
-      byWeek?: {
-        week: string;
+    timesheet: {
+      summary: {
+        totalHours: number;
         totalConsultingHours: number;
         totalHandsOnHours: number;
         totalSquadHours: number;
         totalInternalHours: number;
+      };
+      byWeek: {
+        data: {
+          week: string;
+          totalConsultingHours: number;
+          totalHandsOnHours: number;
+          totalSquadHours: number;
+          totalInternalHours: number;
+        }[];
+      };
+    };
+    activeCases: {
+      data: {
+        title: string;
+        startOfContract: string;
+        endOfContract: string;
+        weeklyApprovedHours: number;
+        preContractedValue: number;
       }[];
-    }[];
-  };
-  cases: {
-    startOfContract: string;
-    endOfContract: string;
-    weeklyApprovedHours: number;
-    client: {
-      name: string;
-    } | null;
+    };
   }[];
+  title: string;
+  selectedStat: string;
+  timesheetData: {
+    summary: {
+      uniqueClients: number;
+    };
+    byKind: {
+      consulting: {
+        uniqueClients: number;
+      };
+      handsOn: {
+        uniqueClients: number;
+      };
+      squad: {
+        uniqueClients: number;
+      };
+      internal: {
+        uniqueClients: number;
+      };
+    };
+  };
 }
 
 export function ClientGallery({
@@ -46,55 +66,43 @@ export function ClientGallery({
   title,
   selectedStat,
   timesheetData,
-  cases,
 }: ClientGalleryProps) {
-  // Function to check if a case is active in the last 6 weeks
-  const isActiveInLastSixWeeks = (startDate: string, endDate: string) => {
-    const now = new Date();
-    const sixWeeksAgo = new Date(now.setDate(now.getDate() - 42)); // 6 weeks ago
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : new Date();
-
-    return start <= now && end >= sixWeeksAgo;
-  };
-
   // Compute weekly approved hours for each client
   const clientsWithApprovedHours = clients.map((client) => {
-    const clientCases = cases.filter((c) => c.client?.name === client.name);
-    const activeWeeklyHours = clientCases
-      .filter((c) => isActiveInLastSixWeeks(c.startOfContract, c.endOfContract))
+    const activeWeeklyHours = client.activeCases.data
+      .filter((c) => {
+        const now = new Date();
+        const sixWeeksAgo = new Date(now.setDate(now.getDate() - 42)); // 6 weeks ago
+        const start = new Date(c.startOfContract);
+        const end = c.endOfContract ? new Date(c.endOfContract) : new Date();
+        return start <= now && end >= sixWeeksAgo;
+      })
       .reduce((sum, c) => sum + (c.weeklyApprovedHours || 0), 0);
 
-    const clientData = timesheetData.byClient.find(
-      (c) => c.name === client.name
-    );
     return {
       ...client,
-      clientData: clientData
-        ? {
-            ...clientData,
-            weeklyApprovedHours: activeWeeklyHours,
-          }
-        : undefined,
+      clientData: {
+        ...client.timesheet.summary,
+        weeklyApprovedHours: activeWeeklyHours,
+        byWeek: client.timesheet.byWeek.data
+      }
     };
   });
 
   const filteredClients = clients.filter((client) => {
-    const clientData = timesheetData.byClient.find(
-      (c) => c.name === client.name
-    );
-    if (!clientData) return selectedStat === "allClients";
+    const { summary } = client.timesheet;
+    if (!summary) return selectedStat === "allClients";
     switch (selectedStat) {
       case "total":
-        return clientData.totalHours > 0;
+        return summary.totalHours > 0;
       case "consulting":
-        return clientData.totalConsultingHours > 0;
+        return summary.totalConsultingHours > 0;
       case "handsOn":
-        return clientData.totalHandsOnHours > 0;
+        return summary.totalHandsOnHours > 0;
       case "squad":
-        return clientData.totalSquadHours > 0;
+        return summary.totalSquadHours > 0;
       case "internal":
-        return clientData.totalInternalHours > 0;
+        return summary.totalInternalHours > 0;
       default:
         return true;
     }

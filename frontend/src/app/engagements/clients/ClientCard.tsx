@@ -16,6 +16,7 @@ interface WeekData {
 }
 
 interface ClientData {
+  totalHours: number;
   totalConsultingHours: number;
   totalHandsOnHours: number;
   totalSquadHours: number;
@@ -29,6 +30,18 @@ interface ClientCardProps {
     slug: string;
     name: string;
     logoUrl: string;
+    timesheet: {
+      summary: {
+        totalHours: number;
+        totalConsultingHours: number;
+        totalHandsOnHours: number;
+        totalSquadHours: number;
+        totalInternalHours: number;
+      };
+      byWeek: {
+        data: WeekData[];
+      };
+    };
   };
   clientData?: ClientData;
 }

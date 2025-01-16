@@ -2,25 +2,47 @@ import { gql } from "@apollo/client";
 
 export const GET_CLIENTS = gql`
   query GetClients {
-    clients {
-      slug
-      name
-      logoUrl
-      isStrategic
-    }
-      
-    cases(onlyActives: true) {
-      startOfContract
-      endOfContract
-      weeklyApprovedHours
-      preContractedValue
-      client {
-        name
+    engagements {
+      clients {
+        data {
+          slug
+          name
+          logoUrl
+          isStrategic
+          activeCases {
+            data {
+              title
+              startOfContract
+              endOfContract
+              weeklyApprovedHours
+              preContractedValue
+            }
+          }
+          timesheet(slug: "last-six-weeks") {
+            summary {
+              totalHours
+              totalConsultingHours
+              totalHandsOnHours
+              totalSquadHours
+              totalInternalHours
+            }
+            byWeek {
+              data {
+                week
+                totalConsultingHours
+                totalHandsOnHours
+                totalSquadHours
+                totalInternalHours
+              }
+            }
+          }
+        }
       }
     }
-
-    timesheet(slug: "last-six-weeks", kind: ALL) {
-      uniqueClients
+    timesheet(slug: "last-six-weeks") {
+      summary {
+        uniqueClients
+      }
       byKind {
         consulting {
           uniqueClients
@@ -33,22 +55,6 @@ export const GET_CLIENTS = gql`
         }
         internal {
           uniqueClients
-        }
-      }
-      byClient {
-        name
-        totalHours
-        totalConsultingHours
-        totalHandsOnHours
-        totalSquadHours
-        totalInternalHours
-        
-        byWeek {
-          week
-          totalConsultingHours
-          totalHandsOnHours
-          totalSquadHours
-          totalInternalHours
         }
       }
     }
