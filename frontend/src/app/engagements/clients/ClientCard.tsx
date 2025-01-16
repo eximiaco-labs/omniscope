@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/catalyst/badge";
+import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -46,12 +46,12 @@ interface ClientCardProps {
   clientData?: ClientData;
 }
 
-const getBadgeColor = (type: string) => {
+const getBadgeColor = (type: string): string => {
   switch (type) {
     case "consulting":
       return "amber";
     case "handsOn":
-      return "purple";
+      return "violet";
     case "squad":
       return "blue";
     case "internal":
@@ -71,31 +71,45 @@ export default function ClientCard({ client, clientData }: ClientCardProps) {
   const renderWeeklyData = (data: WeekData | null) => {
     if (!data) return null;
 
+    const hasWork = data.totalConsultingHours > 0 || 
+                   data.totalHandsOnHours > 0 || 
+                   data.totalSquadHours > 0 || 
+                   data.totalInternalHours > 0;
+
+    if (!hasWork) return null;
+
     return (
       <div className="flex flex-col gap-0.5 mt-0.5">
         {data.totalConsultingHours > 0 && (
-          <div className="text-amber-500 text-[9px]">
+          <div className={`text-${getBadgeColor("consulting")}-500 text-[9px]`}>
             {formatHours(data.totalConsultingHours)}
           </div>
         )}
         {data.totalHandsOnHours > 0 && (
-          <div className="text-purple-500 text-[9px]">
+          <div className={`text-${getBadgeColor("handsOn")}-500 text-[9px]`}>
             {formatHours(data.totalHandsOnHours)}
           </div>
         )}
         {data.totalSquadHours > 0 && (
-          <div className="text-blue-500 text-[9px]">
+          <div className={`text-${getBadgeColor("squad")}-500 text-[9px]`}>
             {formatHours(data.totalSquadHours)}
           </div>
         )}
         {data.totalInternalHours > 0 && (
-          <div className="text-emerald-500 text-[9px]">
+          <div className={`text-${getBadgeColor("internal")}-500 text-[9px]`}>
             {formatHours(data.totalInternalHours)}
           </div>
         )}
       </div>
     );
   };
+
+  const hasAnyWork = clientData?.byWeek?.some(week => 
+    week.totalConsultingHours > 0 || 
+    week.totalHandsOnHours > 0 || 
+    week.totalSquadHours > 0 || 
+    week.totalInternalHours > 0
+  );
 
   return (
     <Link
@@ -123,28 +137,28 @@ export default function ClientCard({ client, clientData }: ClientCardProps) {
           {clientData && (
             <div className="flex flex-wrap justify-center gap-1 mt-2">
               {clientData.totalConsultingHours > 0 && (
-                <Badge color={getBadgeColor("consulting")}>
+                <Badge variant="outline" className={`bg-amber-500/10 text-amber-500 border-amber-500/20`}>
                   {formatHours(clientData.totalConsultingHours)}h
                 </Badge>
               )}
               {clientData.totalHandsOnHours > 0 && (
-                <Badge color={getBadgeColor("handsOn")}>
+                <Badge variant="outline" className={`bg-violet-500/10 text-violet-500 border-violet-500/20`}>
                   {formatHours(clientData.totalHandsOnHours)}h
                 </Badge>
               )}
               {clientData.totalSquadHours > 0 && (
-                <Badge color={getBadgeColor("squad")}>
+                <Badge variant="outline" className={`bg-blue-500/10 text-blue-500 border-blue-500/20`}>
                   {formatHours(clientData.totalSquadHours)}h
                 </Badge>
               )}
               {clientData.totalInternalHours > 0 && (
-                <Badge color={getBadgeColor("internal")}>
+                <Badge variant="outline" className={`bg-emerald-500/10 text-emerald-500 border-emerald-500/20`}>
                   {formatHours(clientData.totalInternalHours)}h
                 </Badge>
               )}
             </div>
           )}
-          {clientData?.byWeek && (
+          {clientData?.byWeek && hasAnyWork && (
             <div className="mt-2 w-full">
               <div className="flex justify-between text-[9px] text-gray-600">
                 {[

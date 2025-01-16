@@ -1,16 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/catalyst/badge";
-import { Heading } from "@/components/catalyst/heading";
 import { useQuery } from "@apollo/client";
-import { Stat } from "@/app/components/analytics/stat";
-import { Divider } from "@/components/catalyst/divider";
 import { motion, AnimatePresence } from "framer-motion";
 import { GET_CLIENTS } from "./queries";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import SectionHeader from "@/components/SectionHeader";
 import ClientStatsSection from "../../components/ClientStatsSection";
 import { ClientGallery } from "./ClientGallery";
 import { useEdgeClient } from "@/app/hooks/useApolloClient";

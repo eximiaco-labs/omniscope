@@ -1,6 +1,5 @@
 "use client";
 
-import { Heading } from "@/components/catalyst/heading";
 import { motion, AnimatePresence } from "framer-motion";
 import ClientCard from "./ClientCard";
 import SectionHeader from "@/components/SectionHeader";
