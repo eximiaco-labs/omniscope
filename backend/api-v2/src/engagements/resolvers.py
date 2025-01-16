@@ -2,7 +2,7 @@ from ariadne import QueryType, ObjectType
 from .models import Client, Sponsor, Case, Project
 from core.decorators import collection
 from omni_shared import globals
-
+from timesheet.resolvers import compute_timesheet, build_fields_map
 query = QueryType()
 engagements = ObjectType("Engagements")
 client = ObjectType("Client")
@@ -95,3 +95,21 @@ def resolve_engagements_project(obj, info, id: str = None, slug: str = None):
         return None
         
     return Project.from_domain(project).model_dump()
+
+@client.field("timesheet")
+def resolve_client_timesheet(obj, info, slug: str = None, filters = None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'ClientName',
+            'selected_values': [obj['name']]
+        }
+    ] + filters
+    
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, client_filters)
+    model_dump = result.model_dump()
+    return model_dump
+
