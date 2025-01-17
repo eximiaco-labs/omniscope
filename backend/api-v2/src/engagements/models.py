@@ -32,6 +32,12 @@ class Sponsor(BaseModel):
             linkedin_url=str(domain_sponsor.linkedin_url) if domain_sponsor.linkedin_url else None
         )
         
+class EventDetail(BaseModel):
+    date: Optional[datetime]
+    author: Optional[str]
+    status: str
+    observations: str
+    
 class Case(BaseModel):
     id: str = Id(description="The unique identifier of the case")
     slug: str = Id(description="URL-friendly identifier of the case")
@@ -42,7 +48,6 @@ class Case(BaseModel):
     client_id: Optional[int] = Field(None, description="The ID of the associated client")
     everhour_projects_ids: List[str] = Field(default_factory=list, description="List of associated Everhour project IDs")
     ontology_url: Optional[str] = Field(None, description="The URL of the ontology entry for this case")
-    omni_url: str = Field(..., description="The URL of the case's page in the Omni system")
     
     has_description: bool = Field(False, description="Whether this case has a description on ontology")
     is_stale: bool = Field(False, description="Whether this case is stale")
@@ -56,6 +61,9 @@ class Case(BaseModel):
     sponsor: Optional[Sponsor] = None
     offers_ids: List[int] = Field(default_factory=list, description="List of associated offer IDs")
     deals_ids: List[int] = Field(default_factory=list, description="List of associated deal IDs")
+    
+    updates: Optional[List[EventDetail]] = None
+    last_update: Optional[EventDetail] = None
 
     @classmethod
     def from_domain(cls, domain_case):
@@ -80,7 +88,10 @@ class Case(BaseModel):
             offers_ids=domain_case.offers_ids,
             deals_ids=[deal.id for deal in domain_case.deals],
             has_description=domain_case.has_description,
-            is_stale=domain_case.is_stale
+            is_stale=domain_case.is_stale,
+            updates=[ u.model_dump() for u in domain_case.updates ] if domain_case.updates else None,  
+            last_update=domain_case.last_update.model_dump() if domain_case.last_update else None
+            
         )
 
 
