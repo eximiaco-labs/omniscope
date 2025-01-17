@@ -32,7 +32,7 @@ class Sponsor(BaseModel):
             linkedin_url=str(domain_sponsor.linkedin_url) if domain_sponsor.linkedin_url else None
         )
         
-class EventDetail(BaseModel):
+class CaseUpdate(BaseModel):
     date: Optional[datetime]
     author: Optional[str]
     status: str
@@ -62,8 +62,8 @@ class Case(BaseModel):
     offers_ids: List[int] = Field(default_factory=list, description="List of associated offer IDs")
     deals_ids: List[int] = Field(default_factory=list, description="List of associated deal IDs")
     
-    updates: Optional[List[EventDetail]] = None
-    last_update: Optional[EventDetail] = None
+    updates: Optional[List[CaseUpdate]] = None
+    last_update: Optional[CaseUpdate] = None
 
     @classmethod
     def from_domain(cls, domain_case):
