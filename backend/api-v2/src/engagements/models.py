@@ -4,6 +4,34 @@ from core.fields import Id
 from timesheet.models import Timesheet
 from datetime import datetime, date
 
+from omni_shared import globals
+
+class Sponsor(BaseModel):
+    slug: str = Id(description="URL-friendly identifier of the sponsor")
+    name: str = Field(..., description="The full name of the sponsor")
+    photo_url: str = Field("/images/who_is_it.jpeg", description="The URL of the sponsor's photo")
+    client_id: Optional[int] = Field(None, description="The ID of the associated client")
+    job_title: Optional[str] = Field(None, description="The job title of the sponsor")
+    linkedin_url: Optional[str] = Field(None, description="The URL of the sponsor's LinkedIn profile")
+    timesheet: Optional[Timesheet] = None
+
+    @classmethod
+    def from_domain(cls, domain_sponsor):
+        """Convert a domain Sponsor instance to a Sponsor model instance"""
+        
+        if not domain_sponsor:
+            return None
+        
+        return cls(
+            slug=domain_sponsor.slug,
+            name=domain_sponsor.name,
+            photo_url=str(domain_sponsor.photo_url) if domain_sponsor.photo_url else "/images/who_is_it.jpeg",
+            client_id=domain_sponsor.client_id,
+            crm_id=domain_sponsor.crm_id,
+            job_title=domain_sponsor.job_title,
+            linkedin_url=str(domain_sponsor.linkedin_url) if domain_sponsor.linkedin_url else None
+        )
+        
 class Case(BaseModel):
     id: str = Id(description="The unique identifier of the case")
     slug: str = Id(description="URL-friendly identifier of the case")
@@ -16,6 +44,8 @@ class Case(BaseModel):
     ontology_url: Optional[str] = Field(None, description="The URL of the ontology entry for this case")
     omni_url: str = Field(..., description="The URL of the case's page in the Omni system")
     
+    has_description: bool = Field(False, description="Whether this case has a description on ontology")
+    is_stale: bool = Field(False, description="Whether this case is stale")
     start_of_contract: Optional[date] = None
     end_of_contract: Optional[date] = None
     weekly_approved_hours: Optional[float] = Field(None, description="The number of approved hours per week")
@@ -23,7 +53,7 @@ class Case(BaseModel):
     
     status: Optional[str] = Field(None, description="The current status of the case")
     last_updated: Optional[datetime] = Field(None, description="The timestamp of the last update")
-    sponsor_name: Optional[str] = Field(None, description="The name of the case sponsor")
+    sponsor: Optional[Sponsor] = None
     offers_ids: List[int] = Field(default_factory=list, description="List of associated offer IDs")
     deals_ids: List[int] = Field(default_factory=list, description="List of associated deal IDs")
 
@@ -46,9 +76,11 @@ class Case(BaseModel):
             fixed_fee=domain_case.fixed_fee,
             status=domain_case.status,
             last_updated=domain_case.last_updated,
-            sponsor_name=domain_case.sponsor,
+            sponsor=Sponsor.from_domain(globals.omni_models.sponsors.get_by_name(domain_case.sponsor)),
             offers_ids=domain_case.offers_ids,
-            deals_ids=[deal.id for deal in domain_case.deals]
+            deals_ids=[deal.id for deal in domain_case.deals],
+            has_description=domain_case.has_description,
+            is_stale=domain_case.is_stale
         )
 
 
@@ -82,27 +114,7 @@ class Client(BaseModel):
             account_manager_id=domain_client.account_manager.id if domain_client.account_manager else None
         )
 
-class Sponsor(BaseModel):
-    slug: str = Id(description="URL-friendly identifier of the sponsor")
-    name: str = Field(..., description="The full name of the sponsor")
-    photo_url: str = Field("/images/who_is_it.jpeg", description="The URL of the sponsor's photo")
-    client_id: Optional[int] = Field(None, description="The ID of the associated client")
-    job_title: Optional[str] = Field(None, description="The job title of the sponsor")
-    linkedin_url: Optional[str] = Field(None, description="The URL of the sponsor's LinkedIn profile")
-    timesheet: Optional[Timesheet] = None
 
-    @classmethod
-    def from_domain(cls, domain_sponsor):
-        """Convert a domain Sponsor instance to a Sponsor model instance"""
-        return cls(
-            slug=domain_sponsor.slug,
-            name=domain_sponsor.name,
-            photo_url=str(domain_sponsor.photo_url) if domain_sponsor.photo_url else "/images/who_is_it.jpeg",
-            client_id=domain_sponsor.client_id,
-            crm_id=domain_sponsor.crm_id,
-            job_title=domain_sponsor.job_title,
-            linkedin_url=str(domain_sponsor.linkedin_url) if domain_sponsor.linkedin_url else None
-        )
 
 
 class Project(BaseModel):
