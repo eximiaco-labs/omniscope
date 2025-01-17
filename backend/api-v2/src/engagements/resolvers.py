@@ -141,3 +141,20 @@ def resolve_sponsor_timesheet(obj, info, slug: str = None, filters = None):
     result = compute_timesheet(map, slug, client_filters)
     model_dump = result.model_dump()
     return model_dump
+
+@case.field("timesheet")
+def resolve_case_timesheet(obj, info, slug: str = None, filters = None):
+    if filters is None:
+        filters = []
+        
+    case_filters = [
+        {
+            'field': 'CaseTitle',
+            'selected_values': [obj['title']]
+        }
+    ] + filters
+        
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, case_filters)
+    model_dump = result.model_dump()
+    return model_dump

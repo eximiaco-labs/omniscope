@@ -64,6 +64,8 @@ class Case(BaseModel):
     
     updates: Optional[List[CaseUpdate]] = None
     last_update: Optional[CaseUpdate] = None
+    
+    timesheet: Optional[Timesheet] = None
 
     @classmethod
     def from_domain(cls, domain_case):

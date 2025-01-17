@@ -1,34 +1,62 @@
 import { gql } from "@apollo/client";
 
 export const GET_CASES_AND_TIMESHEET = gql`
-  query GetCasesAndTimesheet($filters: [FilterInput]) {
-    cases(onlyActives: true) {
-      id
-      slug
-      title
-      isActive
-      preContractedValue
-      sponsor
-      hasDescription
-      everhourProjectsIds
-      
-      startOfContract
-      endOfContract
-      weeklyApprovedHours
-
-      client {
-        name
+  query GetCases($filters: [DatasetFilterInput]) {
+    engagements {
+      cases(filter: {field: "isActive", value: {is: true}}) {
+        data {
+          id
+          slug
+          title
+          isActive
+          preContractedValue
+          sponsor {
+            name
+          }
+          hasDescription
+          startOfContract
+          endOfContract
+          weeklyApprovedHours
+          client {
+            name
+          }
+          isStale
+          updates {
+            data {
+              date
+              status
+              author
+            }
+          }
+          timesheet(slug: "last-six-weeks") {
+            summary {
+              totalHours
+              totalConsultingHours
+              totalHandsOnHours
+              totalSquadHours
+              totalInternalHours
+            }
+            byWeek {
+              data {
+                week
+                totalConsultingHours
+                totalHandsOnHours
+                totalSquadHours
+                totalInternalHours
+              }
+            }
+          }
+        }
+        metadata {
+          filtered
+          total
+        }
       }
-      lastUpdate {
-        date
-        author
-        status
-        observations
-      }
-      isStale
     }
-    timesheet(slug: "last-six-weeks", kind: ALL, filters: $filters) {
-      uniqueClients
+    timesheet(slug: "last-six-weeks", filters: $filters) {
+      summary {
+        uniqueCases
+      }
       byKind {
         consulting {
           uniqueClients
@@ -41,22 +69,6 @@ export const GET_CASES_AND_TIMESHEET = gql`
         }
         internal {
           uniqueClients
-        }
-      }
-      byCase {
-        title
-        totalHours
-        totalConsultingHours
-        totalHandsOnHours
-        totalSquadHours
-        totalInternalHours
-
-        byWeek {
-          week
-          totalConsultingHours
-          totalHandsOnHours
-          totalSquadHours
-          totalInternalHours
         }
       }
       filterableFields {

@@ -1,9 +1,76 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { CaseCard } from "./CaseCard";
 
+interface Case {
+  id: string;
+  slug: string;
+  title: string;
+  isActive: boolean;
+  preContractedValue: boolean;
+  sponsor: {
+    name: string;
+  };
+  hasDescription: boolean;
+  startOfContract: string;
+  endOfContract: string;
+  weeklyApprovedHours: number;
+  client: {
+    name: string;
+  };
+  isStale: boolean;
+  updates: {
+    data: Array<{
+      date: string;
+      status: string;
+      author: string;
+    }>;
+  };
+  timesheet: {
+    summary: {
+      totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
+    };
+    byWeek: {
+      data: Array<{
+        week: string;
+        totalConsultingHours: number;
+        totalHandsOnHours: number;
+        totalSquadHours: number;
+        totalInternalHours: number;
+      }>;
+    };
+  };
+}
+
 interface CasesGalleryProps {
-  filteredCases: any[];
-  timesheetData: any;
+  filteredCases: Case[];
+  timesheetData: {
+    summary: {
+      uniqueCases: number;
+    };
+    byKind: {
+      consulting: {
+        uniqueClients: number;
+      };
+      handsOn: {
+        uniqueClients: number;
+      };
+      squad: {
+        uniqueClients: number;
+      };
+      internal: {
+        uniqueClients: number;
+      };
+    };
+    filterableFields: Array<{
+      field: string;
+      options: string[];
+      selectedValues: string[];
+    }>;
+  };
 }
 
 export function CasesGallery({ filteredCases, timesheetData }: CasesGalleryProps) {
@@ -16,7 +83,7 @@ export function CasesGallery({ filteredCases, timesheetData }: CasesGalleryProps
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
       >
-        {filteredCases.map((caseItem: any) => (
+        {filteredCases.map((caseItem) => (
           <motion.div
             key={caseItem.slug}
             initial={{ opacity: 0, scale: 0.9 }}
@@ -24,12 +91,7 @@ export function CasesGallery({ filteredCases, timesheetData }: CasesGalleryProps
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
           >
-            <CaseCard
-              caseItem={caseItem}
-              caseData={timesheetData.byCase.find(
-                (c: any) => c.title === caseItem.title
-              )}
-            />
+            <CaseCard caseItem={caseItem} />
           </motion.div>
         ))}
       </motion.div>

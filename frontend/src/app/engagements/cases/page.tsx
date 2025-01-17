@@ -15,8 +15,45 @@ import { CasesGallery } from "./CasesGallery";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
+
+interface Case {
+  id: string;
+  slug: string;
+  title: string;
+  isActive: boolean;
+  preContractedValue: boolean;
+  sponsor: {
+    name: string;
+  };
+  hasDescription: boolean;
+  startOfContract: string;
+  endOfContract: string;
+  weeklyApprovedHours: number;
+  client: {
+    name: string;
+  };
+  isStale: boolean;
+  updates: {
+    data: Array<{
+      date: string;
+      status: string;
+      author: string;
+    }>;
+  };
+  timesheet?: {
+    summary: {
+      totalHours: number;
+      totalConsultingHours: number;
+      totalHandsOnHours: number;
+      totalSquadHours: number;
+      totalInternalHours: number;
+    }
+  }
+}
 
 export default function Cases() {
+  const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -28,6 +65,7 @@ export default function Cases() {
       filters:
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
+    client: client ?? undefined,
     ssr: true
   });
   const [selectedStat, setSelectedStat] = useState<string>("allCases");
@@ -77,26 +115,26 @@ export default function Cases() {
     }`;
   };
 
-  const filteredCases = data.cases
+  const cases = data.engagements.cases.data;
+  const filteredCases = cases
     .filter((caseItem: any) => 
       caseItem.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((caseItem: any) => {
-      const caseData = data.timesheet.byCase.find(
-        (c: any) => c.title === caseItem.title
-      );
-      if (!caseData) return selectedStat === "allCases";
+      const timesheetData = caseItem.timesheet;
+      if (!timesheetData) return selectedStat === "allCases";
+      
       switch (selectedStat) {
         case "total":
-          return caseData.totalHours > 0;
+          return timesheetData.summary.totalHours > 0;
         case "consulting":
-          return caseData.totalConsultingHours > 0;
+          return timesheetData.summary.totalConsultingHours > 0;
         case "handsOn":
-          return caseData.totalHandsOnHours > 0;
+          return timesheetData.summary.totalHandsOnHours > 0;
         case "squad":
-          return caseData.totalSquadHours > 0;
+          return timesheetData.summary.totalSquadHours > 0;
         case "internal":
-          return caseData.totalInternalHours > 0;
+          return timesheetData.summary.totalInternalHours > 0;
         default:
           return true;
       }
@@ -123,7 +161,7 @@ export default function Cases() {
                 className={`${getStatClassName("allCases")} transform`}
                 onClick={() => handleStatClick("allCases")}
               >
-                <Stat title="All Cases" value={data.cases.length.toString()} />
+                <Stat title="All Cases" value={cases.length.toString()} />
               </div>
             </div>
             <div className="lg:col-span-5">
@@ -135,7 +173,7 @@ export default function Cases() {
                 >
                   <Stat
                     title="Active Cases"
-                    value={data.timesheet.byCase.length.toString()}
+                    value={cases.filter((c: Case) => c.timesheet?.summary?.totalHours ?? 0 > 0).length.toString()}
                   />
                 </div>
                 <div
@@ -144,11 +182,9 @@ export default function Cases() {
                 >
                   <Stat
                     title="Consulting"
-                    value={data.timesheet.byCase
-                      .filter((c: any) => c.totalConsultingHours > 0)
-                      .length.toString()}
+                    value={cases.filter((c: Case) => c.timesheet?.summary?.totalConsultingHours ?? 0 > 0).length.toString()}
                     color="#F59E0B"
-                    total={data.timesheet.byCase.length}
+                    total={cases.length}
                   />
                 </div>
                 <div
@@ -157,11 +193,9 @@ export default function Cases() {
                 >
                   <Stat
                     title="Hands-On"
-                    value={data.timesheet.byCase
-                      .filter((c: any) => c.totalHandsOnHours > 0)
-                      .length.toString()}
+                    value={cases.filter((c: Case) => c.timesheet?.summary?.totalHandsOnHours ?? 0 > 0).length.toString()}
                     color="#8B5CF6"
-                    total={data.timesheet.byCase.length}
+                    total={cases.length}
                   />
                 </div>
                 <div
@@ -170,11 +204,9 @@ export default function Cases() {
                 >
                   <Stat
                     title="Squad"
-                    value={data.timesheet.byCase
-                      .filter((c: any) => c.totalSquadHours > 0)
-                      .length.toString()}
+                    value={cases.filter((c: Case) => c.timesheet?.summary?.totalSquadHours ?? 0 > 0).length.toString()}
                     color="#3B82F6"
-                    total={data.timesheet.byCase.length}
+                    total={cases.length}
                   />
                 </div>
                 <div
@@ -183,11 +215,9 @@ export default function Cases() {
                 >
                   <Stat
                     title="Internal"
-                    value={data.timesheet.byCase
-                      .filter((c: any) => c.totalInternalHours > 0)
-                      .length.toString()}
+                    value={cases.filter((c: Case) => c.timesheet?.summary?.totalInternalHours ?? 0 > 0).length.toString()}
                     color="#10B981"
-                    total={data.timesheet.byCase.length}
+                    total={cases.length}
                   />
                 </div>
               </div>
