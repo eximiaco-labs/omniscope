@@ -20,12 +20,16 @@ import {
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
 import { useQuery, gql } from "@apollo/client"
-import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon, TrophyIcon } from "lucide-react"
+import { UserIcon, BriefcaseIcon, UsersIcon, HandshakeIcon, TrophyIcon, HomeIcon } from "lucide-react"
 import { getFlag } from '../flags';
 import { useSession } from "next-auth/react"
 
 const GET_CONSULTANTS = gql`
   query GetConsultants {
+    user {
+      kind
+      slug
+    }
     consultantsAndEngineers {
       slug
       name
@@ -120,11 +124,26 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
     command()
   }, [setOpen])
 
+  const handleHomeNavigation = (user: any) => {
+      router.push(`/about-us/consultants-and-engineers/${user.slug}`);
+  };
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Navigation">
+          <CommandItem
+            onSelect={() => {
+              const currentUser = data?.user;
+              runCommand(() => handleHomeNavigation(currentUser));
+            }}
+          >
+            <HomeIcon className="mr-2 h-4 w-4" />
+            Home
+          </CommandItem>
+        </CommandGroup>
         <CommandGroup heading="Financial">
           {finantialsItems.map((item) => (
               <CommandItem
