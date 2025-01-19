@@ -15,13 +15,15 @@ from ariadne.explorer import ExplorerGraphiQL
 from team.resolvers import team_resolvers
 from engagements.resolvers import engagements_resolvers
 from timesheet.resolvers import query as timesheet_query
+from marketing_and_sales.resolvers import marketing_and_sales_resolvers
+
 from ontology.resolvers.ontology import query as ontology_query, ontology
 
 from team.schema import schema as team_schema
 from engagements.schema import schema as engagements_schema
 from ontology.schema import schema as ontology_schema
 from timesheet.schema import schema as timesheet_schema
-
+from marketing_and_sales.schema import schema as marketing_and_sales_schema
 from core.generator import generate_base_schema, GlobalTypeRegistry
 
 from omni_shared.settings import auth_settings 
@@ -51,14 +53,8 @@ registry = GlobalTypeRegistry()
 registry.register_type("Query", base_schema)
 generate_base_schema()  # This will register base types in the registry
 
-# Add module schemas to registry
-team_sdl = team_schema[0] if isinstance(team_schema, tuple) else team_schema
-engagements_sdl = engagements_schema[0] if isinstance(engagements_schema, tuple) else engagements_schema
-ontology_sdl = ontology_schema[0] if isinstance(ontology_schema, tuple) else ontology_schema
-timesheet_sdl, timesheet_resolvers = timesheet_schema
-
 # Create resolver types list starting with base query
-resolver_types = team_resolvers + engagements_resolvers + [ontology_query, ontology, timesheet_query]
+resolver_types = team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + [ontology_query, ontology, timesheet_query]
 
 for field_path, resolver_fn in registry.resolvers.items():
     type_name, field_name = field_path.split(".")
