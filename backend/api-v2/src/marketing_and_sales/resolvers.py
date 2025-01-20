@@ -3,6 +3,8 @@ from .models import Offer
 from core.decorators import collection
 from omni_shared import globals
 
+from timesheet.resolvers import compute_timesheet, build_fields_map
+
 query = QueryType()
 offer = ObjectType("Offer")
 marketing_and_sales = ObjectType("MarketingAndSales")
@@ -34,6 +36,23 @@ def resolve_marketing_and_sales_offer(obj, info, id=None, slug=None):
     
     return Offer.from_domain(offer)
 
+@offer.field("timesheet")
+def resolve_offer_timesheet(obj, info, slug: str = None, filters = None):
+    if filters is None:
+        filters = []
+        
+    client_filters = [
+        {
+            'field': 'ProductsOrServices',
+            'selected_values': [obj['name']]
+        }
+    ] + filters
+    
+    map = build_fields_map(info)
+    result = compute_timesheet(map, slug, client_filters)
+    model_dump = result.model_dump()
+    print(model_dump)
+    return model_dump
 
 
 

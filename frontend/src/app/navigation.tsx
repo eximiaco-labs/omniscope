@@ -23,7 +23,8 @@ import {
   BookIcon,
   BicepsFlexedIcon,
   StoreIcon,
-  MonitorPlayIcon
+  MonitorPlayIcon,
+  HandPlatterIcon
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -61,6 +62,16 @@ export function getEngagementsSidebarItems() {
       icon: MonitorPlayIcon,
     },
 
+  ];
+}
+
+export function getMarketingAndSalesSidebarItems() {
+  return [
+    {
+      title: "Offers",
+      url: "/marketing-and-sales/offers",
+      icon: HandPlatterIcon,
+    },
   ];
 }
 

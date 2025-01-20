@@ -40,6 +40,7 @@ import {
   getOperationalSummariesSidebarItems,
   getOntologySidebarItems,
   getEngagementsSidebarItems,
+  getMarketingAndSalesSidebarItems,
 } from "@/app/navigation";
 
 import React from "react";
@@ -58,7 +59,7 @@ import { OmniCommandsButton } from "./OmniCommands";
 import { LucideIcon } from "lucide-react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPersonRunning, faPeopleGroup } from "@fortawesome/free-solid-svg-icons"
+import { faPersonRunning, faPeopleGroup, faCommentsDollar } from "@fortawesome/free-solid-svg-icons"
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -100,6 +101,7 @@ export function OmniSidebar() {
   const [ontologyItems, setOntologyItems] = React.useState<MenuItem[]>([]);
   const [teamItems, setTeamItems] = React.useState<MenuItem[]>([]);
   const [engagementItems, setEngagementItems] = React.useState<MenuItem[]>([]);
+  const [marketingAndSalesItems, setMarketingAndSalesItems] = React.useState<MenuItem[]>([]);
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
   const [activeItems, setActiveItems] = React.useState<MenuItem[]>([]);
@@ -116,6 +118,7 @@ export function OmniSidebar() {
       const ontology = await getOntologySidebarItems();
       const team = await getTeamSidebarItems();
       const engagements = await getEngagementsSidebarItems();
+      const marketingAndSales = await getMarketingAndSalesSidebarItems();
 
       setFinancialItems(financial);
       setAnalyticsItems(analytics);
@@ -125,6 +128,7 @@ export function OmniSidebar() {
       setOntologyItems(ontology);
       setTeamItems(team);
       setEngagementItems(engagements);
+      setMarketingAndSalesItems(marketingAndSales);
 
       // Determine active section based on current path
       let initialSection = "Analytics";
@@ -138,6 +142,14 @@ export function OmniSidebar() {
           initialSection = "Financial";
           initialItems = financial;
         }
+        }
+
+      const isMarketingAndSalesPath = marketingAndSales.some((item) =>
+        pathname.startsWith(item.url)
+      );
+      if (isMarketingAndSalesPath) {
+        initialSection = "Marketing and Sales";
+        initialItems = marketingAndSales;
       }
 
       const isAnalyticsPath = analytics.some((item) =>
@@ -239,6 +251,13 @@ export function OmniSidebar() {
                       items: engagementItems,
                       icon: () => <FontAwesomeIcon icon={faPersonRunning} />,
                       tooltip: "Engagements",
+                    },
+                    {
+                      section: "Marketing and Sales",
+                      items: marketingAndSalesItems,
+                      icon: () => <FontAwesomeIcon icon={faCommentsDollar} />,
+                      tooltip: "Marketing and Sales",
+                      show: marketingAndSalesItems.length > 0,
                     },
                     hasFinancialAccess && {
                       section: "Financial",

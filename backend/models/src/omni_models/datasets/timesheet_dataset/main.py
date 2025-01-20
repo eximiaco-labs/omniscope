@@ -36,7 +36,7 @@ class TimesheetDataset(OmniDataset):
         return 'TimeInHs', ['Kind', 'ClientName', 'WorkerName']
 
     def get_filterable_fields(self):
-        return ['Kind', 'AccountManagerName', 'ClientName', 'CaseTitle', 'Sponsor', 'WorkerName']
+        return ['Kind', 'AccountManagerName', 'ClientName', 'CaseTitle', 'Sponsor', 'WorkerName', 'ProductsOrServices']
 
     @cache
     def get(self, after: datetime, before: datetime) -> SummarizablePowerDataFrame:

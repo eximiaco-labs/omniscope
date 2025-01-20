@@ -1,12 +1,14 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from core.fields import Id
-
+from timesheet.models import Timesheet
 class Offer(BaseModel):
     id: int = Id(description="The unique identifier of the offer")
     slug: str = Id(description="The URL-friendly identifier of the offer")
     name: str = Field(..., description="The name of the offer")
     cover_image_url: Optional[str] = '/assets/who_is_it.jpeg'
+    
+    timesheet: Optional[Timesheet] = None
     
     @classmethod
     def from_domain(cls, domain_offer):
