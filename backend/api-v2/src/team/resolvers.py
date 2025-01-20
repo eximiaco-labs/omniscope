@@ -53,43 +53,11 @@ def resolve_consultant_or_engineer_timesheet(obj, info, slug: str = None, filter
     print(model_dump)
     return model_dump
 
-def convert_worker_to_account_manager(worker):
-    """Convert a Worker instance to an AccountManager instance"""
-    return AccountManager(
-        id=worker.id,
-        slug=worker.slug,
-        name=worker.name,
-        email=worker.email or "",
-        ontology_url=str(worker.ontology_url or ""),
-        photo_url=str(worker.photo_url or ""),
-        is_recognized=worker.is_recognized,
-        position=worker.position,
-        errors=worker.errors
-    )
-
-def convert_worker_to_consultant_or_engineer(worker):
-    """Convert a Worker instance to a ConsultantOrEngineer instance"""
-    return ConsultantOrEngineer(
-        id=worker.id,
-        slug=worker.slug,
-        name=worker.name,
-        email=worker.email or "",
-        ontology_url=str(worker.ontology_url or ""),
-        photo_url=str(worker.photo_url or ""),
-        is_recognized=worker.is_recognized,
-        position=worker.position,
-        errors=worker.errors,
-        is_ontology_author=worker.is_ontology_author,
-        is_insights_author=worker.is_insights_author,
-        is_time_tracker_worker=worker.is_time_tracker_worker,
-        is_special_projects_worker=worker.is_special_projects_worker
-    )
-
 @team.field("accountManagers")
 @collection
 def resolve_team_account_managers(obj, info):
     source = globals.omni_models.workers.get_all(WorkerKind.ACCOUNT_MANAGER).values()
-    return [convert_worker_to_account_manager(worker) for worker in source]
+    return [AccountManager.from_domain(worker) for worker in source]
 
 @team.field("accountManager")
 def resolve_team_account_manager(obj, info, id: str = None, slug: str = None):
@@ -103,7 +71,7 @@ def resolve_team_account_manager(obj, info, id: str = None, slug: str = None):
     if not worker or worker.kind != WorkerKind.ACCOUNT_MANAGER:
         return None
         
-    return convert_worker_to_account_manager(worker).model_dump()
+    return AccountManager.from_domain(worker).model_dump()
 
 @team.field("consultantsOrEngineers")
 @collection
@@ -112,7 +80,7 @@ def resolve_team_consultants_or_engineers(obj, info):
         worker for worker in globals.omni_models.workers.get_all().values()
         if worker.kind == WorkerKind.CONSULTANT
     ]
-    return [convert_worker_to_consultant_or_engineer(worker) for worker in source]
+    return [ConsultantOrEngineer.from_domain(worker) for worker in source]
 
 @team.field("consultantOrEngineer")
 def resolve_team_consultant_or_engineer(obj, info, id: str = None, slug: str = None):
@@ -126,4 +94,4 @@ def resolve_team_consultant_or_engineer(obj, info, id: str = None, slug: str = N
     if not worker or worker.kind != WorkerKind.CONSULTANT:
         return None
         
-    return convert_worker_to_consultant_or_engineer(worker).model_dump()
+    return ConsultantOrEngineer.from_domain(worker).model_dump()

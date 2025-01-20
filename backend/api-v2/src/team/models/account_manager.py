@@ -15,3 +15,19 @@ class AccountManager(BaseModel):
     is_recognized: bool = Field(..., description="Whether the account manager is recognized")
     errors: Optional[List[str]] = None
     timesheet: Optional[Timesheet] = None
+    
+    @classmethod
+    def from_domain(cls, worker):
+        """Convert a Worker instance to an AccountManager instance"""
+        return AccountManager(
+            id=worker.id,
+            slug=worker.slug,
+            name=worker.name,
+            email=worker.email or "",
+            ontology_url=str(worker.ontology_url or ""),
+            photo_url=str(worker.photo_url or ""),
+            is_recognized=worker.is_recognized,
+            position=worker.position,
+            errors=worker.errors
+        )
+

@@ -61,7 +61,24 @@ export function getEngagementsSidebarItems() {
       url: "/engagements/cases",
       icon: MonitorPlayIcon,
     },
-
+    {
+      subsection: "Operational Summaries", 
+      title: "Timeliness",
+      url: "/engagements/timeliness",
+      icon: CheckCheckIcon,
+    },
+    {
+      subsection: "Operational Summaries", 
+      title: "Staleliness",
+      url: "/engagements/staleliness",
+      icon: ClockIcon,
+    },
+    {
+      subsection: "Operational Summaries",  
+      title: "Unspecified Hours",
+      url: "/engagements/unspecified-hours",
+      icon: AlertCircleIcon,
+    },
   ];
 }
 

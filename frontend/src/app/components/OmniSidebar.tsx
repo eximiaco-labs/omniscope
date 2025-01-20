@@ -74,6 +74,7 @@ interface MenuItem {
   url: string;
   icon: LucideIcon;
   subItems?: MenuItem[];
+  subsection?: string;
 }
 
 interface SidebarSection {
@@ -342,40 +343,84 @@ export function OmniSidebar() {
               <OmniCommandsButton />
             </div>
           </div>
-          <SidebarGroup>
-            <SidebarGroupLabel>{activeSection}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {activeItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname.startsWith(item.url)}
-                    >
-                      <Link href={item.url}>
-                        <item.icon className="size-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {item.subItems && item.subItems.length > 0 && (
-                      <SidebarMenuSub>
-                        {item.subItems.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
-                              <Link href={subItem.url}>
-                                <subItem.icon className="size-4" />
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    )}
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          {/* Group items without subsection */}
+          {activeItems.some(item => !item.subsection) && (
+            <SidebarGroup>
+              <SidebarGroupLabel>{activeSection}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {activeItems
+                    .filter(item => !item.subsection)
+                    .map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname.startsWith(item.url)}
+                        >
+                          <Link href={item.url}>
+                            <item.icon className="size-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.subItems && item.subItems.length > 0 && (
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
+                                  <Link href={subItem.url}>
+                                    <subItem.icon className="size-4" />
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        )}
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+          {/* Group items by subsection */}
+          {Array.from(new Set(activeItems.map(item => item.subsection).filter(Boolean))).map(subsection => (
+            <SidebarGroup key={subsection}>
+              <SidebarGroupLabel>{subsection}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {activeItems
+                    .filter(item => item.subsection === subsection)
+                    .map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname.startsWith(item.url)}
+                        >
+                          <Link href={item.url}>
+                            <item.icon className="size-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.subItems && item.subItems.length > 0 && (
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
+                                  <Link href={subItem.url}>
+                                    <subItem.icon className="size-4" />
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        )}
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
         </SidebarContent>
         <SidebarFooter>
           <OmniSidebarFooter />

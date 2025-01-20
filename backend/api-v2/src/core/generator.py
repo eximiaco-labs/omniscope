@@ -13,13 +13,28 @@ class GlobalRepository:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def get_by_id(self, type_name: str, id: int):
+    def get_by_id(self, type_name: str, id: str):
         if type_name == "Client":
             return globals.omni_models.clients.get_by_id(id)
+        elif type_name == "Case":
+            return globals.omni_models.cases.get_by_id(id)
+    
+    def get_by_slug(self, type_name: str, slug: str):
+        if type_name == "AccountManager":
+            from team.models import AccountManager
+            return AccountManager.from_domain(globals.omni_models.workers.get_by_slug(slug))
+        elif type_name == "ConsultantOrEngineer":
+            from team.models import ConsultantOrEngineer
+            return ConsultantOrEngineer.from_domain(globals.omni_models.workers.get_by_slug(slug))
         
     def get_resolver_by_id(self, entity_name: str, field_name: str):
         def resolver(parent, info):
             return self._instance.get_by_id(entity_name, parent[field_name])
+        return resolver
+
+    def get_resolver_by_slug(self, entity_name: str, field_name: str):
+        def resolver(parent, info):
+            return self._instance.get_by_slug(entity_name, parent[field_name])
         return resolver
               
 
@@ -370,6 +385,22 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
             
             # Add resolver that throws exception
             resolver = repository.get_resolver_by_id(gql_type, field_name)
+            
+            # Register resolver in the registry
+            registry.resolvers[f"{cls.__name__}.{camel_field_name}"] = resolver
+            
+            field_definitions.append(f"    {camel_field_name}: {gql_type}{'!' if not is_optional else ''}")
+            continue
+        
+        # Handle _slug fields
+        if field_name.endswith("_slug"):
+            base_name = field_name[:-5]  # Remove _slug suffix
+            # Convert to PascalCase
+            gql_type = "".join(word.capitalize() for word in base_name.split("_"))
+            camel_field_name = to_camel_case(base_name)
+            
+            # Add resolver that throws exception
+            resolver = repository.get_resolver_by_slug(gql_type, field_name)
             
             # Register resolver in the registry
             registry.resolvers[f"{cls.__name__}.{camel_field_name}"] = resolver
