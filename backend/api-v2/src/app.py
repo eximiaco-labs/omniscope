@@ -16,72 +16,74 @@ from team.resolvers import team_resolvers
 from engagements.resolvers import engagements_resolvers
 from timesheet.resolvers import query as timesheet_query
 from marketing_and_sales.resolvers import marketing_and_sales_resolvers
+from ontology.resolvers import ontology_resolvers
 
-from ontology.resolvers.ontology import query as ontology_query, ontology
+from team.schema import init as team_init
+from engagements.schema import init as engagements_init
+from ontology.schema import init as ontology_init
+from timesheet.schema import init as timesheet_init
+from marketing_and_sales.schema import init as marketing_and_sales_init
 
-from team.schema import schema as team_schema
-from engagements.schema import schema as engagements_schema
-from ontology.schema import schema as ontology_schema
-from timesheet.schema import schema as timesheet_schema
-from marketing_and_sales.schema import schema as marketing_and_sales_schema
 from core.generator import generate_base_schema, GlobalTypeRegistry
-
 from omni_shared.settings import auth_settings 
 from omni_shared.settings import graphql_settings
 
 app = Flask(__name__)
 CORS(app)
 
-# GraphQL setup
-current_dir = os.path.dirname(os.path.abspath(__file__))
-base_schema_path = os.path.join(current_dir, "schema.graphql")
-
-with open(base_schema_path) as f:
-    base_schema = f.read()
-
-# Base query resolver
-base_query = QueryType()
-
-@base_query.field("version")
-def resolve_version(*_):
-    return "2.0.0"
-
-# Initialize registry and add base schema
-registry = GlobalTypeRegistry()
-
-# Add base types and schemas to registry
-registry.register_type("Query", base_schema)
-generate_base_schema()  # This will register base types in the registry
-
-# Create resolver types list starting with base query
-resolver_types = team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + [ontology_query, ontology, timesheet_query]
-
-for field_path, resolver_fn in registry.resolvers.items():
-    type_name, field_name = field_path.split(".")
-    # Get or create type object
-    type_obj = next(
-        (r for r in resolver_types if isinstance(r, ObjectType) and r.name == type_name),
-        ObjectType(type_name)
-    )
-    # Set resolver
-    if not type_obj._resolvers.get(field_name):
-        type_obj.set_field(field_name, resolver_fn)
+def create_schema():
+    # Initialize schemas
+    def init():
+        team_init()
+        engagements_init()
+        ontology_init()
+        timesheet_init()
+        marketing_and_sales_init()       
     
-    if type_obj not in resolver_types:
-        resolver_types.append(type_obj)
+    init()
 
-# Get all SDL from registry
-sdl = registry.generate_sdl()
-type_defs = [
-    sdl,
-]
+    # Base query resolver
+    base_query = QueryType()
 
-# Create executable schema
-schema = make_executable_schema(
-    type_defs,
-    resolver_types,
-    snake_case_fallback_resolvers
-)
+    @base_query.field("version")
+    def resolve_version(*_):
+        return "2.0.0"
+
+    # Initialize registry and add base schema
+    registry = GlobalTypeRegistry()
+
+    # Add base types and schemas to registry
+    generate_base_schema()  # This will register base types in the registry
+
+    # Create resolver types list starting with base query
+    resolver_types = team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + ontology_resolvers + [timesheet_query]
+
+    for field_path, resolver_fn in registry.resolvers.items():
+        type_name, field_name = field_path.split(".")
+        # Get or create type object
+        type_obj = next(
+            (r for r in resolver_types if isinstance(r, ObjectType) and r.name == type_name),
+            ObjectType(type_name)
+        )
+        # Set resolver
+        if not type_obj._resolvers.get(field_name):
+            type_obj.set_field(field_name, resolver_fn)
+        
+        if type_obj not in resolver_types:
+            resolver_types.append(type_obj)
+
+    # Get all SDL from registry
+    sdl = registry.generate_sdl()
+
+    # Create executable schema
+    return make_executable_schema(
+        [sdl],
+        resolver_types,
+        snake_case_fallback_resolvers
+    )
+
+# Create schema
+schema = create_schema()
 
 # GraphQL endpoints
 @app.route("/graphql", methods=["POST"])

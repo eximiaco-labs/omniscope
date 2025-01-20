@@ -1,11 +1,12 @@
 from ariadne import QueryType, ObjectType
 from core.decorators import collection
-from ..models import Class
+from .models import Class
 
 from omni_shared import globals
 
 query = QueryType()
 ontology = ObjectType("Ontology")
+ontology_resolvers = [query, ontology]
 
 def convert_ontology_class_to_model(c):
     return Class(

@@ -6,8 +6,7 @@ from omni_shared import globals
 query = QueryType()
 offer = ObjectType("Offer")
 marketing_and_sales = ObjectType("MarketingAndSales")
-
-marketing_and_sales_resolvers = [query, offer]
+marketing_and_sales_resolvers = [query, offer, marketing_and_sales]
 
 @query.field("marketingAndSales")
 def resolve_marketing_and_sales(*_):

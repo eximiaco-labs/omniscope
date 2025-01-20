@@ -38,6 +38,8 @@ class GlobalTypeRegistry:
             cls._instance.query_fields = []
             cls._instance.type_parameters = {}  # Store query parameters for each type
             cls._instance.resolvers = {}  # Store resolvers for each type
+            
+            cls._instance.register_type('Query', 'type Query { version: String! }', [], {})
         return cls._instance
 
     def register_type(self, type_name: str, type_def: str, parameters: List[str] = None, resolvers: Dict[str, Callable] = None):
@@ -662,9 +664,7 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
-            # Generate resolver for root collection
-            # all_resolvers[f"{context_name}.{collection_name}"] = generate_default_resolver(collection_name)
-        
+            
         # Single item fields based on identifiers
         identifier_fields = get_identifier_fields(cls)
 
