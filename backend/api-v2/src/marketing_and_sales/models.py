@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from core.fields import Id
 from timesheet.models import Timesheet
-
 from datetime import datetime
+from engagements.models import Client
 
 class Offer(BaseModel):
     id: int = Id(description="The unique identifier of the offer")
@@ -30,6 +30,7 @@ class ActiveDeal(BaseModel):
     stage_name: str = Field(..., description="The name of the stage of the active deal")
     stage_order_nr: int = Field(..., description="The order number of the stage of the active deal")
     probability: Optional[float] = None
+    
     client_or_prospect_name: Optional[str] = None
     account_manager_name: Optional[str] = None
     sponsor_name: Optional[str] = None
@@ -40,8 +41,11 @@ class ActiveDeal(BaseModel):
     #everhour_id: Optional[str] = None
     status: Optional[str] = "open"
     
+    client: Optional[Client] = None
+    
     @classmethod
     def from_domain(cls, domain_active_deal):
+        from engagements.models import Client
         return cls(
             id=domain_active_deal.id,
             title=domain_active_deal.title,

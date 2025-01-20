@@ -3,12 +3,15 @@ from .models import Offer, ActiveDeal
 from core.decorators import collection
 from omni_shared import globals
 
+from engagements.models import Client
+
 from timesheet.resolvers import compute_timesheet, build_fields_map
 
 query = QueryType()
 offer = ObjectType("Offer")
+active_deal = ObjectType("ActiveDeal")
 marketing_and_sales = ObjectType("MarketingAndSales")
-marketing_and_sales_resolvers = [query, offer, marketing_and_sales]
+marketing_and_sales_resolvers = [query, offer, active_deal, marketing_and_sales]
 
 @query.field("marketingAndSales")
 def resolve_marketing_and_sales(*_):
@@ -61,6 +64,16 @@ def resolve_offer_timesheet(obj, info, slug: str = None, filters = None):
     model_dump = result.model_dump()
     print(model_dump)
     return model_dump
+
+@active_deal.field("client")
+def resolve_active_deal_client(obj, info):
+    client = globals.omni_models.clients.get_by_name(obj['client_or_prospect_name'])
+    if not client:
+        return None
+    
+    return Client.from_domain(client)
+
+
 
 
 
