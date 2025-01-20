@@ -72,6 +72,11 @@ export function getMarketingAndSalesSidebarItems() {
       url: "/marketing-and-sales/offers",
       icon: HandPlatterIcon,
     },
+    {
+      title: "Deals",
+      url: "/marketing-and-sales/deals",
+      icon: PercentIcon,
+    },
   ];
 }
 

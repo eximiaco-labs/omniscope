@@ -1,5 +1,5 @@
 from ariadne import QueryType, ObjectType
-from .models import Offer
+from .models import Offer, ActiveDeal
 from core.decorators import collection
 from omni_shared import globals
 
@@ -35,6 +35,14 @@ def resolve_marketing_and_sales_offer(obj, info, id=None, slug=None):
         raise Exception("Offer not found")
     
     return Offer.from_domain(offer)
+
+@marketing_and_sales.field("activeDeals")
+@collection
+def resolve_marketing_and_sales_active_deals(obj, info):
+    return [
+        ActiveDeal.from_domain(active_deal)
+        for active_deal in globals.omni_models.active_deals.get_all()
+    ]
 
 @offer.field("timesheet")
 def resolve_offer_timesheet(obj, info, slug: str = None, filters = None):
