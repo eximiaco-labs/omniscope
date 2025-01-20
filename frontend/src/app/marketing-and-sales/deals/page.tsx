@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import SectionHeader from '@/components/SectionHeader';
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 interface Client {
   name: string;
@@ -206,18 +207,30 @@ function SummaryTable({ prospects, clientDeals }: { prospects: Deal[], clientDea
   );
 }
 
+interface ActiveDealsResponse {
+  marketingAndSales: {
+    activeDeals: {
+      data: Deal[];
+    };
+  };
+}
+
 const GET_ACTIVE_DEALS = gql`
   query GetActiveDeals {
-    activeDeals {
-      title
-      client {
-        name
+    marketingAndSales {
+      activeDeals {
+        data {
+          title
+          client {
+            name
+          }
+          status
+          clientOrProspectName
+          updateTime
+          stageName
+          stageOrderNr
+        }
       }
-      status
-      clientOrProspectName
-      updateTime
-      stageName
-      stageOrderNr
     }
   }
 `;
@@ -320,13 +333,17 @@ function DealsTable({ title, subtitle, groupedDeals }: DealsTableProps) {
 }
 
 export default function DealsPage() {
-  const { loading, error, data } = useQuery<{ activeDeals: Deal[] }>(GET_ACTIVE_DEALS);
+  const client = useEdgeClient();
+  const { loading, error, data } = useQuery<ActiveDealsResponse>(GET_ACTIVE_DEALS, {
+    client: client ?? undefined,
+    ssr: true
+  });
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error.message}</div>;
 
-  const prospects = data?.activeDeals.filter(deal => !deal.client && deal.status === "open") ?? [];
-  const clientDeals = data?.activeDeals.filter(deal => deal.client && deal.status === "open") ?? [];
+  const prospects = data?.marketingAndSales.activeDeals.data.filter((deal: Deal) => !deal.client && deal.status === "open") ?? [];
+  const clientDeals = data?.marketingAndSales.activeDeals.data.filter((deal: Deal) => deal.client && deal.status === "open") ?? [];
 
   const groupDeals = (deals: Deal[]): GroupedDeals[] => {
     return deals.reduce<GroupedDeals[]>((acc, deal) => {
