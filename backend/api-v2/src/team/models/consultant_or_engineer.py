@@ -22,6 +22,9 @@ class ConsultantOrEngineer(BaseModel):
     @classmethod
     def from_domain(cls, worker):
         """Convert a Worker instance to an AccountManager instance"""
+        if worker is None:
+            return None
+        
         return ConsultantOrEngineer(
             id=worker.id,
             slug=worker.slug,

@@ -228,7 +228,8 @@ def get_appointments(df: pd.DataFrame) -> List[TimesheetAppointment]:
             'sponsor': row['Sponsor'],
             'account_manager_name': row['AccountManagerName'],
             'account_manager_slug': row['AccountManagerSlug'],
-            'week': row['Week']
+            'week': row['Week'],
+            'comment': row['Comment']
         }
         appointments.append(TimesheetAppointment(**appointment_dict))
     return appointments
