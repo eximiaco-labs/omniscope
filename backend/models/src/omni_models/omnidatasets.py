@@ -448,7 +448,7 @@ class OmniDatasets:
             if filters:
                 for filter_item in filters:
                     if filter_item['field'] == field:
-                        selected_values = filter_item['selected_values']
+                        selected_values = filter_item['selected_values'] if 'selected_values' in filter_item else filter_item['selectedValues']
                         break
 
             result['filterable_fields'].append(

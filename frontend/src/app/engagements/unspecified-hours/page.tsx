@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import {
   format,
   startOfWeek,
@@ -32,17 +32,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { InfoCircledIcon, ReloadIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
-
-const REFRESH_DATA_MUTATION = gql`
-  mutation RefreshData {
-    refreshData
-  }
-`;
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const TIMESHEET_QUERY = gql`
-  query Timesheet($slug: String!, $filters: [FilterInput]) {
+  query Timesheet($slug: String!, $filters: [DatasetFilterInput]) {
     timesheet(slug: $slug, filters: $filters) {
       filterableFields {
         field
@@ -50,15 +45,14 @@ const TIMESHEET_QUERY = gql`
         selectedValues
       }
       appointments {
-        date
-        workerName
-        workerSlug
-        clientName
-        clientSlug
-        accountManagerName
-        accountManagerSlug
-        timeInHs
-        comment
+        data {
+          date
+          consultantOrEngineer { name, slug }
+          client { name, slug }
+          accountManager { name, slug }
+          timeInHs
+          comment
+        }
       }
     }
   }
@@ -101,16 +95,25 @@ interface Stats {
 }
 
 interface Appointment {
-  workerName: string;
-  workerSlug: string;
+  date: string;
+  consultantOrEngineer: {
+    name: string;
+    slug: string;
+  };
+  client: {
+    name: string;
+    slug: string;
+  };
+  accountManager: {
+    name: string;
+    slug: string;
+  };
   timeInHs: number;
   comment: string;
-  date: string;
-  clientName: string;
-  clientSlug: string;
 }
 
 export default function UnspecifiedWorkHoursPage() {
+  const client = useEdgeClient();
   const router = useRouter();
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -127,8 +130,6 @@ export default function UnspecifiedWorkHoursPage() {
 
   const [sortField, setSortField] = useState<SortField>("percentage");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [buttonDisabled, setButtonDisabled] = useState(false);
 
   const slug = useMemo(() => {
     if (!dateRange.from || !dateRange.to) return "";
@@ -174,21 +175,9 @@ export default function UnspecifiedWorkHoursPage() {
       filters:
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
+    client: client ?? undefined,
     skip: !slug,
   });
-
-  const [refreshData] = useMutation(REFRESH_DATA_MUTATION, {
-    onCompleted: () => {
-      setIsRefreshing(false);
-      router.refresh();
-    },
-  });
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    setButtonDisabled(true);
-    await refreshData();
-  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -200,35 +189,36 @@ export default function UnspecifiedWorkHoursPage() {
   };
 
   const stats = useMemo(() => {
-    if (!data?.timesheet?.appointments) return null;
+    if (!data?.timesheet?.appointments?.data) return null;
 
-    const appointments = data.timesheet.appointments as Appointment[];
+    const appointments = data.timesheet.appointments.data as Appointment[];
     const total = appointments.length;
-    const unspecified = appointments.filter((a) => !a.comment).length;
+    const unspecified = appointments.filter((a: Appointment) => !a.comment).length;
     const percentage = (unspecified / total) * 100;
 
     const byWorker = appointments.reduce<Record<string, WorkerStats>>(
-      (acc, curr) => {
-        if (!acc[curr.workerName]) {
-          acc[curr.workerName] = {
+      (acc: Record<string, WorkerStats>, curr: Appointment) => {
+        const workerName = curr.consultantOrEngineer.name;
+        if (!acc[workerName]) {
+          acc[workerName] = {
             count: 0,
             total: 0,
             unspecifiedHours: 0,
             totalHours: 0,
-            slug: curr.workerSlug,
+            slug: curr.consultantOrEngineer.slug,
             appointments: [],
           };
         }
 
-        acc[curr.workerName].total += 1;
-        acc[curr.workerName].totalHours += curr.timeInHs;
+        acc[workerName].total += 1;
+        acc[workerName].totalHours += curr.timeInHs;
         if (!curr.comment) {
-          acc[curr.workerName].count += 1;
-          acc[curr.workerName].unspecifiedHours += curr.timeInHs;
-          acc[curr.workerName].appointments?.push({
+          acc[workerName].count += 1;
+          acc[workerName].unspecifiedHours += curr.timeInHs;
+          acc[workerName].appointments?.push({
             date: curr.date,
-            clientName: curr.clientName,
-            clientSlug: curr.clientSlug,
+            clientName: curr.client.name,
+            clientSlug: curr.client.slug,
             timeInHs: curr.timeInHs,
           });
         }
@@ -291,22 +281,6 @@ export default function UnspecifiedWorkHoursPage() {
               An entry is considered "unspecified" when there is a time entry in Everhour without any comments. 
               These entries need attention as they lack important context about the work performed.
             </p>
-
-            <div className="flex items-center justify-between text-sm">
-              <p className="text-blue-600">
-                <span className="inline-block w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                This page shows cached data for better performance. If you suspect the data is outdated, use the refresh button.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefresh}
-                disabled={buttonDisabled || isRefreshing}
-              >
-                <ReloadIcon className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-              </Button>
-            </div>
           </div>
         </div>
 
@@ -469,10 +443,7 @@ export default function UnspecifiedWorkHoursPage() {
                               </SheetContent>
                             </Sheet>
                             <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">
-                              {((data.count / stats.unspecified) * 100).toFixed(
-                                1
-                              )}
-                              %
+                              {(data.count / stats.unspecified * 100).toFixed(1)}%
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
@@ -484,12 +455,7 @@ export default function UnspecifiedWorkHoursPage() {
                           <TableCell className="text-right relative">
                             {data.unspecifiedHours.toFixed(1)}
                             <span className="absolute bottom-[2px] right-[2px] text-[8px] text-gray-500">
-                              {(
-                                (data.unspecifiedHours /
-                                  totalUnspecifiedHours) *
-                                100
-                              ).toFixed(1)}
-                              %
+                              {(data.unspecifiedHours / totalUnspecifiedHours * 100).toFixed(1)}%
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
@@ -507,16 +473,18 @@ export default function UnspecifiedWorkHoursPage() {
                       <TableCell className="text-right">
                         {stats.unspecified}
                       </TableCell>
-                      <TableCell className="text-right">
+                      {/* <TableCell className="text-right">
                         {stats.total}
-                      </TableCell>
+                      </TableCell> */}
+                      <TableCell />
                       <TableCell />
                       <TableCell className="text-right">
                         {totalUnspecifiedHours.toFixed(1)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      {/* <TableCell className="text-right">
                         {totalHours.toFixed(1)}
-                      </TableCell>
+                      </TableCell> */}
+                      <TableCell />
                       <TableCell />
                     </TableRow>
                   </TableFooter>
