@@ -31,3 +31,12 @@ def collection(func: Callable[..., List[T]]) -> Callable:
         return result.model_dump()
     
     return wrapper 
+
+def namespace(cls):
+    """
+    Decorator that marks a class as a namespace.
+    Namespaces are used to group related fields and won't be treated as collections.
+    """
+    setattr(cls, '_is_namespace', True)
+    return cls
+

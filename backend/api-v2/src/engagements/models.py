@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 from core.fields import Id
 from timesheet.models import Timesheet
 from datetime import datetime, date
+from .summaries.models import Timeliness
+from core.decorators import namespace
 
 from omni_shared import globals
 
@@ -165,9 +167,14 @@ class Project(BaseModel):
         )
 
 
+@namespace
+class Summaries(BaseModel):
+    timeliness: Timeliness
+    
 __all__ = [
     'Client',
     'Sponsor',
     'Case',
-    'Project'
+    'Project',
+    'Summaries'
 ] 

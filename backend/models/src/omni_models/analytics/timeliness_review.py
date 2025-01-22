@@ -2,6 +2,7 @@ from datetime import datetime
 import pandas as pd
 from omni_utils.helpers.weeks import Weeks
 from omni_shared import globals
+from .timeliness_models import TimelinessReview, WorkerSummary
 
 def compute_timeliness_review(date_of_interest, filters=None):
     if isinstance(date_of_interest, str):
@@ -59,12 +60,12 @@ def compute_timeliness_review(date_of_interest, filters=None):
         ).reset_index()
 
         return [
-            {
-                'worker': row['WorkerName'],
-                'worker_slug': row['WorkerSlug'] if pd.notna(row['WorkerSlug']) else None,
-                'entries': row['entries'],
-                'time_in_hours': row['time_in_hours']
-            }
+            WorkerSummary(
+                worker=row['WorkerName'],
+                worker_slug=row['WorkerSlug'] if pd.notna(row['WorkerSlug']) else None,
+                entries=row['entries'],
+                time_in_hours=row['time_in_hours']
+            )
             for _, row in worker_group.sort_values('time_in_hours', ascending=False).iterrows()
         ]
 
@@ -78,30 +79,30 @@ def compute_timeliness_review(date_of_interest, filters=None):
     min_date = df['Date'].min()
     max_date = df['Date'].max()
 
-    # Compondo o dicionário final
-    return {
-        'total_rows': total_rows,
-        'total_time_in_hours': total_time_in_hours,
-        'early_rows': early_rows,
-        'early_time_in_hours': early_time_in_hours,
-        'early_percentage': early_percentage,
-        'ok_rows': ok_rows,
-        'ok_time_in_hours': ok_time_in_hours,
-        'ok_percentage': ok_percentage,
-        'acceptable_rows': acceptable_rows,
-        'acceptable_time_in_hours': acceptable_time_in_hours,
-        'acceptable_percentage': acceptable_percentage,
-        'late_rows': late_rows,
-        'late_time_in_hours': late_time_in_hours,
-        'late_percentage': late_percentage,
-        'early_workers': early_workers,
-        'ok_workers': ok_workers,
-        'acceptable_workers': acceptable_workers,
-        'late_workers': late_workers,
-        'min_date': min_date,
-        'max_date': max_date,
-        'filterable_fields': result['filterable_fields']
-    }
+    # Retornando o modelo Pydantic
+    return TimelinessReview(
+        total_rows=total_rows,
+        total_time_in_hours=total_time_in_hours,
+        early_rows=early_rows,
+        early_time_in_hours=early_time_in_hours,
+        early_percentage=early_percentage,
+        early_workers=early_workers,
+        ok_rows=ok_rows,
+        ok_time_in_hours=ok_time_in_hours,
+        ok_percentage=ok_percentage,
+        ok_workers=ok_workers,
+        acceptable_rows=acceptable_rows,
+        acceptable_time_in_hours=acceptable_time_in_hours,
+        acceptable_percentage=acceptable_percentage,
+        acceptable_workers=acceptable_workers,
+        late_rows=late_rows,
+        late_time_in_hours=late_time_in_hours,
+        late_percentage=late_percentage,
+        late_workers=late_workers,
+        min_date=min_date,
+        max_date=max_date,
+        filterable_fields=result['filterable_fields']
+    )
 
 def _create_worker_summary(self, df, filter_condition):
     worker_group = df[filter_condition].groupby(['WorkerName', 'WorkerSlug']).agg(

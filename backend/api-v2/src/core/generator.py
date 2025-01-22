@@ -687,6 +687,15 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
     # Generate context type
     field_definitions = []
     for cls in types:
+        # Check if class is marked as namespace
+        is_namespace = hasattr(cls, '_is_namespace')
+        
+        if is_namespace:
+            # For namespaced classes, use camelCase for field name but keep PascalCase for type
+            field_name = to_camel_case(cls.__name__[0].lower() + cls.__name__[1:])
+            field_definitions.append(f"    {field_name}: {cls.__name__}!")
+            continue
+            
         # Get the base name in camelCase
         base_name = to_camel_case(cls.__name__[0].lower() + cls.__name__[1:])
         
