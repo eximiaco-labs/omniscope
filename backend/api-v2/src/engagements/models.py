@@ -5,6 +5,7 @@ from timesheet.models import Timesheet
 from datetime import datetime, date
 from .summaries.models import Timeliness
 from core.decorators import namespace
+from core.generator import FilterableField
 
 from omni_shared import globals
 
@@ -169,9 +170,9 @@ class Project(BaseModel):
 
 @namespace
 class Summaries(BaseModel):
-    def timeliness(self, date_of_interest: str, filters: Optional[List[str]] = None) -> Timeliness:
+    def timeliness(self, date_of_interest: str, filters: Optional[List[FilterableField]] = None) -> Timeliness:
         pass
-    
+        
 __all__ = [
     'Client',
     'Sponsor',

@@ -1,6 +1,7 @@
 from typing import Type, List, Optional, Union, Any, Dict, Callable
 from pydantic import BaseModel
 from datetime import datetime
+import inspect
 import re
 
 from omni_shared import globals
@@ -149,43 +150,67 @@ def generate_enum_type(enum_cls) -> str:
     registry.register_type(enum_cls.__name__, enum_type)
     return enum_type
 
-def generate_input_type(cls: Type[BaseModel], suffix: str = "Input") -> str:
-    """Generate GraphQL input type from Pydantic model"""
+def generate_input_type(cls: Type[BaseModel]) -> str:
+    """Generate a GraphQL input type from a Pydantic model"""
     registry = GlobalTypeRegistry()
-    type_name = f"{cls.__name__}{suffix}"
+    input_type_name = f"{cls.__name__}Input"
     
-    if registry.is_registered(type_name):
+    # Se já está registrado, não precisa gerar novamente
+    if registry.is_registered(input_type_name):
         return ""
-        
+    
     field_definitions = []
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
-        gql_type = "String"
+        has_default = field.default is not None or field.default is None and field.default_factory is None
+        is_optional = has_default or getattr(field_type, "__origin__", None) is Optional
         
-        if field_type == str:
-            gql_type = "String"
-        elif field_type == int:
-            gql_type = "Int"
-        elif field_type == float:
-            gql_type = "Float"
-        elif field_type == bool:
-            gql_type = "Boolean"
-        elif hasattr(field_type, "__origin__") and field_type.__origin__ == list:
-            inner_type = field_type.__args__[0].__name__
-            gql_type = f"[{inner_type}{suffix}]"
-        elif isinstance(field_type, type) and issubclass(field_type, BaseModel):
-            gql_type = f"{field_type.__name__}{suffix}"
-            
-        if field.default is not None:
-            field_definitions.append(f"    {field_name}: {gql_type}")
+        # Get the actual type
+        if hasattr(field_type, "__origin__"):
+            if field_type.__origin__ in (list, List):
+                inner_type = field_type.__args__[0]
+                if inspect.isclass(inner_type) and issubclass(inner_type, BaseModel):
+                    gql_type = f"[{inner_type.__name__}Input]"
+                else:
+                    gql_type = f"[{get_scalar_type(inner_type)}]"
+            elif field_type.__origin__ in (Union, Optional):
+                for arg in field_type.__args__:
+                    if arg != type(None):  # noqa
+                        if inspect.isclass(arg) and issubclass(arg, BaseModel):
+                            gql_type = f"{arg.__name__}Input"
+                        else:
+                            gql_type = get_scalar_type(arg)
+                        break
+        elif inspect.isclass(field_type) and issubclass(field_type, BaseModel):
+            gql_type = f"{field_type.__name__}Input"
         else:
-            field_definitions.append(f"    {field_name}: {gql_type}!")
-            
-    input_type = f"""input {type_name} {{
+            gql_type = get_scalar_type(field_type)
+        
+        # Convert field name to camelCase
+        camel_field_name = to_camel_case(field_name)
+        field_definitions.append(f"    {camel_field_name}: {gql_type}{'!' if not is_optional else ''}")
+    
+    input_type = f"""input {input_type_name} {{
 {chr(10).join(field_definitions)}
 }}"""
-    registry.register_type(type_name, input_type)
+    
+    # Registra o tipo de input
+    registry.register_type(input_type_name, input_type)
     return input_type
+
+def get_scalar_type(type_annotation) -> str:
+    """Get the GraphQL scalar type for a Python type"""
+    if type_annotation == str:
+        return "String"
+    elif type_annotation == int:
+        return "Int"
+    elif type_annotation == float:
+        return "Float"
+    elif type_annotation == bool:
+        return "Boolean"
+    elif type_annotation == datetime:
+        return "DateTime"
+    return "String"  # fallback
 
 def get_field_type(field_type):
     """Helper function to get the actual type from a potentially wrapped type (Optional, List, etc)"""
@@ -353,6 +378,42 @@ def generate_method_resolver(method):
     
     return resolver
 
+def get_inner_type_for_graphql(type_annotation, type_definitions, resolvers, registry, generated_types, is_input=False):
+    """Helper function to get the GraphQL type for a given Python type annotation"""
+    if type_annotation == str:
+        return "String"
+    elif type_annotation == int:
+        return "Int"
+    elif type_annotation == float:
+        return "Float"
+    elif type_annotation == bool:
+        return "Boolean"
+    elif inspect.isclass(type_annotation) and issubclass(type_annotation, BaseModel):
+        type_name = type_annotation.__name__
+        if is_input:
+            input_type_name = f"{type_name}Input"
+            # Generate input type if not already registered
+            if not registry.is_registered(input_type_name):
+                input_type = generate_input_type(type_annotation)
+                if input_type:
+                    type_definitions.append(input_type)
+                    # Também gera o tipo regular se ainda não existir
+                    if not registry.is_registered(type_name):
+                        nested_type, nested_resolvers = generate_type(type_annotation, generated_types)
+                        if nested_type:
+                            type_definitions.append(nested_type)
+                            resolvers.update(nested_resolvers)
+            return input_type_name
+        else:
+            # Generate regular type if not already registered
+            if not registry.is_registered(type_name):
+                nested_type, nested_resolvers = generate_type(type_annotation, generated_types)
+                if nested_type:
+                    type_definitions.append(nested_type)
+                    resolvers.update(nested_resolvers)
+            return type_name
+    return "String"  # fallback
+
 def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
     """Generate GraphQL type definition from a Pydantic model and its resolvers"""
     registry = GlobalTypeRegistry()
@@ -380,8 +441,11 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     if hasattr(cls, '_is_namespace'):
         import inspect
         
-        # Get all methods that are not special methods (don't start with __)
-        methods = inspect.getmembers(cls, predicate=lambda x: inspect.isfunction(x) and not x.__name__.startswith('__'))
+        # Get only methods defined in the class itself, not inherited ones
+        methods = [
+            (name, method) for name, method in inspect.getmembers(cls, predicate=inspect.isfunction)
+            if method.__qualname__.startswith(cls.__name__) and not name.startswith('__')
+        ]
         
         for method_name, method in methods:
             # Get method signature
@@ -405,16 +469,27 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     elif param.annotation == bool:
                         param_type = "Boolean"
                     elif hasattr(param.annotation, "__origin__"):
-                        if param.annotation.__origin__ == list:
+                        origin = param.annotation.__origin__
+                        if origin == list or origin == List:
                             inner_type = param.annotation.__args__[0]
-                            if inner_type == str:
-                                param_type = "[String]"
-                            elif inner_type == int:
-                                param_type = "[Int]"
-                            elif inner_type == float:
-                                param_type = "[Float]"
-                            elif inner_type == bool:
-                                param_type = "[Boolean]"
+                            param_type = get_inner_type_for_graphql(inner_type, type_definitions, resolvers, registry, generated_types, is_input=True)
+                            param_type = f"[{param_type}]"
+                        elif origin in (Union, Optional):
+                            # Handle Optional types
+                            for arg in param.annotation.__args__:
+                                if arg != type(None):  # noqa
+                                    if hasattr(arg, "__origin__") and (arg.__origin__ == list or arg.__origin__ == List):
+                                        # Handle Optional[List[...]]
+                                        list_inner_type = arg.__args__[0]
+                                        param_type = get_inner_type_for_graphql(list_inner_type, type_definitions, resolvers, registry, generated_types, is_input=True)
+                                        param_type = f"[{param_type}]"
+                                    else:
+                                        param_type = get_inner_type_for_graphql(arg, type_definitions, resolvers, registry, generated_types, is_input=True)
+                                    break
+                    # Handle direct complex types (not in a list/optional)
+                    elif (inspect.isclass(param.annotation) and 
+                          issubclass(param.annotation, BaseModel)):
+                        param_type = get_inner_type_for_graphql(param.annotation, type_definitions, resolvers, registry, generated_types, is_input=True)
                 
                 # Convert parameter name to camelCase for GraphQL
                 camel_param_name = to_camel_case(param.name)
