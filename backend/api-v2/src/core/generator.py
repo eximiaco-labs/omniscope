@@ -1,6 +1,6 @@
 from typing import Type, List, Optional, Union, Any, Dict, Callable
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 import inspect
 import re
 
@@ -219,6 +219,8 @@ def get_scalar_type(type_annotation) -> str:
         return "Boolean"
     elif type_annotation == datetime:
         return "DateTime"
+    elif type_annotation == date:
+        return "Date"
     return "String"  # fallback
 
 def get_field_type(field_type):
@@ -397,6 +399,8 @@ def get_inner_type_for_graphql(type_annotation, type_definitions, resolvers, reg
         return "Float"
     elif type_annotation == bool:
         return "Boolean"
+    elif type_annotation == date:
+        return "Date"
     elif inspect.isclass(type_annotation) and issubclass(type_annotation, BaseModel):
         type_name = type_annotation.__name__
         if is_input:
@@ -491,6 +495,8 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                         param_type = "Float"
                     elif param.annotation == bool:
                         param_type = "Boolean"
+                    elif param.annotation == date:
+                        param_type = "Date"
                     elif hasattr(param.annotation, "__origin__"):
                         origin = param.annotation.__origin__
                         if origin == list or origin == List:
