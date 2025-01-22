@@ -1,4 +1,5 @@
 from typing import Optional, List
+from omni_models.analytics.timeliness_review import compute_timeliness_review
 from pydantic import BaseModel, Field
 from core.fields import Id
 from timesheet.models import Timesheet
@@ -171,7 +172,8 @@ class Project(BaseModel):
 @namespace
 class Summaries(BaseModel):
     def timeliness(self, date_of_interest: str, filters: Optional[List[FilterableField]] = None) -> Timeliness:
-        pass
+        result = compute_timeliness_review(date_of_interest, filters)
+        return Timeliness.from_model(result)
         
 __all__ = [
     'Client',
