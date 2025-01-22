@@ -414,6 +414,12 @@ def get_inner_type_for_graphql(type_annotation, type_definitions, resolvers, reg
             return type_name
     return "String"  # fallback
 
+def generate_namespace_resolver(cls: Type[BaseModel]) -> Callable:
+    """Generate a resolver for namespace types that returns an instance of the class."""
+    def resolver(parent, info):
+        return cls()
+    return resolver
+
 def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
     """Generate GraphQL type definition from a Pydantic model and its resolvers"""
     registry = GlobalTypeRegistry()
@@ -440,6 +446,13 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     # Generate resolvers for methods if class is namespaced
     if hasattr(cls, '_is_namespace'):
         import inspect
+        
+        # Add resolver for the namespace type itself
+        namespace_resolver = generate_namespace_resolver(cls)
+        # Registra o resolver com o caminho completo (ex: "Engagements.summaries")
+        resolver_key = f"{cls.__module__.split('.')[-2].title()}.{to_camel_case(cls.__name__.lower())}"
+        resolvers[resolver_key] = namespace_resolver
+        registry.resolvers[resolver_key] = namespace_resolver
         
         # Get only methods defined in the class itself, not inherited ones
         methods = [
@@ -516,13 +529,19 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
             camel_method_name = to_camel_case(method_name)
             field_definitions.append(f"    {camel_method_name}({', '.join(args)}): {return_type}!")
             
-            # Generate and register resolver
-            resolvers[f"{cls.__name__}.{camel_method_name}"] = generate_method_resolver(method)
+            # Generate resolver and register it
+            resolver = generate_method_resolver(method)
+            resolver_key = f"{cls.__name__}.{camel_method_name}"
+            resolvers[resolver_key] = resolver
+            registry.resolvers[resolver_key] = resolver
     
     # Generate the base type first
     type_def = f"""type {cls.__name__} {{
 {chr(10).join(field_definitions)}
 }}"""
+    
+    # Register the type with its parameters and resolvers
+    registry.register_type(cls.__name__, type_def, parameters, resolvers)
     
     # Generate collection type immediately after the base type
     collection_type = generate_collection_type(cls)

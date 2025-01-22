@@ -6,7 +6,7 @@ from omni_models.analytics.timeliness_models import WorkerSummary as WorkerSumma
 from core.generator import FilterableField
 
 class TimelinessWorkerSummary(BaseModel):
-    consultant_or_engineer_slug: Optional[str] = Field(..., alias="worker_slug")
+    consultant_or_engineer_slug: Optional[str] = Field(None, alias="worker_slug")
     entries: int
     time_in_hours: float
 

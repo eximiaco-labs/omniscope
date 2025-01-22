@@ -34,4 +34,4 @@ class TimelinessReview(BaseModel):
     
     min_date: datetime
     max_date: datetime
-    filterable_fields: dict 
+    filterable_fields: List 
