@@ -171,7 +171,7 @@ class Project(BaseModel):
 
 @namespace
 class Summaries(BaseModel):
-    def timeliness(self, date_of_interest: str, filters: Optional[List[FilterableField]] = None) -> Timeliness:
+    def timeliness(self, date_of_interest: date, filters: Optional[List[FilterableField]] = None) -> Timeliness:
         result = compute_timeliness_review(date_of_interest, filters)
         return Timeliness.from_model(result)
         

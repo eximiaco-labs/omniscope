@@ -14,6 +14,13 @@ class GlobalRepository:
             cls._instance = super().__new__(cls)
         return cls._instance
     
+    def _get_value(self, obj: Any, field_name: str) -> Any:
+        """Helper method to get a value from either an object or a dictionary."""
+        if isinstance(obj, dict):
+            return obj.get(field_name)
+        else:
+            return getattr(obj, field_name, None)
+    
     def get_by_id(self, type_name: str, id: str):
         if type_name == "Client":
             return globals.omni_models.clients.get_by_id(id)
@@ -30,12 +37,14 @@ class GlobalRepository:
         
     def get_resolver_by_id(self, entity_name: str, field_name: str):
         def resolver(parent, info):
-            return self._instance.get_by_id(entity_name, parent[field_name])
+            value = self._get_value(parent, field_name)
+            return self._instance.get_by_id(entity_name, value) if value else None
         return resolver
 
     def get_resolver_by_slug(self, entity_name: str, field_name: str):
         def resolver(parent, info):
-            return self._instance.get_by_slug(entity_name, parent[field_name])
+            value = self._get_value(parent, field_name)
+            return self._instance.get_by_slug(entity_name, value) if value else None
         return resolver
               
 
@@ -423,6 +432,7 @@ def generate_namespace_resolver(cls: Type[BaseModel]) -> Callable:
 def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
     """Generate GraphQL type definition from a Pydantic model and its resolvers"""
     registry = GlobalTypeRegistry()
+    repository = GlobalRepository()
     
     if registry.is_registered(cls.__name__):
         return "", {}
@@ -520,10 +530,26 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                         issubclass(sig.return_annotation, BaseModel) and 
                         not registry.is_registered(return_type)
                     ):
+                        # Gerar tipo e resolvers para o tipo de retorno
                         nested_type, nested_resolvers = generate_type(sig.return_annotation, generated_types)
                         if nested_type:
                             type_definitions.append(nested_type)
                             resolvers.update(nested_resolvers)
+                            
+                            # Adicionar resolvers para campos _slug e _id do tipo de retorno
+                            for field_name, field in sig.return_annotation.model_fields.items():
+                                if field_name.endswith("_slug"):
+                                    base_name = field_name[:-5]  # Remove _slug suffix
+                                    type_name = "".join(word.capitalize() for word in base_name.split("_"))
+                                    resolver_key = f"{return_type}.{to_camel_case(base_name)}"
+                                    resolvers[resolver_key] = repository.get_resolver_by_slug(type_name, field_name)
+                                    registry.resolvers[resolver_key] = resolvers[resolver_key]
+                                elif field_name.endswith("_id"):
+                                    base_name = field_name[:-3]  # Remove _id suffix
+                                    type_name = "".join(word.capitalize() for word in base_name.split("_"))
+                                    resolver_key = f"{return_type}.{to_camel_case(base_name)}"
+                                    resolvers[resolver_key] = repository.get_resolver_by_id(type_name, field_name)
+                                    registry.resolvers[resolver_key] = resolvers[resolver_key]
             
             # Add field definition with camelCase method name
             camel_method_name = to_camel_case(method_name)
@@ -547,7 +573,6 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     collection_type = generate_collection_type(cls)
     type_definitions.append(collection_type)
     generated_types.add(f"{cls.__name__}Collection")
-    repository = GlobalRepository()
     
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation

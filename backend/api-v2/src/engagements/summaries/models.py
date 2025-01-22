@@ -6,17 +6,18 @@ from omni_models.analytics.timeliness_models import WorkerSummary as WorkerSumma
 from core.generator import FilterableField
 
 class TimelinessWorkerSummary(BaseModel):
-    consultant_or_engineer_slug: Optional[str] = Field(None, alias="worker_slug")
+    consultant_or_engineer_slug: Optional[str]
     entries: int
     time_in_hours: float
 
     @classmethod
     def from_model(cls, model: WorkerSummaryModel) -> "TimelinessWorkerSummary":
-        return cls(
+        result = cls(
             consultant_or_engineer_slug=model.worker_slug,
             entries=model.entries,
             time_in_hours=model.time_in_hours
         )
+        return result
 
 class Timeliness(BaseModel):
     total_rows: int
@@ -48,7 +49,7 @@ class Timeliness(BaseModel):
 
     @classmethod
     def from_model(cls, model: TimelinessReviewModel) -> "Timeliness":
-        return cls(
+        result = cls(
             total_rows=model.total_rows,
             total_time_in_hours=model.total_time_in_hours,
             early_rows=model.early_rows,
@@ -71,3 +72,5 @@ class Timeliness(BaseModel):
             max_date=model.max_date,
             filterable_fields=model.filterable_fields
         )
+        
+        return result
