@@ -18,6 +18,20 @@ import { format } from "date-fns";
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "../../components/NavBar";
 import Link from "next/link";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
+
+interface Worker {
+  consultantOrEngineer: {
+    slug: string;
+    name: string;
+  };
+  timeInHours: number;
+  entries: number;
+}
+
+interface WorkerSection {
+  data: Worker[];
+}
 
 const sections = [
   { id: 'early', title: 'Early Submissions', subtitle: '0%' },
@@ -27,6 +41,7 @@ const sections = [
 ]
 
 export default function TimelinessReviewPage() {
+  const client = useEdgeClient();
   const [date, setDate] = useState<Date>(new Date());
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -51,13 +66,17 @@ export default function TimelinessReviewPage() {
       filters:
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
+    client: client ?? undefined,
+    ssr: true
   });
 
+  const timelinessData = data?.engagements?.summaries?.timeliness;
+
   useEffect(() => {
-    if (data?.timelinessReview) {
+    if (timelinessData) {
       // Calculate total hours across all sections
       const allSectionsHours = sections.reduce((total, section) => {
-        return total + data.timelinessReview[`${section.id}Workers`].reduce(
+        return total + timelinessData[`${section.id}Workers`].data.reduce(
           (sum: number, worker: any) => sum + worker.timeInHours,
           0
         );
@@ -65,7 +84,7 @@ export default function TimelinessReviewPage() {
 
       // Update sections with percentages
       const updatedSections = sections.map(section => {
-        const sectionHours = data.timelinessReview[`${section.id}Workers`].reduce(
+        const sectionHours = timelinessData[`${section.id}Workers`].data.reduce(
           (sum: number, worker: any) => sum + worker.timeInHours,
           0
         );
@@ -89,7 +108,7 @@ export default function TimelinessReviewPage() {
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.timelinessReview?.filterableFields?.reduce(
+      timelinessData?.filterableFields?.reduce(
         (acc: any[], field: any) => {
           const fieldValues = newSelectedValues
             .filter(
@@ -122,6 +141,13 @@ export default function TimelinessReviewPage() {
     if (!sortConfig || sortConfig.key !== key) return workers;
 
     const sortedWorkers = [...workers].sort((a, b) => {
+      if (key === "worker") {
+        const aName = a.consultantOrEngineer.name;
+        const bName = b.consultantOrEngineer.name;
+        if (aName < bName) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aName > bName) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      }
       if (a[key] < b[key]) return sortConfig.direction === "asc" ? -1 : 1;
       if (a[key] > b[key]) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
@@ -151,24 +177,25 @@ export default function TimelinessReviewPage() {
   if (error) return <div>Error: {error.message}</div>;
 
   const renderWorkerTable = (
-    workers: any[],
+    workersData: WorkerSection,
     title: string,
     tableType: "early" | "ok" | "acceptable" | "late"
   ) => {
+    const workers = workersData.data;
     const sortConfig = sortConfigs[tableType];
     const sortedWorkers = sortData(workers, sortConfig.key, tableType);
     const totalHours = workers.reduce(
-      (sum, worker) => sum + worker.timeInHours,
+      (sum: number, worker: Worker) => sum + worker.timeInHours,
       0
     );
     const totalEntries = workers.reduce(
-      (sum, worker) => sum + worker.entries,
+      (sum: number, worker: Worker) => sum + worker.entries,
       0
     );
 
     // Calculate total hours across all sections
     const allSectionsHours = sections.reduce((total, section) => {
-      return total + data.timelinessReview[`${section.id}Workers`].reduce(
+      return total + timelinessData[`${section.id}Workers`].data.reduce(
         (sum: number, worker: any) => sum + worker.timeInHours,
         0
       );
@@ -218,8 +245,8 @@ export default function TimelinessReviewPage() {
                     {index + 1}
                   </TableCell>
                   <TableCell className="w-[calc(100%-300px)]">
-                    <Link href={`/about-us/consultants-and-engineers/${worker.workerSlug}`} className="text-blue-600 hover:text-blue-800">
-                      {worker.worker}
+                    <Link href={`/about-us/consultants-and-engineers/${worker.consultantOrEngineer.slug}`} className="text-blue-600 hover:text-blue-800">
+                      {worker.consultantOrEngineer.name}
                     </Link>
                   </TableCell>
                   <TableCell className="w-[125px] text-right relative">
@@ -263,7 +290,7 @@ export default function TimelinessReviewPage() {
 
         <div className="mb-4">
           <FilterFieldsSelect
-            data={data?.timelinessReview}
+            data={timelinessData}
             selectedFilters={selectedFilters}
             handleFilterChange={handleFilterChange}
           />
@@ -280,7 +307,7 @@ export default function TimelinessReviewPage() {
             className="mt-4 scroll-mt-[68px] sm:scroll-mt-[68px]"
           >
             {renderWorkerTable(
-              data.timelinessReview[`${section.id}Workers`],
+              timelinessData[`${section.id}Workers`],
               section.title,
               section.id as "early" | "ok" | "acceptable" | "late"
             )}
