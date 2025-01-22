@@ -324,6 +324,35 @@ def generate_default_resolver(field_name: str) -> Callable:
         }
     return resolver
 
+def generate_method_resolver(method):
+    """Generate a resolver function for a class method that is compatible with Ariadne.
+    The generated resolver will maintain the original method's parameters while adding the required
+    obj and info parameters expected by Ariadne."""
+    import inspect
+    
+    # Get method signature
+    sig = inspect.signature(method)
+    params = list(sig.parameters.values())
+    
+    # Skip 'self' parameter if it exists
+    if params and params[0].name == 'self':
+        params = params[1:]
+    
+    def resolver(obj, info, **kwargs):
+        # Convert camelCase parameters back to snake_case for the method call
+        snake_case_kwargs = {
+            to_snake_case(key): value
+            for key, value in kwargs.items()
+        }
+        # Call the original method with the snake_case arguments
+        return method(obj, **snake_case_kwargs)
+    
+    # Update resolver signature to match GraphQL expectations
+    resolver.__name__ = method.__name__
+    resolver.__doc__ = method.__doc__
+    
+    return resolver
+
 def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tuple[str, Dict[str, Callable]]:
     """Generate GraphQL type definition from a Pydantic model and its resolvers"""
     registry = GlobalTypeRegistry()
@@ -346,6 +375,74 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     parameters = get_identifier_fields(cls)
     if has_filter_field(cls):
         parameters.append("filters: [DatasetFilterInput]")
+    
+    # Generate resolvers for methods if class is namespaced
+    if hasattr(cls, '_is_namespace'):
+        import inspect
+        
+        # Get all methods that are not special methods (don't start with __)
+        methods = inspect.getmembers(cls, predicate=lambda x: inspect.isfunction(x) and not x.__name__.startswith('__'))
+        
+        for method_name, method in methods:
+            # Get method signature
+            sig = inspect.signature(method)
+            params = list(sig.parameters.values())[1:]  # Skip 'self'
+            
+            # Convert parameters to GraphQL arguments
+            args = []
+            for param in params:
+                param_type = "String"  # Default type
+                is_required = param.default == inspect.Parameter.empty
+                
+                # Get type annotation if available
+                if param.annotation != inspect.Parameter.empty:
+                    if param.annotation == str:
+                        param_type = "String"
+                    elif param.annotation == int:
+                        param_type = "Int"
+                    elif param.annotation == float:
+                        param_type = "Float"
+                    elif param.annotation == bool:
+                        param_type = "Boolean"
+                    elif hasattr(param.annotation, "__origin__"):
+                        if param.annotation.__origin__ == list:
+                            inner_type = param.annotation.__args__[0]
+                            if inner_type == str:
+                                param_type = "[String]"
+                            elif inner_type == int:
+                                param_type = "[Int]"
+                            elif inner_type == float:
+                                param_type = "[Float]"
+                            elif inner_type == bool:
+                                param_type = "[Boolean]"
+                
+                # Convert parameter name to camelCase for GraphQL
+                camel_param_name = to_camel_case(param.name)
+                args.append(f"{camel_param_name}: {param_type}{'!' if is_required else ''}")
+            
+            # Get return type annotation
+            return_type = "JSON"  # Default return type
+            if sig.return_annotation != inspect.Parameter.empty:
+                if hasattr(sig.return_annotation, "__name__"):
+                    return_type = sig.return_annotation.__name__
+                    
+                    # If return type is a Pydantic model and not yet registered, generate its type
+                    if (
+                        inspect.isclass(sig.return_annotation) and 
+                        issubclass(sig.return_annotation, BaseModel) and 
+                        not registry.is_registered(return_type)
+                    ):
+                        nested_type, nested_resolvers = generate_type(sig.return_annotation, generated_types)
+                        if nested_type:
+                            type_definitions.append(nested_type)
+                            resolvers.update(nested_resolvers)
+            
+            # Add field definition with camelCase method name
+            camel_method_name = to_camel_case(method_name)
+            field_definitions.append(f"    {camel_method_name}({', '.join(args)}): {return_type}!")
+            
+            # Generate and register resolver
+            resolvers[f"{cls.__name__}.{camel_method_name}"] = generate_method_resolver(method)
     
     # Generate the base type first
     type_def = f"""type {cls.__name__} {{

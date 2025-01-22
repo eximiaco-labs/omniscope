@@ -169,7 +169,8 @@ class Project(BaseModel):
 
 @namespace
 class Summaries(BaseModel):
-    timeliness: Timeliness
+    def timeliness(self, date_of_interest: str, filters: Optional[List[str]] = None) -> Timeliness:
+        pass
     
 __all__ = [
     'Client',
