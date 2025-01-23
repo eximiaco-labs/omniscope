@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { useQuery } from "@apollo/client";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -10,8 +12,10 @@ import { REVENUE_TRACKING_QUERY } from "./query";
 import { PreContractedRevenue } from "./components/PreContractedRevenue";
 import { RegularRevenue } from "./components/RegularRevenue";
 import { Summaries } from "./components/Summaries";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 export default function RevenuePage() {
+  const client = useEdgeClient();
   const [date, setDate] = useState<Date>(new Date());
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -24,6 +28,8 @@ export default function RevenuePage() {
   }, []);
 
   const { loading, error, data } = useQuery(REVENUE_TRACKING_QUERY, {
+    client: client ?? undefined,
+    ssr: true,
     variables: {
       date: format(date, "yyyy-MM-dd"),
       filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
@@ -37,7 +43,7 @@ export default function RevenuePage() {
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.revenueTracking?.filterableFields?.reduce((acc: any[], field: any) => {
+      data?.financial?.revenueTracking?.filterableFields?.reduce((acc: any[], field: any) => {
         const fieldValues = newSelectedValues
           .filter(
             (v) =>
@@ -69,7 +75,7 @@ export default function RevenuePage() {
       </div>
 
       <FilterFieldsSelect
-        data={data?.revenueTracking}
+        data={data?.financial?.revenueTracking}
         selectedFilters={selectedFilters}
         handleFilterChange={handleFilterChange}
       />

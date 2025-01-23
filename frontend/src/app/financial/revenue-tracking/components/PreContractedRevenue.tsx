@@ -70,27 +70,27 @@ export function PreContractedRevenue({
   const calculateCaseTotal = (cases: any[], kind?: string) => {
     return cases.reduce((sum, caseItem) => {
       const filteredProjects = kind
-        ? caseItem.byProject.filter((p: any) => p.kind === kind)
-        : caseItem.byProject;
+        ? caseItem.byProject.data.filter((p: any) => p.kind === kind)
+        : caseItem.byProject.data;
       return sum + calculateProjectTotal(filteredProjects, kind);
     }, 0);
   };
 
   const calculateSponsorTotal = (sponsors: any[], kind?: string) => {
     return sponsors.reduce((sum, sponsor) => {
-      return sum + calculateCaseTotal(sponsor.byCase, kind);
+      return sum + calculateCaseTotal(sponsor.byCase.data, kind);
     }, 0);
   };
 
   const calculateClientTotal = (clients: any[], kind?: string) => {
     return clients.reduce((sum, client) => {
-      return sum + calculateSponsorTotal(client.bySponsor, kind);
+      return sum + calculateSponsorTotal(client.bySponsor.data, kind);
     }, 0);
   };
 
   const calculateManagerTotal = (managers: any[], kind?: string) => {
     return managers.reduce((sum, manager) => {
-      return sum + calculateClientTotal(manager.byClient, kind);
+      return sum + calculateClientTotal(manager.byClient.data, kind);
     }, 0);
   };
 
@@ -112,45 +112,54 @@ export function PreContractedRevenue({
     return managers
       .map((manager) => ({
         ...manager,
-        byClient: manager.byClient
-          .map((client: any) => ({
-            ...client,
-            bySponsor: client.bySponsor
-              .map((sponsor: any) => ({
-                ...sponsor,
-                byCase: sponsor.byCase
-                  .map((caseItem: any) => ({
-                    ...caseItem,
-                    byProject: caseItem.byProject.filter(
-                      (project: any) => project.kind === selectedKind
-                    ),
+        byClient: {
+          data: manager.byClient.data
+            .map((client: any) => ({
+              ...client,
+              bySponsor: {
+                data: client.bySponsor.data
+                  .map((sponsor: any) => ({
+                    ...sponsor,
+                    byCase: {
+                      data: sponsor.byCase.data
+                        .map((caseItem: any) => ({
+                          ...caseItem,
+                          byProject: {
+                            data: caseItem.byProject.data.filter(
+                              (project: any) => project.kind === selectedKind
+                            ),
+                          },
+                        }))
+                        .filter((caseItem: any) => caseItem.byProject.data.length > 0),
+                    },
                   }))
-                  .filter((caseItem: any) => caseItem.byProject.length > 0),
-              }))
-              .filter((sponsor: any) => sponsor.byCase.length > 0),
-          }))
-          .filter((client: any) => client.bySponsor.length > 0),
+                  .filter((sponsor: any) => sponsor.byCase.data.length > 0),
+              },
+            }))
+            .filter((client: any) => client.bySponsor.data.length > 0),
+        },
       }))
-      .filter((manager: any) => manager.byClient.length > 0);
+      .filter((manager: any) => manager.byClient.data.length > 0);
   };
 
-  const totalValue = data.revenueTracking.preContracted.monthly.total;
+  const preContracted = data?.financial?.revenueTracking?.preContracted?.monthly;
+  const managers = preContracted?.byAccountManager?.data || [];
+
+  const totalValue = preContracted?.total || 0;
   const consultingValue = calculateManagerTotal(
-    data.revenueTracking.preContracted.monthly.byAccountManager,
+    managers,
     "consulting"
   );
   const handsOnValue = calculateManagerTotal(
-    data.revenueTracking.preContracted.monthly.byAccountManager,
+    managers,
     "handsOn"
   );
   const squadValue = calculateManagerTotal(
-    data.revenueTracking.preContracted.monthly.byAccountManager,
+    managers,
     "squad"
   );
 
-  const filteredManagers = filterDataByKind(
-    data.revenueTracking.preContracted.monthly.byAccountManager
-  );
+  const filteredManagers = filterDataByKind(managers);
 
   return (
     <>
@@ -234,14 +243,14 @@ export function PreContractedRevenue({
                   <TableCell className="text-right">
                     {formatCurrency(
                       calculateClientTotal(
-                        manager.byClient,
+                        manager.byClient.data,
                         selectedKind !== "total" ? selectedKind : undefined
                       )
                     )}
                   </TableCell>
                 </TableRow>
 
-                {manager.byClient.map((client: any) => (
+                {manager.byClient.data.map((client: any) => (
                   <>
                     <TableRow
                       key={`${manager.name}-${client.name}`}
@@ -266,7 +275,7 @@ export function PreContractedRevenue({
                       <TableCell className="text-right">
                         {formatCurrency(
                           calculateSponsorTotal(
-                            client.bySponsor,
+                            client.bySponsor.data,
                             selectedKind !== "total" ? selectedKind : undefined
                           )
                         )}
@@ -274,7 +283,7 @@ export function PreContractedRevenue({
                     </TableRow>
 
                     {expandedClients.has(client.name) &&
-                      client.bySponsor.map((sponsor: any) => (
+                      client.bySponsor.data.map((sponsor: any) => (
                         <>
                           <TableRow
                             key={`${client.name}-${sponsor.name}`}
@@ -299,17 +308,15 @@ export function PreContractedRevenue({
                             <TableCell className="text-right">
                               {formatCurrency(
                                 calculateCaseTotal(
-                                  sponsor.byCase,
-                                  selectedKind !== "total"
-                                    ? selectedKind
-                                    : undefined
+                                  sponsor.byCase.data,
+                                  selectedKind !== "total" ? selectedKind : undefined
                                 )
                               )}
                             </TableCell>
                           </TableRow>
 
                           {expandedSponsors.has(sponsor.name) &&
-                            sponsor.byCase.map((caseItem: any) => (
+                            sponsor.byCase.data.map((caseItem: any) => (
                               <TableRow
                                 key={`${sponsor.name}-${caseItem.title}`}
                                 className="bg-gray-50"
@@ -326,7 +333,7 @@ export function PreContractedRevenue({
                                 <TableCell>
                                   <table className="w-full text-xs border-collapse">
                                     <tbody>
-                                      {caseItem.byProject.map(
+                                      {caseItem.byProject.data.map(
                                         (project: any) => {
                                           const textColor =
                                             STAT_COLORS[
@@ -346,10 +353,10 @@ export function PreContractedRevenue({
                                                 </div>
                                               </td>
                                               <td className="text-gray-600 pl-2 w-[100px]">
-                                                {project.kind}
+                                                {project.rate}/h
                                               </td>
-                                              <td className="text-gray-600 pl-2 text-right">
-                                                {formatCurrency(project.fee)}
+                                              <td className="text-gray-600 pl-2 w-[100px]">
+                                                {project.hours}h
                                               </td>
                                             </tr>
                                           );
@@ -361,10 +368,8 @@ export function PreContractedRevenue({
                                 <TableCell className="text-right">
                                   {formatCurrency(
                                     calculateProjectTotal(
-                                      caseItem.byProject,
-                                      selectedKind !== "total"
-                                        ? selectedKind
-                                        : undefined
+                                      caseItem.byProject.data,
+                                      selectedKind !== "total" ? selectedKind : undefined
                                     )
                                   )}
                                 </TableCell>
@@ -379,12 +384,7 @@ export function PreContractedRevenue({
             <TableRow className="font-bold">
               <TableCell colSpan={2}>Total</TableCell>
               <TableCell className="text-right">
-                {formatCurrency(
-                  calculateManagerTotal(
-                    filteredManagers,
-                    selectedKind !== "total" ? selectedKind : undefined
-                  )
-                )}
+                {formatCurrency(calculateManagerTotal(managers))}
               </TableCell>
             </TableRow>
           </TableBody>
