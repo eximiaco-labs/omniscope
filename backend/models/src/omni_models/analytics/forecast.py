@@ -3,6 +3,8 @@ from omni_utils.helpers.dates import get_same_day_one_month_ago, get_same_day_on
 from datetime import datetime
 import calendar
 from dataclasses import dataclass
+from pydantic import BaseModel
+from omni_models.analytics.revenue_tracking import RevenueTrackingResult
 
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
@@ -98,24 +100,25 @@ class ForecastNumberOfWorkingDays:
         self.three_months_later = len(get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month))
         self.same_day_three_months_later = len([d for d in get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month) if d.day <= date_of_interest.day])
     
-@dataclass
-class ForecastRevenueTrackings:
-    date_of_interest: Dict[str, Any]
-    last_day_of_last_month: Dict[str, Any]
-    last_day_of_two_months_ago: Dict[str, Any]
-    last_day_of_three_months_ago: Dict[str, Any]
-    same_day_last_month: Dict[str, Any]
-    same_day_two_months_ago: Dict[str, Any]
-    same_day_three_months_ago: Dict[str, Any]
+class ForecastRevenueTrackings(BaseModel):
+    date_of_interest: RevenueTrackingResult
+    last_day_of_last_month: RevenueTrackingResult
+    last_day_of_two_months_ago: RevenueTrackingResult
+    last_day_of_three_months_ago: RevenueTrackingResult
+    same_day_last_month: RevenueTrackingResult
+    same_day_two_months_ago: RevenueTrackingResult
+    same_day_three_months_ago: RevenueTrackingResult
     
     def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
-        self.date_of_interest = compute_revenue_tracking(forecast_dates.in_analysis, filters=filters)
-        self.last_day_of_last_month = compute_revenue_tracking(forecast_dates.last_day_of_one_month_ago, filters=filters)
-        self.last_day_of_two_months_ago = compute_revenue_tracking(forecast_dates.last_day_of_two_months_ago, filters=filters)
-        self.last_day_of_three_months_ago = compute_revenue_tracking(forecast_dates.last_day_of_three_months_ago, filters=filters)
-        self.same_day_last_month = compute_revenue_tracking(forecast_dates.same_day_one_month_ago, filters=filters)
-        self.same_day_two_months_ago = compute_revenue_tracking(forecast_dates.same_day_two_months_ago, filters=filters)
-        self.same_day_three_months_ago = compute_revenue_tracking(forecast_dates.same_day_three_months_ago, filters=filters)
+        super().__init__(
+            date_of_interest=compute_revenue_tracking(forecast_dates.in_analysis, filters=filters),
+            last_day_of_last_month=compute_revenue_tracking(forecast_dates.last_day_of_one_month_ago, filters=filters),
+            last_day_of_two_months_ago=compute_revenue_tracking(forecast_dates.last_day_of_two_months_ago, filters=filters),
+            last_day_of_three_months_ago=compute_revenue_tracking(forecast_dates.last_day_of_three_months_ago, filters=filters),
+            same_day_last_month=compute_revenue_tracking(forecast_dates.same_day_one_month_ago, filters=filters),
+            same_day_two_months_ago=compute_revenue_tracking(forecast_dates.same_day_two_months_ago, filters=filters),
+            same_day_three_months_ago=compute_revenue_tracking(forecast_dates.same_day_three_months_ago, filters=filters)
+        )
 
 def merge_filterable_fields(analysis_lists):
     filterable_fields = []
