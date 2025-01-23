@@ -58,7 +58,12 @@ import { OmniCommandsButton } from "./OmniCommands";
 import { LucideIcon } from "lucide-react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPersonRunning, faPeopleGroup, faCommentsDollar } from "@fortawesome/free-solid-svg-icons"
+import { 
+  faPersonRunning, 
+  faPeopleGroup, 
+  faCommentsDollar,
+  faMagnifyingGlassDollar
+} from "@fortawesome/free-solid-svg-icons"
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -230,6 +235,13 @@ export function OmniSidebar() {
               <SidebarMenu>
                 {(
                   [
+                    hasFinancialAccess && {
+                      section: "Financial",
+                      items: financialItems,
+                      icon: () => <FontAwesomeIcon icon={faMagnifyingGlassDollar} />,
+                      tooltip: "Financial",
+                      show: financialItems.length > 0,
+                    },
                     {
                       section: "Team",
                       items: teamItems,
@@ -248,13 +260,6 @@ export function OmniSidebar() {
                       icon: () => <FontAwesomeIcon icon={faCommentsDollar} />,
                       tooltip: "Marketing and Sales",
                       show: marketingAndSalesItems.length > 0,
-                    },
-                    hasFinancialAccess && {
-                      section: "Financial",
-                      items: financialItems,
-                      icon: DollarSignIcon,
-                      tooltip: "Financial",
-                      show: financialItems.length > 0,
                     },
                     {
                       section: "Analytics",
