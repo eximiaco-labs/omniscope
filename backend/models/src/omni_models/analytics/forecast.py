@@ -121,7 +121,7 @@ def merge_filterable_fields(analysis_lists):
     filterable_fields = []
     
     for field_list in analysis_lists:
-        for field in field_list['filterable_fields']:
+        for field in field_list.filterable_fields:
             existing = next((f for f in filterable_fields if f['field'] == field['field']), None)
             
             if existing:
@@ -145,18 +145,18 @@ def compute_forecast(date_of_interest = None, filters = None):
     forecast_working_days = ForecastNumberOfWorkingDays(date_of_interest, forecast_dates)
     
     daily = {
-        date['date']: {
-            "date": date['date'],
+        date.date: {
+            "date": date.date,
             "actual": {
-                "total_consulting_fee": date['total_consulting_fee'],
-                "total_consulting_hours": date['total_consulting_hours']
+                "total_consulting_fee": date.total_consulting_fee,
+                "total_consulting_hours": date.total_consulting_hours
             },
             "expected": {
                 "total_consulting_fee": 0,
                 "total_consulting_hours": 0
             }
         }
-        for date in forecast_revenue_trackings.date_of_interest['regular']['daily']
+        for date in forecast_revenue_trackings.date_of_interest.regular.daily
     }
     
     
@@ -168,7 +168,7 @@ def compute_forecast(date_of_interest = None, filters = None):
         consultants: Dict[str, forecast_types.ConsultantForecast] = {}
         
         def add_context(context, context_slug):
-            for consultant in context['summaries']['by_consultant']:
+            for consultant in context.summaries.by_consultant:
                 if consultant.slug not in consultants:
                     consultants[consultant.slug] = forecast_types.ConsultantForecast(
                         name=consultant.name,
@@ -180,7 +180,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                 setattr(working_consultant, f'{context_slug}_consulting_hours', consultant.consulting_hours)
                 setattr(working_consultant, f'{context_slug}_consulting_pre_hours', consultant.consulting_pre_hours)
             
-            for client in context['summaries']['by_client']:
+            for client in context.summaries.by_client:
                 if client.slug not in clients:
                     clients[client.slug] = forecast_types.ClientForecast(
                         name=client.name,
