@@ -215,31 +215,6 @@ export function getAboutUsSidebarItems() {
   ];
 }
 
-export function getOperationalSummariesSidebarItems() {
-  return [
-    {
-      title: "Timeliness",
-      url: "/operational-summaries/timeliness",
-      icon: CheckCheckIcon,
-    },
-    {
-      title: "Staleliness",
-      url: "/operational-summaries/staleliness",
-      icon: ClockIcon,
-    },
-    {
-      title: "Unspecified Work Hours",
-      url: "/operational-summaries/unspecified-work-hours", 
-      icon: AlertCircleIcon,
-    },
-    
-    {
-      title: "Projects Due Dates",
-      url: "/operational-summaries/due-on-projects",
-      icon: CalendarIcon,
-    },
-  ];
-}
 
 export function getOntologySidebarItems() {
   return [

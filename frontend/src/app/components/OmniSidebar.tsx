@@ -37,7 +37,6 @@ import {
   getAboutUsSidebarItems,
   getAdministrativeSidebarItems,
   getFinancialSidebarItems,
-  getOperationalSummariesSidebarItems,
   getOntologySidebarItems,
   getEngagementsSidebarItems,
   getMarketingAndSalesSidebarItems,
@@ -98,7 +97,6 @@ export function OmniSidebar() {
   const [analyticsItems, setAnalyticsItems] = React.useState<MenuItem[]>([]);
   const [aboutUsItems, setAboutUsItems] = React.useState<MenuItem[]>([]);
   const [adminItems, setAdminItems] = React.useState<MenuItem[]>([]);
-  const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>([]);
   const [ontologyItems, setOntologyItems] = React.useState<MenuItem[]>([]);
   const [teamItems, setTeamItems] = React.useState<MenuItem[]>([]);
   const [engagementItems, setEngagementItems] = React.useState<MenuItem[]>([]);
@@ -113,7 +111,6 @@ export function OmniSidebar() {
     async function loadItems() {
       const financial = await getFinancialSidebarItems(session?.user?.email);
       const analytics = await getAnalyticsSidebarItems(session?.user?.email);
-      const operationalSummaries = await getOperationalSummariesSidebarItems();
       const aboutUs = await getAboutUsSidebarItems();
       const admin = await getAdministrativeSidebarItems();
       const ontology = await getOntologySidebarItems();
@@ -125,7 +122,6 @@ export function OmniSidebar() {
       setAnalyticsItems(analytics);
       setAboutUsItems(aboutUs);
       setAdminItems(admin);
-      setOperationalItems(operationalSummaries);
       setOntologyItems(ontology);
       setTeamItems(team);
       setEngagementItems(engagements);
@@ -161,13 +157,6 @@ export function OmniSidebar() {
         initialItems = analytics;
       }
 
-      const isOperationalSummariesPath = operationalSummaries.some((item) =>
-        pathname.startsWith(item.url)
-      );
-      if (isOperationalSummariesPath) {
-        initialSection = "Operational Summaries";
-        initialItems = operationalSummaries;
-      }
 
       const isAboutUsPath = aboutUs.some((item) =>
         pathname.startsWith(item.url)
@@ -279,12 +268,6 @@ export function OmniSidebar() {
                       items: aboutUsItems,
                       icon: UsersIcon,
                       tooltip: "About Us",
-                    },
-                    {
-                      section: "Operational Summaries",
-                      items: operationalItems,
-                      icon: CheckCheckIcon,
-                      tooltip: "Operational",
                     },
                     {
                       section: "Ontology",

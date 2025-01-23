@@ -15,7 +15,6 @@ import {
   getAboutUsSidebarItems,
   getAdministrativeSidebarItems,
   getFinancialSidebarItems,
-  getOperationalSummariesSidebarItems,
   getOntologySidebarItems
 } from "@/app/navigation"
 import { Button } from "@/components/ui/button"
@@ -95,14 +94,12 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
       const analytics = await getAnalyticsSidebarItems(session?.user?.email)
       const aboutUs = await getAboutUsSidebarItems()
       const admin = await getAdministrativeSidebarItems()
-      const operationalSummaries = await getOperationalSummariesSidebarItems()
       const ontology = await getOntologySidebarItems()
       
       setFinantialsItems(finantials)
       setAnalyticsItems(analytics)
       setAboutUsItems(aboutUs)
-      setAdminItems(admin)
-      setOperationalSummariesItems(operationalSummaries)
+      setAdminItems(admin) 
       setOntologyItems(ontology)
     }
     loadItems()
