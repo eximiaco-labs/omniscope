@@ -24,7 +24,7 @@ labels_expected = [
     'expected_' + labels_suffix_future[3]
 ]
 
-class ForecastDates(BaseModel):
+class RevenueForecastDates(BaseModel):
     in_analysis: datetime
     same_day_one_month_ago: datetime
     last_day_of_one_month_ago: datetime
@@ -40,7 +40,7 @@ class ForecastDates(BaseModel):
     last_day_of_three_months_later: datetime
     
     @classmethod
-    def build(cls, date_of_interest: datetime) -> 'ForecastDates':
+    def build(cls, date_of_interest: datetime) -> 'RevenueForecastDates':
         same_day_one_month_ago = get_same_day_one_month_ago(date_of_interest)
         same_day_two_months_ago = get_same_day_one_month_ago(same_day_one_month_ago)
         same_day_three_months_ago = get_same_day_one_month_ago(same_day_two_months_ago)
@@ -65,7 +65,7 @@ class ForecastDates(BaseModel):
             last_day_of_three_months_later=get_last_day_of_month(same_day_three_months_later)
         )
 
-class ForecastNumberOfWorkingDays(BaseModel):
+class RevenueForecastNumberOfWorkingDays(BaseModel):
     in_analysis: int
     in_analysis_partial: int
     one_month_ago: int
@@ -82,7 +82,7 @@ class ForecastNumberOfWorkingDays(BaseModel):
     same_day_three_months_later: int
 
     @classmethod
-    def build(cls, date_of_interest: datetime, forecast_dates: ForecastDates) -> 'ForecastNumberOfWorkingDays':
+    def build(cls, date_of_interest: datetime, forecast_dates: RevenueForecastDates) -> 'RevenueForecastNumberOfWorkingDays':
         return cls(
             in_analysis=len(get_working_days_in_month(date_of_interest.year, date_of_interest.month)),
             in_analysis_partial=len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day]),
@@ -115,7 +115,7 @@ class ForecastRevenueTrackings(BaseModel):
     same_day_two_months_ago: RevenueTracking
     same_day_three_months_ago: RevenueTracking
     
-    def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
+    def __init__(self, forecast_dates: RevenueForecastDates, filters: Dict[str, Any]):
         super().__init__(
             date_of_interest=compute_revenue_tracking(forecast_dates.in_analysis, filters=filters),
             last_day_of_last_month=compute_revenue_tracking(forecast_dates.last_day_of_one_month_ago, filters=filters),
@@ -141,31 +141,31 @@ def merge_filterable_fields(analysis_lists):
     
     return filterable_fields
 
-class DailyActual(BaseModel):
+class RevenueForecastDailyActual(BaseModel):
     total_consulting_fee: float
     total_consulting_hours: float
     acc_total_consulting_fee: Optional[float] = None
     acc_total_consulting_hours: Optional[float] = None
 
-class DailyExpected(BaseModel):
+class RevenueForecastDailyExpected(BaseModel):
     total_consulting_fee: float
     total_consulting_hours: float
     acc_total_consulting_fee: float
     acc_total_consulting_hours: float
 
-class DailyDifference(BaseModel):
+class RevenueForecastDailyDifference(BaseModel):
     total_consulting_fee: Optional[float] = None
     total_consulting_hours: Optional[float] = None
     acc_total_consulting_fee: Optional[float] = None
     acc_total_consulting_hours: Optional[float] = None
 
-class DailyForecast(BaseModel):
+class RevenueForecastDailyForecast(BaseModel):
     date: date
-    actual: DailyActual
-    expected: DailyExpected
-    difference: DailyDifference
+    actual: RevenueForecastDailyActual
+    expected: RevenueForecastDailyExpected
+    difference: RevenueForecastDailyDifference
 
-class ForecastSummary(BaseModel):
+class RevenueForecastSummary(BaseModel):
     realized: float
     projected: float
     expected: float
@@ -187,20 +187,20 @@ class ForecastSummary(BaseModel):
     same_day_two_months_ago_consulting_hours: float
     same_day_three_months_ago_consulting_hours: float
 
-class ForecastByKind(BaseModel):
+class RevenueForecastByKind(BaseModel):
     consulting: dict
     consulting_pre: dict
     hands_on: dict
     squad: dict
 
-class ForecastResult(BaseModel):
+class RevenueForecast(BaseModel):
     date_of_interest: datetime
-    dates: ForecastDates
-    by_kind: ForecastByKind
+    dates: RevenueForecastDates
+    by_kind: RevenueForecastByKind
     filterable_fields: list
-    summary: ForecastSummary
-    working_days: ForecastNumberOfWorkingDays
-    daily: list[DailyForecast]
+    summary: RevenueForecastSummary
+    working_days: RevenueForecastNumberOfWorkingDays
+    daily: list[RevenueForecastDailyForecast]
 
 def compute_forecast(date_of_interest = None, filters = None):
     if date_of_interest is None:
@@ -209,26 +209,26 @@ def compute_forecast(date_of_interest = None, filters = None):
     if isinstance(date_of_interest, str):
         date_of_interest = datetime.strptime(date_of_interest, '%Y-%m-%d')
         
-    forecast_dates = ForecastDates.build(date_of_interest)
+    forecast_dates = RevenueForecastDates.build(date_of_interest)
     forecast_revenue_trackings = ForecastRevenueTrackings(forecast_dates, filters)
-    forecast_working_days = ForecastNumberOfWorkingDays.build(date_of_interest, forecast_dates)
+    forecast_working_days = RevenueForecastNumberOfWorkingDays.build(date_of_interest, forecast_dates)
     
     daily = {
-        date.date: DailyForecast(
+        date.date: RevenueForecastDailyForecast(
             date=date.date,
-            actual=DailyActual(
+            actual=RevenueForecastDailyActual(
                 total_consulting_fee=date.total_consulting_fee,
                 total_consulting_hours=date.total_consulting_hours,
                 acc_total_consulting_fee=None,
                 acc_total_consulting_hours=None
             ),
-            expected=DailyExpected(
+            expected=RevenueForecastDailyExpected(
                 total_consulting_fee=0,
                 total_consulting_hours=0,
                 acc_total_consulting_fee=0,
                 acc_total_consulting_hours=0
             ),
-            difference=DailyDifference(
+            difference=RevenueForecastDailyDifference(
                 total_consulting_fee=None,
                 total_consulting_hours=None,
                 acc_total_consulting_fee=None,
@@ -487,14 +487,14 @@ def compute_forecast(date_of_interest = None, filters = None):
         forecast_revenue_trackings.last_day_of_three_months_ago
     ])
     
-    by_kind = ForecastByKind(
+    by_kind = RevenueForecastByKind(
         consulting=summarize_forecast('consulting'),
         consulting_pre=summarize_forecast('consulting_pre'),
         hands_on=summarize_forecast('hands_on'),
         squad=summarize_forecast('squad')
     )
     
-    summary = ForecastSummary(
+    summary = RevenueForecastSummary(
         realized=sum(by_kind.__dict__[kind]["totals"].in_analysis for kind in by_kind.__dict__),
         projected=by_kind.consulting["totals"].projected + sum(by_kind.__dict__[kind]["totals"].in_analysis for kind in by_kind.__dict__ if kind != "consulting"),
         expected=by_kind.consulting["totals"].expected + sum(by_kind.__dict__[kind]["totals"].in_analysis for kind in by_kind.__dict__ if kind != "consulting"),
@@ -540,14 +540,14 @@ def compute_forecast(date_of_interest = None, filters = None):
             actual.acc_total_consulting_fee = actual_acc_total_consulting_fee
             actual.acc_total_consulting_hours = actual_acc_total_consulting_hours
             
-            d.difference = DailyDifference(
+            d.difference = RevenueForecastDailyDifference(
                 total_consulting_fee=actual.total_consulting_fee - expected.total_consulting_fee,
                 total_consulting_hours=actual.total_consulting_hours - expected.total_consulting_hours,
                 acc_total_consulting_fee=actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
                 acc_total_consulting_hours=actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
             )
     
-    return ForecastResult(
+    return RevenueForecast(
         date_of_interest=date_of_interest,
         dates=forecast_dates,
         by_kind=by_kind,

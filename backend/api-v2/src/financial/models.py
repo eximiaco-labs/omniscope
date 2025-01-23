@@ -14,4 +14,15 @@ class Financial(BaseModel):
             
         if isinstance(date_of_interest, str):
             date_of_interest = date.fromisoformat(date_of_interest)
+            
+        return compute_revenue_tracking(date_of_interest, filters)
+    
+    def revenue_forecast(self, date_of_interest: date = None, filters: Optional[List[FilterableField]] = None) -> RevenueTracking:
+        
+        if not date_of_interest:
+            date_of_interest = date.today()
+            
+        if isinstance(date_of_interest, str):
+            date_of_interest = date.fromisoformat(date_of_interest)
+            
         return compute_revenue_tracking(date_of_interest, filters)

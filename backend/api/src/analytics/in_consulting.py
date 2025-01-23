@@ -2,7 +2,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 
-from omni_models.analytics.forecast import ForecastDates, ForecastNumberOfWorkingDays
+from omni_models.analytics.forecast import RevenueForecastDates, RevenueForecastNumberOfWorkingDays
 from omni_models.omnidatasets import SummarizablePowerDataFrame
 from omni_shared import globals
 import pandas as pd
@@ -90,7 +90,7 @@ class InConsultingTimesheets:
             
         return getattr(self, context)
     
-    def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
+    def __init__(self, forecast_dates: RevenueForecastDates, filters: Dict[str, Any]):
         def get_timesheet(d: datetime) -> pd.DataFrame:
             start_date = d.replace(day=1, hour=0, minute=0, second=0)
             end_date = d.replace(hour=23, minute=59, second=59)
@@ -128,8 +128,8 @@ def resolve_in_consulting(
         
     result = {}
         
-    forecast_dates = ForecastDates(date_of_interest)
-    forecast_working_days = ForecastNumberOfWorkingDays(date_of_interest, forecast_dates)
+    forecast_dates = RevenueForecastDates(date_of_interest)
+    forecast_working_days = RevenueForecastNumberOfWorkingDays(date_of_interest, forecast_dates)
     in_consulting_timesheets = InConsultingTimesheets(forecast_dates, filters)
     
     consultants = {}
