@@ -962,7 +962,7 @@ def compute_summaries(pre_contracted, regular) -> RevenueTrackingSummaries:
         by_mode=by_mode,
     )
     
-class RevenueTrackingResult(BaseModel):
+class RevenueTracking(BaseModel):
     year: int
     month: int
     day: int
@@ -1430,7 +1430,7 @@ def compute_revenue_tracking(
     date_of_interest: date,
     account_manager_name_or_slug: str = None,
     filters = None
-    ) -> RevenueTrackingResult:
+    ) -> RevenueTracking:
     
     year = date_of_interest.year
     month = date_of_interest.month
@@ -1458,7 +1458,7 @@ def compute_revenue_tracking(
     
     summaries = compute_summaries(pre_contracted, regular)
     
-    return RevenueTrackingResult(
+    return RevenueTracking(
         year=year,
         month=month,
         day=date_of_interest.day,

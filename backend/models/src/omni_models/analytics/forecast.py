@@ -4,7 +4,7 @@ from datetime import datetime
 import calendar
 from dataclasses import dataclass
 from pydantic import BaseModel
-from omni_models.analytics.revenue_tracking import RevenueTrackingResult
+from omni_models.analytics.revenue_tracking import RevenueTracking
 
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
@@ -101,13 +101,13 @@ class ForecastNumberOfWorkingDays:
         self.same_day_three_months_later = len([d for d in get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month) if d.day <= date_of_interest.day])
     
 class ForecastRevenueTrackings(BaseModel):
-    date_of_interest: RevenueTrackingResult
-    last_day_of_last_month: RevenueTrackingResult
-    last_day_of_two_months_ago: RevenueTrackingResult
-    last_day_of_three_months_ago: RevenueTrackingResult
-    same_day_last_month: RevenueTrackingResult
-    same_day_two_months_ago: RevenueTrackingResult
-    same_day_three_months_ago: RevenueTrackingResult
+    date_of_interest: RevenueTracking
+    last_day_of_last_month: RevenueTracking
+    last_day_of_two_months_ago: RevenueTracking
+    last_day_of_three_months_ago: RevenueTracking
+    same_day_last_month: RevenueTracking
+    same_day_two_months_ago: RevenueTracking
+    same_day_three_months_ago: RevenueTracking
     
     def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
         super().__init__(

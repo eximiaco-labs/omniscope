@@ -458,7 +458,8 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
         parameters.append("filters: [DatasetFilterInput]")
     
     # Generate resolvers for methods if class is namespaced
-    if hasattr(cls, '_is_namespace'):
+    is_namespace = hasattr(cls, '_is_namespace')
+    if is_namespace:
         import inspect
         
         # Add resolver for the namespace type itself
@@ -575,10 +576,11 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
     # Register the type with its parameters and resolvers
     registry.register_type(cls.__name__, type_def, parameters, resolvers)
     
-    # Generate collection type immediately after the base type
-    collection_type = generate_collection_type(cls)
-    type_definitions.append(collection_type)
-    generated_types.add(f"{cls.__name__}Collection")
+    # Generate collection type immediately after the base type, but only if not a namespace
+    if not is_namespace:
+        collection_type = generate_collection_type(cls)
+        type_definitions.append(collection_type)
+        generated_types.add(f"{cls.__name__}Collection")
     
     for field_name, field in cls.model_fields.items():
         field_type = field.annotation
@@ -681,7 +683,6 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                     ]
                     param_args = ", ".join(p)
                 
-                #param_args = ", ".join(f"{param}: String" for param in inner_params) if inner_params else ""
                 param_str = f"({param_args}, " if param_args else "("
                 
                 field_definitions.append(f"    {camel_field_name}{param_str}filter: FilterInput, sort: SortInput, pagination: PaginationInput): {gql_type}{'!' if not is_optional else ''}")
@@ -701,7 +702,6 @@ def generate_type(cls: Type[BaseModel], generated_types: set[str] = None) -> tup
                 # Get parameters for the inner type
                 inner_params = registry.get_type_parameters(inner_type.__name__)
                 if inner_params:
-                    #param_args = ", ".join(f"{param}: String" for param in inner_params)
                     if not inner_params:
                         param_args = ""
                     else:
@@ -922,7 +922,8 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
         base_name = to_camel_case(cls.__name__[0].lower() + cls.__name__[1:])
         
         # Collection field - properly pluralized
-        if context_name:
+        # Only add collection field if we have a context and the class is not a namespace
+        if context_name and not is_namespace:
             collection_name = pluralize(base_name)
             collection_args = "(filter: FilterInput, sort: SortInput, pagination: PaginationInput)"
             field_definitions.append(f"    {collection_name}{collection_args}: {cls.__name__}Collection!")
@@ -935,8 +936,6 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
             if has_filter_field(cls):
                 args += ", filters: [DatasetFilterInput]"
             field_definitions.append(f"    {base_name}({args}): {cls.__name__}")
-            # Generate resolver for root single item
-            #all_resolvers[f"{context_name}.{base_name}"] = generate_default_resolver(base_name)
     
     # Add context type
     if context_name:

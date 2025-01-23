@@ -23,8 +23,9 @@ from engagements.schema import init as engagements_init
 from ontology.schema import init as ontology_init
 from timesheet.schema import init as timesheet_init
 from marketing_and_sales.schema import init as marketing_and_sales_init
+from financial.schema import init as financial_init
 
-from core.generator import generate_base_schema, GlobalTypeRegistry
+from core.generator import generate_base_schema, GlobalTypeRegistry, to_snake_case
 from omni_shared.settings import auth_settings 
 from omni_shared.settings import graphql_settings
 
@@ -38,16 +39,10 @@ def create_schema():
         engagements_init()
         ontology_init()
         timesheet_init()
-        marketing_and_sales_init()       
+        marketing_and_sales_init()
+        financial_init()
     
     init()
-
-    # Base query resolver
-    base_query = QueryType()
-
-    @base_query.field("version")
-    def resolve_version(*_):
-        return "2.0.0"
 
     # Initialize registry and add base schema
     registry = GlobalTypeRegistry()
@@ -55,11 +50,29 @@ def create_schema():
     # Add base types and schemas to registry
     generate_base_schema()  # This will register base types in the registry
 
+    # Base query resolver
+    base_query = QueryType()
+
+    # Register version field in the registry
+    registry.register_type("Query", """extend type Query {
+    version: String!
+}""")
+
+    @base_query.field("version")
+    def resolve_version(*_):
+        return "2.0.0"
+
     # Create resolver types list starting with base query
-    resolver_types = team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + ontology_resolvers + [timesheet_query]
+    resolver_types = [base_query] + team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + ontology_resolvers + [timesheet_query]
 
     for field_path, resolver_fn in registry.resolvers.items():
         type_name, field_name = field_path.split(".")
+        
+        # Special handling for namespace types - they need to be registered in Query
+        if type_name == type_name.title() and field_name == to_snake_case(type_name):
+            base_query.set_field(field_name.lower(), resolver_fn)
+            continue
+            
         # Get or create type object
         type_obj = next(
             (r for r in resolver_types if isinstance(r, ObjectType) and r.name == type_name),
@@ -74,7 +87,7 @@ def create_schema():
 
     # Get all SDL from registry
     sdl = registry.generate_sdl()
-
+    
     # Create executable schema
     return make_executable_schema(
         [sdl],
