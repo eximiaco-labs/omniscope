@@ -1432,6 +1432,13 @@ def compute_revenue_tracking(
     filters = None
     ) -> RevenueTracking:
     
+            
+    if not date_of_interest:
+        date_of_interest = date.today()
+        
+    if isinstance(date_of_interest, str):
+        date_of_interest = date.fromisoformat(date_of_interest)
+    
     year = date_of_interest.year
     month = date_of_interest.month
     
