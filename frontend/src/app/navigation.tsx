@@ -159,18 +159,6 @@ export function getAnalyticsSidebarItems(userEmail?: string | null) {
 export function getAboutUsSidebarItems() {
   return [
     {
-      title: "Consultants & Engineers",
-      url: "/about-us/consultants-and-engineers",
-      icon: UserIcon,
-      subItems: [
-        {
-          title: "In Consulting",
-          url: "/about-us/consultants-and-engineers/in-consulting",
-          icon: UserIcon,
-        },
-      ],
-    },
-    {
       title: "Account Managers",
       url: "/about-us/account-managers",
       icon: BriefcaseIcon,

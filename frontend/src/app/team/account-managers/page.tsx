@@ -15,7 +15,7 @@ import SectionHeader from "@/components/SectionHeader";
 const GET_ACCOUNT_MANAGERS_AND_TIMESHEET = gql`
   query GetAccountManagersAndTimesheet {
     team {
-      accountManagers {
+      accountManagers (sort: { field: "name", order: ASC}) {
         data {
           slug
           name

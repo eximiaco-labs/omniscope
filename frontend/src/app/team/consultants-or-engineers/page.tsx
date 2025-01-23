@@ -13,7 +13,7 @@ import { useEdgeClient } from "@/app/hooks/useApolloClient";
 const GET_CONSULTANTS_AND_TIMESHEET = gql`
   query GetConsultantsAndTimesheet {
     team {
-      consultantsOrEngineers {
+      consultantsOrEngineers(sort: { field: "name", order: ASC}) {
         data {
           slug
           name
