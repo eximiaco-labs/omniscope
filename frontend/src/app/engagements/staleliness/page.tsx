@@ -14,6 +14,7 @@ import {
 import SectionHeader from "@/components/SectionHeader";
 import { NavBar } from "../../components/NavBar";
 import Link from "next/link";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const sections = [
   { id: 'staleCases', title: 'Stale Cases', subtitle: '0 cases' },
@@ -24,14 +25,18 @@ const sections = [
 ];
 
 export default function StalenessPage() {
-  const { data, loading, error } = useQuery(STALELINESS_QUERY);
+  const client = useEdgeClient();
+  const { data, loading, error } = useQuery(STALELINESS_QUERY, {
+    client: client ?? undefined,
+    ssr: true
+  });
   const [sectionsWithPercentages, setSectionsWithPercentages] = useState(sections);
 
   useEffect(() => {
-    if (data?.staleliness) {
+    if (data?.engagements?.summaries?.staleliness) {
       const updatedSections = sections.map(section => ({
         ...section,
-        subtitle: `${data.staleliness[section.id].length} cases`
+        subtitle: `${data.engagements.summaries.staleliness[section.id].data.length} cases`
       }));
       setSectionsWithPercentages(updatedSections);
     }
@@ -71,7 +76,7 @@ export default function StalenessPage() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm space-y-1">
-                      {case_.workers?.map((w: any, i: number) => (
+                      {case_.consultantsOrEngineers?.data?.map((w: any, i: number) => (
                         <div key={i} className="text-xs">
                           <Link
                             href={`/about-us/consultants-and-engineers/${w.slug}`}
@@ -101,6 +106,8 @@ export default function StalenessPage() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
+  const staleliness = data?.engagements?.summaries?.staleliness;
+
   return (
     <div className="container">
       <NavBar sections={sectionsWithPercentages} />
@@ -113,7 +120,7 @@ export default function StalenessPage() {
             className="scroll-mt-[68px] sm:scroll-mt-[68px]"
           >
             {renderCaseTable(
-              data.staleliness[section.id],
+              staleliness[section.id].data,
               section.title,
               section.subtitle
             )}
