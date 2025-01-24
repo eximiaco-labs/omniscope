@@ -188,10 +188,10 @@ class RevenueForecastSummary(BaseModel):
     same_day_three_months_ago_consulting_hours: float
 
 class RevenueForecastByKind(BaseModel):
-    consulting: dict
-    consulting_pre: dict
-    hands_on: dict
-    squad: dict
+    consulting: forecast_types.RevenueForecastKindSummary
+    consulting_pre: forecast_types.RevenueForecastKindSummary
+    hands_on: forecast_types.RevenueForecastKindSummary
+    squad: forecast_types.RevenueForecastKindSummary
 
 class RevenueForecast(BaseModel):
     date_of_interest: datetime
@@ -470,15 +470,15 @@ def compute_forecast(date_of_interest = None, filters = None):
         for consultant in by_consultant:
             adjust_entity(consultant)
 
-        return {
-            'slug': slug,
-            'by_client': by_client,
-            'by_sponsor': by_sponsor,
-            'by_case': by_case,
-            'by_project': by_project,
-            'by_consultant': by_consultant,
-            'totals': forecast_types.Totals.build(by_client)
-        }
+        return forecast_types.RevenueForecastKindSummary(
+            kind=slug,
+            by_client=by_client,
+            by_sponsor=by_sponsor,
+            by_case=by_case,
+            by_project=by_project,
+            by_consultant=by_consultant,
+            totals=forecast_types.Totals.build(by_client)
+        )
     
     filterable_fields = merge_filterable_fields([
         forecast_revenue_trackings.date_of_interest,
@@ -495,26 +495,26 @@ def compute_forecast(date_of_interest = None, filters = None):
     )
     
     summary = RevenueForecastSummary(
-        realized=sum(by_kind.__dict__[kind]["totals"].in_analysis for kind in by_kind.__dict__),
-        projected=by_kind.consulting["totals"].projected + sum(by_kind.__dict__[kind]["totals"].in_analysis for kind in by_kind.__dict__ if kind != "consulting"),
-        expected=by_kind.consulting["totals"].expected + sum(by_kind.__dict__[kind]["totals"].in_analysis for kind in by_kind.__dict__ if kind != "consulting"),
-        one_month_ago=sum(by_kind.__dict__[kind]["totals"].one_month_ago for kind in by_kind.__dict__),
-        two_months_ago=sum(by_kind.__dict__[kind]["totals"].two_months_ago for kind in by_kind.__dict__),
-        three_months_ago=sum(by_kind.__dict__[kind]["totals"].three_months_ago for kind in by_kind.__dict__),
-        expected_one_month_later=sum(by_kind.__dict__[kind]["totals"].expected_one_month_later for kind in by_kind.__dict__),
-        expected_two_months_later=sum(by_kind.__dict__[kind]["totals"].expected_two_months_later for kind in by_kind.__dict__),
-        expected_three_months_later=sum(by_kind.__dict__[kind]["totals"].expected_three_months_later for kind in by_kind.__dict__),
-        in_analysis_consulting_hours=sum(by_kind.__dict__[kind]["totals"].in_analysis_consulting_hours for kind in by_kind.__dict__),
-        in_analysis_consulting_pre_hours=sum(by_kind.__dict__[kind]["totals"].in_analysis_consulting_pre_hours for kind in by_kind.__dict__),
-        one_month_ago_consulting_hours=sum(by_kind.__dict__[kind]["totals"].one_month_ago_consulting_hours for kind in by_kind.__dict__),
-        one_month_ago_consulting_pre_hours=sum(by_kind.__dict__[kind]["totals"].one_month_ago_consulting_pre_hours for kind in by_kind.__dict__),
-        two_months_ago_consulting_hours=sum(by_kind.__dict__[kind]["totals"].two_months_ago_consulting_hours for kind in by_kind.__dict__),
-        two_months_ago_consulting_pre_hours=sum(by_kind.__dict__[kind]["totals"].two_months_ago_consulting_pre_hours for kind in by_kind.__dict__),
-        three_months_ago_consulting_hours=sum(by_kind.__dict__[kind]["totals"].three_months_ago_consulting_hours for kind in by_kind.__dict__),
-        three_months_ago_consulting_pre_hours=sum(by_kind.__dict__[kind]["totals"].three_months_ago_consulting_pre_hours for kind in by_kind.__dict__),
-        same_day_one_month_ago_consulting_hours=sum(by_kind.__dict__[kind]["totals"].same_day_one_month_ago_consulting_hours for kind in by_kind.__dict__),
-        same_day_two_months_ago_consulting_hours=sum(by_kind.__dict__[kind]["totals"].same_day_two_months_ago_consulting_hours for kind in by_kind.__dict__),
-        same_day_three_months_ago_consulting_hours=sum(by_kind.__dict__[kind]["totals"].same_day_three_months_ago_consulting_hours for kind in by_kind.__dict__),
+        realized=sum(getattr(by_kind, kind).totals.in_analysis for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        projected=by_kind.consulting.totals.projected + sum(getattr(by_kind, kind).totals.in_analysis for kind in ['consulting_pre', 'hands_on', 'squad']),
+        expected=by_kind.consulting.totals.expected + sum(getattr(by_kind, kind).totals.in_analysis for kind in ['consulting_pre', 'hands_on', 'squad']),
+        one_month_ago=sum(getattr(by_kind, kind).totals.one_month_ago for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        two_months_ago=sum(getattr(by_kind, kind).totals.two_months_ago for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        three_months_ago=sum(getattr(by_kind, kind).totals.three_months_ago for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        expected_one_month_later=sum(getattr(by_kind, kind).totals.expected_one_month_later for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        expected_two_months_later=sum(getattr(by_kind, kind).totals.expected_two_months_later for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        expected_three_months_later=sum(getattr(by_kind, kind).totals.expected_three_months_later for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        in_analysis_consulting_hours=sum(getattr(by_kind, kind).totals.in_analysis_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        in_analysis_consulting_pre_hours=sum(getattr(by_kind, kind).totals.in_analysis_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        one_month_ago_consulting_hours=sum(getattr(by_kind, kind).totals.one_month_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        one_month_ago_consulting_pre_hours=sum(getattr(by_kind, kind).totals.one_month_ago_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        two_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.two_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        two_months_ago_consulting_pre_hours=sum(getattr(by_kind, kind).totals.two_months_ago_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        three_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.three_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        three_months_ago_consulting_pre_hours=sum(getattr(by_kind, kind).totals.three_months_ago_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        same_day_one_month_ago_consulting_hours=sum(getattr(by_kind, kind).totals.same_day_one_month_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        same_day_two_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.same_day_two_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        same_day_three_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.same_day_three_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
     )
     
     daily_list = sorted(list(daily.values()), key=lambda x: x.date)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 from datetime import date
 from pydantic import BaseModel
@@ -323,5 +323,14 @@ class Totals(BaseModel):
             same_day_two_months_ago_consulting_fee_new=sum(client.same_day_two_months_ago_consulting_fee_new for client in by_client),
             same_day_three_months_ago_consulting_fee_new=sum(client.same_day_three_months_ago_consulting_fee_new for client in by_client)
         )
+
+class RevenueForecastKindSummary(BaseModel):
+    kind: Literal['consulting', 'consulting_pre', 'hands_on', 'squad']
+    by_client: List[ClientForecast]
+    by_sponsor: List[SponsorForecast]
+    by_case: List[CaseForecast]
+    by_project: List[ProjectForecast]
+    by_consultant: List[ConsultantForecast]
+    totals: Totals
 
 
