@@ -29,27 +29,32 @@ import { formatCurrency } from "@/lib/utils";
 import { TableCellComponent } from "../revenue-forecast/components/TableCell";
 import SectionHeader from "@/components/SectionHeader";
 import { STAT_COLORS } from "@/app/constants/colors";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const YEARLY_FORECAST_QUERY = gql`
   query YearlyForecast($year: Int!) {
-    yearlyForecast(year: $year) {
-      year
-      goal
-      workingDays
-      realizedWorkingDays
-      byMonth {
-        month
+    financial {
+      yearlyRevenueForecast(year: $year) {
+        year
         goal
         workingDays
-        expectedConsultingFee
-        expectedConsultingPreFee
-        expectedHandsOnFee
-        expectedSquadFee
-        actual
-        actualConsultingFee
-        actualConsultingPreFee
-        actualHandsOnFee
-        actualSquadFee
+        realizedWorkingDays
+        byMonth {
+          data {
+            month
+            goal
+            workingDays
+            expectedConsultingFee
+            expectedConsultingPreFee
+            expectedHandsOnFee
+            expectedSquadFee
+            actual
+            actualConsultingFee
+            actualConsultingPreFee
+            actualHandsOnFee
+            actualSquadFee
+          }
+        }
       }
     }
   }
@@ -477,14 +482,17 @@ function formatMillions(value: number): string {
 }
 
 export default function YearlyForecast2025() {
+  const client = useEdgeClient();
   const { data, loading, error } = useQuery(YEARLY_FORECAST_QUERY, {
     variables: { year: 2025 },
+    client: client ?? undefined,
+    ssr: true
   });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error loading data: {error.message}</div>;
 
-  const forecast = data?.yearlyForecast;
+  const forecast = data?.financial?.yearlyRevenueForecast;
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
@@ -497,7 +505,7 @@ export default function YearlyForecast2025() {
   }
 
   // Calculate monthly data for the chart
-  const monthlyData = forecast.byMonth.map((month: any) => {
+  const monthlyData = forecast.byMonth.data.map((month: any) => {
     const isPast = isMonthInPast(month.month);
     
     // For past months, use actual values, for current and future months use expected values
@@ -572,7 +580,7 @@ export default function YearlyForecast2025() {
     return chartConfig[key]?.label || name;
   };
 
-  const totalActual = forecast.byMonth.reduce((sum: number, month: any) => {
+  const totalActual = forecast.byMonth.data.reduce((sum: number, month: any) => {
     const isPast = isMonthInPast(month.month);
     const isCurrentMonth = currentYear === 2025 && currentMonth === month.month;
     return sum + ((isPast || isCurrentMonth) ? (
@@ -584,8 +592,8 @@ export default function YearlyForecast2025() {
   }, 0);
   const remaining = forecast.goal - totalActual;
 
-  const firstHalf = forecast.byMonth.slice(0, 6);
-  const secondHalf = forecast.byMonth.slice(6, 12);
+  const firstHalf = forecast.byMonth.data.slice(0, 6);
+  const secondHalf = forecast.byMonth.data.slice(6, 12);
 
   // Get the expected annual total from the last month's accumulated value
   const expectedAnnual = accumulatedData[accumulatedData.length - 1].total;
