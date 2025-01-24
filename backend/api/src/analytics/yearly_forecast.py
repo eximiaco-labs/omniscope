@@ -41,11 +41,11 @@ def resolve_yearly_forecast(_, info, year=None):
         if y < current_year or (y == current_year and m < current_month):
             goal = 0
             
-            month_actual = forecast["summary"]["realized"]
+            month_actual = forecast.summary.realized
             discount = month_actual
             actual += month_actual
         elif y == current_year and m == current_month:
-            month_actual = forecast["summary"]["realized"]
+            month_actual = forecast.summary.realized 
             # discount = month_actual
             actual += month_actual
     
@@ -54,26 +54,26 @@ def resolve_yearly_forecast(_, info, year=None):
             "month": m,
             "goal": goal,
             "working_days": len(get_working_days_in_month(y, m)),
-            "expected_consulting_fee": forecast_doi["by_kind"]["consulting"]['totals'].expected,
-            "expected_squad_fee": forecast_doi["by_kind"]["squad"]['totals'].in_analysis,
-            "expected_hands_on_fee": forecast_doi["by_kind"]["hands_on"]['totals'].in_analysis,
-            "expected_consulting_pre_fee": forecast_doi["by_kind"]["consulting_pre"]['totals'].in_analysis,
+            "expected_consulting_fee": forecast_doi.by_kind.consulting.totals.expected,
+            "expected_squad_fee": forecast_doi.by_kind.squad.totals.in_analysis,
+            "expected_hands_on_fee": forecast_doi.by_kind.hands_on.totals.in_analysis,
+            "expected_consulting_pre_fee": forecast_doi.by_kind.consulting_pre.totals.in_analysis,
             "actual": month_actual
         }
         
         if y < current_year or (y == current_year and m < current_month):
             month_actual = {
-                "actual_consulting_fee": forecast["by_kind"]["consulting"]['totals'].in_analysis,
-                "actual_squad_fee": forecast["by_kind"]["squad"]['totals'].in_analysis,
-                "actual_hands_on_fee": forecast["by_kind"]["hands_on"]['totals'].in_analysis,
-                "actual_consulting_pre_fee": forecast["by_kind"]["consulting_pre"]['totals'].in_analysis
+                "actual_consulting_fee": forecast_doi.by_kind.consulting.totals.in_analysis,
+                "actual_squad_fee": forecast_doi.by_kind.squad.totals.in_analysis,
+                "actual_hands_on_fee": forecast_doi.by_kind.hands_on.totals.in_analysis,
+                "actual_consulting_pre_fee": forecast_doi.by_kind.consulting_pre.totals.in_analysis
             }
         elif y == current_year and m == current_month:
             month_actual = {
-                "actual_consulting_fee": forecast_doi["by_kind"]["consulting"]['totals'].in_analysis,
-                "actual_squad_fee": forecast_doi["by_kind"]["squad"]['totals'].in_analysis,
-                "actual_hands_on_fee": forecast_doi["by_kind"]["hands_on"]['totals'].in_analysis,
-                "actual_consulting_pre_fee": forecast_doi["by_kind"]["consulting_pre"]['totals'].in_analysis
+                "actual_consulting_fee": forecast_doi.by_kind.consulting.totals.in_analysis,
+                "actual_squad_fee": forecast_doi.by_kind.squad.totals.in_analysis,
+                "actual_hands_on_fee": forecast_doi.by_kind.hands_on.totals.in_analysis,
+                "actual_consulting_pre_fee": forecast_doi.by_kind.consulting_pre.totals.in_analysis
             }
         else:
             month_actual = {
@@ -110,4 +110,3 @@ def resolve_yearly_forecast(_, info, year=None):
         "working_days": total_working_days,
         "realized_working_days": realized_working_days
     }
-    
