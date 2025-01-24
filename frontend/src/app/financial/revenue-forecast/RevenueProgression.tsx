@@ -3,19 +3,21 @@ import SectionHeader from "@/components/SectionHeader";
 
 interface RevenueProgressionProps {
   data: {
-    forecast: {
-      dates: {
-        lastDayOfThreeMonthsAgo: string;
-        lastDayOfTwoMonthsAgo: string;
-        lastDayOfOneMonthAgo: string;
-      };
-      summary: {
-        threeMonthsAgo: number;
-        twoMonthsAgo: number;
-        oneMonthAgo: number;
-        realized: number;
-        projected: number;
-        expected: number;
+    financial: {
+      revenueForecast: {
+        dates: {
+          lastDayOfThreeMonthsAgo: string;
+          lastDayOfTwoMonthsAgo: string;
+          lastDayOfOneMonthAgo: string;
+        };
+        summary: {
+          threeMonthsAgo: number;
+          twoMonthsAgo: number;
+          oneMonthAgo: number;
+          realized: number;
+          projected: number;
+          expected: number;
+        };
       };
     };
   };
@@ -30,6 +32,8 @@ const formatCurrency = (value: number) => {
 };
 
 export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
+  const forecast = data.financial.revenueForecast;
+  
   return (
     <div className="mb-8 border-b pb-8">
       <SectionHeader title="Revenue Progression" subtitle=" " />
@@ -38,59 +42,59 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
           {/* Three Months Ago */}
           <div className="text-left p-4">
             <SectionHeader
-              title={format(new Date(data.forecast.dates.lastDayOfThreeMonthsAgo), "MMM yyyy")}
+              title={format(new Date(forecast.dates.lastDayOfThreeMonthsAgo), "MMM yyyy")}
               subtitle=" "
             />
             <div className="text-2xl font-bold text-gray-900 mt-2">
-              {formatCurrency(data.forecast.summary.threeMonthsAgo)}
+              {formatCurrency(forecast.summary.threeMonthsAgo)}
             </div>
           </div>
 
           {/* Two Months Ago */}
           <div className="text-left p-4">
             <SectionHeader
-              title={format(new Date(data.forecast.dates.lastDayOfTwoMonthsAgo), "MMM yyyy")}
+              title={format(new Date(forecast.dates.lastDayOfTwoMonthsAgo), "MMM yyyy")}
               subtitle=" "
             />
             <div className="text-2xl font-bold text-gray-900 mt-2">
-              {formatCurrency(data.forecast.summary.twoMonthsAgo)}
+              {formatCurrency(forecast.summary.twoMonthsAgo)}
             </div>
             <div
               className={`text-xs flex items-center gap-1 mt-2 font-medium ${
-                data.forecast.summary.twoMonthsAgo > data.forecast.summary.threeMonthsAgo
+                forecast.summary.twoMonthsAgo > forecast.summary.threeMonthsAgo
                   ? "text-green-600 dark:text-green-400"
                   : "text-red-600 dark:text-red-400"
               }`}
             >
-              {data.forecast.summary.twoMonthsAgo > data.forecast.summary.threeMonthsAgo ? "▲" : "▼"}
+              {forecast.summary.twoMonthsAgo > forecast.summary.threeMonthsAgo ? "▲" : "▼"}
               {Math.abs(
-                (data.forecast.summary.twoMonthsAgo / data.forecast.summary.threeMonthsAgo - 1) * 100
+                (forecast.summary.twoMonthsAgo / forecast.summary.threeMonthsAgo - 1) * 100
               ).toFixed(1)}
-              % vs {format(new Date(data.forecast.dates.lastDayOfThreeMonthsAgo), "MMM")}
+              % vs {format(new Date(forecast.dates.lastDayOfThreeMonthsAgo), "MMM")}
             </div>
           </div>
 
           {/* One Month Ago */}
           <div className="text-left p-4">
             <SectionHeader
-              title={format(new Date(data.forecast.dates.lastDayOfOneMonthAgo), "MMM yyyy")}
+              title={format(new Date(forecast.dates.lastDayOfOneMonthAgo), "MMM yyyy")}
               subtitle=" "
             />
             <div className="text-2xl font-bold text-gray-900 mt-2">
-              {formatCurrency(data.forecast.summary.oneMonthAgo)}
+              {formatCurrency(forecast.summary.oneMonthAgo)}
             </div>
             <div
               className={`text-xs flex items-center gap-1 mt-2 font-medium ${
-                data.forecast.summary.oneMonthAgo > data.forecast.summary.twoMonthsAgo
+                forecast.summary.oneMonthAgo > forecast.summary.twoMonthsAgo
                   ? "text-green-600 dark:text-green-400"
                   : "text-red-600 dark:text-red-400"
               }`}
             >
-              {data.forecast.summary.oneMonthAgo > data.forecast.summary.twoMonthsAgo ? "▲" : "▼"}
+              {forecast.summary.oneMonthAgo > forecast.summary.twoMonthsAgo ? "▲" : "▼"}
               {Math.abs(
-                (data.forecast.summary.oneMonthAgo / data.forecast.summary.twoMonthsAgo - 1) * 100
+                (forecast.summary.oneMonthAgo / forecast.summary.twoMonthsAgo - 1) * 100
               ).toFixed(1)}
-              % vs {format(new Date(data.forecast.dates.lastDayOfTwoMonthsAgo), "MMM")}
+              % vs {format(new Date(forecast.dates.lastDayOfTwoMonthsAgo), "MMM")}
             </div>
           </div>
 
@@ -101,20 +105,20 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
               <div className="flex items-start gap-12">
                 <div className="flex-1">
                   <div className="text-3xl font-bold text-gray-900">
-                    {formatCurrency(data.forecast.summary.realized)}
+                    {formatCurrency(forecast.summary.realized)}
                   </div>
                   <div
                     className={`text-xs flex items-center gap-1 mt-2 font-medium ${
-                      data.forecast.summary.realized > data.forecast.summary.oneMonthAgo
+                      forecast.summary.realized > forecast.summary.oneMonthAgo
                         ? "text-green-600 dark:text-green-400"
                         : "text-red-600 dark:text-red-400"
                     }`}
                   >
-                    {data.forecast.summary.realized > data.forecast.summary.oneMonthAgo ? "▲" : "▼"}
+                    {forecast.summary.realized > forecast.summary.oneMonthAgo ? "▲" : "▼"}
                     {Math.abs(
-                      (data.forecast.summary.realized / data.forecast.summary.oneMonthAgo - 1) * 100
+                      (forecast.summary.realized / forecast.summary.oneMonthAgo - 1) * 100
                     ).toFixed(1)}
-                    % vs {format(new Date(data.forecast.dates.lastDayOfOneMonthAgo), "MMM")}
+                    % vs {format(new Date(forecast.dates.lastDayOfOneMonthAgo), "MMM")}
                   </div>
                 </div>
 
@@ -122,13 +126,13 @@ export const RevenueProgression = ({ data }: RevenueProgressionProps) => {
                   <div className="flex flex-col">
                     <div className="text-xs font-medium text-gray-500">Projected</div>
                     <div className="text-lg font-bold text-gray-700">
-                      {formatCurrency(data.forecast.summary.projected)}
+                      {formatCurrency(forecast.summary.projected)}
                     </div>
                   </div>
                   <div className="flex flex-col">
                     <div className="text-xs font-medium text-gray-500">Expected</div>
                     <div className="text-lg font-bold text-gray-700">
-                      {formatCurrency(data.forecast.summary.expected)}
+                      {formatCurrency(forecast.summary.expected)}
                     </div>
                   </div>
                 </div>

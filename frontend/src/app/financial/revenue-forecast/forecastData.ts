@@ -295,62 +295,66 @@ interface ForecastData {
       current: number;
     };
   };
-}export function getForecastData(data: any): ForecastData {
+}
+
+export function getForecastData(data: any): ForecastData {
+  const forecast = data.financial.revenueForecast;
+  
   const mapConsultingItem = (item: any) => ({
     name: item.name,
     title: item.title,
     slug: item.slug,
-    clientSlug: item.clientSlug,
-    sponsorSlug: item.sponsorSlug,
-    caseSlug: item.caseSlug,
+    clientSlug: item.client?.slug,
+    sponsorSlug: item.sponsor?.slug,
+    caseSlug: item.case?.slug,
     sameDayThreeMonthsAgo: item.sameDayThreeMonthsAgo,
-    normalizedSameDayThreeMonthsAgo: item.sameDayThreeMonthsAgo / data.forecast.workingDays.sameDayThreeMonthsAgo,
+    normalizedSameDayThreeMonthsAgo: item.sameDayThreeMonthsAgo / forecast.workingDays.sameDayThreeMonthsAgo,
     threeMonthsAgo: item.threeMonthsAgo,
-    normalizedThreeMonthsAgo: item.threeMonthsAgo / data.forecast.workingDays.threeMonthsAgo,
+    normalizedThreeMonthsAgo: item.threeMonthsAgo / forecast.workingDays.threeMonthsAgo,
     sameDayTwoMonthsAgo: item.sameDayTwoMonthsAgo,
-    normalizedSameDayTwoMonthsAgo: item.sameDayTwoMonthsAgo / data.forecast.workingDays.sameDayTwoMonthsAgo,
+    normalizedSameDayTwoMonthsAgo: item.sameDayTwoMonthsAgo / forecast.workingDays.sameDayTwoMonthsAgo,
     twoMonthsAgo: item.twoMonthsAgo,
-    normalizedTwoMonthsAgo: item.twoMonthsAgo / data.forecast.workingDays.twoMonthsAgo,
+    normalizedTwoMonthsAgo: item.twoMonthsAgo / forecast.workingDays.twoMonthsAgo,
     sameDayOneMonthAgo: item.sameDayOneMonthAgo,
-    normalizedSameDayOneMonthAgo: item.sameDayOneMonthAgo / data.forecast.workingDays.sameDayOneMonthAgo,
+    normalizedSameDayOneMonthAgo: item.sameDayOneMonthAgo / forecast.workingDays.sameDayOneMonthAgo,
     oneMonthAgo: item.oneMonthAgo,
-    normalizedOneMonthAgo: item.oneMonthAgo / data.forecast.workingDays.oneMonthAgo,
+    normalizedOneMonthAgo: item.oneMonthAgo / forecast.workingDays.oneMonthAgo,
     realized: item.inAnalysis,
-    normalizedRealized: item.inAnalysis / data.forecast.workingDays.inAnalysisPartial,
+    normalizedRealized: item.inAnalysis / forecast.workingDays.inAnalysisPartial,
     projected: item.projected,
-    normalizedProjected: item.projected / data.forecast.workingDays.inAnalysis,
+    normalizedProjected: item.projected / forecast.workingDays.inAnalysis,
     expected: item.expected,
-    normalizedExpected: item.expected / data.forecast.workingDays.inAnalysis,
+    normalizedExpected: item.expected / forecast.workingDays.inAnalysis,
     expectedHistorical: item.expectedHistorical,
-    normalizedExpectedHistorical: item.expectedHistorical / data.forecast.workingDays.inAnalysis,
+    normalizedExpectedHistorical: item.expectedHistorical / forecast.workingDays.inAnalysis,
     expectedOneMonthLater: item.expectedOneMonthLater,
-    normalizedExpectedOneMonthLater: item.expectedOneMonthLater / data.forecast.workingDays.oneMonthLater,
+    normalizedExpectedOneMonthLater: item.expectedOneMonthLater / forecast.workingDays.oneMonthLater,
     expectedTwoMonthsLater: item.expectedTwoMonthsLater,
-    normalizedExpectedTwoMonthsLater: item.expectedTwoMonthsLater / data.forecast.workingDays.twoMonthsLater,
+    normalizedExpectedTwoMonthsLater: item.expectedTwoMonthsLater / forecast.workingDays.twoMonthsLater,
     expectedThreeMonthsLater: item.expectedThreeMonthsLater,
-    normalizedExpectedThreeMonthsLater: item.expectedThreeMonthsLater / data.forecast.workingDays.threeMonthsLater,
+    normalizedExpectedThreeMonthsLater: item.expectedThreeMonthsLater / forecast.workingDays.threeMonthsLater,
     inAnalysisConsultingHours: item.inAnalysisConsultingHours || 0,
-    normalizedInAnalysisConsultingHours: (item.inAnalysisConsultingHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+    normalizedInAnalysisConsultingHours: (item.inAnalysisConsultingHours || 0) / forecast.workingDays.inAnalysisPartial,
     sameDayThreeMonthsAgoConsultingHours: item.sameDayThreeMonthsAgoConsultingHours || 0,
-    normalizedSameDayThreeMonthsAgoConsultingHours: (item.sameDayThreeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
+    normalizedSameDayThreeMonthsAgoConsultingHours: (item.sameDayThreeMonthsAgoConsultingHours || 0) / forecast.workingDays.sameDayThreeMonthsAgo,
     threeMonthsAgoConsultingHours: item.threeMonthsAgoConsultingHours || 0,
-    normalizedThreeMonthsAgoConsultingHours: (item.threeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.threeMonthsAgo,
+    normalizedThreeMonthsAgoConsultingHours: (item.threeMonthsAgoConsultingHours || 0) / forecast.workingDays.threeMonthsAgo,
     sameDayTwoMonthsAgoConsultingHours: item.sameDayTwoMonthsAgoConsultingHours || 0,
-    normalizedSameDayTwoMonthsAgoConsultingHours: (item.sameDayTwoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayTwoMonthsAgo,
+    normalizedSameDayTwoMonthsAgoConsultingHours: (item.sameDayTwoMonthsAgoConsultingHours || 0) / forecast.workingDays.sameDayTwoMonthsAgo,
     twoMonthsAgoConsultingHours: item.twoMonthsAgoConsultingHours || 0,
-    normalizedTwoMonthsAgoConsultingHours: (item.twoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+    normalizedTwoMonthsAgoConsultingHours: (item.twoMonthsAgoConsultingHours || 0) / forecast.workingDays.twoMonthsAgo,
     sameDayOneMonthAgoConsultingHours: item.sameDayOneMonthAgoConsultingHours || 0,
-    normalizedSameDayOneMonthAgoConsultingHours: (item.sameDayOneMonthAgoConsultingHours || 0) / data.forecast.workingDays.sameDayOneMonthAgo,
+    normalizedSameDayOneMonthAgoConsultingHours: (item.sameDayOneMonthAgoConsultingHours || 0) / forecast.workingDays.sameDayOneMonthAgo,
     oneMonthAgoConsultingHours: item.oneMonthAgoConsultingHours || 0,
-    normalizedOneMonthAgoConsultingHours: (item.oneMonthAgoConsultingHours || 0) / data.forecast.workingDays.oneMonthAgo,
+    normalizedOneMonthAgoConsultingHours: (item.oneMonthAgoConsultingHours || 0) / forecast.workingDays.oneMonthAgo,
     consultingPreHours: item.consultingPreHours || 0,
-    normalizedConsultingPreHours: (item.consultingPreHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+    normalizedConsultingPreHours: (item.consultingPreHours || 0) / forecast.workingDays.inAnalysisPartial,
     threeMonthsAgoConsultingPreHours: item.threeMonthsAgoConsultingPreHours || 0,
-    normalizedThreeMonthsAgoConsultingPreHours: (item.threeMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.threeMonthsAgo,
+    normalizedThreeMonthsAgoConsultingPreHours: (item.threeMonthsAgoConsultingPreHours || 0) / forecast.workingDays.threeMonthsAgo,
     twoMonthsAgoConsultingPreHours: item.twoMonthsAgoConsultingPreHours || 0,
-    normalizedTwoMonthsAgoConsultingPreHours: (item.twoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+    normalizedTwoMonthsAgoConsultingPreHours: (item.twoMonthsAgoConsultingPreHours || 0) / forecast.workingDays.twoMonthsAgo,
     oneMonthAgoConsultingPreHours: item.oneMonthAgoConsultingPreHours || 0,
-    normalizedOneMonthAgoConsultingPreHours: (item.oneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.oneMonthAgo,
+    normalizedOneMonthAgoConsultingPreHours: (item.oneMonthAgoConsultingPreHours || 0) / forecast.workingDays.oneMonthAgo,
     startOfContract: item.startOfContract,
     endOfContract: item.endOfContract,
     weeklyApprovedHours: item.weeklyApprovedHours,
@@ -412,21 +416,21 @@ interface ForecastData {
       sameDayOneMonthAgoConsultingHours: totals.sameDayOneMonthAgoConsultingHours || 0,
       sameDayTwoMonthsAgoConsultingHours: totals.sameDayTwoMonthsAgoConsultingHours || 0,
       sameDayThreeMonthsAgoConsultingHours: totals.sameDayThreeMonthsAgoConsultingHours || 0,
-      normalizedInAnalysisConsultingHours: (totals.inAnalysisConsultingHours || 0) / data.forecast.workingDays.inAnalysisPartial,
-      normalizedOneMonthAgoConsultingHours: (totals.oneMonthAgoConsultingHours || 0) / data.forecast.workingDays.oneMonthAgo,
-      normalizedTwoMonthsAgoConsultingHours: (totals.twoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.twoMonthsAgo,
-      normalizedThreeMonthsAgoConsultingHours: (totals.threeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.threeMonthsAgo,
-      normalizedSameDayOneMonthAgoConsultingHours: (totals.sameDayOneMonthAgoConsultingHours || 0) / data.forecast.workingDays.sameDayOneMonthAgo,
-      normalizedSameDayTwoMonthsAgoConsultingHours: (totals.sameDayTwoMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayTwoMonthsAgo,
-      normalizedSameDayThreeMonthsAgoConsultingHours: (totals.sameDayThreeMonthsAgoConsultingHours || 0) / data.forecast.workingDays.sameDayThreeMonthsAgo,
+      normalizedInAnalysisConsultingHours: (totals.inAnalysisConsultingHours || 0) / forecast.workingDays.inAnalysisPartial,
+      normalizedOneMonthAgoConsultingHours: (totals.oneMonthAgoConsultingHours || 0) / forecast.workingDays.oneMonthAgo,
+      normalizedTwoMonthsAgoConsultingHours: (totals.twoMonthsAgoConsultingHours || 0) / forecast.workingDays.twoMonthsAgo,
+      normalizedThreeMonthsAgoConsultingHours: (totals.threeMonthsAgoConsultingHours || 0) / forecast.workingDays.threeMonthsAgo,
+      normalizedSameDayOneMonthAgoConsultingHours: (totals.sameDayOneMonthAgoConsultingHours || 0) / forecast.workingDays.sameDayOneMonthAgo,
+      normalizedSameDayTwoMonthsAgoConsultingHours: (totals.sameDayTwoMonthsAgoConsultingHours || 0) / forecast.workingDays.sameDayTwoMonthsAgo,
+      normalizedSameDayThreeMonthsAgoConsultingHours: (totals.sameDayThreeMonthsAgoConsultingHours || 0) / forecast.workingDays.sameDayThreeMonthsAgo,
       inAnalysisConsultingPreHours: totals.inAnalysisConsultingPreHours || 0,
-      normalizedInAnalysisConsultingPreHours: (totals.inAnalysisConsultingPreHours || 0) / data.forecast.workingDays.inAnalysisPartial,
+      normalizedInAnalysisConsultingPreHours: (totals.inAnalysisConsultingPreHours || 0) / forecast.workingDays.inAnalysisPartial,
       threeMonthsAgoConsultingPreHours: totals.threeMonthsAgoConsultingPreHours || 0,
-      normalizedThreeMonthsAgoConsultingPreHours: (totals.threeMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.threeMonthsAgo,
+      normalizedThreeMonthsAgoConsultingPreHours: (totals.threeMonthsAgoConsultingPreHours || 0) / forecast.workingDays.threeMonthsAgo,
       twoMonthsAgoConsultingPreHours: totals.twoMonthsAgoConsultingPreHours || 0,
-      normalizedTwoMonthsAgoConsultingPreHours: (totals.twoMonthsAgoConsultingPreHours || 0) / data.forecast.workingDays.twoMonthsAgo,
+      normalizedTwoMonthsAgoConsultingPreHours: (totals.twoMonthsAgoConsultingPreHours || 0) / forecast.workingDays.twoMonthsAgo,
       oneMonthAgoConsultingPreHours: totals.oneMonthAgoConsultingPreHours || 0,
-      normalizedOneMonthAgoConsultingPreHours: (totals.oneMonthAgoConsultingPreHours || 0) / data.forecast.workingDays.oneMonthAgo,
+      normalizedOneMonthAgoConsultingPreHours: (totals.oneMonthAgoConsultingPreHours || 0) / forecast.workingDays.oneMonthAgo,
     };
   };
 
@@ -434,9 +438,9 @@ interface ForecastData {
     name: item.name,
     title: item.title,
     slug: item.slug,
-    clientSlug: item.clientSlug,
-    sponsorSlug: item.sponsorSlug,
-    caseSlug: item.caseSlug,
+    clientSlug: item.client?.slug,
+    sponsorSlug: item.sponsor?.slug,
+    caseSlug: item.case?.slug,
     threeMonthsAgo: item.threeMonthsAgo,
     twoMonthsAgo: item.twoMonthsAgo,
     oneMonthAgo: item.oneMonthAgo,
@@ -449,57 +453,57 @@ interface ForecastData {
     weeklyApprovedHours: item.weeklyApprovedHours,
   });
 
-  const consultingClients = data.forecast.byKind.consulting.byClient.map(mapConsultingItem);
+  const consultingClients = forecast.byKind.consulting.byClient.data.map(mapConsultingItem);
 
   return {
-    daily: data.forecast.daily,
+    daily: forecast.daily.data,
 
     consulting: {
       clients: consultingClients,
-      sponsors: data.forecast.byKind.consulting.bySponsor.map(mapConsultingItem),
-      cases: data.forecast.byKind.consulting.byCase.map(mapConsultingItem),
-      projects: data.forecast.byKind.consulting.byProject.map(mapConsultingItem),
-      consultants: data.forecast.byKind.consulting.byConsultant.map(mapConsultingItem),
-      totals: mapConsultingTotals(data.forecast.byKind.consulting.totals, consultingClients),
+      sponsors: forecast.byKind.consulting.bySponsor.data.map(mapConsultingItem),
+      cases: forecast.byKind.consulting.byCase.data.map(mapConsultingItem),
+      projects: forecast.byKind.consulting.byProject.data.map(mapConsultingItem),
+      consultants: forecast.byKind.consulting.byConsultant.data.map(mapConsultingItem),
+      totals: mapConsultingTotals(forecast.byKind.consulting.totals, consultingClients),
     },
     consultingPre: {
-      clients: data.forecast.byKind.consultingPre.byClient.map(mapOtherItem),
-      sponsors: data.forecast.byKind.consultingPre.bySponsor.map(mapOtherItem),
-      cases: data.forecast.byKind.consultingPre.byCase.map(mapOtherItem),
-      projects: data.forecast.byKind.consultingPre.byProject.map(mapOtherItem),
+      clients: forecast.byKind.consultingPre.byClient.data.map(mapOtherItem),
+      sponsors: forecast.byKind.consultingPre.bySponsor.data.map(mapOtherItem),
+      cases: forecast.byKind.consultingPre.byCase.data.map(mapOtherItem),
+      projects: forecast.byKind.consultingPre.byProject.data.map(mapOtherItem),
       totals: {
-        threeMonthsAgo: data.forecast.byKind.consultingPre.totals.threeMonthsAgo,
-        twoMonthsAgo: data.forecast.byKind.consultingPre.totals.twoMonthsAgo,
-        oneMonthAgo: data.forecast.byKind.consultingPre.totals.oneMonthAgo,
-        current: data.forecast.byKind.consultingPre.totals.inAnalysis,
-        threeMonthsAgoConsultingPreHours: data.forecast.byKind.consultingPre.totals.threeMonthsAgoConsultingPreHours,
-        twoMonthsAgoConsultingPreHours: data.forecast.byKind.consultingPre.totals.twoMonthsAgoConsultingPreHours,
-        oneMonthAgoConsultingPreHours: data.forecast.byKind.consultingPre.totals.oneMonthAgoConsultingPreHours,
-        inAnalysisConsultingPreHours: data.forecast.byKind.consultingPre.totals.inAnalysisConsultingPreHours,
+        threeMonthsAgo: forecast.byKind.consultingPre.totals.threeMonthsAgo,
+        twoMonthsAgo: forecast.byKind.consultingPre.totals.twoMonthsAgo,
+        oneMonthAgo: forecast.byKind.consultingPre.totals.oneMonthAgo,
+        current: forecast.byKind.consultingPre.totals.inAnalysis,
+        threeMonthsAgoConsultingPreHours: forecast.byKind.consultingPre.totals.threeMonthsAgoConsultingPreHours,
+        twoMonthsAgoConsultingPreHours: forecast.byKind.consultingPre.totals.twoMonthsAgoConsultingPreHours,
+        oneMonthAgoConsultingPreHours: forecast.byKind.consultingPre.totals.oneMonthAgoConsultingPreHours,
+        inAnalysisConsultingPreHours: forecast.byKind.consultingPre.totals.inAnalysisConsultingPreHours,
       },
     },
     handsOn: {
-      clients: data.forecast.byKind.handsOn.byClient.map(mapOtherItem),
-      sponsors: data.forecast.byKind.handsOn.bySponsor.map(mapOtherItem),
-      cases: data.forecast.byKind.handsOn.byCase.map(mapOtherItem),
-      projects: data.forecast.byKind.handsOn.byProject.map(mapOtherItem),
+      clients: forecast.byKind.handsOn.byClient.data.map(mapOtherItem),
+      sponsors: forecast.byKind.handsOn.bySponsor.data.map(mapOtherItem),
+      cases: forecast.byKind.handsOn.byCase.data.map(mapOtherItem),
+      projects: forecast.byKind.handsOn.byProject.data.map(mapOtherItem),
       totals: {
-        threeMonthsAgo: data.forecast.byKind.handsOn.totals.threeMonthsAgo,
-        twoMonthsAgo: data.forecast.byKind.handsOn.totals.twoMonthsAgo,
-        oneMonthAgo: data.forecast.byKind.handsOn.totals.oneMonthAgo,
-        current: data.forecast.byKind.handsOn.totals.inAnalysis,
+        threeMonthsAgo: forecast.byKind.handsOn.totals.threeMonthsAgo,
+        twoMonthsAgo: forecast.byKind.handsOn.totals.twoMonthsAgo,
+        oneMonthAgo: forecast.byKind.handsOn.totals.oneMonthAgo,
+        current: forecast.byKind.handsOn.totals.inAnalysis,
       },
     },
     squad: {
-      clients: data.forecast.byKind.squad.byClient.map(mapOtherItem),
-      sponsors: data.forecast.byKind.squad.bySponsor.map(mapOtherItem),
-      cases: data.forecast.byKind.squad.byCase.map(mapOtherItem),
-      projects: data.forecast.byKind.squad.byProject.map(mapOtherItem),
+      clients: forecast.byKind.squad.byClient.data.map(mapOtherItem),
+      sponsors: forecast.byKind.squad.bySponsor.data.map(mapOtherItem),
+      cases: forecast.byKind.squad.byCase.data.map(mapOtherItem),
+      projects: forecast.byKind.squad.byProject.data.map(mapOtherItem),
       totals: {
-        threeMonthsAgo: data.forecast.byKind.squad.totals.threeMonthsAgo,
-        twoMonthsAgo: data.forecast.byKind.squad.totals.twoMonthsAgo,
-        oneMonthAgo: data.forecast.byKind.squad.totals.oneMonthAgo,
-        current: data.forecast.byKind.squad.totals.inAnalysis,
+        threeMonthsAgo: forecast.byKind.squad.totals.threeMonthsAgo,
+        twoMonthsAgo: forecast.byKind.squad.totals.twoMonthsAgo,
+        oneMonthAgo: forecast.byKind.squad.totals.oneMonthAgo,
+        current: forecast.byKind.squad.totals.inAnalysis,
       },
     },
   };
@@ -507,29 +511,30 @@ interface ForecastData {
 
 // Função auxiliar para validar os dados
 export function validateForecastData(data: any): boolean {
-  if (!data?.forecast?.byKind) {
+  if (!data?.financial?.revenueForecast?.byKind) {
     console.error('Dados de previsão inválidos: estrutura principal ausente');
     return false;
   }
 
+  const forecast = data.financial.revenueForecast;
   const requiredSections = ['consulting', 'consultingPre', 'handsOn', 'squad'];
   const requiredSubsections = ['byClient', 'bySponsor', 'byCase', 'byProject', 'totals'];
 
   for (const section of requiredSections) {
-    if (!data.forecast.byKind[section]) {
+    if (!forecast.byKind[section]) {
       console.error(`Dados de previsão inválidos: seção ${section} ausente`);
       return false;
     }
 
     for (const subsection of requiredSubsections) {
-      if (!data.forecast.byKind[section][subsection]) {
+      if (!forecast.byKind[section][subsection]) {
         console.error(`Dados de previsão inválidos: subseção ${subsection} ausente em ${section}`);
         return false;
       }
     }
   }
 
-  if (!data.forecast.workingDays) {
+  if (!forecast.workingDays) {
     console.error('Dados de previsão inválidos: dias úteis ausentes');
     return false;
   }

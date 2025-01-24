@@ -10,17 +10,17 @@ import { NavBar } from "@/app/components/NavBar";
 import { FilterFieldsSelect } from "../../components/FilterFieldsSelect";
 import { RevenueProgression } from "./RevenueProgression";
 import { ConsultingTable } from "./ConsultingTable";
-import { ConsultingTableFuture } from "./ConsultingTableFuture";
 import { ConsultingTableByConsultant } from "./ConsultingTableByConsultant";
 import { processForecastData } from "./forecastData";
 import { OtherTable } from "./OtherTable";
 import { ConsultingPreTable } from "./ConsultingPreTable";
 import { GraphVizDaily } from "./GraphVizDaily";
 import OneYearAllocation from "@/app/components/OneYearAllocation";
-import SectionHeader from "@/components/SectionHeader";
 import { OnTheTable } from "./OnTheTable";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 export default function RevenueForecastPage() {
+  const client = useEdgeClient();
   const [date, setDate] = useState<Date>(new Date());
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -81,7 +81,7 @@ export default function RevenueForecastPage() {
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.forecast?.filterableFields?.reduce((acc: any[], field: any) => {
+      data?.financial?.revenueForecast?.filterableFields?.reduce((acc: any[], field: any) => {
         const fieldValues = newSelectedValues
           .filter(
             (v) =>
@@ -104,15 +104,17 @@ export default function RevenueForecastPage() {
 
   const { loading, error, data } = useQuery(REVENUE_FORECAST_QUERY, {
     variables: {
-      dateOfInterest: format(date, "yyyy-MM-dd"),
+      date: format(date, "yyyy-MM-dd"),
       filters:
         formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
     },
+    client: client ?? undefined,
+    ssr: true
   });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-  if (!data?.forecast?.dates) return <div>No data available</div>;
+  if (!data?.financial?.revenueForecast?.dates) return <div>No data available</div>;
 
   const forecastData = processForecastData(data);
 
@@ -163,7 +165,7 @@ export default function RevenueForecastPage() {
           </div>
 
           <FilterFieldsSelect
-            data={data?.forecast}
+            data={data?.financial?.revenueForecast}
             selectedFilters={selectedFilters}
             handleFilterChange={handleFilterChange}
           />
@@ -190,11 +192,6 @@ export default function RevenueForecastPage() {
               title: "Consulting",
               subtitle: "By Consultant",
             },
-            // {
-            //   id: "consultingFuture",
-            //   title: "Consulting",
-            //   subtitle: "Next three months",
-            // },
             {
               id: "consultingPre",
               title: "Consulting Pre",
@@ -227,8 +224,8 @@ export default function RevenueForecastPage() {
           title="Consulting"
           tableData={forecastData.consulting}
           tableId="consulting"
-          dates={data.forecast.dates}
-          workingDays={data.forecast.workingDays}
+          dates={data.financial.revenueForecast.dates}
+          workingDays={data.financial.revenueForecast.workingDays}
           sortConfigs={sortConfigs}
           expandedClients={expandedClients}
           useHistorical={useHistorical}
@@ -254,34 +251,18 @@ export default function RevenueForecastPage() {
           title="Consulting"
           tableData={forecastData.consulting}
           tableId="consultingByConsultant"
-          dates={data.forecast.dates}
-          workingDays={data.forecast.workingDays}
+          dates={data.financial.revenueForecast.dates}
+          workingDays={data.financial.revenueForecast.workingDays}
           sortConfigs={sortConfigs}
           normalized={normalized}
           requestSort={requestSort}
           setNormalized={setNormalized}
         />
 
-        {/* <ConsultingTableFuture
-          title="Consulting"
-          tableData={forecastData.consulting}
-          tableId="consultingFuture"
-          dates={data.forecast.dates}
-          workingDays={data.forecast.workingDays}
-          sortConfigs={sortConfigs}
-          expandedClients={expandedClients}
-          useHistorical={useHistorical}
-          normalized={normalized}
-          requestSort={requestSort}
-          toggleClient={toggleClient}
-          setNormalized={setNormalized}
-          setUseHistorical={setUseHistorical}
-        /> */}
-
         <ConsultingPreTable
           title="Consulting Pre"
           tableData={forecastData.consultingPre}
-          dates={data.forecast.dates}
+          dates={data.financial.revenueForecast.dates}
           sortConfigs={sortConfigs}
           expandedClients={expandedClients}
           requestSort={(key) => requestSort(key, "consultingPre")}
@@ -296,7 +277,7 @@ export default function RevenueForecastPage() {
           title="Hands On"
           tableData={forecastData.handsOn}
           tableId="handsOn"
-          dates={data.forecast.dates}
+          dates={data.financial.revenueForecast.dates}
           sortConfigs={sortConfigs}
           expandedClients={expandedClients}
           requestSort={requestSort}
@@ -311,7 +292,7 @@ export default function RevenueForecastPage() {
           title="Squad"
           tableData={forecastData.squad}
           tableId="squad"
-          dates={data.forecast.dates}
+          dates={data.financial.revenueForecast.dates}
           sortConfigs={sortConfigs}
           expandedClients={expandedClients}
           requestSort={requestSort}
