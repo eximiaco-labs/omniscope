@@ -34,7 +34,16 @@ class GlobalRepository:
         elif type_name == "ConsultantOrEngineer":
             from team.models import ConsultantOrEngineer
             return ConsultantOrEngineer.from_domain(globals.omni_models.workers.get_by_slug(slug))
-        
+        elif type_name == "Client":
+            from engagements.models import Client
+            return Client.from_domain(globals.omni_models.clients.get_by_slug(slug))
+        elif type_name == "Sponsor":
+            from engagements.models import Sponsor
+            return Sponsor.from_domain(globals.omni_models.sponsors.get_by_slug(slug))
+        elif type_name == "Case":
+            from engagements.models import Case
+            return Case.from_domain(globals.omni_models.cases.get_by_slug(slug))
+    
     def get_resolver_by_id(self, entity_name: str, field_name: str):
         def resolver(parent, info):
             value = self._get_value(parent, field_name)
