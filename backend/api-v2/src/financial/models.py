@@ -74,13 +74,14 @@ class Financial(BaseModel):
             month_actual = 0
             if y < current_year or (y == current_year and m < current_month):
                 goal = 0
-                
                 month_actual = forecast.summary.realized
                 discount = month_actual
                 actual += month_actual
             elif y == current_year and m == current_month:
                 month_actual = forecast.summary.realized 
                 actual += month_actual
+                
+            
         
             month_data = YearlyRevenueForecastByMonth(
                 month=m,
@@ -91,10 +92,10 @@ class Financial(BaseModel):
                 expected_hands_on_fee=forecast_doi.by_kind.hands_on.totals.in_analysis,
                 expected_consulting_pre_fee=forecast_doi.by_kind.consulting_pre.totals.in_analysis,
                 actual=month_actual,
-                actual_consulting_fee=forecast_doi.by_kind.consulting.totals.in_analysis if y <= current_year and m <= current_month else 0,
-                actual_squad_fee=forecast_doi.by_kind.squad.totals.in_analysis if y <= current_year and m <= current_month else 0,
-                actual_hands_on_fee=forecast_doi.by_kind.hands_on.totals.in_analysis if y <= current_year and m <= current_month else 0,
-                actual_consulting_pre_fee=forecast_doi.by_kind.consulting_pre.totals.in_analysis if y <= current_year and m <= current_month else 0
+                actual_consulting_fee=forecast_doi.by_kind.consulting.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
+                actual_squad_fee=forecast_doi.by_kind.squad.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
+                actual_hands_on_fee=forecast_doi.by_kind.hands_on.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
+                actual_consulting_pre_fee=forecast_doi.by_kind.consulting_pre.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0
             )
             
             by_month.append(month_data)
