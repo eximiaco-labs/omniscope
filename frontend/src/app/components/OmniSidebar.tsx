@@ -279,13 +279,7 @@ export function OmniSidebar() {
                       items: ontologyItems,
                       icon: BookOpenIcon,
                       tooltip: "Ontology",
-                    },
-                    {
-                      section: "Administrative",
-                      items: adminItems,
-                      icon: SettingsIcon,
-                      tooltip: "Admin",
-                    },
+                    }
                   ].filter(Boolean) as SidebarSection[]
                 ).map(
                   (item) =>
