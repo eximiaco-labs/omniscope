@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import SectionHeader from "@/components/SectionHeader";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const formatNumber = (value: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -32,6 +33,7 @@ const formatPercent = (value: number, total: number) => {
 };
 
 export default function ProRataPage() {
+  const client = useEdgeClient();
   const [date, setDate] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 0));
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
 
@@ -43,12 +45,14 @@ export default function ProRataPage() {
 
   const { loading, error, data } = useQuery(PRO_RATA_QUERY, {
     variables: { dateOfInterest: format(date, "yyyy-MM-dd") },
+    client: client ?? undefined,
+    ssr: true
   });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const { proRataInfo } = data.revenueTracking;
+  const { proRataInfo } = data.financial.revenueTracking;
 
   const toggleExpand = (id: string) => {
     setExpanded((prev) => ({
@@ -73,7 +77,7 @@ export default function ProRataPage() {
       </div>
 
       <div className="px-2">
-        {proRataInfo.byKind.map((kind: any) => {
+        {proRataInfo.byKind.data.map((kind: any) => {
           const kindTotal = {
             penalty: kind.penalty,
           };
@@ -101,7 +105,7 @@ export default function ProRataPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {kind.byAccountManager.map((manager: any) => (
+                    {kind.byAccountManager.data.map((manager: any) => (
                       <>
                         <TableRow
                           key={manager.name}
@@ -117,7 +121,7 @@ export default function ProRataPage() {
                           </TableCell>
                         </TableRow>
 
-                        {manager.byClient.map((client: any) => (
+                        {manager.byClient.data.map((client: any) => (
                           <>
                             <TableRow
                               key={`${manager.name}-${client.name}`}
@@ -144,7 +148,7 @@ export default function ProRataPage() {
                             {expanded[
                               `client-${manager.name}-${client.name}`
                             ] &&
-                              client.bySponsor.map((sponsor: any) => (
+                              client.bySponsor.data.map((sponsor: any) => (
                                 <>
                                   <TableRow
                                     key={`${manager.name}-${client.name}-${sponsor.name}`}
@@ -175,7 +179,7 @@ export default function ProRataPage() {
                                   {expanded[
                                     `sponsor-${manager.name}-${client.name}-${sponsor.name}`
                                   ] &&
-                                    sponsor.byCase.map((case_: any) => (
+                                    sponsor.byCase.data.map((case_: any) => (
                                       <>
                                         <TableRow
                                           key={`${manager.name}-${client.name}-${sponsor.name}-${case_.title}`}
@@ -206,7 +210,7 @@ export default function ProRataPage() {
                                         {expanded[
                                           `case-${manager.name}-${client.name}-${sponsor.name}-${case_.title}`
                                         ] &&
-                                          case_.byProject.map(
+                                          case_.byProject.data.map(
                                             (project: any) => (
                                               <>
                                                 <TableRow
@@ -242,7 +246,7 @@ export default function ProRataPage() {
                                                 {expanded[
                                                   `project-${manager.name}-${client.name}-${sponsor.name}-${case_.title}-${project.name}`
                                                 ] &&
-                                                  project.byWorker.map(
+                                                  project.byWorker.data.map(
                                                     (worker: any) => (
                                                       <TableRow
                                                         key={`${manager.name}-${client.name}-${sponsor.name}-${case_.title}-${project.name}-${worker.name}`}
