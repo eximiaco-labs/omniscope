@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { BookOpen, Briefcase, Lightbulb, ListTodo, AlertTriangle, Mail } from "lucide-react";
+import { linkTo } from "@/app/navigation";
 
 interface TimesheetSummary {
   totalHours: number;
@@ -36,7 +37,7 @@ export function WorkerCard({ worker, workerData }: WorkerCardProps) {
 
   return (
     <Link 
-      href={`/about-us/consultants-and-engineers/${encodeURIComponent(worker.slug)}`}
+      href={linkTo("consultantOrEngineer", worker.slug)}
       className="block transition-all duration-300 ease-in-out"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

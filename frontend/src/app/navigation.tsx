@@ -223,3 +223,20 @@ export function getAdministrativeSidebarItems() {
     },
   ];
 }
+
+export type LinkToEntityType = "consultantOrEngineer" | "client" | "sponsor" | "case";
+
+export function linkTo(entityType: LinkToEntityType, slug: string): string {
+  switch (entityType) {
+    case "consultantOrEngineer":
+      return `/team/consultants-or-engineers/${slug}`;
+    case "client":
+      return `/engagements/clients/${slug}`;
+    case "sponsor":
+      return `/engagements/sponsors/${slug}`;
+    case "case":
+      return `/engagements/cases/${slug}`;
+    default:
+      return `/${entityType}/${slug}`;
+  }
+}
