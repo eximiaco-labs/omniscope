@@ -62,7 +62,8 @@ import {
   faPersonRunning, 
   faPeopleGroup, 
   faCommentsDollar,
-  faMagnifyingGlassDollar
+  faMagnifyingGlassDollar,
+  faBookAtlas
 } from "@fortawesome/free-solid-svg-icons"
 
 const GET_USER_PHOTO = gql`
@@ -262,6 +263,12 @@ export function OmniSidebar() {
                       show: marketingAndSalesItems.length > 0,
                     },
                     {
+                      section: "Ontology",
+                      items: ontologyItems,
+                      icon: () => <FontAwesomeIcon icon={faBookAtlas} />,
+                      tooltip: "Ontology",
+                    },
+                    {
                       section: "Analytics",
                       items: analyticsItems,
                       icon: BarChart3Icon,
@@ -274,12 +281,7 @@ export function OmniSidebar() {
                       icon: UsersIcon,
                       tooltip: "About Us",
                     },
-                    {
-                      section: "Ontology",
-                      items: ontologyItems,
-                      icon: BookOpenIcon,
-                      tooltip: "Ontology",
-                    }
+                    
                   ].filter(Boolean) as SidebarSection[]
                 ).map(
                   (item) =>
