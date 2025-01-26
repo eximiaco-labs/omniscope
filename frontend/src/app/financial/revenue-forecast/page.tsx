@@ -270,7 +270,7 @@ export default function RevenueForecastPage() {
         />
 
         <div className="mt-4">
-          <OneYearAllocation kind="handsOn" hideTotals={true} />
+          <OneYearAllocation kind="handsOn" hideTotals={true} showProjectionGraph={false} />
         </div>
 
         <OtherTable
@@ -285,7 +285,7 @@ export default function RevenueForecastPage() {
         />
 
         <div className="mt-4">
-          <OneYearAllocation kind="squad" hideTotals={true} />
+          <OneYearAllocation kind="squad" hideTotals={true} showProjectionGraph={false} />
         </div>
 
         <OtherTable
