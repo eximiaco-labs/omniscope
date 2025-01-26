@@ -214,11 +214,11 @@ def compute_forecast(date_of_interest = None, filters = None):
     forecast_working_days = RevenueForecastNumberOfWorkingDays.build(date_of_interest, forecast_dates)
     
     daily = {
-        date.date: RevenueForecastDailyForecast(
-            date=date.date,
+        d.date: RevenueForecastDailyForecast(
+            date=d.date,
             actual=RevenueForecastDailyActual(
-                total_consulting_fee=date.total_consulting_fee,
-                total_consulting_hours=date.total_consulting_hours,
+                total_consulting_fee=d.total_consulting_fee,
+                total_consulting_hours=d.total_consulting_hours,
                 acc_total_consulting_fee=None,
                 acc_total_consulting_hours=None
             ),
@@ -235,7 +235,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                 acc_total_consulting_hours=None
             )
         )
-        for date in forecast_revenue_trackings.date_of_interest.regular.daily
+        for d in forecast_revenue_trackings.date_of_interest.regular.daily
     }
     
     def summarize_forecast(slug):

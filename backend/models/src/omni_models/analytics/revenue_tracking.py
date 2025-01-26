@@ -985,6 +985,27 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
         ))
         current_day = current_day + timedelta(days=1)
         
+    def update_daily_values(project_df, project_fee, daily_records):
+        if len(project_df) > 0 and "Date" in project_df.columns:
+            daily_data = project_df.groupby("Date").agg({
+                "TimeInHs": "sum",
+                "Revenue": "sum" if "Revenue" in project_df.columns else None
+            }).reset_index()
+            
+            for _, row in daily_data.iterrows():
+                date_value = row["Date"].date() if hasattr(row["Date"], 'date') else row["Date"]
+                first_day = first_day_of_month.date() if hasattr(first_day_of_month, 'date') else first_day_of_month
+                day_index = (date_value - first_day).days
+                if 0 <= day_index < len(daily_records):
+                    daily_records[day_index].total_consulting_hours += row["TimeInHs"]
+                    if "Revenue" in row:
+                        daily_records[day_index].total_consulting_fee += row["Revenue"]
+                    elif project_fee:
+                        # Distribute fixed fee proportionally to hours
+                        total_hours = project_df["TimeInHs"].sum()
+                        if total_hours > 0:
+                            daily_records[day_index].total_consulting_fee += (project_fee * row["TimeInHs"] / total_hours)
+        
     pro_rata_info = RevenueTrackingProRataInfo(by_kind=[])
         
     df = df[df["Kind"] != INTERNAL_KIND] if len(df) > 0 else df
@@ -1047,6 +1068,9 @@ def _compute_revenue_tracking_base(df: pd.DataFrame, date_of_interest: date, pro
                             project_data = process_project(date_of_interest, case, project, df, pro_rata_info)
                             if project_data:
                                 by_project.append(project_data)
+                                if project.kind == "consulting":
+                                    project_df = df[df["ProjectId"] == project.id] if len(df) > 0 else pd.DataFrame()
+                                    update_daily_values(project_df, project_data.fee, daily)
                     
                         if len(by_project) > 0:
                             case_ = RevenueTrackingCase(
