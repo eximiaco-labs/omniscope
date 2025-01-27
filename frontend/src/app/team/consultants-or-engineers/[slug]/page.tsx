@@ -3,6 +3,7 @@
 import React from 'react';
 import { useParams } from "next/navigation";
 import { ConsultantHeader } from "./ConsultantHeader";
+import { ConsultantCasesStatusOverview } from "./ConsultantCasesStatusOverview";
 import { QueryBuilderProvider } from "@/lib/graphql/QueryBuilderContext";
 import { useQueryBuilder } from "@/lib/graphql/QueryBuilderContext";
 
@@ -30,6 +31,7 @@ function ConsultantPageInner() {
   return (
     <div className="w-full">
       <ConsultantHeader />
+      <ConsultantCasesStatusOverview />
     </div>
   );
 }
