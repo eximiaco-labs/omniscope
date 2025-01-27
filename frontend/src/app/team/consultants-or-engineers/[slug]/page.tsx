@@ -16,6 +16,7 @@ import { Heading } from "@/components/catalyst/heading";
 import OneYearAllocation from "@/app/components/OneYearAllocation";
 import { AllocationOpportunitiesTable } from "./AllocationOpportunitiesTable";
 import { linkTo } from "@/app/navigation";
+import { ConsultantHeader } from "./ConsultantHeader";
 
 interface ClientSummary {
   client: string;
@@ -155,6 +156,177 @@ interface ClientGap {
   gap: number;
   hoursNeeded: number;
 }
+
+const TimelinessReviewSection = ({ timelinessReview }: {
+  timelinessReview?: {
+    earlyPercentage: number;
+    okPercentage: number;
+    acceptablePercentage: number;
+    latePercentage: number;
+  };
+}) => {
+  if (!timelinessReview) return null;
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 className="text-lg font-semibold text-gray-900">Last Week's Timeliness Review</h2>
+      </div>
+      <div className="grid grid-cols-4 gap-4">
+        {timelinessReview.earlyPercentage > 0 && (
+          <div className="bg-blue-50 rounded-lg p-4">
+            <p className="text-2xl font-bold text-blue-600">{timelinessReview.earlyPercentage.toFixed(1)}%</p>
+            <p className="text-sm text-blue-800">Early</p>
+          </div>
+        )}
+        {timelinessReview.okPercentage > 0 && (
+          <div className="bg-green-50 rounded-lg p-4">
+            <p className="text-2xl font-bold text-green-600">{timelinessReview.okPercentage.toFixed(1)}%</p>
+            <p className="text-sm text-green-800">On Time</p>
+          </div>
+        )}
+        {timelinessReview.acceptablePercentage > 0 && (
+          <div className="bg-yellow-50 rounded-lg p-4">
+            <p className="text-2xl font-bold text-yellow-600">{timelinessReview.acceptablePercentage.toFixed(1)}%</p>
+            <p className="text-sm text-yellow-800">Acceptable</p>
+          </div>
+        )}
+        {timelinessReview.latePercentage > 0 && (
+          <div className="bg-red-50 rounded-lg p-4">
+            <p className="text-2xl font-bold text-red-600">{timelinessReview.latePercentage.toFixed(1)}%</p>
+            <p className="text-sm text-red-800">Late</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SideBySideAnalysis = ({
+  selectedDatePrev,
+  setSelectedDatePrev,
+  selectedDayPrev,
+  setSelectedDayPrev,
+  selectedRowPrev,
+  setSelectedRowPrev,
+  selectedColumnPrev,
+  setSelectedColumnPrev,
+  isAllSelectedPrev,
+  setIsAllSelectedPrev,
+  timesheet1,
+  selectedStatTypePrev,
+  setSelectedStatTypePrev,
+  selectedDateCurr,
+  setSelectedDateCurr,
+  selectedDayCurr,
+  setSelectedDayCurr,
+  selectedRowCurr,
+  setSelectedRowCurr,
+  selectedColumnCurr,
+  setSelectedColumnCurr,
+  isAllSelectedCurr,
+  setIsAllSelectedCurr,
+  timesheet2,
+  selectedStatTypeCurr,
+  setSelectedStatTypeCurr,
+  getSelectedSummary
+}: any) => (
+  <>
+    <SectionHeader title="Side by Side Analysis" subtitle="" />
+    <div className="ml-2 mr-2">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <AllocationCalendar
+            selectedDate={selectedDatePrev}
+            setSelectedDate={setSelectedDatePrev}
+            selectedDay={selectedDayPrev}
+            setSelectedDay={setSelectedDayPrev}
+            selectedRow={selectedRowPrev}
+            setSelectedRow={setSelectedRowPrev}
+            selectedColumn={selectedColumnPrev}
+            setSelectedColumn={setSelectedColumnPrev}
+            isAllSelected={isAllSelectedPrev}
+            setIsAllSelected={setIsAllSelectedPrev}
+            timesheet={timesheet1}
+            selectedStatType={selectedStatTypePrev}
+            setSelectedStatType={setSelectedStatTypePrev}
+          />
+          <AllocationSummaryTabs
+            summaries={getSelectedSummary(
+              timesheet1,
+              selectedDayPrev,
+              selectedRowPrev,
+              selectedColumnPrev,
+              isAllSelectedPrev,
+              selectedDatePrev,
+              selectedStatTypePrev
+            )}
+            selectedStatType={selectedStatTypePrev}
+          />
+        </div>
+        <div>
+          <AllocationCalendar
+            selectedDate={selectedDateCurr}
+            setSelectedDate={setSelectedDateCurr}
+            selectedDay={selectedDayCurr}
+            setSelectedDay={setSelectedDayCurr}
+            selectedRow={selectedRowCurr}
+            setSelectedRow={setSelectedRowCurr}
+            selectedColumn={selectedColumnCurr}
+            setSelectedColumn={setSelectedColumnCurr}
+            isAllSelected={isAllSelectedCurr}
+            setIsAllSelected={setIsAllSelectedCurr}
+            timesheet={timesheet2}
+            selectedStatType={selectedStatTypeCurr}
+            setSelectedStatType={setSelectedStatTypeCurr}
+          />
+          <AllocationSummaryTabs
+            summaries={getSelectedSummary(
+              timesheet2,
+              selectedDayCurr,
+              selectedRowCurr,
+              selectedColumnCurr,
+              isAllSelectedCurr,
+              selectedDateCurr,
+              selectedStatTypeCurr
+            )}
+            selectedStatType={selectedStatTypeCurr}
+          />
+        </div>
+      </div>
+    </div>
+  </>
+);
+
+const AllocationSummaryTabs = ({ summaries, selectedStatType }: { summaries: Summary[] | null, selectedStatType: StatType }) => {
+  if (!summaries) return null;
+
+  return (
+    <Tabs defaultValue="client" className="mt-4">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="client">By Client</TabsTrigger>
+        <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
+      </TabsList>
+      <TabsContent value="client">
+        <SummarySection
+          summaries={summaries?.filter((s) => "client" in s) || null}
+          selectedStatType={selectedStatType}
+          type="client"
+        />
+      </TabsContent>
+      <TabsContent value="sponsor">
+        <SummarySection
+          summaries={summaries?.filter((s) => "sponsor" in s) || null}
+          selectedStatType={selectedStatType}
+          type="sponsor"
+        />
+      </TabsContent>
+    </Tabs>
+  );
+};
 
 export default function ConsultantPage() {
   const params = useParams();
@@ -401,194 +573,49 @@ export default function ConsultantPage() {
     }) || [];
 
   return (
-    <div className="w-full p-2">
-      <div className="bg-white p-6 mb-8">
-        <div className="flex items-center">
-          <div className="flex items-center justify-center h-full mr-8 border-r pr-8 border-gray-200">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={photoUrl} alt={name} />
-              <AvatarFallback>{name[0]}</AvatarFallback>
-            </Avatar>
-          </div>
-          <div className="flex flex-col flex-grow space-y-3">
-            <div>
-              <div className="flex flex-col lg:max-w-[80%]">
-                <Heading className="text-2xl font-bold text-gray-900">{name}</Heading>
-                <p className="text-gray-600">{position}</p>
-                {ontologyUrl && (
-                  <span className="text-xs mt-2">
-                    <a
-                      href={ontologyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
-                    >
-                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                      View Ontology
-                    </a>
-                  </span>
-                )}
-              </div>
-            </div>
-            {timelinessReview && (
-              <div className="flex flex-col gap-2 text-xs">
-                <p className="text-gray-700 flex items-center">
-                  <svg className="w-4 h-4 mr-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="mr-2">Last weeks timeliness review:</span>
-                  {timelinessReview.earlyPercentage > 0 && <span className="text-blue-600">{timelinessReview.earlyPercentage.toFixed(1)}% early</span>}
-                  {timelinessReview.earlyPercentage > 0 && (timelinessReview.okPercentage > 0 || timelinessReview.acceptablePercentage > 0 || timelinessReview.latePercentage > 0) && <span className="mx-2">•</span>}
-                  {timelinessReview.okPercentage > 0 && <span className="text-green-600">{timelinessReview.okPercentage.toFixed(1)}% on-time</span>}
-                  {timelinessReview.okPercentage > 0 && (timelinessReview.acceptablePercentage > 0 || timelinessReview.latePercentage > 0) && <span className="mx-2">•</span>}
-                  {timelinessReview.acceptablePercentage > 0 && <span className="text-yellow-600">{timelinessReview.acceptablePercentage.toFixed(1)}% acceptable</span>}
-                  {timelinessReview.acceptablePercentage > 0 && timelinessReview.latePercentage > 0 && <span className="mx-2">•</span>}
-                  {timelinessReview.latePercentage > 0 && <span className="text-red-600">{timelinessReview.latePercentage.toFixed(1)}% late</span>}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="w-full">
+      <ConsultantHeader
+        name={name}
+        position={position}
+        photoUrl={photoUrl}
+        ontologyUrl={ontologyUrl}
+      />
+
+      <TimelinessReviewSection timelinessReview={timelinessReview} />
 
       {staleliness && <CaseStatusOverview staleliness={staleliness} />}
 
       <OneYearAllocation workerName={name} />
 
-      <SectionHeader title="Side by Side Analysis" subtitle="" />
-
-      <div className="ml-2 mr-2">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <AllocationCalendar
-              selectedDate={selectedDatePrev}
-              setSelectedDate={setSelectedDatePrev}
-              selectedDay={selectedDayPrev}
-              setSelectedDay={setSelectedDayPrev}
-              selectedRow={selectedRowPrev}
-              setSelectedRow={setSelectedRowPrev}
-              selectedColumn={selectedColumnPrev}
-              setSelectedColumn={setSelectedColumnPrev}
-              isAllSelected={isAllSelectedPrev}
-              setIsAllSelected={setIsAllSelectedPrev}
-              timesheet={timesheet1}
-              selectedStatType={selectedStatTypePrev}
-              setSelectedStatType={setSelectedStatTypePrev}
-            />
-            {getSelectedSummary(
-              timesheet1,
-              selectedDayPrev,
-              selectedRowPrev,
-              selectedColumnPrev,
-              isAllSelectedPrev,
-              selectedDatePrev,
-              selectedStatTypePrev
-            ) && (
-              <Tabs defaultValue="client" className="mt-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="client">By Client</TabsTrigger>
-                  <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
-                </TabsList>
-                <TabsContent value="client">
-                  <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet1,
-                      selectedDayPrev,
-                      selectedRowPrev,
-                      selectedColumnPrev,
-                      isAllSelectedPrev,
-                      selectedDatePrev,
-                      selectedStatTypePrev
-                    )?.filter((s) => "client" in s) || null}
-                    selectedStatType={selectedStatTypePrev}
-                    type="client"
-                  />
-                </TabsContent>
-                <TabsContent value="sponsor">
-                  <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet1,
-                      selectedDayPrev,
-                      selectedRowPrev,
-                      selectedColumnPrev,
-                      isAllSelectedPrev,
-                      selectedDatePrev,
-                      selectedStatTypePrev
-                    )?.filter((s) => "sponsor" in s) || null}
-                    selectedStatType={selectedStatTypePrev}
-                    type="sponsor"
-                  />
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-          <div>
-            <AllocationCalendar
-              selectedDate={selectedDateCurr}
-              setSelectedDate={setSelectedDateCurr}
-              selectedDay={selectedDayCurr}
-              setSelectedDay={setSelectedDayCurr}
-              selectedRow={selectedRowCurr}
-              setSelectedRow={setSelectedRowCurr}
-              selectedColumn={selectedColumnCurr}
-              setSelectedColumn={setSelectedColumnCurr}
-              isAllSelected={isAllSelectedCurr}
-              setIsAllSelected={setIsAllSelectedCurr}
-              timesheet={timesheet2}
-              selectedStatType={selectedStatTypeCurr}
-              setSelectedStatType={setSelectedStatTypeCurr}
-            />
-            {getSelectedSummary(
-              timesheet2,
-              selectedDayCurr,
-              selectedRowCurr,
-              selectedColumnCurr,
-              isAllSelectedCurr,
-              selectedDateCurr,
-              selectedStatTypeCurr
-            ) && (
-              <Tabs defaultValue="client" className="mt-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="client">By Client</TabsTrigger>
-                  <TabsTrigger value="sponsor">By Sponsor</TabsTrigger>
-                </TabsList>
-                <TabsContent value="client">
-                  <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet2,
-                      selectedDayCurr,
-                      selectedRowCurr,
-                      selectedColumnCurr,
-                      isAllSelectedCurr,
-                      selectedDateCurr,
-                      selectedStatTypeCurr
-                    )?.filter((s) => "client" in s) || null}
-                    selectedStatType={selectedStatTypeCurr}
-                    type="client"
-                  />
-                </TabsContent>
-                <TabsContent value="sponsor">
-                  <SummarySection
-                    summaries={getSelectedSummary(
-                      timesheet2,
-                      selectedDayCurr,
-                      selectedRowCurr,
-                      selectedColumnCurr,
-                      isAllSelectedCurr,
-                      selectedDateCurr,
-                      selectedStatTypeCurr
-                    )?.filter((s) => "sponsor" in s) || null}
-                    selectedStatType={selectedStatTypeCurr}
-                    type="sponsor"
-                  />
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-        </div>
-      </div>
+      <SideBySideAnalysis
+        selectedDatePrev={selectedDatePrev}
+        setSelectedDatePrev={setSelectedDatePrev}
+        selectedDayPrev={selectedDayPrev}
+        setSelectedDayPrev={setSelectedDayPrev}
+        selectedRowPrev={selectedRowPrev}
+        setSelectedRowPrev={setSelectedRowPrev}
+        selectedColumnPrev={selectedColumnPrev}
+        setSelectedColumnPrev={setSelectedColumnPrev}
+        isAllSelectedPrev={isAllSelectedPrev}
+        setIsAllSelectedPrev={setIsAllSelectedPrev}
+        timesheet1={timesheet1}
+        selectedStatTypePrev={selectedStatTypePrev}
+        setSelectedStatTypePrev={setSelectedStatTypePrev}
+        selectedDateCurr={selectedDateCurr}
+        setSelectedDateCurr={setSelectedDateCurr}
+        selectedDayCurr={selectedDayCurr}
+        setSelectedDayCurr={setSelectedDayCurr}
+        selectedRowCurr={selectedRowCurr}
+        setSelectedRowCurr={setSelectedRowCurr}
+        selectedColumnCurr={selectedColumnCurr}
+        setSelectedColumnCurr={setSelectedColumnCurr}
+        isAllSelectedCurr={isAllSelectedCurr}
+        setIsAllSelectedCurr={setIsAllSelectedCurr}
+        timesheet2={timesheet2}
+        selectedStatTypeCurr={selectedStatTypeCurr}
+        setSelectedStatTypeCurr={setSelectedStatTypeCurr}
+        getSelectedSummary={getSelectedSummary}
+      />
 
       {clientsWithGap.length > 0 && (
         <AllocationOpportunitiesTable
