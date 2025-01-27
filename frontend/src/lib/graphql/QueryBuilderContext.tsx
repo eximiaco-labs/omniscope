@@ -27,6 +27,7 @@ type QueryBuilderContextType = {
   addVariables: (variables: Record<string, any>) => void;
   reset: () => void;
   buildQuery: () => { query: DocumentNode; variables: Record<string, any> };
+  previewQuery: () => string;
 };
 
 const QueryBuilderContext = createContext<QueryBuilderContextType | undefined>(undefined);
@@ -66,6 +67,22 @@ function queryBuilderReducer(state: QueryBuilderState, action: QueryBuilderActio
   }
 }
 
+// Helper function to build query string
+function buildQueryString(fragments: QueryFragment[], variables: Record<string, any>): string {
+  if (fragments.length === 0) {
+    return 'query EmptyQuery { __typename }';
+  }
+
+  const variableDefinitions = Object.keys(variables)
+    .map(key => `$${key}: String!`)
+    .join(', ');
+
+  return `
+query PageQuery${variableDefinitions ? `(${variableDefinitions})` : ''} {
+  ${fragments.map((f) => f.fragment).join('\n  ')}
+}`.trim();
+}
+
 // Provider
 export function QueryBuilderProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(queryBuilderReducer, {
@@ -90,30 +107,15 @@ export function QueryBuilderProvider({ children }: { children: ReactNode }) {
   };
 
   const buildQuery = () => {
-    if (state.fragments.length === 0) {
-      // Return a dummy query if there are no fragments
-      return {
-        query: gql`query EmptyQuery { __typename }`,
-        variables: {},
-      };
-    }
-
-    // Get all variable definitions
-    const variableDefinitions = Object.keys(state.variables)
-      .map(key => `$${key}: String!`)
-      .join(', ');
-
-    // Combine all fragments into a single query
-    const queryString = `
-      query ConsultantQuery${variableDefinitions ? `(${variableDefinitions})` : ''} {
-        ${state.fragments.map((f) => f.fragment).join('\n        ')}
-      }
-    `;
-
+    const queryString = buildQueryString(state.fragments, state.variables);
     return {
       query: gql(queryString),
       variables: state.variables,
     };
+  };
+
+  const previewQuery = () => {
+    return buildQueryString(state.fragments, state.variables);
   };
 
   return (
@@ -125,6 +127,7 @@ export function QueryBuilderProvider({ children }: { children: ReactNode }) {
         addVariables,
         reset,
         buildQuery,
+        previewQuery,
       }}
     >
       {children}
