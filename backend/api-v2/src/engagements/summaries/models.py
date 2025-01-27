@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 from omni_models.analytics.timeliness_models import TimelinessReview as TimelinessReviewModel
 from omni_models.analytics.timeliness_models import WorkerSummary as WorkerSummaryModel
-from team.models import ConsultantOrEngineer
+
 from core.generator import FilterableField
 
 class TimelinessWorkerSummary(BaseModel):
@@ -81,7 +81,7 @@ class StalelinessCaseInfo(BaseModel):
     slug: str
     last_updated: datetime | None
     days_since_update: int
-    consultants_or_engineers: List[ConsultantOrEngineer]
+    #consultants_or_engineers: List['ConsultantOrEngineer']
 
 class Staleliness(BaseModel):
     stale_cases: List[StalelinessCaseInfo]

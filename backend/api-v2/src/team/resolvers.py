@@ -95,3 +95,8 @@ def resolve_team_consultant_or_engineer(obj, info, id: str = None, slug: str = N
         return None
         
     return ConsultantOrEngineer.from_domain(worker).model_dump()
+
+@consultant_or_engineer.field("staleliness")
+def resolve_consultant_or_engineer_staleliness(obj, info):
+    from engagements.summaries.services import compute_staleliness
+    return compute_staleliness(obj["slug"])
