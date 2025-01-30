@@ -4,11 +4,13 @@ import { useQueryBuilder } from "@/lib/graphql/QueryBuilderContext";
 import { usePageQuery } from "@/lib/graphql/usePageQuery";
 
 type ConsultantHeaderData = {
-  consultantOrEngineer: {
-    name: string;
-    position: string;
-    photoUrl: string;
-    ontologyUrl: string;
+  team: {
+    consultantOrEngineer: {
+      name: string;
+      position: string;
+      photoUrl: string;
+      ontologyUrl: string;
+    };
   };
 };
 
@@ -21,11 +23,13 @@ export function ConsultantHeader() {
     addFragment({
       id: 'consultantHeader',
       fragment: `
-        consultantOrEngineer(slug: $slug) {
-          name
-          position
-          photoUrl
-          ontologyUrl
+        team {
+          consultantOrEngineer(slug: $slug) {
+            name
+            position
+            photoUrl
+            ontologyUrl
+          }
         }
       `,
     });
@@ -40,9 +44,9 @@ export function ConsultantHeader() {
 
   const { data, loading } = usePageQuery<ConsultantHeaderData>();
 
-  if (loading || !data?.consultantOrEngineer) return null;
+  if (loading || !data?.team?.consultantOrEngineer) return null;
 
-  const { name, position, photoUrl, ontologyUrl } = data.consultantOrEngineer;
+  const { name, position, photoUrl, ontologyUrl } = data.team.consultantOrEngineer;
 
   return (
     <div className="bg-white mb-8">
