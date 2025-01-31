@@ -2,6 +2,7 @@ Flask
 Flask-CORS
 ariadne
 pydantic
+holidays
 
 # Dev dependencies
 pytest

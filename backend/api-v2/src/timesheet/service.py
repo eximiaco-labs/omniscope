@@ -7,8 +7,8 @@ from business_calendar import compute_business_calendar
 from domain.cases import build_case_dictionary
 
 from .models import (
-    BusinessDay,
-    BusinessCalendar,
+    TimesheetBusinessDay,
+    TimesheetBusinessCalendar,
     TimesheetAppointment,
     TimesheetSummary,
     NamedTimesheetSummary,
@@ -271,8 +271,8 @@ def compute_timesheet(map: Dict, slug: str, filters = None) -> Timesheet:
         
     if 'businessCalendar' in requested_fields:
         calendar = compute_business_calendar(dates[0], dates[1])
-        response_dict['business_calendar'] = BusinessCalendar(
-            days=[BusinessDay(**day) for day in calendar['days']],
+        response_dict['business_calendar'] = TimesheetBusinessCalendar(
+            days=[TimesheetBusinessDay(**day) for day in calendar['days']],
             total_business_days=calendar['total_business_days'],
             total_holidays=calendar['total_holidays']
         )

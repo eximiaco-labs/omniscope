@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from omni_shared import globals
+import holidays
 
 def compute_staleliness(worker_slug: str = None):
     from .models import Staleliness, StalelinessCaseInfo
@@ -128,4 +129,39 @@ def compute_allocation(start_date=None, end_date=None, filters=None):
     return Allocation(
         by_kind=AllocationByKind(**by_kind),
         filterable_fields=result['filterable_fields']
+    )
+
+
+def compute_business_calendar(start, end):
+    from .models import BusinessCalendar, Holiday
+    
+    if isinstance(start, str):
+        start = datetime.strptime(start, '%Y-%m-%d').date()
+    if isinstance(end, str):
+        end = datetime.strptime(end, '%Y-%m-%d').date()
+        
+    br_holidays = holidays.BR()
+    
+    working_days = []
+    current = start
+    while current <= end:
+        if current not in br_holidays and current.weekday() < 5:
+            working_days.append(current)
+        current += timedelta(days=1)
+    
+    holidays_in_range = []
+    current = start 
+    while current <= end:
+        if current in br_holidays:
+            holidays_in_range.append(
+                Holiday(
+                    date=current,
+                    reason=br_holidays.get(current)
+                )
+            )
+        current += timedelta(days=1)
+    
+    return BusinessCalendar(
+        working_days=working_days,
+        holidays=holidays_in_range
     )

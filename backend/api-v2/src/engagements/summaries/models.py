@@ -103,3 +103,11 @@ class AllocationByKind(BaseModel):
 class Allocation(BaseModel):
     by_kind: AllocationByKind
     filterable_fields: Optional[List[FilterableField]] = None
+
+class Holiday(BaseModel):
+    date: datetime
+    reason: str
+
+class BusinessCalendar(BaseModel):
+    working_days: List[datetime]
+    holidays: List[Holiday]

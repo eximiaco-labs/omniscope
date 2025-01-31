@@ -9,14 +9,14 @@ class WeeklyHours(BaseModel):
     week: str
     hours: float
 
-class BusinessDay(BaseModel):
+class TimesheetBusinessDay(BaseModel):
     date: datetime
     is_business_day: bool
     is_holiday: bool
     holiday_name: Optional[str] = None
 
-class BusinessCalendar(BaseModel):
-    days: List[BusinessDay]
+class TimesheetBusinessCalendar(BaseModel):
+    days: List[TimesheetBusinessDay]
     total_business_days: int
     total_holidays: int
 
@@ -95,7 +95,7 @@ class TimesheetByKind(BaseModel):
 class Timesheet(BaseModel):
     slug: str = Id(description="The URL-friendly identifier of the timesheet")
     summary: Optional[TimesheetSummary] = None
-    business_calendar: Optional[BusinessCalendar] = None
+    business_calendar: Optional[TimesheetBusinessCalendar] = None
     by_kind: Optional[TimesheetByKind] = None
     by_worker: Optional[List[NamedTimesheetSummary]] = None
     by_client: Optional[List[NamedTimesheetSummary]] = None

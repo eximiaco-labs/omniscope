@@ -1,7 +1,7 @@
 from .models import (
     WeeklyHours,
-    BusinessDay,
-    BusinessCalendar,
+    TimesheetBusinessDay,
+    TimesheetBusinessCalendar,
     TimesheetAppointment,
     TimesheetSummary,
     GroupSummary,
@@ -15,8 +15,8 @@ from .resolvers import resolve_timesheet, query
 
 __all__ = [
     'WeeklyHours',
-    'BusinessDay',
-    'BusinessCalendar',
+    'TimesheetBusinessDay',
+    'TimesheetBusinessCalendar',
     'TimesheetAppointment',
     'TimesheetSummary',
     'GroupSummary',

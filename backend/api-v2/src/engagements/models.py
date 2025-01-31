@@ -5,7 +5,7 @@ from core.fields import Id
 from timesheet.models import Timesheet
 from team.models import ConsultantOrEngineer
 from datetime import datetime, date
-from .summaries.models import Timeliness, Staleliness, Allocation
+from .summaries.models import Timeliness, Staleliness, Allocation, BusinessCalendar
 from core.decorators import namespace
 from core.generator import FilterableField
 
@@ -183,6 +183,10 @@ class Summaries(BaseModel):
     def allocation(self, start_date: date, end_date: date, filters: Optional[List[FilterableField]] = None) -> Allocation:
         from .summaries.services import compute_allocation
         return compute_allocation(start_date, end_date, filters)
+    
+    def business_calendar(self, start_date: date, end_date: date) -> BusinessCalendar:
+        from .summaries.services import compute_business_calendar
+        return compute_business_calendar(start_date, end_date)
         
 __all__ = [
     'Client',
