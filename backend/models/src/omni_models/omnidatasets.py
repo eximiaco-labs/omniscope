@@ -461,6 +461,22 @@ class OmniDatasets:
 
             # Apply filter to dataframe
             if selected_values and len(df) > 0:
-                df = df[df[field].isin(selected_values)]
+                slug_field = None
+                
+                if field == "WorkerName":
+                    slug_field = "WorkerSlug"
+                elif field == "ClientName":
+                    slug_field = "ClientSlug"
+                elif field == "CaseTitle":
+                    slug_field = "CaseSlug"
+                    
+                if not slug_field:
+                    df = df[
+                        df[field].isin(selected_values)
+                        ]
+                else:
+                    df = df[
+                        df[field].isin(selected_values) | df[slug_field].isin(selected_values)
+                    ]
         
         return df, result

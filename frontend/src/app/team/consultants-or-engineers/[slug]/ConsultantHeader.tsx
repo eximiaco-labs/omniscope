@@ -90,7 +90,7 @@ export function ConsultantHeader({ slug }: ConsultantHeaderProps) {
           )}
         </div>
 
-        <button 
+        {/* <button 
           onClick={() => setShowQuery(!showQuery)}
           className="absolute top-2 left-2 text-[10px] text-white/80 hover:text-white transition-colors flex items-center gap-0.5"
         >
@@ -98,7 +98,7 @@ export function ConsultantHeader({ slug }: ConsultantHeaderProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
           <span>Preview Query</span>
-        </button>
+        </button> */}
 
         {showQuery && (
           <div className="absolute top-12 right-2 z-50 w-[800px] bg-white rounded-lg shadow-xl border p-4">

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { gql, useQuery, ApolloError } from "@apollo/client";
 import { STAT_COLORS } from "../constants/colors";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 import {
   Tooltip,
   TooltipContent,
@@ -72,49 +73,116 @@ interface DayHours {
   };
 }
 
+interface AllocationEntry {
+  date: string;
+  hours: number;
+}
+
+interface KindData {
+  data: AllocationEntry[];
+}
+
+interface AllocationByKind {
+  consulting: KindData;
+  handsOn: KindData;
+  squad: KindData;
+  internal: KindData;
+}
+
+interface AllocationData {
+  byKind: AllocationByKind;
+}
+
+interface BusinessCalendar {
+  workingDays: string[];
+}
+
+interface AllocationResponse {
+  engagements: {
+    summaries: {
+      allocation: AllocationData;
+      businessCalendar: BusinessCalendar;
+    };
+  };
+}
+
+interface AppointmentData {
+  client: {
+    name: string;
+    slug: string;
+  };
+  consultantOrEngineer: {
+    name: string;
+    slug: string;
+  };
+  comment: string;
+  timeInHs: number;
+}
+
+interface AppointmentsResponse {
+  timesheet: {
+    appointments: {
+      data: AppointmentData[];
+    };
+  };
+}
+
 const ALLOCATION_QUERY = gql`
-  query AllocationOfYear(
-    $startDate: Date!
-    $endDate: Date!
-    $filters: [FilterInput!]
-  ) {
-    allocation(startDate: $startDate, endDate: $endDate, filters: $filters) {
-      byKind {
-        consulting {
-          date
-          hours
+  query AllocationOfYear($startDate: Date!, $endDate: Date!, $filters: [FilterableFieldInput!]) {
+    engagements {
+      summaries {
+        allocation(startDate: $startDate, endDate: $endDate, filters: $filters) {
+          byKind {
+            consulting {
+              data {
+                date
+                hours
+              }
+            }
+            handsOn {
+              data {
+                date
+                hours
+              }
+            }
+            squad {
+              data {
+                date
+                hours
+              }
+            }
+            internal {
+              data {
+                date
+                hours
+              }
+            }
+          }
         }
-        handsOn {
-          date
-          hours
-        }
-        squad {
-          date
-          hours
-        }
-        internal {
-          date
-          hours
+        businessCalendar(startDate: $startDate, endDate: $endDate) {
+          workingDays
         }
       }
-    }
-
-    businessCalendar(start: $startDate, end: $endDate) {
-      workingDays
     }
   }
 `;
 
 const DAILY_APPOINTMENTS_QUERY = gql`
-  query DailyAppointments($slug: String!, $filters: [FilterInput!]) {
+  query DailyAppointments($slug: String!, $filters: [DatasetFilterInput!]) {
     timesheet(slug: $slug, filters: $filters) {
       appointments {
-        clientName
-        clientSlug
-        workerName
-        workerSlug
-        comment
-        timeInHs
+        data {
+          client {
+            name
+            slug
+          }
+          consultantOrEngineer {
+            name
+            slug
+          }
+          comment
+          timeInHs
+        }
       }
     }
   }
@@ -131,6 +199,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   hideTotals = false,
   showProjectionGraph = true,
 }) => {
+  const client = useEdgeClient();
   type KindType = "consulting" | "handsOn" | "squad" | "internal";
 
   const getKindColor = (kind: KindType) => {
@@ -208,7 +277,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
       : []),
   ];
 
-  const { loading, error, data } = useQuery(ALLOCATION_QUERY, {
+  const { loading, error, data } = useQuery<AllocationResponse>(ALLOCATION_QUERY, {
+    client: client ?? undefined,
     variables: {
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
@@ -219,7 +289,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Add query for appointments
-  const { data: appointmentsData, loading: appointmentsLoading } = useQuery(
+  const { data: appointmentsData, loading: appointmentsLoading } = useQuery<AppointmentsResponse>(
     DAILY_APPOINTMENTS_QUERY,
     {
       variables: {
@@ -250,11 +320,12 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     internal: 0,
   };
 
-  if (data?.allocation?.byKind) {
-    Object.entries(data.allocation.byKind).forEach(([kind, entries]) => {
-      if (Array.isArray(entries) && kind in totals) {
-        totals[kind as keyof typeof totals] = entries.reduce(
-          (sum, entry) => sum + entry.hours,
+  if (data?.engagements?.summaries?.allocation?.byKind) {
+    Object.entries(data.engagements.summaries.allocation.byKind).forEach(([kind, entries]) => {
+      const kindData = entries as KindData;
+      if (kindData?.data && Array.isArray(kindData.data) && kind in totals) {
+        totals[kind as keyof typeof totals] = kindData.data.reduce(
+          (sum: number, entry: AllocationEntry) => sum + entry.hours,
           0
         );
       }
@@ -275,10 +346,11 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
 
   // Process hours data into a map for easy lookup
   const hoursMap: DayHours = {};
-  if (data?.allocation?.byKind) {
-    Object.entries(data.allocation.byKind).forEach(([kind, entries]) => {
-      if (Array.isArray(entries)) {
-        entries.forEach((entry) => {
+  if (data?.engagements?.summaries?.allocation?.byKind) {
+    Object.entries(data.engagements.summaries.allocation.byKind).forEach(([kind, entries]) => {
+      const kindData = entries as KindData;
+      if (kindData?.data && Array.isArray(kindData.data)) {
+        kindData.data.forEach((entry: AllocationEntry) => {
           const date = entry.date;
           if (!hoursMap[date]) {
             hoursMap[date] = {
@@ -796,7 +868,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
               <div className="flex items-center justify-center py-4">
                 <span className="text-xs text-gray-500">Loading...</span>
               </div>
-            ) : appointmentsData?.timesheet?.appointments?.length ? (
+            ) : appointmentsData?.timesheet?.appointments?.data?.length ? (
               <div className="relative">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -821,8 +893,8 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {appointmentsData.timesheet.appointments.map(
-                        (appointment: any, index: number) => (
+                      {appointmentsData.timesheet.appointments.data.map(
+                        (appointment: AppointmentData, index: number) => (
                           <tr
                             key={index}
                             className="hover:bg-gray-50 transition-colors"
@@ -830,20 +902,20 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                             {showWorkerColumn && (
                               <td className="py-2 pr-3">
                                 <a
-                                  href={`/about-us/consultants-and-engineers/${appointment.workerSlug}`}
+                                  href={`/about-us/consultants-and-engineers/${appointment.consultantOrEngineer.slug}`}
                                   className="text-blue-600 hover:text-blue-800 hover:underline"
                                 >
-                                  {appointment.workerName}
+                                  {appointment.consultantOrEngineer.name}
                                 </a>
                               </td>
                             )}
                             {showClientColumn && (
                               <td className="py-2 pr-3">
                                 <a
-                                  href={`/about-us/clients/${appointment.clientSlug}`}
+                                  href={`/about-us/clients/${appointment.client.slug}`}
                                   className="text-blue-600 hover:text-blue-800 hover:underline"
                                 >
-                                  {appointment.clientName}
+                                  {appointment.client.name}
                                 </a>
                               </td>
                             )}
@@ -866,9 +938,9 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
                           Total:
                         </td>
                         <td className="py-2 pr-3 font-medium text-gray-900 tabular-nums">
-                          {appointmentsData.timesheet.appointments
+                          {appointmentsData.timesheet.appointments.data
                             .reduce(
-                              (sum: number, app: any) => sum + app.timeInHs,
+                              (sum: number, app: AppointmentData) => sum + app.timeInHs,
                               0
                             )
                             .toFixed(1)}
@@ -1028,7 +1100,7 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
   };
 
   const renderProjectionGraph = () => {
-    if (!data || !data.businessCalendar?.workingDays) return null;
+    if (!data || !data.engagements?.summaries?.businessCalendar?.workingDays) return null;
 
     const weekdayAverages = calculateWeekdayAverages();
     if (!weekdayAverages) return null;
@@ -1048,10 +1120,9 @@ const OneYearAllocation: React.FC<ContributionProps> = ({
     
     // Helper to check if a date is in the working days array
     const isWorkingDay = (dateStr: string) => {
-      // Convert the ISO date string to the same format as workingDays
       const date = new Date(dateStr);
       const formattedDate = date.toUTCString();
-      return data.businessCalendar.workingDays.includes(formattedDate);
+      return data.engagements.summaries.businessCalendar.workingDays.includes(formattedDate);
     };
 
     // Helper to get actual hours for a date

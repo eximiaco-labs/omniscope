@@ -59,8 +59,8 @@ class GlobalRepository:
 
 class FilterableField(BaseModel):
     field: str
-    selected_values: Optional[List[str]] = []
-    options: Optional[List[str]] = []
+    selected_values: List[str] = []
+    options: List[str] = []
 
 class GlobalTypeRegistry:
     _instance = None

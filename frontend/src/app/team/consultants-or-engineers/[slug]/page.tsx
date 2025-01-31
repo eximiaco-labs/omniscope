@@ -5,6 +5,7 @@ import { ConsultantHeader } from "./ConsultantHeader";
 import { ConsultantCasesStatusOverview } from "./ConsultantCasesStatusOverview";
 import { useEdgeClient } from "@/app/hooks/useApolloClient";
 import { ApolloProvider } from "@apollo/client";
+import OneYearAllocation from "@/app/components/OneYearAllocation";
 
 export default function ConsultantPage() {
   const params = useParams();
@@ -20,6 +21,7 @@ export default function ConsultantPage() {
       <div className="w-full">
         <ConsultantHeader slug={slug} />
         <ConsultantCasesStatusOverview slug={slug} />
+        <OneYearAllocation workerName={slug} />
       </div>
     </ApolloProvider>
   );
