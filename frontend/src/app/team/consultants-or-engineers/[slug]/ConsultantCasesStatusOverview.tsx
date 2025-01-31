@@ -1,8 +1,42 @@
-import React, { useEffect } from "react";
-import { useQueryBuilder } from "@/lib/graphql/QueryBuilderContext";
-import { usePageQuery } from "@/lib/graphql/usePageQuery";
+import React from "react";
+import { gql, useQuery } from '@apollo/client';
 import SectionHeader from "@/components/SectionHeader";
 import Link from "next/link";
+
+const CONSULTANT_CASES_STATUS_QUERY = gql`
+  query ConsultantCasesStatus($slug: String!) {
+    team {
+      consultantOrEngineer(slug: $slug) {
+        staleliness {
+          upToDateCases {
+            data {
+              title
+              slug
+            }
+          }
+          staleInLessThan15DaysCases {
+            data {
+              title
+              slug
+            }
+          }
+          staleInOneWeekCases {
+            data {
+              title
+              slug
+            }
+          }
+          staleCases {
+            data {
+              title
+              slug
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 type Case = {
   title: string;
@@ -29,6 +63,10 @@ type ConsultantCasesStatusData = {
     };
   };
 };
+
+interface ConsultantCasesStatusOverviewProps {
+  slug: string;
+}
 
 const CaseStatusCard = ({
   title,
@@ -61,50 +99,44 @@ const CaseStatusCard = ({
   </div>
 );
 
-export function ConsultantCasesStatusOverview() {
-  const { addFragment } = useQueryBuilder();
+export function ConsultantCasesStatusOverview({ slug }: ConsultantCasesStatusOverviewProps) {
+  const { data, loading, error } = useQuery<ConsultantCasesStatusData>(CONSULTANT_CASES_STATUS_QUERY, {
+    variables: { slug },
+    ssr: true
+  });
 
-  useEffect(() => {
-    addFragment({
-      id: "consultantCasesStatus",
-      fragment: `
-        team {
-          consultantOrEngineer(slug: $slug) {
-            staleliness {
-              upToDateCases {
-                data {
-                  title
-                  slug
-                }
-              }
-              staleInLessThan15DaysCases {
-                data {
-                  title
-                  slug
-                }
-              }
-              staleInOneWeekCases {
-                data {
-                  title
-                  slug
-                }
-              }
-              staleCases {
-                data {
-                  title
-                  slug
-                }
-              }
-            }
-          }
-        }
-      `,
-    });
-  }, [addFragment]);
+  if (loading) {
+    return (
+      <div className="mb-8">
+        <SectionHeader title="Cases Status Overview" subtitle="" />
+        <div className="ml-2 mr-2">
+          <div>Loading cases status...</div>
+        </div>
+      </div>
+    );
+  }
 
-  const { data, loading } = usePageQuery<ConsultantCasesStatusData>();
+  if (error) {
+    return (
+      <div className="mb-8">
+        <SectionHeader title="Cases Status Overview" subtitle="" />
+        <div className="ml-2 mr-2">
+          <div className="text-red-600">Error loading cases status: {error.message}</div>
+        </div>
+      </div>
+    );
+  }
 
-  if (loading || !data?.team?.consultantOrEngineer?.staleliness) return null;
+  if (!data?.team?.consultantOrEngineer?.staleliness) {
+    return (
+      <div className="mb-8">
+        <SectionHeader title="Cases Status Overview" subtitle="" />
+        <div className="ml-2 mr-2">
+          <div>No cases status information found.</div>
+        </div>
+      </div>
+    );
+  }
 
   const { staleliness } = data.team.consultantOrEngineer;
 

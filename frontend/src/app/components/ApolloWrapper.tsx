@@ -4,6 +4,8 @@ import { onError } from "@apollo/client/link/error";
 import { signOut } from "next-auth/react";
 import { createContext, useContext } from "react";
 
+import { BatchHttpLink } from "@apollo/client/link/batch-http";
+
 function createApolloClient(session: any, version: 'default' | 'edge' = 'default') {
   const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
   
@@ -15,9 +17,16 @@ function createApolloClient(session: any, version: 'default' | 'edge' = 'default
       ? "https://edge.omniscope.eximia.co"
       : "https://omniscope.eximia.co";
 
-  const httpLink = createHttpLink({
-    uri: `${baseUrl}/graphql`,
-  });
+  // Create the appropriate link based on version
+  const httpLink = version === 'edge'
+    ? new BatchHttpLink({
+        uri: `${baseUrl}/graphql`,
+        batchInterval: 10,
+        batchMax: 10,
+      })
+    : createHttpLink({
+        uri: `${baseUrl}/graphql`,
+      });
 
   const authLink = setContext((_, prevContext) => {
     const token = session?.idToken;
@@ -46,6 +55,8 @@ function createApolloClient(session: any, version: 'default' | 'edge' = 'default
     name: version,
   });
 }
+
+export default createApolloClient;
 
 const EdgeClientContext = createContext<ApolloClient<any> | null>(null);
 

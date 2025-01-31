@@ -102,6 +102,21 @@ schema = create_schema()
 @app.route("/graphql", methods=["POST"])
 def graphql_server():
     data = request.get_json()
+    
+    # Handle batch requests
+    if isinstance(data, list):
+        results = []
+        for operation in data:
+            success, result = graphql_sync(
+                schema,
+                operation,
+                context_value=request,
+                debug=app.debug
+            )
+            results.append(result)
+        return jsonify(results), 200
+    
+    # Handle single request
     success, result = graphql_sync(
         schema,
         data,

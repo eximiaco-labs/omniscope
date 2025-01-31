@@ -1,7 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { gql, useQuery } from '@apollo/client';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useQueryBuilder } from "@/lib/graphql/QueryBuilderContext";
-import { usePageQuery } from "@/lib/graphql/usePageQuery";
+
+const CONSULTANT_HEADER_QUERY = gql`
+  query ConsultantHeader($slug: String!) {
+    team {
+      consultantOrEngineer(slug: $slug) {
+        name
+        position
+        photoUrl
+        ontologyUrl
+      }
+    }
+  }
+`;
 
 type ConsultantHeaderData = {
   team: {
@@ -14,37 +26,48 @@ type ConsultantHeaderData = {
   };
 };
 
-export function ConsultantHeader() {
-  const { addFragment, previewQuery } = useQueryBuilder();
+interface ConsultantHeaderProps {
+  slug: string;
+}
+
+export function ConsultantHeader({ slug }: ConsultantHeaderProps) {
   const [showQuery, setShowQuery] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    addFragment({
-      id: 'consultantHeader',
-      fragment: `
-        team {
-          consultantOrEngineer(slug: $slug) {
-            name
-            position
-            photoUrl
-            ontologyUrl
-          }
-        }
-      `,
-    });
-  }, [addFragment]);
+  const { data, loading, error } = useQuery<ConsultantHeaderData>(CONSULTANT_HEADER_QUERY, {
+    variables: { slug },
+    ssr: true
+  });
 
   const handleCopy = async () => {
-    const query = previewQuery();
-    await navigator.clipboard.writeText(query);
+    await navigator.clipboard.writeText(CONSULTANT_HEADER_QUERY.loc?.source.body || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const { data, loading } = usePageQuery<ConsultantHeaderData>();
+  if (loading) {
+    return (
+      <div className="bg-white mb-8 p-8">
+        <div>Loading consultant information...</div>
+      </div>
+    );
+  }
 
-  if (loading || !data?.team?.consultantOrEngineer) return null;
+  if (error) {
+    return (
+      <div className="bg-white mb-8 p-8">
+        <div className="text-red-600">Error loading consultant information: {error.message}</div>
+      </div>
+    );
+  }
+
+  if (!data?.team?.consultantOrEngineer) {
+    return (
+      <div className="bg-white mb-8 p-8">
+        <div>No consultant information found.</div>
+      </div>
+    );
+  }
 
   const { name, position, photoUrl, ontologyUrl } = data.team.consultantOrEngineer;
 
@@ -80,7 +103,7 @@ export function ConsultantHeader() {
         {showQuery && (
           <div className="absolute top-12 right-2 z-50 w-[800px] bg-white rounded-lg shadow-xl border p-4">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="font-semibold">Current Page Query</h3>
+              <h3 className="font-semibold">Current Query</h3>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={handleCopy}
@@ -102,7 +125,7 @@ export function ConsultantHeader() {
               </div>
             </div>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm whitespace-pre overflow-x-auto">
-              {previewQuery()}
+              {CONSULTANT_HEADER_QUERY.loc?.source.body}
             </pre>
           </div>
         )}

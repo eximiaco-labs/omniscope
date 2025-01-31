@@ -1,39 +1,26 @@
 "use client";
 
-import React from 'react';
 import { useParams } from "next/navigation";
 import { ConsultantHeader } from "./ConsultantHeader";
 import { ConsultantCasesStatusOverview } from "./ConsultantCasesStatusOverview";
-import { QueryBuilderProvider } from "@/lib/graphql/QueryBuilderContext";
-import { useQueryBuilder } from "@/lib/graphql/QueryBuilderContext";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
+import { ApolloProvider } from "@apollo/client";
 
-function ConsultantPage() {
-  return (
-    <QueryBuilderProvider>
-      <ConsultantPageInner />
-    </QueryBuilderProvider>
-  );
-}
-
-// Componente interno necessário porque useQueryBuilder precisa estar dentro do Provider
-function ConsultantPageInner() {
+export default function ConsultantPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { addVariables } = useQueryBuilder();
+  const client = useEdgeClient();
 
-  // Add the slug variable to be used by all fragments
-  React.useEffect(() => {
-    addVariables({
-      slug,
-    });
-  }, [addVariables, slug]);
+  if (!client) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="w-full">
-      <ConsultantHeader />
-      <ConsultantCasesStatusOverview />
-    </div>
+    <ApolloProvider client={client}>
+      <div className="w-full">
+        <ConsultantHeader slug={slug} />
+        <ConsultantCasesStatusOverview slug={slug} />
+      </div>
+    </ApolloProvider>
   );
-}
-
-export default ConsultantPage; 
+} 
