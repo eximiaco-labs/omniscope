@@ -89,3 +89,17 @@ class Staleliness(BaseModel):
     stale_in_less_than_15_days_cases: List[StalelinessCaseInfo]
     no_description_cases: List[StalelinessCaseInfo]
     up_to_date_cases: List[StalelinessCaseInfo]
+
+class DailyAllocation(BaseModel):
+    date: str = Field(..., description="Date in YYYY-MM-DD format")
+    hours: float = Field(..., description="Number of hours allocated")
+
+class AllocationByKind(BaseModel):
+    consulting: List[DailyAllocation] = Field(default_factory=list)
+    internal: List[DailyAllocation] = Field(default_factory=list)
+    hands_on: List[DailyAllocation] = Field(default_factory=list)
+    squad: List[DailyAllocation] = Field(default_factory=list)
+
+class Allocation(BaseModel):
+    by_kind: AllocationByKind
+    filterable_fields: Optional[List[FilterableField]] = None

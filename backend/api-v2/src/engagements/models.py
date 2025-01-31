@@ -5,7 +5,7 @@ from core.fields import Id
 from timesheet.models import Timesheet
 from team.models import ConsultantOrEngineer
 from datetime import datetime, date
-from .summaries.models import Timeliness, Staleliness, StalelinessCaseInfo
+from .summaries.models import Timeliness, Staleliness, Allocation
 from core.decorators import namespace
 from core.generator import FilterableField
 
@@ -179,6 +179,10 @@ class Summaries(BaseModel):
     def staleliness(self, workerSlug: str = None) -> Staleliness:
         from .summaries.services import compute_staleliness
         return compute_staleliness(workerSlug)
+    
+    def allocation(self, start_date: date, end_date: date, filters: Optional[List[FilterableField]] = None) -> Allocation:
+        from .summaries.services import compute_allocation
+        return compute_allocation(start_date, end_date, filters)
         
 __all__ = [
     'Client',
