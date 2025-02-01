@@ -87,10 +87,10 @@ class TimesheetAppointment(BaseModel):
     comment: Optional[str] = None
     
 class TimesheetByKind(BaseModel):
-    consulting: TimesheetSummary
-    hands_on: TimesheetSummary
-    squad: TimesheetSummary
-    internal: TimesheetSummary
+    consulting: Optional[TimesheetSummary] = None
+    hands_on: Optional[TimesheetSummary] = None
+    squad: Optional[TimesheetSummary] = None
+    internal: Optional[TimesheetSummary] = None
     
 class Timesheet(BaseModel):
     slug: str = Id(description="The URL-friendly identifier of the timesheet")
@@ -107,3 +107,4 @@ class Timesheet(BaseModel):
     by_offer: Optional[List[NamedTimesheetSummary]] = None
     appointments: Optional[List[TimesheetAppointment]] = None 
     filterable_fields: Optional[List[FilterableField]] = None
+    
