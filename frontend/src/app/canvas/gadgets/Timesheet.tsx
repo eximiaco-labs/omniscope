@@ -1,28 +1,40 @@
-'use client';
+"use client";
 
 import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
-import styled from 'styled-components';
+import styled from "styled-components";
 import { useEdgeClient } from "@/app/hooks/useApolloClient";
-import React from 'react';
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { GadgetType, TimesheetGadgetConfig, GadgetSettingsProps, GadgetProps } from './types';
+import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
+import { Option } from "react-tailwindcss-select/dist/components/type";
+import {
+  GadgetType,
+  TimesheetGadgetConfig,
+  GadgetSettingsProps,
+  GadgetProps,
+} from "./types";
 
 const GET_TIMESHEET = gql`
-  query GetTimesheet($slug: String!) {
-    timesheet(slug: $slug) {
+  query GetTimesheet($slug: String!, $filters: [DatasetFilterInput]) {
+    timesheet(slug: $slug, filters: $filters) {
       summary {
         totalConsultingHours
         totalInternalHours
         totalHandsOnHours
         totalSquadHours
-        
+
         uniqueClients
         uniqueSponsors
         uniqueCases
         uniqueWorkingDays
         uniqueWorkers
         uniqueAccountManagers
+      }
+      filterableFields {
+        field
+        selectedValues
+        options
       }
     }
   }
@@ -53,7 +65,7 @@ const SectionHeader = styled.td`
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: left;
-  
+
   &[colspan="2"] {
     border-bottom: 2px solid #e2e8f0;
   }
@@ -90,9 +102,9 @@ const FormLabel = styled.label`
 
 const slugToTitle = (slug: string): string => {
   // Handle special cases
-  if (slug === 'last-month') return 'Last Month';
-  if (slug === 'this-month') return 'This Month';
-  if (slug === 'previous-month') return 'Previous Month';
+  if (slug === "last-month") return "Last Month";
+  if (slug === "this-month") return "This Month";
+  if (slug === "previous-month") return "Previous Month";
 
   // Handle month-year format (e.g., october-2024)
   const monthYearMatch = slug.match(/^([a-z]+)-(\d{4})$/i);
@@ -103,12 +115,15 @@ const slugToTitle = (slug: string): string => {
 
   // Default case: capitalize each word and replace hyphens with spaces
   return slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
-export function TimesheetSettings({ config, onChange }: GadgetSettingsProps<TimesheetGadgetConfig>) {
+export function TimesheetSettings({
+  config,
+  onChange,
+}: GadgetSettingsProps<TimesheetGadgetConfig>) {
   return (
     <FormGroup>
       <FormLabel htmlFor="slug">Dataset Slug</FormLabel>
@@ -120,7 +135,7 @@ export function TimesheetSettings({ config, onChange }: GadgetSettingsProps<Time
           onChange({
             ...config,
             slug: newSlug,
-            title: slugToTitle(newSlug)
+            title: slugToTitle(newSlug),
           });
         }}
         placeholder="Enter dataset slug (e.g., previous-month)"
@@ -135,17 +150,55 @@ interface TimesheetGadgetProps {
 
 export function TimesheetGadget({ config }: TimesheetGadgetProps) {
   const client = useEdgeClient();
+  const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [formattedSelectedValues, setFormattedSelectedValues] = useState<
+    Array<{ field: string; selectedValues: string[] }>
+  >([]);
+
+  const handleFilterChange = (value: Option | Option[] | null): void => {
+    const newSelectedValues = Array.isArray(value)
+      ? value
+      : value
+      ? [value]
+      : [];
+    setSelectedFilters(newSelectedValues);
+
+    const formattedValues =
+      data?.timesheet?.filterableFields?.reduce((acc: any[], field: any) => {
+        const fieldValues = newSelectedValues
+          .filter(
+            (v) =>
+              typeof v.value === "string" &&
+              v.value.startsWith(`${field.field}:`)
+          )
+          .map((v) => (v.value as string).split(":")[1]);
+
+        if (fieldValues.length > 0) {
+          acc.push({
+            field: field.field,
+            selectedValues: fieldValues,
+          });
+        }
+        return acc;
+      }, []) || [];
+
+    setFormattedSelectedValues(formattedValues);
+  };
+
   const { loading, error, data } = useQuery(GET_TIMESHEET, {
     client: client ?? undefined,
-    variables: { slug: config.slug },
+    variables: { 
+      slug: config.slug,
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
+    },
     skip: !config.slug || !client,
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
   });
 
   if (!client) {
     return (
       <Container>
-        <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b' }}>
+        <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
           Initializing connection...
         </div>
       </Container>
@@ -155,7 +208,7 @@ export function TimesheetGadget({ config }: TimesheetGadgetProps) {
   if (!config.slug) {
     return (
       <Container>
-        <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b' }}>
+        <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
           Please configure the dataset slug in settings
         </div>
       </Container>
@@ -165,7 +218,7 @@ export function TimesheetGadget({ config }: TimesheetGadgetProps) {
   if (loading) {
     return (
       <Container>
-        <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b' }}>
+        <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
           Loading timesheet data...
         </div>
       </Container>
@@ -173,10 +226,10 @@ export function TimesheetGadget({ config }: TimesheetGadgetProps) {
   }
 
   if (error) {
-    console.error('Timesheet error:', error);
+    console.error("Timesheet error:", error);
     return (
       <Container>
-        <div style={{ padding: '1rem', textAlign: 'center', color: '#ef4444' }}>
+        <div style={{ padding: "1rem", textAlign: "center", color: "#ef4444" }}>
           Error loading timesheet: {error.message}
         </div>
       </Container>
@@ -186,7 +239,7 @@ export function TimesheetGadget({ config }: TimesheetGadgetProps) {
   if (!data?.timesheet?.summary) {
     return (
       <Container>
-        <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b' }}>
+        <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
           No data available for this timesheet
         </div>
       </Container>
@@ -197,6 +250,13 @@ export function TimesheetGadget({ config }: TimesheetGadgetProps) {
 
   return (
     <Container>
+      <div className="mb-4">
+        <FilterFieldsSelect
+          data={data?.timesheet}
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
+        />
+      </div>
       <Table>
         <tbody>
           <Section>
