@@ -4,10 +4,18 @@ import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import styled from "styled-components";
 import { useEdgeClient } from "@/app/hooks/useApolloClient";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
 import { Option } from "react-tailwindcss-select/dist/components/type";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectSeparator,
+} from "@/components/ui/select";
 import {
   GadgetType,
   TimesheetGadgetConfig,
@@ -102,7 +110,6 @@ const FormLabel = styled.label`
 
 const slugToTitle = (slug: string): string => {
   // Handle special cases
-  if (slug === "last-month") return "Last Month";
   if (slug === "this-month") return "This Month";
   if (slug === "previous-month") return "Previous Month";
 
@@ -126,7 +133,6 @@ export function TimesheetSettings({
 }: GadgetSettingsProps<TimesheetGadgetConfig>) {
   return (
     <FormGroup>
-      <FormLabel htmlFor="slug">Dataset Slug</FormLabel>
       <Input
         id="slug"
         value={config.slug}
@@ -148,12 +154,45 @@ interface TimesheetGadgetProps {
   config: TimesheetGadgetConfig;
 }
 
+const generateMonthYearOptions = () => {
+  const options = [];
+  const currentDate = new Date();
+  const startDate = new Date(2024, 0); // January 2024
+
+  while (startDate <= currentDate) {
+    const monthName = startDate.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+    const year = startDate.getFullYear();
+    const slug = `${monthName}-${year}`;
+    
+    options.push({
+      label: `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`,
+      value: slug
+    });
+
+    startDate.setMonth(startDate.getMonth() + 1);
+  }
+
+  return options.reverse(); // Most recent first
+};
+
 export function TimesheetGadget({ config }: TimesheetGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >([]);
+
+  const monthYearOptions = useMemo(() => generateMonthYearOptions(), []);
+
+  const handleSlugChange = (newSlug: string) => {
+    // Reset filters when changing the dataset
+    setSelectedFilters([]);
+    setFormattedSelectedValues([]);
+    
+    // Update the config
+    config.slug = newSlug;
+    config.title = slugToTitle(newSlug);
+  };
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
     const newSelectedValues = Array.isArray(value)
@@ -250,64 +289,88 @@ export function TimesheetGadget({ config }: TimesheetGadgetProps) {
 
   return (
     <Container>
-      <div className="mb-4">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2">
+          <FormLabel>Dataset Period</FormLabel>
+          <Select
+            value={config.slug}
+            onValueChange={handleSlugChange}
+          >
+            <SelectTrigger className="w-full bg-white">
+              <SelectValue placeholder="Select month and year" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="this-month">This Month</SelectItem>
+              <SelectItem value="previous-month">Previous Month</SelectItem>
+              <SelectSeparator />
+              {monthYearOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <FilterFieldsSelect
           data={data?.timesheet}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
       </div>
-      <Table>
-        <tbody>
-          <Section>
-            <SectionHeader colSpan={2}>Hours Distribution</SectionHeader>
-          </Section>
-          <Section>
-            <Label>Consulting Hours</Label>
-            <Value>{summary.totalConsultingHours}</Value>
-          </Section>
-          <Section>
-            <Label>Internal Hours</Label>
-            <Value>{summary.totalInternalHours}</Value>
-          </Section>
-          <Section>
-            <Label>Hands-on Hours</Label>
-            <Value>{summary.totalHandsOnHours}</Value>
-          </Section>
-          <Section>
-            <Label>Squad Hours</Label>
-            <Value>{summary.totalSquadHours}</Value>
-          </Section>
+      <div className="mt-4">
+        <Table>
+          <tbody>
+            <Section>
+              <SectionHeader colSpan={2}>Hours Distribution</SectionHeader>
+            </Section>
+            <Section>
+              <Label>Consulting Hours</Label>
+              <Value>{summary.totalConsultingHours}</Value>
+            </Section>
+            <Section>
+              <Label>Internal Hours</Label>
+              <Value>{summary.totalInternalHours}</Value>
+            </Section>
+            <Section>
+              <Label>Hands-on Hours</Label>
+              <Value>{summary.totalHandsOnHours}</Value>
+            </Section>
+            <Section>
+              <Label>Squad Hours</Label>
+              <Value>{summary.totalSquadHours}</Value>
+            </Section>
 
-          <Section>
-            <SectionHeader colSpan={2}>Engagement Metrics</SectionHeader>
-          </Section>
-          <Section>
-            <Label>Unique Clients</Label>
-            <Value>{summary.uniqueClients}</Value>
-          </Section>
-          <Section>
-            <Label>Unique Sponsors</Label>
-            <Value>{summary.uniqueSponsors}</Value>
-          </Section>
-          <Section>
-            <Label>Unique Cases</Label>
-            <Value>{summary.uniqueCases}</Value>
-          </Section>
-          <Section>
-            <Label>Working Days</Label>
-            <Value>{summary.uniqueWorkingDays}</Value>
-          </Section>
-          <Section>
-            <Label>Active Workers</Label>
-            <Value>{summary.uniqueWorkers}</Value>
-          </Section>
-          <Section>
-            <Label>Account Managers</Label>
-            <Value>{summary.uniqueAccountManagers}</Value>
-          </Section>
-        </tbody>
-      </Table>
+            <Section>
+              <SectionHeader colSpan={2}>Engagement Metrics</SectionHeader>
+            </Section>
+            <Section>
+              <Label>Unique Clients</Label>
+              <Value>{summary.uniqueClients}</Value>
+            </Section>
+            <Section>
+              <Label>Unique Sponsors</Label>
+              <Value>{summary.uniqueSponsors}</Value>
+            </Section>
+            <Section>
+              <Label>Unique Cases</Label>
+              <Value>{summary.uniqueCases}</Value>
+            </Section>
+            <Section>
+              <Label>Working Days</Label>
+              <Value>{summary.uniqueWorkingDays}</Value>
+            </Section>
+            <Section>
+              <Label>Active Workers</Label>
+              <Value>{summary.uniqueWorkers}</Value>
+            </Section>
+            <Section>
+              <Label>Account Managers</Label>
+              <Value>{summary.uniqueAccountManagers}</Value>
+            </Section>
+          </tbody>
+        </Table>
+      </div>
     </Container>
   );
 }
