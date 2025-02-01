@@ -133,6 +133,7 @@ export function TimesheetSettings({
 }: GadgetSettingsProps<TimesheetGadgetConfig>) {
   return (
     <FormGroup>
+      <FormLabel htmlFor="slug">Dataset Slug</FormLabel>
       <Input
         id="slug"
         value={config.slug}
