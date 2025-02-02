@@ -7,6 +7,7 @@ import { useEdgeClient } from "@/app/hooks/useApolloClient";
 import React, { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
+import SelectComponent from "react-tailwindcss-select";
 import { Option } from "react-tailwindcss-select/dist/components/type";
 import {
   Select,
@@ -131,6 +132,10 @@ const generateMonthYearOptions = () => {
   const currentDate = new Date();
   const startDate = new Date(2024, 0); // January 2024
 
+  // Add special options
+  options.push({ label: "This Month", value: "this-month" });
+  options.push({ label: "Previous Month", value: "previous-month" });
+
   while (startDate <= currentDate) {
     const monthName = startDate.toLocaleString('en-US', { month: 'long' }).toLowerCase();
     const year = startDate.getFullYear();
@@ -150,20 +155,31 @@ const generateMonthYearOptions = () => {
 export function TimesheetGadget({ id, position, type, config, onConfigure }: TimesheetGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [selectedPeriods, setSelectedPeriods] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >([]);
 
   const monthYearOptions = useMemo(() => generateMonthYearOptions(), []);
 
-  const handleSlugChange = (newSlug: string) => {
-    // Reset filters when changing the dataset
-    setSelectedFilters([]);
-    setFormattedSelectedValues([]);
+  const handleSlugChange = (value: Option | Option[] | null) => {
+    const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
+    setSelectedPeriods(newSelectedValues);
     
-    // Update the config
-    config.slug = newSlug;
-    config.title = slugToTitle(newSlug);
+    if (newSelectedValues.length > 0) {
+      // Reset filters when changing the dataset
+      setSelectedFilters([]);
+      setFormattedSelectedValues([]);
+      
+      // Update the config using the first selected value
+      const firstValue = newSelectedValues[0];
+      config.slug = firstValue.value;
+      config.title = slugToTitle(firstValue.value);
+    } else {
+      // Clear the config when no period is selected
+      config.slug = "";
+      config.title = "";
+    }
   };
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
@@ -216,11 +232,26 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     );
   }
 
-  if (!config.slug) {
+  if (selectedPeriods.length === 0) {
     return (
       <Container>
-        <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
-          Please configure the dataset slug in settings
+        <div className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <FormLabel>Dataset Period</FormLabel>
+            <SelectComponent
+              value={selectedPeriods}
+              options={monthYearOptions}
+              onChange={handleSlugChange}
+              primaryColor={""}
+              isSearchable={true}
+              isClearable={true}
+              isMultiple={true}
+              placeholder="Select dataset period..."
+            />
+          </div>
+          <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
+            Please select at least one period to view the timesheet data
+          </div>
         </div>
       </Container>
     );
@@ -263,25 +294,16 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     <Container>
       <div className="space-y-4">
         <div className="flex flex-col gap-2">
-          <FormLabel>Dataset Period</FormLabel>
-          <Select
-            value={config.slug}
-            onValueChange={handleSlugChange}
-          >
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder="Select month and year" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="this-month">This Month</SelectItem>
-              <SelectItem value="previous-month">Previous Month</SelectItem>
-              <SelectSeparator />
-              {monthYearOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectComponent
+            value={selectedPeriods}
+            options={monthYearOptions}
+            onChange={handleSlugChange}
+            primaryColor={""}
+            isSearchable={true}
+            isClearable={true}
+            isMultiple={true}
+            placeholder="Select dataset period..."
+          />
         </div>
 
         <FilterFieldsSelect
