@@ -1,19 +1,8 @@
-export enum GadgetType {
-  TEXT = 'text',
-  CHART = 'chart',
-  IMAGE = 'image',
-  NOTES = 'notes',
-  TIMESHEET = 'timesheet'
-}
+import { GadgetType, GadgetConfig } from './types';
 
 export interface Position {
   x: number;
   y: number;
-}
-
-export interface GadgetConfig {
-  title: string;
-  [key: string]: any;
 }
 
 export interface Gadget {
@@ -42,16 +31,10 @@ export * from './GadgetSettings';
 
 export const getGadgetTitle = (type: GadgetType): string => {
   switch (type) {
-    case GadgetType.TEXT:
-      return 'Text';
-    case GadgetType.CHART:
-      return 'Chart';
-    case GadgetType.IMAGE:
-      return 'Image';
-    case GadgetType.NOTES:
-      return 'Notes';
     case GadgetType.TIMESHEET:
       return 'Timesheet';
+    case GadgetType.BY_CLIENT:
+      return 'By Client';
     default:
       return 'Unknown';
   }

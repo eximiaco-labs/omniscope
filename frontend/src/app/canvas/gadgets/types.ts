@@ -1,5 +1,6 @@
 export enum GadgetType {
-  TIMESHEET = 'timesheet'
+  TIMESHEET = 'timesheet',
+  BY_CLIENT = 'by-client'
 }
 
 export interface Position {
@@ -17,7 +18,12 @@ export interface TimesheetGadgetConfig extends BaseGadgetConfig {
   slug: string;
 }
 
-export type GadgetConfig = TimesheetGadgetConfig;
+export interface ByClientGadgetConfig extends BaseGadgetConfig {
+  type: GadgetType.BY_CLIENT;
+  slug: string;
+}
+
+export type GadgetConfig = TimesheetGadgetConfig | ByClientGadgetConfig;
 
 export interface Gadget {
   id: string;
@@ -39,4 +45,5 @@ export interface GadgetSettingsProps<T extends GadgetConfig> {
   onChange: (config: T) => void;
 }
 
-export * from './Timesheet'; 
+export * from './Timesheet';
+export * from './ByClient'; 

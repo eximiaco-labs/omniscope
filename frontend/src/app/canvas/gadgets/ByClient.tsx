@@ -18,33 +18,28 @@ import {
 } from "@/components/ui/select";
 import {
   Table,
+  TableHeader,
   TableBody,
-  TableCell,
+  TableHead,
   TableRow,
+  TableCell,
 } from "@/components/ui/table";
-import SectionHeader from "@/components/SectionHeader";
 import {
   GadgetType,
-  TimesheetGadgetConfig,
+  ByClientGadgetConfig,
   GadgetSettingsProps,
   GadgetProps,
 } from "./types";
+import { TimesheetResponse, TimesheetByClient } from "./types/timesheet";
 
 const GET_TIMESHEET = gql`
   query GetTimesheet($slug: String!, $filters: [DatasetFilterInput]) {
     timesheet(slug: $slug, filters: $filters) {
-      summary {
-        totalConsultingHours
-        totalInternalHours
-        totalHandsOnHours
-        totalSquadHours
-
-        uniqueClients
-        uniqueSponsors
-        uniqueCases
-        uniqueWorkingDays
-        uniqueWorkers
-        uniqueAccountManagers
+      byClient {
+        data {
+          name
+          totalHours
+        }
       }
       filterableFields {
         field
@@ -62,8 +57,29 @@ const Container = styled.div`
   flex-direction: column;
 `;
 
-const TableWrapper = styled.div`
+const TableWrapper = styled.div<{ shouldScroll: boolean }>`
   margin-top: 1rem;
+  max-height: ${props => props.shouldScroll ? '400px' : 'auto'};
+  overflow-y: ${props => props.shouldScroll ? 'auto' : 'visible'};
+
+  /* Scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 `;
 
 const FormGroup = styled.div`
@@ -97,10 +113,10 @@ const slugToTitle = (slug: string): string => {
     .join(" ");
 };
 
-export function TimesheetSettings({
+export function ByClientSettings({
   config,
   onChange,
-}: GadgetSettingsProps<TimesheetGadgetConfig>) {
+}: GadgetSettingsProps<ByClientGadgetConfig>) {
   return (
     <FormGroup>
       <FormLabel htmlFor="slug">Dataset Slug</FormLabel>
@@ -111,7 +127,7 @@ export function TimesheetSettings({
           const newSlug = e.target.value;
           onChange({
             ...config,
-            type: GadgetType.TIMESHEET,
+            type: GadgetType.BY_CLIENT,
             slug: newSlug,
             title: slugToTitle(newSlug),
           });
@@ -122,8 +138,13 @@ export function TimesheetSettings({
   );
 }
 
-interface TimesheetGadgetProps extends GadgetProps {
-  config: TimesheetGadgetConfig;
+interface ByClientGadgetProps extends GadgetProps {
+  config: ByClientGadgetConfig;
+}
+
+interface ClientData {
+  name: string;
+  totalHours: number;
 }
 
 const generateMonthYearOptions = () => {
@@ -147,7 +168,7 @@ const generateMonthYearOptions = () => {
   return options.reverse(); // Most recent first
 };
 
-export function TimesheetGadget({ id, position, type, config, onConfigure }: TimesheetGadgetProps) {
+export function ByClientGadget({ id, position, type, config, onConfigure }: ByClientGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -196,7 +217,7 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     setFormattedSelectedValues(formattedValues);
   };
 
-  const { loading, error, data } = useQuery(GET_TIMESHEET, {
+  const { loading, error, data } = useQuery<TimesheetResponse>(GET_TIMESHEET, {
     client: client ?? undefined,
     variables: { 
       slug: config.slug,
@@ -247,7 +268,7 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     );
   }
 
-  if (!data?.timesheet?.summary) {
+  if (!data?.timesheet?.byClient?.data) {
     return (
       <Container>
         <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
@@ -257,7 +278,8 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     );
   }
 
-  const summary = data.timesheet.summary;
+  const clientData = data.timesheet.byClient.data as ClientData[];
+  const shouldScroll = clientData.length > 10;
 
   return (
     <Container>
@@ -290,68 +312,25 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
           handleFilterChange={handleFilterChange}
         />
       </div>
-
-      <div className="mt-4 space-y-6">
-        <div>
-          <SectionHeader title="Hours Distribution" subtitle="By Type" />
-          <TableWrapper>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Consulting Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalConsultingHours}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Internal Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalInternalHours}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Hands-on Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalHandsOnHours}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Squad Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalSquadHours}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableWrapper>
-        </div>
-
-        <div>
-          <SectionHeader title="Engagement Metrics" subtitle="Overview" />
-          <TableWrapper>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Unique Clients</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueClients}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Unique Sponsors</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueSponsors}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Unique Cases</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueCases}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Working Days</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueWorkingDays}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Active Workers</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueWorkers}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Account Managers</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueAccountManagers}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableWrapper>
-        </div>
-      </div>
+      
+      <TableWrapper shouldScroll={shouldScroll}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-semibold text-foreground">Client</TableHead>
+              <TableHead className="text-right font-semibold text-foreground">Total Hours</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clientData.map((client: ClientData, index: number) => (
+              <TableRow key={index}>
+                <TableCell className="text-muted-foreground">{client.name}</TableCell>
+                <TableCell className="text-right font-medium text-foreground">{client.totalHours}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableWrapper>
     </Container>
   );
-}
+} 

@@ -8,10 +8,12 @@ import {
   GadgetType,
   GadgetWrapper,
   TimesheetGadget,
+  ByClientGadget,
   type Position,
   type Gadget,
   type GadgetConfig,
-  type TimesheetGadgetConfig
+  type TimesheetGadgetConfig,
+  type ByClientGadgetConfig
 } from './gadgets';
 import { GadgetSettings } from './gadgets/GadgetSettings';
 
@@ -103,20 +105,39 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'icon' }>`
 `;
 
 const getInitialConfig = (type: GadgetType): GadgetConfig => {
-  return {
-    title: 'Timesheet',
-    type: GadgetType.TIMESHEET,
-    slug: 'previous-month'
-  } as GadgetConfig;
+  switch (type) {
+    case GadgetType.TIMESHEET:
+      return {
+        title: 'Timesheet',
+        type: GadgetType.TIMESHEET,
+        slug: 'previous-month'
+      } as TimesheetGadgetConfig;
+    case GadgetType.BY_CLIENT:
+      return {
+        title: 'By Client',
+        type: GadgetType.BY_CLIENT,
+        slug: 'previous-month'
+      } as ByClientGadgetConfig;
+    default:
+      throw new Error(`Unsupported gadget type: ${type}`);
+  }
 };
 
 const getGadgetContent = (gadget: Gadget) => {
-  return <TimesheetGadget config={gadget.config as TimesheetGadgetConfig} />;
+  switch (gadget.type) {
+    case GadgetType.TIMESHEET:
+      return <TimesheetGadget config={gadget.config as TimesheetGadgetConfig} />;
+    case GadgetType.BY_CLIENT:
+      return <ByClientGadget config={gadget.config as ByClientGadgetConfig} />;
+    default:
+      return null;
+  }
 };
 
-const gadgetDimensions: Record<GadgetType, { width: number; height: number }> = {
-  [GadgetType.TIMESHEET]: { width: 400, height: 400 }
-};
+const gadgetDimensions = {
+  [GadgetType.TIMESHEET]: { width: 400, height: 400 },
+  [GadgetType.BY_CLIENT]: { width: 400, height: 400 }
+} as const;
 
 interface GadgetWrapperProps {
   id: string;
@@ -236,12 +257,12 @@ export default function Canvas() {
     setIsPanning(!isPanning);
   };
 
-  const handleAddGadget = () => {
+  const handleAddGadget = (type: GadgetType) => {
     const newGadget: Gadget = {
       id: `gadget-${Date.now()}`,
-      type: GadgetType.TIMESHEET,
+      type,
       position: { x: Math.random() * 300, y: Math.random() * 300 },
-      config: getInitialConfig(GadgetType.TIMESHEET)
+      config: getInitialConfig(type)
     };
     setGadgets([...gadgets, newGadget]);
   };
@@ -286,8 +307,11 @@ export default function Canvas() {
           <Button variant="icon" onClick={togglePanning}>
             <Move />
           </Button>
-          <Button variant="primary" onClick={handleAddGadget}>
+          <Button variant="primary" onClick={() => handleAddGadget(GadgetType.TIMESHEET)}>
             <Plus /> Add Timesheet
+          </Button>
+          <Button variant="primary" onClick={() => handleAddGadget(GadgetType.BY_CLIENT)}>
+            <Plus /> Add By Client
           </Button>
         </ToolbarGroup>
         <ToolbarGroup>
