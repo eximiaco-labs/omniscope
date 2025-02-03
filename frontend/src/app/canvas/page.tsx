@@ -15,7 +15,6 @@ import {
   type TimesheetGadgetConfig,
   type ByClientGadgetConfig
 } from './gadgets';
-import { GadgetSettings } from './gadgets/GadgetSettings';
 
 const PageWrapper = styled.div`
   position: fixed;
@@ -108,9 +107,8 @@ const getInitialConfig = (type: GadgetType): GadgetConfig => {
   switch (type) {
     case GadgetType.TIMESHEET:
       return {
-        title: 'Timesheet',
         type: GadgetType.TIMESHEET,
-        slug: 'previous-month',
+        title: 'Timesheet',
         selectedPeriods: [
           { label: "Previous Month", value: "previous-month" },
           { label: "This Month", value: "this-month" }
@@ -118,8 +116,8 @@ const getInitialConfig = (type: GadgetType): GadgetConfig => {
       } as TimesheetGadgetConfig;
     case GadgetType.BY_CLIENT:
       return {
-        title: 'By Client',
         type: GadgetType.BY_CLIENT,
+        title: 'By Client',
         slug: 'previous-month'
       } as ByClientGadgetConfig;
     default:
@@ -127,7 +125,7 @@ const getInitialConfig = (type: GadgetType): GadgetConfig => {
   }
 };
 
-const getGadgetContent = (gadget: Gadget, id: string, position: Position, onConfigure: (gadget: Gadget) => void) => {
+const getGadgetContent = (gadget: Gadget, id: string, position: Position) => {
   switch (gadget.type) {
     case GadgetType.TIMESHEET:
       return <TimesheetGadget 
@@ -135,7 +133,6 @@ const getGadgetContent = (gadget: Gadget, id: string, position: Position, onConf
         position={position}
         type={gadget.type}
         config={gadget.config as TimesheetGadgetConfig}
-        onConfigure={onConfigure}
       />;
     case GadgetType.BY_CLIENT:
       return <ByClientGadget 
@@ -143,7 +140,6 @@ const getGadgetContent = (gadget: Gadget, id: string, position: Position, onConf
         position={position}
         type={gadget.type}
         config={gadget.config as ByClientGadgetConfig}
-        onConfigure={onConfigure}
       />;
     default:
       return null;
@@ -170,7 +166,6 @@ export default function Canvas() {
   const [gadgets, setGadgets] = useState<Gadget[]>([]);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
-  const [selectedGadget, setSelectedGadget] = useState<Gadget | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [shouldAutoZoom, setShouldAutoZoom] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -295,17 +290,6 @@ export default function Canvas() {
     ));
   };
 
-  const handleConfigureGadget = (gadget: Gadget) => {
-    setSelectedGadget(gadget);
-  };
-
-  const handleSaveConfig = (id: string, config: GadgetConfig) => {
-    setGadgets(gadgets.map(gadget =>
-      gadget.id === id ? { ...gadget, config } : gadget
-    ));
-    setSelectedGadget(null);
-  };
-
   const handleZoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 2));
   };
@@ -369,9 +353,8 @@ export default function Canvas() {
               config={gadget.config}
               onRemove={handleRemoveGadget}
               onDragEnd={handleGadgetDragEnd}
-              onConfigure={handleConfigureGadget}
             >
-              {getGadgetContent(gadget, gadget.id, gadget.position, handleConfigureGadget)}
+              {getGadgetContent(gadget, gadget.id, gadget.position)}
             </GadgetWrapper>
           ))}
         </motion.div>
@@ -385,15 +368,6 @@ export default function Canvas() {
           </Button>
         </CanvasControls>
       </CanvasContainer>
-
-      {selectedGadget && (
-        <GadgetSettings
-          gadget={selectedGadget}
-          isOpen={true}
-          onClose={() => setSelectedGadget(null)}
-          onSave={handleSaveConfig}
-        />
-      )}
     </PageWrapper>
   );
 }

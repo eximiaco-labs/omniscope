@@ -27,9 +27,10 @@ import SectionHeader from "@/components/SectionHeader";
 import {
   GadgetType,
   TimesheetGadgetConfig,
-  GadgetSettingsProps,
   GadgetProps,
 } from "./types";
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { GripVertical } from 'lucide-react';
 
 const buildTimesheetQuery = (slugs: string[]) => {
   if (slugs.length === 0) {
@@ -135,35 +136,6 @@ const slugToTitle = (slug: string): string => {
     .join(" ");
 };
 
-export function TimesheetSettings({
-  config,
-  onChange,
-}: GadgetSettingsProps<TimesheetGadgetConfig>) {
-  return (
-    <FormGroup>
-      <FormLabel htmlFor="slug">Dataset Slug</FormLabel>
-      <Input
-        id="slug"
-        value={config.slug}
-        onChange={(e) => {
-          const newSlug = e.target.value;
-          onChange({
-            ...config,
-            type: GadgetType.TIMESHEET,
-            slug: newSlug,
-            title: slugToTitle(newSlug),
-          });
-        }}
-        placeholder="Enter dataset slug (e.g., previous-month)"
-      />
-    </FormGroup>
-  );
-}
-
-interface TimesheetGadgetProps extends GadgetProps {
-  config: TimesheetGadgetConfig;
-}
-
 const generateMonthYearOptions = () => {
   const options = [];
   const currentDate = new Date();
@@ -189,7 +161,41 @@ const generateMonthYearOptions = () => {
   return options.reverse(); // Most recent first
 };
 
-export function TimesheetGadget({ id, position, type, config, onConfigure }: TimesheetGadgetProps) {
+const SelectedPeriodsContainer = styled.div`
+  margin-top: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+`;
+
+const SelectedPeriod = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const DragHandle = styled.div`
+  cursor: grab;
+  padding: 0.25rem;
+  margin-right: 0.5rem;
+  color: #94a3b8;
+  
+  &:hover {
+    color: #64748b;
+  }
+`;
+
+interface TimesheetGadgetProps extends GadgetProps {
+  config: TimesheetGadgetConfig;
+}
+
+export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [selectedPeriods, setSelectedPeriods] = useState<Option[]>(config.selectedPeriods || []);
@@ -231,32 +237,6 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
       // Reset filters when changing the dataset
       setSelectedFilters([]);
       setFormattedSelectedValues([]);
-      
-      // Update the config
-      onConfigure({
-        id,
-        type,
-        position,
-        config: {
-          ...config,
-          selectedPeriods: newSelectedValues,
-          slug: newSelectedValues[0].value,
-          title: slugToTitle(newSelectedValues[0].value)
-        }
-      });
-    } else {
-      // Clear the config when no period is selected
-      onConfigure({
-        id,
-        type,
-        position,
-        config: {
-          ...config,
-          selectedPeriods: [],
-          slug: "",
-          title: ""
-        }
-      });
     }
   };
 
@@ -288,6 +268,16 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
       }, []) || [];
 
     setFormattedSelectedValues(formattedValues);
+  };
+
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(selectedPeriods);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setSelectedPeriods(items);
   };
 
   if (!client) {
@@ -370,6 +360,36 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
             isMultiple={true}
             placeholder="Select dataset period..."
           />
+          
+          {selectedPeriods.length > 0 && (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="periods">
+                {(provided) => (
+                  <SelectedPeriodsContainer
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                  >
+                    {selectedPeriods.map((period, index) => (
+                      <Draggable key={period.value} draggableId={period.value} index={index}>
+                        {(provided) => (
+                          <SelectedPeriod
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                          >
+                            <DragHandle {...provided.dragHandleProps}>
+                              <GripVertical size={16} />
+                            </DragHandle>
+                            {period.label}
+                          </SelectedPeriod>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </SelectedPeriodsContainer>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )}
         </div>
 
         <FilterFieldsSelect

@@ -11,13 +11,12 @@ export interface Position {
 }
 
 export interface BaseGadgetConfig {
-  title: string;
   type: GadgetType;
+  readonly title: string;
 }
 
 export interface TimesheetGadgetConfig extends BaseGadgetConfig {
   type: GadgetType.TIMESHEET;
-  slug: string;
   selectedPeriods?: Option[];
 }
 
@@ -40,12 +39,6 @@ export interface GadgetProps {
   position: Position;
   type: GadgetType;
   config: GadgetConfig;
-  onConfigure: (gadget: Gadget) => void;
-}
-
-export interface GadgetSettingsProps<T extends GadgetConfig> {
-  config: T;
-  onChange: (config: T) => void;
 }
 
 export * from './Timesheet';

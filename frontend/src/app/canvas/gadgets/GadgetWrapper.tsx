@@ -1,47 +1,62 @@
 import React from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { Settings, X } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Position, Gadget } from './types';
+import { X } from 'lucide-react';
+import { Position, GadgetConfig } from './types';
 
-const Wrapper = styled(motion.div)`
+const Wrapper = styled.div<{ isDragging?: boolean }>`
   position: absolute;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
-  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: ${props => props.isDragging ? 'grabbing' : 'grab'};
+  user-select: none;
 `;
 
 const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px;
-  background: #f8fafc;
+  padding: 8px 12px;
   border-bottom: 1px solid #e2e8f0;
-  cursor: move;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  background: #f8fafc;
 `;
 
 const Title = styled.div`
+  font-size: 14px;
   font-weight: 500;
   color: #1e293b;
-  font-size: 14px;
 `;
 
-const Controls = styled.div`
+const HeaderButton = styled.button`
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #64748b;
+  cursor: pointer;
   display: flex;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 `;
 
-interface GadgetWrapperProps {
+interface Props {
   id: string;
   position: Position;
-  config: Gadget['config'];
+  config: GadgetConfig;
   onDragEnd: (id: string, newPosition: Position) => void;
   onRemove: (id: string) => void;
-  onConfigure: (gadget: Gadget) => void;
   children: React.ReactNode;
 }
 
@@ -51,39 +66,62 @@ export function GadgetWrapper({
   config,
   onDragEnd,
   onRemove,
-  onConfigure,
   children
-}: GadgetWrapperProps) {
+}: Props) {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState<Position | null>(null);
+  const [initialPosition, setInitialPosition] = React.useState<Position | null>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left click only
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+      setInitialPosition(position);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && dragStart && initialPosition) {
+      const deltaX = e.clientX - dragStart.x;
+      const deltaY = e.clientY - dragStart.y;
+      
+      onDragEnd(id, {
+        x: initialPosition.x + deltaX,
+        y: initialPosition.y + deltaY
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStart(null);
+    setInitialPosition(null);
+  };
+
+  React.useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove as any);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove as any);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging]);
+
   return (
     <Wrapper
-      drag
-      dragMomentum={false}
-      style={{ x: position.x, y: position.y }}
-      onDragEnd={(_, info) => {
-        onDragEnd(id, {
-          x: position.x + info.offset.x,
-          y: position.y + info.offset.y
-        });
-      }}
+      style={{ left: position.x, top: position.y }}
+      isDragging={isDragging}
     >
-      <Header>
+      <Header onMouseDown={handleMouseDown}>
         <Title>{config.title}</Title>
-        <Controls>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onConfigure({ id, position, type: config.type, config })}
-          >
-            <Settings size={16} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRemove(id)}
-          >
-            <X size={16} />
-          </Button>
-        </Controls>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <HeaderButton onClick={() => onRemove(id)}>
+            <X />
+          </HeaderButton>
+        </div>
       </Header>
       {children}
     </Wrapper>
