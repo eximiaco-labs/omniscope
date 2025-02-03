@@ -1,62 +1,82 @@
 import React from 'react';
 import styled from 'styled-components';
 import { X } from 'lucide-react';
-import { Position, GadgetConfig } from './types';
+import { motion } from 'framer-motion';
+import { GadgetConfig, Position } from './types';
 
-const Wrapper = styled.div<{ isDragging?: boolean }>`
+interface WrapperProps {
+  isSelected: boolean;
+  zIndex: number;
+}
+
+const Wrapper = styled(motion.div)<WrapperProps>`
   position: absolute;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: ${props => props.isDragging ? 'grabbing' : 'grab'};
-  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  z-index: ${props => props.zIndex};
+  border: 1px solid ${props => props.isSelected ? '#3b82f6' : '#e2e8f0'};
+
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
 `;
 
-const Header = styled.div`
+const Header = styled.div<{ isSelected: boolean }>`
+  height: 32px;
+  padding: 0 8px;
+  background: ${props => props.isSelected ? '#3b82f6' : '#f8fafc'};
+  border-bottom: 1px solid ${props => props.isSelected ? '#2563eb' : '#e2e8f0'};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-bottom: 1px solid #e2e8f0;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  background: #f8fafc;
+  cursor: move;
+
+  h3 {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: ${props => props.isSelected ? 'white' : '#1e293b'};
+    margin: 0;
+  }
 `;
 
-const Title = styled.div`
-  font-size: 14px;
-  font-weight: 500;
-  color: #1e293b;
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
 `;
 
-const HeaderButton = styled.button`
+const IconButton = styled.button<{ isSelected?: boolean }>`
   padding: 4px;
-  background: transparent;
   border: none;
-  border-radius: 4px;
-  color: #64748b;
+  background: none;
   cursor: pointer;
+  color: ${props => props.isSelected ? 'white' : '#64748b'};
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
 
   &:hover {
-    background: #f1f5f9;
-    color: #475569;
+    background: ${props => props.isSelected ? 'rgba(255, 255, 255, 0.1)' : '#f1f5f9'};
   }
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 `;
 
-interface Props {
+interface GadgetWrapperProps {
   id: string;
   position: Position;
   config: GadgetConfig;
-  onDragEnd: (id: string, newPosition: Position) => void;
   onRemove: (id: string) => void;
+  onDragEnd: (id: string, newPosition: Position) => void;
+  onSelect: (id: string) => void;
+  isSelected: boolean;
+  zIndex: number;
   children: React.ReactNode;
 }
 
@@ -64,64 +84,56 @@ export function GadgetWrapper({
   id,
   position,
   config,
-  onDragEnd,
   onRemove,
+  onDragEnd,
+  onSelect,
+  isSelected,
+  zIndex,
   children
-}: Props) {
-  const [isDragging, setIsDragging] = React.useState(false);
-  const [dragStart, setDragStart] = React.useState<Position | null>(null);
-  const [initialPosition, setInitialPosition] = React.useState<Position | null>(null);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0) { // Left click only
-      setIsDragging(true);
-      setDragStart({ x: e.clientX, y: e.clientY });
-      setInitialPosition(position);
-    }
+}: GadgetWrapperProps) {
+  const handleDragEnd = (_: any, info: any) => {
+    onDragEnd(id, {
+      x: position.x + info.offset.x,
+      y: position.y + info.offset.y
+    });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && dragStart && initialPosition) {
-      const deltaX = e.clientX - dragStart.x;
-      const deltaY = e.clientY - dragStart.y;
-      
-      onDragEnd(id, {
-        x: initialPosition.x + deltaX,
-        y: initialPosition.y + deltaY
-      });
-    }
+  const handleClick = () => {
+    onSelect(id);
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragStart(null);
-    setInitialPosition(null);
-  };
-
-  React.useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove as any);
-      document.addEventListener('mouseup', handleMouseUp);
-      
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove as any);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    // Prevent click from triggering when clicking buttons
+    if ((e.target as HTMLElement).tagName === 'BUTTON' || 
+        (e.target as HTMLElement).closest('button')) {
+      return;
     }
-  }, [isDragging]);
+    onSelect(id);
+  };
 
   return (
     <Wrapper
-      style={{ left: position.x, top: position.y }}
-      isDragging={isDragging}
+      drag
+      dragMomentum={false}
+      onDragEnd={handleDragEnd}
+      style={{ x: position.x, y: position.y }}
+      isSelected={isSelected}
+      zIndex={zIndex}
+      onClick={handleClick}
     >
-      <Header onMouseDown={handleMouseDown}>
-        <Title>{config.title}</Title>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <HeaderButton onClick={() => onRemove(id)}>
+      <Header isSelected={isSelected} onClick={handleHeaderClick}>
+        <h3>{config.title}</h3>
+        <HeaderActions>
+          <IconButton 
+            isSelected={isSelected} 
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(id);
+            }}
+          >
             <X />
-          </HeaderButton>
-        </div>
+          </IconButton>
+        </HeaderActions>
       </Header>
       {children}
     </Wrapper>

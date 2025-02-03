@@ -216,6 +216,7 @@ export default function Canvas() {
     return [initialGadget];
   });
 
+  const [selectedGadgetId, setSelectedGadgetId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -224,10 +225,12 @@ export default function Canvas() {
   const isDragging = useRef(false);
   const lastPosition = useRef<Position>({ x: 0, y: 0 });
 
-  // Remove the automatic zoom on mount
-  // useEffect(() => {
-  //   handleZoomAll();
-  // }, []);
+  // Select the first gadget by default
+  useEffect(() => {
+    if (gadgets.length > 0 && !selectedGadgetId) {
+      setSelectedGadgetId(gadgets[0].id);
+    }
+  }, [gadgets.length]);
 
   // Recalcula o zoom quando a janela é redimensionada e shouldAutoZoom é true
   useEffect(() => {
@@ -325,17 +328,34 @@ export default function Canvas() {
     };
 
     setGadgets(prev => [...prev, gadget]);
-    setShouldAutoZoom(true);
+    setSelectedGadgetId(gadget.id); // Select the new gadget
   };
 
   const handleRemoveGadget = (id: string) => {
     setGadgets(gadgets.filter(gadget => gadget.id !== id));
+    if (selectedGadgetId === id) {
+      // If we're removing the selected gadget, select the last one in the list
+      const remainingGadgets = gadgets.filter(g => g.id !== id);
+      setSelectedGadgetId(remainingGadgets.length > 0 ? remainingGadgets[remainingGadgets.length - 1].id : null);
+    }
   };
 
   const handleGadgetDragEnd = (id: string, newPosition: Position) => {
     setGadgets(gadgets.map(gadget => 
       gadget.id === id ? { ...gadget, position: newPosition } : gadget
     ));
+  };
+
+  const handleGadgetSelect = (id: string) => {
+    if (id !== selectedGadgetId) {
+      setSelectedGadgetId(id);
+      // Move the selected gadget to the end of the array to render it last (on top)
+      setGadgets(prev => {
+        const gadget = prev.find(g => g.id === id);
+        if (!gadget) return prev;
+        return [...prev.filter(g => g.id !== id), gadget];
+      });
+    }
   };
 
   const handleZoomIn = () => {
@@ -393,7 +413,7 @@ export default function Canvas() {
             scale: scale,
           }}
         >
-          {gadgets.map((gadget) => (
+          {gadgets.map((gadget, index) => (
             <GadgetWrapper
               key={gadget.id}
               id={gadget.id}
@@ -401,6 +421,9 @@ export default function Canvas() {
               config={gadget.config}
               onRemove={handleRemoveGadget}
               onDragEnd={handleGadgetDragEnd}
+              onSelect={handleGadgetSelect}
+              isSelected={gadget.id === selectedGadgetId}
+              zIndex={index + 1}
             >
               {getGadgetContent(gadget, gadget.id, gadget.position)}
             </GadgetWrapper>
