@@ -83,20 +83,22 @@ const StyledTable = styled(Table)`
     padding: 4px 8px;
     font-size: 0.75rem;
     line-height: 1.25;
-    height: 28px; // Altura fixa para cada linha
+    height: 28px;
   }
 
   thead {
     position: sticky;
     top: 0;
-    background: #f8fafc;
     z-index: 1;
+  }
+
+  thead tr {
+    background: white;
   }
 
   th {
     font-weight: 500;
     color: #64748b;
-    background: #f8fafc;
   }
 
   td {
@@ -244,6 +246,23 @@ const buildTimesheetQuery = (slugs: string[]) => {
   `;
 };
 
+const ValueCell = styled(TableCell)<{ percentage: number }>`
+  position: relative;
+  background: none !important;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: ${props => props.percentage}%;
+    background: #f8fafc;
+    z-index: -1;
+  }
+`;
+
 export function ByClientGadget({ id, position, type, config }: ByClientGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
@@ -310,10 +329,15 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
     if (!data) return [];
     return Object.keys(data)
       .filter(key => key.startsWith('t'))
-      .map(key => ({
-        period: selectedPeriods.find(p => p.value === data[key].slug)?.label || '',
-        data: data[key].byClient.data
-      }));
+      .map(key => {
+        const periodData = data[key].byClient.data;
+        const total = periodData.reduce((sum: number, client: ClientData) => sum + client.totalHours, 0);
+        return {
+          period: selectedPeriods.find(p => p.value === data[key].slug)?.label || '',
+          data: periodData,
+          total
+        };
+      });
   }, [data, selectedPeriods]);
 
   if (!client) {
@@ -411,9 +435,11 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
           <StyledTable>
             <TableHeader>
               <TableRow>
-                <TableHead>Client</TableHead>
+                <TableCell></TableCell>
                 {selectedPeriods.map((period, index) => (
-                  <TableHead key={index} className="text-right">{period.label}</TableHead>
+                  <TableCell key={index} className="font-medium">
+                    {period.label}
+                  </TableCell>
                 ))}
               </TableRow>
             </TableHeader>
@@ -421,11 +447,15 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
               {clientDataByPeriod[0]?.data.map((client: ClientData, rowIndex: number) => (
                 <TableRow key={rowIndex}>
                   <TableCell>{client.name}</TableCell>
-                  {clientDataByPeriod.map((period, colIndex) => (
-                    <TableCell key={colIndex}>
-                      {period.data[rowIndex]?.totalHours || 0}
-                    </TableCell>
-                  ))}
+                  {clientDataByPeriod.map((period, colIndex) => {
+                    const value = period.data[rowIndex]?.totalHours || 0;
+                    const percentage = (value / period.total) * 100;
+                    return (
+                      <ValueCell key={colIndex} percentage={percentage}>
+                        {value}
+                      </ValueCell>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableBody>
