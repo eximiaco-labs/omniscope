@@ -177,6 +177,18 @@ interface ClientData {
   totalHours: number;
 }
 
+interface PeriodData {
+  period: string;
+  data: ClientData[];
+  total: number;
+}
+
+interface FilterableField {
+  field: string;
+  selectedValues: string[];
+  options: string[];
+}
+
 const generateMonthYearOptions = () => {
   const options = [];
   const currentDate = new Date();
@@ -278,6 +290,52 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
     return buildTimesheetQuery(slugs);
   }, [selectedPeriods]);
 
+  const { loading, error, data } = useQuery(query, {
+    client: client ?? undefined,
+    variables: { 
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
+    },
+    skip: selectedPeriods.length === 0 || !client,
+    fetchPolicy: "network-only",
+  });
+
+  const mergedFilterableFields = useMemo(() => {
+    if (!data) return [];
+
+    // Collect all filterableFields from all periods
+    const fieldsByName = new Map<string, {
+      field: string;
+      selectedValues: string[];
+      options: Set<string>;
+    }>();
+
+    Object.keys(data)
+      .filter(key => key.startsWith('t'))
+      .forEach(key => {
+        const fields = data[key].filterableFields || [];
+        fields.forEach((field: FilterableField) => {
+          if (!fieldsByName.has(field.field)) {
+            fieldsByName.set(field.field, {
+              field: field.field,
+              selectedValues: field.selectedValues,
+              options: new Set(field.options)
+            });
+          } else {
+            // Merge options from this period with existing options
+            const existingField = fieldsByName.get(field.field)!;
+            field.options.forEach(option => existingField.options.add(option));
+          }
+        });
+      });
+
+    // Convert the map values to array and sort options
+    return Array.from(fieldsByName.values()).map(field => ({
+      field: field.field,
+      selectedValues: field.selectedValues,
+      options: Array.from(field.options).sort()
+    }));
+  }, [data]);
+
   const handleSlugChange = (value: Option | Option[] | null) => {
     const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
     setSelectedPeriods(newSelectedValues);
@@ -295,7 +353,7 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.t0?.filterableFields?.reduce((acc: any[], field: any) => {
+      mergedFilterableFields?.reduce((acc: any[], field: FilterableField) => {
         const fieldValues = newSelectedValues
           .filter(
             (v) =>
@@ -316,27 +374,49 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
     setFormattedSelectedValues(formattedValues);
   };
 
-  const { loading, error, data } = useQuery(query, {
-    client: client ?? undefined,
-    variables: { 
-      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
-    },
-    skip: selectedPeriods.length === 0 || !client,
-    fetchPolicy: "network-only",
-  });
-
   const clientDataByPeriod = useMemo(() => {
     if (!data) return [];
+
+    // First, collect all unique client names across all periods
+    const allClientNames = new Set<string>();
+    Object.keys(data)
+      .filter(key => key.startsWith('t'))
+      .forEach(key => {
+        data[key].byClient.data.forEach((client: ClientData) => {
+          allClientNames.add(client.name);
+        });
+      });
+
+    // Sort client names alphabetically for consistent order
+    const sortedClientNames = Array.from(allClientNames).sort();
+
+    // Process each period's data
     return Object.keys(data)
       .filter(key => key.startsWith('t'))
       .map(key => {
         const periodData = data[key].byClient.data;
-        const total = periodData.reduce((sum: number, client: ClientData) => sum + client.totalHours, 0);
+        
+        // Create a map of client name to hours for quick lookup
+        const clientHoursMap = new Map<string, number>(
+          periodData.map((client: ClientData) => [client.name, client.totalHours])
+        );
+
+        // Create complete client data array with zeros for missing clients
+        const completeClientData: ClientData[] = sortedClientNames.map(clientName => ({
+          name: clientName,
+          totalHours: clientHoursMap.get(clientName) || 0
+        }));
+
+        const total = completeClientData.reduce(
+          (sum: number, client: ClientData) => sum + client.totalHours,
+          0
+        );
+
         return {
           period: selectedPeriods.find(p => p.value === data[key].slug)?.label || '',
-          data: periodData,
+          data: completeClientData,
           total
-        };
+        } as PeriodData;
       });
   }, [data, selectedPeriods]);
 
@@ -423,7 +503,7 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
         </StyledSelectWrapper>
 
         <FilterFieldsSelect
-          data={data?.t0}
+          data={{ filterableFields: mergedFilterableFields }}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />

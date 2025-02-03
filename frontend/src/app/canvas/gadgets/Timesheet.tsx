@@ -306,6 +306,12 @@ const StyledSelectWrapper = styled.div`
   }
 `;
 
+interface FilterableField {
+  field: string;
+  selectedValues: string[];
+  options: string[];
+}
+
 interface TimesheetGadgetProps extends GadgetProps {
   config: TimesheetGadgetConfig;
 }
@@ -334,6 +340,43 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
     fetchPolicy: "network-only",
   });
 
+  const mergedFilterableFields = useMemo(() => {
+    if (!data) return [];
+
+    // Collect all filterableFields from all periods
+    const fieldsByName = new Map<string, {
+      field: string;
+      selectedValues: string[];
+      options: Set<string>;
+    }>();
+
+    Object.keys(data)
+      .filter(key => key.startsWith('t'))
+      .forEach(key => {
+        const fields = data[key].filterableFields || [];
+        fields.forEach((field: FilterableField) => {
+          if (!fieldsByName.has(field.field)) {
+            fieldsByName.set(field.field, {
+              field: field.field,
+              selectedValues: field.selectedValues,
+              options: new Set(field.options)
+            });
+          } else {
+            // Merge options from this period with existing options
+            const existingField = fieldsByName.get(field.field)!;
+            field.options.forEach(option => existingField.options.add(option));
+          }
+        });
+      });
+
+    // Convert the map values to array and sort options
+    return Array.from(fieldsByName.values()).map(field => ({
+      field: field.field,
+      selectedValues: field.selectedValues,
+      options: Array.from(field.options).sort()
+    }));
+  }, [data]);
+
   const summaries = useMemo(() => {
     if (!data) return [];
     return Object.keys(data)
@@ -347,6 +390,9 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
   const handleSlugChange = (value: Option | Option[] | null) => {
     const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
     setSelectedPeriods(newSelectedValues);
+    // Reset filters when changing the dataset
+    setSelectedFilters([]);
+    setFormattedSelectedValues([]);
   };
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
@@ -358,7 +404,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.t0?.filterableFields?.reduce((acc: any[], field: any) => {
+      mergedFilterableFields?.reduce((acc: any[], field: FilterableField) => {
         const fieldValues = newSelectedValues
           .filter(
             (v) =>
@@ -464,7 +510,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
         </StyledSelectWrapper>
 
         <FilterFieldsSelect
-          data={data?.t0}
+          data={{ filterableFields: mergedFilterableFields }}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
