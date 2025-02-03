@@ -29,26 +29,28 @@ const PageWrapper = styled.div`
 `;
 
 const TopBar = styled.div`
-  height: 48px;
+  height: 56px;
   background: white;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 24px;
   justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 `;
 
 const ToolbarGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 `;
 
 const CanvasContainer = styled.div<{ isPanning: boolean }>`
   width: 100%;
-  height: calc(100% - 48px);
+  height: calc(100% - 56px);
   overflow: hidden;
   position: relative;
+  background-color: #f1f5f9;
   background-image: radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0);
   background-size: 40px 40px;
   cursor: ${props => props.isPanning ? 'grab' : 'default'};
@@ -60,16 +62,16 @@ const CanvasContainer = styled.div<{ isPanning: boolean }>`
 
 const CanvasControls = styled.div`
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   z-index: 1000;
   background: white;
-  padding: 12px;
+  padding: 8px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 `;
 
 const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'icon' }>`
@@ -80,13 +82,14 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'icon' }>`
     return 'white';
   }};
   color: ${props => props.variant === 'primary' ? 'white' : props.variant === 'icon' ? '#64748b' : '#1e293b'};
-  border: 1px solid ${props => props.variant === 'icon' ? 'transparent' : '#e2e8f0'};
+  border: 1px solid ${props => props.variant === 'icon' ? 'transparent' : props.variant === 'primary' ? '#3b82f6' : '#e2e8f0'};
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 14px;
+  font-weight: 500;
   transition: all 0.2s;
 
   &:hover {
@@ -95,6 +98,11 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'icon' }>`
       if (props.variant === 'icon') return '#f1f5f9';
       return '#f8fafc';
     }};
+    border-color: ${props => props.variant === 'primary' ? '#2563eb' : '#cbd5e1'};
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 
   svg {
@@ -147,7 +155,7 @@ const getGadgetContent = (gadget: Gadget, id: string, position: Position) => {
 };
 
 const gadgetDimensions = {
-  [GadgetType.TIMESHEET]: { width: 400, height: 400 },
+  [GadgetType.TIMESHEET]: { width: 600, height: 300 },
   [GadgetType.BY_CLIENT]: { width: 400, height: 400 }
 } as const;
 

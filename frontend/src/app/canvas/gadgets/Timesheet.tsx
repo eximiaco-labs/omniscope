@@ -95,26 +95,38 @@ const buildTimesheetQuery = (slugs: string[]) => {
 };
 
 const Container = styled.div`
-  min-width: 400px;
+  min-width: 480px;
   padding: 8px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  font-size: 0.75rem;
+`;
+
+const Controls = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const SelectWrapper = styled.div`
+  flex: 1;
+  min-width: 0;
 `;
 
 const TableWrapper = styled.div`
-  margin-top: 1rem;
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 `;
 
 const FormLabel = styled.label`
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 `;
 
 const slugToTitle = (slug: string): string => {
@@ -162,32 +174,127 @@ const generateMonthYearOptions = () => {
 };
 
 const SelectedPeriodsContainer = styled.div`
-  margin-top: 0.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  overflow: hidden;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 4px;
 `;
 
 const SelectedPeriod = styled.div`
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+  font-size: 0.6875rem;
+  color: #475569;
+  gap: 3px;
+  cursor: grab;
+  
+  &:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+  }
+`;
+
+const TableHeader = styled.div`
   display: flex;
   align-items: center;
-  padding: 0.5rem;
-  background: white;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
+  cursor: grab;
   
-  &:last-child {
-    border-bottom: none;
+  &:hover {
+    background: #f1f5f9;
   }
 `;
 
 const DragHandle = styled.div`
-  cursor: grab;
-  padding: 0.25rem;
-  margin-right: 0.5rem;
   color: #94a3b8;
+  display: flex;
+  align-items: center;
   
-  &:hover {
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+`;
+
+const Section = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const SectionTitle = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 4px;
+
+  h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.6875rem;
     color: #64748b;
+    margin: 0;
+  }
+`;
+
+const StyledTable = styled(Table)`
+  th, td {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    line-height: 1.25;
+  }
+
+  th {
+    font-weight: 500;
+    color: #64748b;
+    background: #f8fafc;
+  }
+
+  td {
+    color: #1e293b;
+  }
+
+  tr:hover td {
+    background: #f8fafc;
+  }
+
+  td:first-child {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  td:not(:first-child) {
+    text-align: right;
+  }
+`;
+
+const StyledSelectWrapper = styled.div`
+  .select-button {
+    height: 24px !important;
+    min-height: 24px !important;
+    font-size: 0.75rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .select-menu {
+    font-size: 0.75rem !important;
+  }
+
+  .select-option {
+    font-size: 0.75rem !important;
   }
 `;
 
@@ -232,12 +339,6 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
   const handleSlugChange = (value: Option | Option[] | null) => {
     const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
     setSelectedPeriods(newSelectedValues);
-    
-    if (newSelectedValues.length > 0) {
-      // Reset filters when changing the dataset
-      setSelectedFilters([]);
-      setFormattedSelectedValues([]);
-    }
   };
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
@@ -270,16 +371,6 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
     setFormattedSelectedValues(formattedValues);
   };
 
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
-
-    const items = Array.from(selectedPeriods);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    setSelectedPeriods(items);
-  };
-
   if (!client) {
     return (
       <Container>
@@ -296,16 +387,18 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
             <FormLabel>Dataset Period</FormLabel>
-            <SelectComponent
-              value={selectedPeriods}
-              options={monthYearOptions}
-              onChange={handleSlugChange}
-              primaryColor={""}
-              isSearchable={true}
-              isClearable={true}
-              isMultiple={true}
-              placeholder="Select dataset period..."
-            />
+            <StyledSelectWrapper>
+              <SelectComponent
+                value={selectedPeriods}
+                options={monthYearOptions}
+                onChange={handleSlugChange}
+                primaryColor={""}
+                isSearchable={true}
+                isClearable={true}
+                isMultiple={true}
+                placeholder="Select period..."
+              />
+            </StyledSelectWrapper>
           </div>
           <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
             Please select at least one period to view the timesheet data
@@ -348,8 +441,8 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
 
   return (
     <Container>
-      <div className="space-y-4">
-        <div className="flex flex-col gap-2">
+      <Controls>
+        <StyledSelectWrapper>
           <SelectComponent
             value={selectedPeriods}
             options={monthYearOptions}
@@ -358,163 +451,131 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
             isSearchable={true}
             isClearable={true}
             isMultiple={true}
-            placeholder="Select dataset period..."
+            placeholder="Select period..."
           />
-          
-          {selectedPeriods.length > 0 && (
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="periods">
-                {(provided) => (
-                  <SelectedPeriodsContainer
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                  >
-                    {selectedPeriods.map((period, index) => (
-                      <Draggable key={period.value} draggableId={period.value} index={index}>
-                        {(provided) => (
-                          <SelectedPeriod
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                          >
-                            <DragHandle {...provided.dragHandleProps}>
-                              <GripVertical size={16} />
-                            </DragHandle>
-                            {period.label}
-                          </SelectedPeriod>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </SelectedPeriodsContainer>
-                )}
-              </Droppable>
-            </DragDropContext>
-          )}
-        </div>
+        </StyledSelectWrapper>
 
         <FilterFieldsSelect
           data={data?.t0}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
+      </Controls>
+
+      <div>
+        <SectionHeader title="Hours Distribution" subtitle="By Type" />
+        <TableWrapper>
+          <StyledTable>
+            <TableBody>
+              <TableRow>
+                <TableCell></TableCell>
+                {selectedPeriods.map((period, index) => (
+                  <TableCell key={index} className="font-medium">
+                    {period.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Consulting</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.totalConsultingHours}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Internal</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.totalInternalHours}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Hands-on</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.totalHandsOnHours}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Squad</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.totalSquadHours}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </StyledTable>
+        </TableWrapper>
       </div>
 
-      <div className="mt-4 space-y-6">
-        <div>
-          <SectionHeader title="Hours Distribution" subtitle="By Type" />
-          <TableWrapper>
-            <Table>
-              <TableBody>
-                <TableRow className="border-b">
-                  <TableCell className="text-muted-foreground font-medium"></TableCell>
-                  {selectedPeriods.map((period, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {period.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Consulting Hours</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.totalConsultingHours}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Internal Hours</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.totalInternalHours}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Hands-on Hours</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.totalHandsOnHours}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Squad Hours</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.totalSquadHours}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableWrapper>
-        </div>
-
-        <div>
-          <SectionHeader title="Engagement Metrics" subtitle="Overview" />
-          <TableWrapper>
-            <Table>
-              <TableBody>
-                <TableRow className="border-b">
-                  <TableCell className="text-muted-foreground font-medium"></TableCell>
-                  {selectedPeriods.map((period, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {period.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Unique Clients</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.uniqueClients}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Unique Sponsors</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.uniqueSponsors}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Unique Cases</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.uniqueCases}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Working Days</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.uniqueWorkingDays}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Active Workers</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.uniqueWorkers}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-muted-foreground">Account Managers</TableCell>
-                  {summaries.map((item, index) => (
-                    <TableCell key={index} className="text-right font-medium text-foreground">
-                      {item.summary.uniqueAccountManagers}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableWrapper>
-        </div>
+      <div>
+        <SectionHeader title="Engagement Metrics" subtitle="Overview" />
+        <TableWrapper>
+          <StyledTable>
+            <TableBody>
+              <TableRow>
+                <TableCell></TableCell>
+                {selectedPeriods.map((period, index) => (
+                  <TableCell key={index} className="font-medium">
+                    {period.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Clients</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.uniqueClients}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Sponsors</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.uniqueSponsors}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Cases</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.uniqueCases}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Days</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.uniqueWorkingDays}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Workers</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.uniqueWorkers}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow>
+                <TableCell>Managers</TableCell>
+                {summaries.map((item, index) => (
+                  <TableCell key={index}>
+                    {item.summary.uniqueAccountManagers}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </StyledTable>
+        </TableWrapper>
       </div>
     </Container>
   );
