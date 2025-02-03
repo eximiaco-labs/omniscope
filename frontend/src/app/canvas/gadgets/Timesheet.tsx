@@ -153,7 +153,15 @@ const generateMonthYearOptions = () => {
   const currentDate = new Date();
   const startDate = new Date(2024, 0); // January 2024
 
-  // Add special options in the desired order
+  // Add special options in the desired order (ascending)
+  const twoMonthsAgo = new Date();
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+  const twoMonthsAgoName = twoMonthsAgo.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+  const twoMonthsAgoYear = twoMonthsAgo.getFullYear();
+  options.push({ 
+    label: `${twoMonthsAgoName.charAt(0).toUpperCase() + twoMonthsAgoName.slice(1)} ${twoMonthsAgoYear}`, 
+    value: `${twoMonthsAgoName}-${twoMonthsAgoYear}` 
+  });
   options.push({ label: "Previous Month", value: "previous-month" });
   options.push({ label: "This Month", value: "this-month" });
 

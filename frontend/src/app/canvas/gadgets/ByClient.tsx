@@ -8,6 +8,7 @@ import React, { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
 import { Option } from "react-tailwindcss-select/dist/components/type";
+import SectionHeader from "@/components/SectionHeader";
 import {
   Select,
   SelectContent,
@@ -27,40 +28,35 @@ import {
 import {
   GadgetType,
   ByClientGadgetConfig,
-  GadgetSettingsProps,
   GadgetProps,
 } from "./types";
 import { TimesheetResponse, TimesheetByClient } from "./types/timesheet";
-
-const GET_TIMESHEET = gql`
-  query GetTimesheet($slug: String!, $filters: [DatasetFilterInput]) {
-    timesheet(slug: $slug, filters: $filters) {
-      byClient {
-        data {
-          name
-          totalHours
-        }
-      }
-      filterableFields {
-        field
-        selectedValues
-        options
-      }
-    }
-  }
-`;
+import SelectComponent from "react-tailwindcss-select";
 
 const Container = styled.div`
-  min-width: 400px;
+  min-width: 480px;
   padding: 8px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  font-size: 0.75rem;
 `;
 
-const TableWrapper = styled.div<{ shouldScroll: boolean }>`
-  margin-top: 1rem;
-  max-height: ${props => props.shouldScroll ? '400px' : 'auto'};
-  overflow-y: ${props => props.shouldScroll ? 'auto' : 'visible'};
+const Controls = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const TableWrapper = styled.div`
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  
+  // Altura máxima para 15 linhas (15 * 28px por linha + cabeçalho)
+  max-height: 448px;
+  overflow-y: auto;
 
   /* Scrollbar styling */
   &::-webkit-scrollbar {
@@ -79,6 +75,63 @@ const TableWrapper = styled.div<{ shouldScroll: boolean }>`
 
   &::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+  }
+`;
+
+const StyledTable = styled(Table)`
+  th, td {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    height: 28px; // Altura fixa para cada linha
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    z-index: 1;
+  }
+
+  th {
+    font-weight: 500;
+    color: #64748b;
+    background: #f8fafc;
+  }
+
+  td {
+    color: #1e293b;
+  }
+
+  tr:hover td {
+    background: #f8fafc;
+  }
+
+  td:first-child {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  td:not(:first-child) {
+    text-align: right;
+  }
+`;
+
+const StyledSelectWrapper = styled.div`
+  .select-button {
+    height: 24px !important;
+    min-height: 24px !important;
+    font-size: 0.75rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .select-menu {
+    font-size: 0.75rem !important;
+  }
+
+  .select-option {
+    font-size: 0.75rem !important;
   }
 `;
 
@@ -113,31 +166,6 @@ const slugToTitle = (slug: string): string => {
     .join(" ");
 };
 
-export function ByClientSettings({
-  config,
-  onChange,
-}: GadgetSettingsProps<ByClientGadgetConfig>) {
-  return (
-    <FormGroup>
-      <FormLabel htmlFor="slug">Dataset Slug</FormLabel>
-      <Input
-        id="slug"
-        value={config.slug}
-        onChange={(e) => {
-          const newSlug = e.target.value;
-          onChange({
-            ...config,
-            type: GadgetType.BY_CLIENT,
-            slug: newSlug,
-            title: slugToTitle(newSlug),
-          });
-        }}
-        placeholder="Enter dataset slug (e.g., previous-month)"
-      />
-    </FormGroup>
-  );
-}
-
 interface ByClientGadgetProps extends GadgetProps {
   config: ByClientGadgetConfig;
 }
@@ -168,23 +196,75 @@ const generateMonthYearOptions = () => {
   return options.reverse(); // Most recent first
 };
 
-export function ByClientGadget({ id, position, type, config, onConfigure }: ByClientGadgetProps) {
+const buildTimesheetQuery = (slugs: string[]) => {
+  if (slugs.length === 0) {
+    return gql`
+      query GetTimesheet($filters: [DatasetFilterInput]) {
+        t0: timesheet(slug: "", filters: $filters) {
+          byClient {
+            data {
+              name
+              totalHours
+            }
+          }
+          filterableFields {
+            field
+            selectedValues
+            options
+          }
+        }
+      }
+    `;
+  }
+
+  const queryString = slugs
+    .map(
+      (slug, index) => `
+        t${index}: timesheet(slug: "${slug}", filters: $filters) {
+          byClient {
+            data {
+              name
+              totalHours
+            }
+          }
+          filterableFields {
+            field
+            selectedValues
+            options
+          }
+        }
+      `
+    )
+    .join("\n");
+
+  return gql`
+    query GetTimesheet($filters: [DatasetFilterInput]) {
+      ${queryString}
+    }
+  `;
+};
+
+export function ByClientGadget({ id, position, type, config }: ByClientGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [selectedPeriods, setSelectedPeriods] = useState<Option[]>(config.selectedPeriods || []);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >([]);
 
   const monthYearOptions = useMemo(() => generateMonthYearOptions(), []);
 
-  const handleSlugChange = (newSlug: string) => {
+  const query = useMemo(() => {
+    const slugs = selectedPeriods.map(p => p.value);
+    return buildTimesheetQuery(slugs);
+  }, [selectedPeriods]);
+
+  const handleSlugChange = (value: Option | Option[] | null) => {
+    const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
+    setSelectedPeriods(newSelectedValues);
     // Reset filters when changing the dataset
     setSelectedFilters([]);
     setFormattedSelectedValues([]);
-    
-    // Update the config
-    config.slug = newSlug;
-    config.title = slugToTitle(newSlug);
   };
 
   const handleFilterChange = (value: Option | Option[] | null): void => {
@@ -196,7 +276,7 @@ export function ByClientGadget({ id, position, type, config, onConfigure }: ByCl
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.timesheet?.filterableFields?.reduce((acc: any[], field: any) => {
+      data?.t0?.filterableFields?.reduce((acc: any[], field: any) => {
         const fieldValues = newSelectedValues
           .filter(
             (v) =>
@@ -217,15 +297,24 @@ export function ByClientGadget({ id, position, type, config, onConfigure }: ByCl
     setFormattedSelectedValues(formattedValues);
   };
 
-  const { loading, error, data } = useQuery<TimesheetResponse>(GET_TIMESHEET, {
+  const { loading, error, data } = useQuery(query, {
     client: client ?? undefined,
     variables: { 
-      slug: config.slug,
       filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
     },
-    skip: !config.slug || !client,
+    skip: selectedPeriods.length === 0 || !client,
     fetchPolicy: "network-only",
   });
+
+  const clientDataByPeriod = useMemo(() => {
+    if (!data) return [];
+    return Object.keys(data)
+      .filter(key => key.startsWith('t'))
+      .map(key => ({
+        period: selectedPeriods.find(p => p.value === data[key].slug)?.label || '',
+        data: data[key].byClient.data
+      }));
+  }, [data, selectedPeriods]);
 
   if (!client) {
     return (
@@ -237,11 +326,27 @@ export function ByClientGadget({ id, position, type, config, onConfigure }: ByCl
     );
   }
 
-  if (!config.slug) {
+  if (selectedPeriods.length === 0) {
     return (
       <Container>
-        <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
-          Please configure the dataset slug in settings
+        <div className="space-y-4">
+          <Controls>
+            <StyledSelectWrapper>
+              <SelectComponent
+                value={selectedPeriods}
+                options={monthYearOptions}
+                onChange={handleSlugChange}
+                primaryColor={""}
+                isSearchable={true}
+                isClearable={true}
+                isMultiple={true}
+                placeholder="Select period..."
+              />
+            </StyledSelectWrapper>
+          </Controls>
+          <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
+            Please select at least one period to view the client data
+          </div>
         </div>
       </Container>
     );
@@ -251,86 +356,82 @@ export function ByClientGadget({ id, position, type, config, onConfigure }: ByCl
     return (
       <Container>
         <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
-          Loading timesheet data...
+          Loading client data...
         </div>
       </Container>
     );
   }
 
   if (error) {
-    console.error("Timesheet error:", error);
     return (
       <Container>
         <div style={{ padding: "1rem", textAlign: "center", color: "#ef4444" }}>
-          Error loading timesheet: {error.message}
+          Error loading data: {error.message}
         </div>
       </Container>
     );
   }
 
-  if (!data?.timesheet?.byClient?.data) {
+  if (!data?.t0) {
     return (
       <Container>
         <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
-          No data available for this timesheet
+          No data available for this period
         </div>
       </Container>
     );
   }
 
-  const clientData = data.timesheet.byClient.data as ClientData[];
-  const shouldScroll = clientData.length > 10;
-
   return (
     <Container>
-      <div className="space-y-4">
-        <div className="flex flex-col gap-2">
-          <FormLabel>Dataset Period</FormLabel>
-          <Select
-            value={config.slug}
-            onValueChange={handleSlugChange}
-          >
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder="Select month and year" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="this-month">This Month</SelectItem>
-              <SelectItem value="previous-month">Previous Month</SelectItem>
-              <SelectSeparator />
-              {monthYearOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <Controls>
+        <StyledSelectWrapper>
+          <SelectComponent
+            value={selectedPeriods}
+            options={monthYearOptions}
+            onChange={handleSlugChange}
+            primaryColor={""}
+            isSearchable={true}
+            isClearable={true}
+            isMultiple={true}
+            placeholder="Select period..."
+          />
+        </StyledSelectWrapper>
 
         <FilterFieldsSelect
-          data={data?.timesheet}
+          data={data?.t0}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
-      </div>
-      
-      <TableWrapper shouldScroll={shouldScroll}>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-semibold text-foreground">Client</TableHead>
-              <TableHead className="text-right font-semibold text-foreground">Total Hours</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clientData.map((client: ClientData, index: number) => (
-              <TableRow key={index}>
-                <TableCell className="text-muted-foreground">{client.name}</TableCell>
-                <TableCell className="text-right font-medium text-foreground">{client.totalHours}</TableCell>
+      </Controls>
+
+      <div>
+        <SectionHeader title="Hours Distribution" subtitle="By Client" />
+        <TableWrapper>
+          <StyledTable>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Client</TableHead>
+                {selectedPeriods.map((period, index) => (
+                  <TableHead key={index} className="text-right">{period.label}</TableHead>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableWrapper>
+            </TableHeader>
+            <TableBody>
+              {clientDataByPeriod[0]?.data.map((client: ClientData, rowIndex: number) => (
+                <TableRow key={rowIndex}>
+                  <TableCell>{client.name}</TableCell>
+                  {clientDataByPeriod.map((period, colIndex) => (
+                    <TableCell key={colIndex}>
+                      {period.data[rowIndex]?.totalHours || 0}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </StyledTable>
+        </TableWrapper>
+      </div>
     </Container>
   );
 } 

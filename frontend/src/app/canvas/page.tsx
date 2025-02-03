@@ -171,7 +171,51 @@ interface GadgetWrapperProps {
 }
 
 export default function Canvas() {
-  const [gadgets, setGadgets] = useState<Gadget[]>([]);
+  const [gadgets, setGadgets] = useState<Gadget[]>(() => {
+    // Calculate months
+    const now = new Date();
+    
+    // Two months ago
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(now.getMonth() - 2);
+    const twoMonthsAgoName = twoMonthsAgo.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+    const twoMonthsAgoYear = twoMonthsAgo.getFullYear();
+    const twoMonthsAgoSlug = `${twoMonthsAgoName}-${twoMonthsAgoYear}`;
+    const twoMonthsAgoLabel = `${twoMonthsAgoName.charAt(0).toUpperCase() + twoMonthsAgoName.slice(1)} ${twoMonthsAgoYear}`;
+
+    // Previous month
+    const previousMonth = new Date();
+    previousMonth.setMonth(now.getMonth() - 1);
+    const previousMonthName = previousMonth.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+    const previousMonthYear = previousMonth.getFullYear();
+    const previousMonthSlug = `${previousMonthName}-${previousMonthYear}`;
+    const previousMonthLabel = `${previousMonthName.charAt(0).toUpperCase() + previousMonthName.slice(1)} ${previousMonthYear}`;
+
+    // Current month
+    const currentMonthName = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+    const currentMonthYear = now.getFullYear();
+    const currentMonthSlug = `${currentMonthName}-${currentMonthYear}`;
+    const currentMonthLabel = `${currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1)} ${currentMonthYear}`;
+
+    // Create initial timesheet gadget
+    const initialGadget: Gadget = {
+      id: `${GadgetType.TIMESHEET}-${Date.now()}`,
+      type: GadgetType.TIMESHEET,
+      position: { x: 16, y: 16 },
+      config: {
+        type: GadgetType.TIMESHEET,
+        title: 'Timesheet',
+        selectedPeriods: [
+          { label: twoMonthsAgoLabel, value: twoMonthsAgoSlug },
+          { label: previousMonthLabel, value: previousMonthSlug },
+          { label: currentMonthLabel, value: currentMonthSlug }
+        ]
+      } as TimesheetGadgetConfig
+    };
+
+    return [initialGadget];
+  });
+
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -179,6 +223,11 @@ export default function Canvas() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const lastPosition = useRef<Position>({ x: 0, y: 0 });
+
+  // Remove the automatic zoom on mount
+  // useEffect(() => {
+  //   handleZoomAll();
+  // }, []);
 
   // Recalcula o zoom quando a janela é redimensionada e shouldAutoZoom é true
   useEffect(() => {
@@ -192,59 +241,50 @@ export default function Canvas() {
     return () => window.removeEventListener('resize', handleResize);
   }, [shouldAutoZoom, gadgets]);
 
-  const calculateBoundingBox = () => {
-    if (gadgets.length === 0) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
-
-    return gadgets.reduce((bounds, gadget) => {
-      const { x, y } = gadget.position;
-      const { width, height } = gadgetDimensions[gadget.type];
-
-      return {
-        minX: Math.min(bounds.minX, x),
-        minY: Math.min(bounds.minY, y),
-        maxX: Math.max(bounds.maxX, x + width),
-        maxY: Math.max(bounds.maxY, y + height),
-      };
-    }, {
-      minX: Infinity,
-      minY: Infinity,
-      maxX: -Infinity,
-      maxY: -Infinity,
-    });
-  };
-
   const handleZoomAll = () => {
-    if (gadgets.length === 0) {
-      setScale(1);
-      setPosition({ x: 0, y: 0 });
-      return;
-    }
+    if (!canvasRef.current || gadgets.length === 0) return;
 
-    const bounds = calculateBoundingBox();
-    const padding = 100;
+    // Get canvas dimensions
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const canvasWidth = canvasRect.width;
+    const canvasHeight = canvasRect.height;
 
-    const containerWidth = canvasRef.current?.clientWidth || window.innerWidth;
-    const containerHeight = canvasRef.current?.clientHeight || window.innerHeight;
+    // Calculate bounding box of all gadgets
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
-    const contentWidth = (bounds.maxX - bounds.minX) + (padding * 2);
-    const contentHeight = (bounds.maxY - bounds.minY) + (padding * 2);
+    gadgets.forEach(gadget => {
+      const dimensions = gadgetDimensions[gadget.type];
+      minX = Math.min(minX, gadget.position.x);
+      minY = Math.min(minY, gadget.position.y);
+      maxX = Math.max(maxX, gadget.position.x + dimensions.width);
+      maxY = Math.max(maxY, gadget.position.y + dimensions.height);
+    });
 
-    const scaleX = containerWidth / contentWidth;
-    const scaleY = containerHeight / contentHeight;
-    
-    const newScale = Math.min(scaleX, scaleY);
+    // Add padding
+    const padding = 48;
+    minX -= padding;
+    minY -= padding;
+    maxX += padding;
+    maxY += padding;
 
-    const contentCenterX = bounds.minX + (bounds.maxX - bounds.minX) / 2;
-    const contentCenterY = bounds.minY + (bounds.maxY - bounds.minY) / 2;
+    // Calculate required scale
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    const scaleX = canvasWidth / contentWidth;
+    const scaleY = canvasHeight / contentHeight;
+    const newScale = Math.min(Math.min(scaleX, scaleY), 1); // Cap at 1 to prevent zooming in too much
 
-    const newPosition = {
-      x: (containerWidth / 2) - (contentCenterX * newScale),
-      y: (containerHeight / 2) - (contentCenterY * newScale)
-    };
+    // Calculate position to center content
+    const scaledContentWidth = contentWidth * newScale;
+    const scaledContentHeight = contentHeight * newScale;
+    const newX = (canvasWidth - scaledContentWidth) / 2 - minX * newScale;
+    const newY = (canvasHeight - scaledContentHeight) / 2 - minY * newScale;
 
     setScale(newScale);
-    setPosition(newPosition);
-    setShouldAutoZoom(true); // Ativa o auto-zoom após o primeiro zoom total
+    setPosition({ x: newX, y: newY });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {

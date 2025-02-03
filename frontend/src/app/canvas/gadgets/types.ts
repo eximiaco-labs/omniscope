@@ -23,6 +23,7 @@ export interface TimesheetGadgetConfig extends BaseGadgetConfig {
 export interface ByClientGadgetConfig extends BaseGadgetConfig {
   type: GadgetType.BY_CLIENT;
   slug: string;
+  selectedPeriods?: Option[];
 }
 
 export type GadgetConfig = TimesheetGadgetConfig | ByClientGadgetConfig;
