@@ -1,6 +1,8 @@
+import { Option } from "react-tailwindcss-select/dist/components/type";
+
 export enum GadgetType {
-  TIMESHEET = 'timesheet',
-  BY_CLIENT = 'by-client'
+  TIMESHEET = 'TIMESHEET',
+  BY_CLIENT = 'BY_CLIENT'
 }
 
 export interface Position {
@@ -16,6 +18,7 @@ export interface BaseGadgetConfig {
 export interface TimesheetGadgetConfig extends BaseGadgetConfig {
   type: GadgetType.TIMESHEET;
   slug: string;
+  selectedPeriods?: Option[];
 }
 
 export interface ByClientGadgetConfig extends BaseGadgetConfig {

@@ -31,30 +31,67 @@ import {
   GadgetProps,
 } from "./types";
 
-const GET_TIMESHEET = gql`
-  query GetTimesheet($slug: String!, $filters: [DatasetFilterInput]) {
-    timesheet(slug: $slug, filters: $filters) {
-      summary {
-        totalConsultingHours
-        totalInternalHours
-        totalHandsOnHours
-        totalSquadHours
+const buildTimesheetQuery = (slugs: string[]) => {
+  if (slugs.length === 0) {
+    return gql`
+      query GetTimesheet($filters: [DatasetFilterInput]) {
+        t0: timesheet(slug: "", filters: $filters) {
+          summary {
+            totalConsultingHours
+            totalInternalHours
+            totalHandsOnHours
+            totalSquadHours
 
-        uniqueClients
-        uniqueSponsors
-        uniqueCases
-        uniqueWorkingDays
-        uniqueWorkers
-        uniqueAccountManagers
+            uniqueClients
+            uniqueSponsors
+            uniqueCases
+            uniqueWorkingDays
+            uniqueWorkers
+            uniqueAccountManagers
+          }
+          filterableFields {
+            field
+            selectedValues
+            options
+          }
+        }
       }
-      filterableFields {
-        field
-        selectedValues
-        options
-      }
-    }
+    `;
   }
-`;
+
+  const queryString = `
+    query GetTimesheet($filters: [DatasetFilterInput]) {
+      ${slugs
+        .map(
+          (slug, index) => `
+            t${index}: timesheet(slug: "${slug}", filters: $filters) {
+              summary {
+                totalConsultingHours
+                totalInternalHours
+                totalHandsOnHours
+                totalSquadHours
+
+                uniqueClients
+                uniqueSponsors
+                uniqueCases
+                uniqueWorkingDays
+                uniqueWorkers
+                uniqueAccountManagers
+              }
+              filterableFields {
+                field
+                selectedValues
+                options
+              }
+            }
+          `
+        )
+        .join("\n")}
+    }
+  `;
+
+  return gql(queryString);
+};
 
 const Container = styled.div`
   min-width: 400px;
@@ -132,9 +169,9 @@ const generateMonthYearOptions = () => {
   const currentDate = new Date();
   const startDate = new Date(2024, 0); // January 2024
 
-  // Add special options
-  options.push({ label: "This Month", value: "this-month" });
+  // Add special options in the desired order
   options.push({ label: "Previous Month", value: "previous-month" });
+  options.push({ label: "This Month", value: "this-month" });
 
   while (startDate <= currentDate) {
     const monthName = startDate.toLocaleString('en-US', { month: 'long' }).toLowerCase();
@@ -155,12 +192,36 @@ const generateMonthYearOptions = () => {
 export function TimesheetGadget({ id, position, type, config, onConfigure }: TimesheetGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
-  const [selectedPeriods, setSelectedPeriods] = useState<Option[]>([]);
+  const [selectedPeriods, setSelectedPeriods] = useState<Option[]>(config.selectedPeriods || []);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >([]);
 
   const monthYearOptions = useMemo(() => generateMonthYearOptions(), []);
+
+  const query = useMemo(() => {
+    const slugs = selectedPeriods.map(p => p.value);
+    return buildTimesheetQuery(slugs);
+  }, [selectedPeriods]);
+
+  const { loading, error, data } = useQuery(query, {
+    client: client ?? undefined,
+    variables: { 
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
+    },
+    skip: selectedPeriods.length === 0 || !client,
+    fetchPolicy: "network-only",
+  });
+
+  const summaries = useMemo(() => {
+    if (!data) return [];
+    return Object.keys(data)
+      .filter(key => key.startsWith('t'))
+      .map(key => ({
+        period: selectedPeriods.find(p => p.value === data[key].slug)?.label || '',
+        summary: data[key].summary
+      }));
+  }, [data, selectedPeriods]);
 
   const handleSlugChange = (value: Option | Option[] | null) => {
     const newSelectedValues = Array.isArray(value) ? value : value ? [value] : [];
@@ -171,14 +232,31 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
       setSelectedFilters([]);
       setFormattedSelectedValues([]);
       
-      // Update the config using the first selected value
-      const firstValue = newSelectedValues[0];
-      config.slug = firstValue.value;
-      config.title = slugToTitle(firstValue.value);
+      // Update the config
+      onConfigure({
+        id,
+        type,
+        position,
+        config: {
+          ...config,
+          selectedPeriods: newSelectedValues,
+          slug: newSelectedValues[0].value,
+          title: slugToTitle(newSelectedValues[0].value)
+        }
+      });
     } else {
       // Clear the config when no period is selected
-      config.slug = "";
-      config.title = "";
+      onConfigure({
+        id,
+        type,
+        position,
+        config: {
+          ...config,
+          selectedPeriods: [],
+          slug: "",
+          title: ""
+        }
+      });
     }
   };
 
@@ -191,7 +269,7 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     setSelectedFilters(newSelectedValues);
 
     const formattedValues =
-      data?.timesheet?.filterableFields?.reduce((acc: any[], field: any) => {
+      data?.t0?.filterableFields?.reduce((acc: any[], field: any) => {
         const fieldValues = newSelectedValues
           .filter(
             (v) =>
@@ -211,16 +289,6 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
 
     setFormattedSelectedValues(formattedValues);
   };
-
-  const { loading, error, data } = useQuery(GET_TIMESHEET, {
-    client: client ?? undefined,
-    variables: { 
-      slug: config.slug,
-      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
-    },
-    skip: !config.slug || !client,
-    fetchPolicy: "network-only",
-  });
 
   if (!client) {
     return (
@@ -278,7 +346,7 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
     );
   }
 
-  if (!data?.timesheet?.summary) {
+  if (!data?.t0) {
     return (
       <Container>
         <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
@@ -287,8 +355,6 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
       </Container>
     );
   }
-
-  const summary = data.timesheet.summary;
 
   return (
     <Container>
@@ -307,7 +373,7 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
         </div>
 
         <FilterFieldsSelect
-          data={data?.timesheet}
+          data={data?.t0}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
@@ -319,21 +385,45 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
           <TableWrapper>
             <Table>
               <TableBody>
+                <TableRow className="border-b">
+                  <TableCell className="text-muted-foreground font-medium"></TableCell>
+                  {selectedPeriods.map((period, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {period.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Consulting Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalConsultingHours}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.totalConsultingHours}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Internal Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalInternalHours}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.totalInternalHours}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Hands-on Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalHandsOnHours}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.totalHandsOnHours}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Squad Hours</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.totalSquadHours}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.totalSquadHours}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableBody>
             </Table>
@@ -345,29 +435,61 @@ export function TimesheetGadget({ id, position, type, config, onConfigure }: Tim
           <TableWrapper>
             <Table>
               <TableBody>
+                <TableRow className="border-b">
+                  <TableCell className="text-muted-foreground font-medium"></TableCell>
+                  {selectedPeriods.map((period, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {period.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Unique Clients</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueClients}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.uniqueClients}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Unique Sponsors</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueSponsors}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.uniqueSponsors}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Unique Cases</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueCases}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.uniqueCases}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Working Days</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueWorkingDays}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.uniqueWorkingDays}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Active Workers</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueWorkers}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.uniqueWorkers}
+                    </TableCell>
+                  ))}
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-muted-foreground">Account Managers</TableCell>
-                  <TableCell className="text-right font-medium text-foreground">{summary.uniqueAccountManagers}</TableCell>
+                  {summaries.map((item, index) => (
+                    <TableCell key={index} className="text-right font-medium text-foreground">
+                      {item.summary.uniqueAccountManagers}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableBody>
             </Table>

@@ -110,7 +110,11 @@ const getInitialConfig = (type: GadgetType): GadgetConfig => {
       return {
         title: 'Timesheet',
         type: GadgetType.TIMESHEET,
-        slug: 'previous-month'
+        slug: 'previous-month',
+        selectedPeriods: [
+          { label: "Previous Month", value: "previous-month" },
+          { label: "This Month", value: "this-month" }
+        ]
       } as TimesheetGadgetConfig;
     case GadgetType.BY_CLIENT:
       return {
@@ -123,12 +127,24 @@ const getInitialConfig = (type: GadgetType): GadgetConfig => {
   }
 };
 
-const getGadgetContent = (gadget: Gadget) => {
+const getGadgetContent = (gadget: Gadget, id: string, position: Position, onConfigure: (gadget: Gadget) => void) => {
   switch (gadget.type) {
     case GadgetType.TIMESHEET:
-      return <TimesheetGadget config={gadget.config as TimesheetGadgetConfig} />;
+      return <TimesheetGadget 
+        id={id}
+        position={position}
+        type={gadget.type}
+        config={gadget.config as TimesheetGadgetConfig}
+        onConfigure={onConfigure}
+      />;
     case GadgetType.BY_CLIENT:
-      return <ByClientGadget config={gadget.config as ByClientGadgetConfig} />;
+      return <ByClientGadget 
+        id={id}
+        position={position}
+        type={gadget.type}
+        config={gadget.config as ByClientGadgetConfig}
+        onConfigure={onConfigure}
+      />;
     default:
       return null;
   }
@@ -258,13 +274,15 @@ export default function Canvas() {
   };
 
   const handleAddGadget = (type: GadgetType) => {
-    const newGadget: Gadget = {
-      id: `gadget-${Date.now()}`,
+    const gadget = {
+      id: `${type}-${Date.now()}`,
       type,
-      position: { x: Math.random() * 300, y: Math.random() * 300 },
+      position: { x: 100, y: 100 },
       config: getInitialConfig(type)
     };
-    setGadgets([...gadgets, newGadget]);
+
+    setGadgets(prev => [...prev, gadget]);
+    setShouldAutoZoom(true);
   };
 
   const handleRemoveGadget = (id: string) => {
@@ -337,9 +355,10 @@ export default function Canvas() {
             width: '100%',
             height: '100%',
             position: 'relative',
-            scale,
+            transformOrigin: '0 0',
             x: position.x,
             y: position.y,
+            scale: scale,
           }}
         >
           {gadgets.map((gadget) => (
@@ -347,13 +366,12 @@ export default function Canvas() {
               key={gadget.id}
               id={gadget.id}
               position={gadget.position}
-              type={gadget.type}
               config={gadget.config}
               onRemove={handleRemoveGadget}
               onDragEnd={handleGadgetDragEnd}
               onConfigure={handleConfigureGadget}
             >
-              {getGadgetContent(gadget)}
+              {getGadgetContent(gadget, gadget.id, gadget.position, handleConfigureGadget)}
             </GadgetWrapper>
           ))}
         </motion.div>
