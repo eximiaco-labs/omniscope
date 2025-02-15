@@ -3,8 +3,7 @@ import pandas as pd
 from typing import Dict, Any, List
 
 from omni_shared import globals
-from business_calendar import compute_business_calendar
-from domain.cases import build_case_dictionary
+from utils.business_calendar import compute_business_calendar
 
 from .models import (
     TimesheetBusinessDay,
@@ -152,9 +151,9 @@ def summarize_by_group(
         if group_column != 'Week' and map and 'byWeek' in map:
             summary.by_week = summarize_by_week(group_df, map['byWeek'])
 
-        if group_column == 'CaseTitle' and 'caseDetails' in map:
-            details_obj = globals.omni_models.cases.get_by_title(group_value)
-            summary.case_details = build_case_dictionary(map['caseDetails'], details_obj) if details_obj else {}
+        # if group_column == 'CaseTitle' and 'caseDetails' in map:
+        #     details_obj = globals.omni_models.cases.get_by_title(group_value)
+        #     summary.case_details = build_case_dictionary(map['caseDetails'], details_obj) if details_obj else {}
         
         if group_column == 'CaseTitle' and 'workers' in map:
             summary.workers = group_df['WorkerName'].unique().tolist()

@@ -11,10 +11,10 @@ function createApolloClient(session: any, version: 'default' | 'edge' = 'default
   
   const baseUrl = isLocalhost
     ? version === 'edge' 
-      ? "http://127.0.0.1:5000"
+      ? "http://127.0.0.1:5001"
       : "http://127.0.0.1:5001"
     : version === 'edge'
-      ? "https://edge.omniscope.eximia.co"
+      ? "https://omniscope.eximia.co"
       : "https://omniscope.eximia.co";
 
   // Create the appropriate link based on version
