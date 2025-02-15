@@ -19,7 +19,6 @@ import {
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
-import Logo from "./logo";
 
 import {
   getTeamSidebarItems,
@@ -39,7 +38,6 @@ import {
 } from "@/components/ui/tooltip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import OmniSidebarFooter from "./OmniSidebarFooter";
-import SectionHeader from "@/components/SectionHeader";
 import { OmniCommandsButton } from "./OmniCommands";
 import { LucideIcon } from "lucide-react";
 
@@ -51,6 +49,7 @@ import {
   faMagnifyingGlassDollar,
   faBookAtlas
 } from "@fortawesome/free-solid-svg-icons"
+import Logo from "./OmniLogo";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -174,6 +173,9 @@ export function OmniSidebar() {
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
+                <Link href="/home">
+                  <Logo />
+                </Link>
                 {(
                   [
                     hasFinancialAccess && {

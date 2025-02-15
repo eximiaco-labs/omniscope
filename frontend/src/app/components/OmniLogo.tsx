@@ -15,13 +15,15 @@ const Logo: React.FC<LogoProps> = ({
   height = 72 
 }) => {
   return (
-    <Image
-      src="/images/logo.png"
-      width={width}
-      height={height} 
-      className={className}
-      alt={alt}
-    />
+    <div style={{ backgroundColor: 'black', display: 'inline-block', borderRadius: '4px', padding: '4px' }}>
+      <Image
+        src="/images/logo.png"
+        width={width-4}
+        height={height-4} 
+        className={className}
+        alt={alt}
+      />
+    </div>
   );
 };
 
