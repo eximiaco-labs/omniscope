@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Optional, Dict
-
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 import omni_models.semantic.ontology as o
 import omni_models.syntactic.everhour as t
@@ -29,8 +28,9 @@ class Worker(BaseModel):
     ontology_info: Optional[o.Worker] = None
     tracker_info: Optional[t.User] = None
 
+    @computed_field
     @property
-    def errors(self):
+    def errors(self) -> list[str]:
         result = []
         if not self.ontology_info:
             result.append("NO PROFILE")
@@ -47,12 +47,14 @@ class Worker(BaseModel):
 
         return result
 
+    @computed_field
     @property
-    def is_recognized(self):
+    def is_recognized(self) -> bool:
         return self.ontology_info is not None
     
+    @computed_field
     @property
-    def is_todoist_only(self):
+    def is_todoist_only(self) -> bool:
         return (
             self.todoist_user_id is not None and 
             self.insights_user_id is None and 
@@ -62,12 +64,14 @@ class Worker(BaseModel):
             self.tracker_info is None
         )
     
+    @computed_field
     @property
-    def ontology_url(self) -> str:
+    def ontology_url(self) -> Optional[str]:
         if not self.ontology_info:
             return None
-        return self.ontology_info.link
-    
+        return str(self.ontology_info.link)
+
+    @computed_field
     @property
     def omni_url(self) -> str:
         if self.kind == WorkerKind.ACCOUNT_MANAGER:
@@ -75,27 +79,32 @@ class Worker(BaseModel):
         else:
             return f'consultants-and-engineers/{self.slug}'
 
+    @computed_field
     @property
-    def photo_url(self):
+    def photo_url(self) -> str:
         if self.is_recognized:
-            return self.ontology_info.photo_url
+            return str(self.ontology_info.photo_url)
         else:
             return '/images/who_is_it.jpeg'
 
+    @computed_field
     @property
-    def is_ontology_author(self):
+    def is_ontology_author(self) -> bool:
         return self.ontology_user_id is not None
     
+    @computed_field
     @property
-    def is_insights_author(self):
+    def is_insights_author(self) -> bool:
         return self.insights_user_id is not None
     
+    @computed_field
     @property
-    def is_time_tracker_worker(self):
+    def is_time_tracker_worker(self) -> bool:
         return self.tracker_info is not None
 
+    @computed_field
     @property
-    def is_special_projects_worker(self):
+    def is_special_projects_worker(self) -> bool:
         return self.todoist_user_id is not None
 
 

@@ -63,29 +63,29 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
 
   const calculateCaseTotal = (cases: any[]) => {
     return cases.reduce((sum, caseItem) => {
-      return sum + calculateProjectTotal(caseItem.byProject);
+      return sum + calculateProjectTotal(caseItem.byProject.data);
     }, 0);
   };
 
   const calculateSponsorTotal = (sponsors: any[]) => {
     return sponsors.reduce((sum, sponsor) => {
-      return sum + calculateCaseTotal(sponsor.byCase);
+      return sum + calculateCaseTotal(sponsor.byCase.data);
     }, 0);
   };
 
   const calculateClientTotal = (clients: any[]) => {
     return clients.reduce((sum, client) => {
-      return sum + calculateSponsorTotal(client.bySponsor);
+      return sum + calculateSponsorTotal(client.bySponsor.data);
     }, 0);
   };
 
   const calculateManagerTotal = (managers: any[]) => {
     return managers.reduce((sum, manager) => {
-      return sum + calculateClientTotal(manager.byClient);
+      return sum + calculateClientTotal(manager.byClient.data);
     }, 0);
   };
 
-  const managers = data.revenueTracking.regular.monthly.byAccountManager;
+  const managers = data?.financial?.revenueTracking?.regular?.monthly?.byAccountManager?.data || [];
 
   return (
     <>
@@ -108,7 +108,7 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                 <TableRow key={manager.name} className="bg-gray-100">
                   <TableCell className="text-sm font-semibold">
                     {manager.slug ? (
-                      <Link href={`/about-us/account-managers/${manager.slug}`} className="text-blue-600 hover:underline">
+                      <Link href={`/team/account-managers/${manager.slug}`} className="text-blue-600 hover:underline">
                         {manager.name}
                       </Link>
                     ) : (
@@ -117,11 +117,11 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                   </TableCell>
                   <TableCell></TableCell>
                   <TableCell className="text-right">
-                    {formatCurrency(calculateClientTotal(manager.byClient))}
+                    {formatCurrency(calculateClientTotal(manager.byClient.data))}
                   </TableCell>
                 </TableRow>
 
-                {manager.byClient.map((client: any) => (
+                {manager.byClient.data.map((client: any) => (
                   <>
                     <TableRow
                       key={`${manager.name}-${client.name}`}
@@ -135,7 +135,7 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                           <ChevronRight size={16} />
                         )}
                         {client.slug ? (
-                          <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
+                          <Link href={`/engagements/clients/${client.slug}`} className="text-blue-600 hover:underline">
                             {client.name}
                           </Link>
                         ) : (
@@ -145,13 +145,13 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                       <TableCell></TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(
-                          calculateSponsorTotal(client.bySponsor)
+                          calculateSponsorTotal(client.bySponsor.data)
                         )}
                       </TableCell>
                     </TableRow>
 
                     {expandedClients.has(client.name) &&
-                      client.bySponsor.map((sponsor: any) => (
+                      client.bySponsor.data.map((sponsor: any) => (
                         <>
                           <TableRow
                             key={`${client.name}-${sponsor.name}`}
@@ -165,7 +165,7 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                                 <ChevronRight size={16} />
                               )}
                               {sponsor.slug ? (
-                                <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:underline">
+                                <Link href={`/engagements/sponsors/${sponsor.slug}`} className="text-blue-600 hover:underline">
                                   {sponsor.name}
                                 </Link>
                               ) : (
@@ -175,20 +175,20 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                             <TableCell></TableCell>
                             <TableCell className="text-right">
                               {formatCurrency(
-                                calculateCaseTotal(sponsor.byCase)
+                                calculateCaseTotal(sponsor.byCase.data)
                               )}
                             </TableCell>
                           </TableRow>
 
                           {expandedSponsors.has(sponsor.name) &&
-                            sponsor.byCase.map((caseItem: any) => (
+                            sponsor.byCase.data.map((caseItem: any) => (
                               <TableRow
                                 key={`${sponsor.name}-${caseItem.title}`}
                                 className="bg-gray-50"
                               >
                                 <TableCell className="pl-16 text-sm text-gray-600">
                                   {caseItem.slug ? (
-                                    <Link href={`/about-us/cases/${caseItem.slug}`} className="text-blue-600 hover:underline">
+                                    <Link href={`/engagements/cases/${caseItem.slug}`} className="text-blue-600 hover:underline">
                                       {caseItem.title}
                                     </Link>
                                   ) : (
@@ -198,7 +198,7 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                                 <TableCell>
                                   <table className="w-full text-xs border-collapse">
                                     <tbody>
-                                      {caseItem.byProject.map(
+                                      {caseItem.byProject.data.map(
                                         (project: any) => {
                                           const textColor =
                                             STAT_COLORS[
@@ -232,7 +232,7 @@ export function RegularRevenue({ data, date }: RegularRevenueProps) {
                                 </TableCell>
                                 <TableCell className="text-right">
                                   {formatCurrency(
-                                    calculateProjectTotal(caseItem.byProject)
+                                    calculateProjectTotal(caseItem.byProject.data)
                                   )}
                                 </TableCell>
                               </TableRow>

@@ -120,3 +120,16 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+html,
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

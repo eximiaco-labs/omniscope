@@ -2,35 +2,51 @@ import { gql } from "@apollo/client";
 
 export const PRO_RATA_QUERY = gql`
   query ProRata($dateOfInterest: Date!) {
-    revenueTracking(dateOfInterest: $dateOfInterest) {
-      month
-      year 
-      day
-      proRataInfo {
-        byKind {
-          kind
-          penalty
-          byAccountManager {
-            name
-            penalty
-            byClient {
-              name
+    financial {
+      revenueTracking(dateOfInterest: $dateOfInterest) {
+        month
+        year
+        day
+        proRataInfo {
+          byKind {
+            data {
+              kind
               penalty
-              bySponsor {
-                name
-                penalty
-                byCase {
-                  title
+              byAccountManager {
+                data {
+                  name
                   penalty
-                  byProject {
-                    name
-                    partialFee
-                    penalty
-                    byWorker {
+                  byClient {
+                    data {
                       name
-                      hours
-                      partialFee
                       penalty
+                      bySponsor {
+                        data {
+                          name
+                          penalty
+                          byCase {
+                            data {
+                              title
+                              penalty
+                              byProject {
+                                data {
+                                  name
+                                  partialFee
+                                  penalty
+                                  byWorker {
+                                    data {
+                                      name
+                                      hours
+                                      partialFee
+                                      penalty
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }

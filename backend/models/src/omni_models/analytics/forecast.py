@@ -1,8 +1,9 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from omni_utils.helpers.dates import get_same_day_one_month_ago, get_same_day_one_month_later, get_last_day_of_month, get_working_days_in_month
-from datetime import datetime
+from datetime import datetime, date
 import calendar
-from dataclasses import dataclass
+from pydantic import BaseModel
+from omni_models.analytics.revenue_tracking import RevenueTracking
 
 from omni_shared import globals
 from omni_models.analytics.revenue_tracking import compute_revenue_tracking
@@ -23,8 +24,7 @@ labels_expected = [
     'expected_' + labels_suffix_future[3]
 ]
 
-@dataclass
-class ForecastDates:
+class RevenueForecastDates(BaseModel):
     in_analysis: datetime
     same_day_one_month_ago: datetime
     last_day_of_one_month_ago: datetime
@@ -39,28 +39,33 @@ class ForecastDates:
     same_day_three_months_later: datetime
     last_day_of_three_months_later: datetime
     
-    def __init__(self, date_of_interest: datetime):
-        self.in_analysis = date_of_interest
-        self.same_day_one_month_ago = get_same_day_one_month_ago(date_of_interest)
-        self.last_day_of_one_month_ago = get_last_day_of_month(self.same_day_one_month_ago)
+    @classmethod
+    def build(cls, date_of_interest: datetime) -> 'RevenueForecastDates':
+        same_day_one_month_ago = get_same_day_one_month_ago(date_of_interest)
+        same_day_two_months_ago = get_same_day_one_month_ago(same_day_one_month_ago)
+        same_day_three_months_ago = get_same_day_one_month_ago(same_day_two_months_ago)
         
-        self.same_day_two_months_ago = get_same_day_one_month_ago(self.same_day_one_month_ago)
-        self.last_day_of_two_months_ago = get_last_day_of_month(self.same_day_two_months_ago)
+        same_day_one_month_later = get_same_day_one_month_later(date_of_interest)
+        same_day_two_months_later = get_same_day_one_month_later(same_day_one_month_later)
+        same_day_three_months_later = get_same_day_one_month_later(same_day_two_months_later)
         
-        self.same_day_three_months_ago = get_same_day_one_month_ago(self.same_day_two_months_ago)
-        self.last_day_of_three_months_ago = get_last_day_of_month(self.same_day_three_months_ago)
-        
-        self.same_day_one_month_later = get_same_day_one_month_later(date_of_interest)
-        self.last_day_of_one_month_later = get_last_day_of_month(self.same_day_one_month_later)
-        
-        self.same_day_two_months_later = get_same_day_one_month_later(self.same_day_one_month_later)
-        self.last_day_of_two_months_later = get_last_day_of_month(self.same_day_two_months_later)
-        
-        self.same_day_three_months_later = get_same_day_one_month_later(self.same_day_two_months_later)
-        self.last_day_of_three_months_later = get_last_day_of_month(self.same_day_three_months_later)
+        return cls(
+            in_analysis=date_of_interest,
+            same_day_one_month_ago=same_day_one_month_ago,
+            last_day_of_one_month_ago=get_last_day_of_month(same_day_one_month_ago),
+            same_day_two_months_ago=same_day_two_months_ago,
+            last_day_of_two_months_ago=get_last_day_of_month(same_day_two_months_ago),
+            same_day_three_months_ago=same_day_three_months_ago,
+            last_day_of_three_months_ago=get_last_day_of_month(same_day_three_months_ago),
+            same_day_one_month_later=same_day_one_month_later,
+            last_day_of_one_month_later=get_last_day_of_month(same_day_one_month_later),
+            same_day_two_months_later=same_day_two_months_later,
+            last_day_of_two_months_later=get_last_day_of_month(same_day_two_months_later),
+            same_day_three_months_later=same_day_three_months_later,
+            last_day_of_three_months_later=get_last_day_of_month(same_day_three_months_later)
+        )
 
-@dataclass 
-class ForecastNumberOfWorkingDays:
+class RevenueForecastNumberOfWorkingDays(BaseModel):
     in_analysis: int
     in_analysis_partial: int
     one_month_ago: int
@@ -76,52 +81,56 @@ class ForecastNumberOfWorkingDays:
     three_months_later: int
     same_day_three_months_later: int
 
-    def __init__(self, date_of_interest: datetime, forecast_dates: ForecastDates):
-        self.in_analysis = len(get_working_days_in_month(date_of_interest.year, date_of_interest.month))
-        self.in_analysis_partial = len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day])
-        
-        self.one_month_ago = len(get_working_days_in_month(forecast_dates.same_day_one_month_ago.year, forecast_dates.same_day_one_month_ago.month))
-        self.same_day_one_month_ago = len([d for d in get_working_days_in_month(forecast_dates.same_day_one_month_ago.year, forecast_dates.same_day_one_month_ago.month) if d.day <= date_of_interest.day])
-        
-        self.two_months_ago = len(get_working_days_in_month(forecast_dates.same_day_two_months_ago.year, forecast_dates.same_day_two_months_ago.month))
-        self.same_day_two_months_ago = len([d for d in get_working_days_in_month(forecast_dates.same_day_two_months_ago.year, forecast_dates.same_day_two_months_ago.month) if d.day <= date_of_interest.day])
-        
-        self.three_months_ago = len(get_working_days_in_month(forecast_dates.same_day_three_months_ago.year, forecast_dates.same_day_three_months_ago.month))
-        self.same_day_three_months_ago = len([d for d in get_working_days_in_month(forecast_dates.same_day_three_months_ago.year, forecast_dates.same_day_three_months_ago.month) if d.day <= date_of_interest.day])
-        
-        self.one_month_later = len(get_working_days_in_month(forecast_dates.same_day_one_month_later.year, forecast_dates.same_day_one_month_later.month))
-        self.same_day_one_month_later = len([d for d in get_working_days_in_month(forecast_dates.same_day_one_month_later.year, forecast_dates.same_day_one_month_later.month) if d.day <= date_of_interest.day])
-        
-        self.two_months_later = len(get_working_days_in_month(forecast_dates.same_day_two_months_later.year, forecast_dates.same_day_two_months_later.month))
-        self.same_day_two_months_later = len([d for d in get_working_days_in_month(forecast_dates.same_day_two_months_later.year, forecast_dates.same_day_two_months_later.month) if d.day <= date_of_interest.day])
-        
-        self.three_months_later = len(get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month))
-        self.same_day_three_months_later = len([d for d in get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month) if d.day <= date_of_interest.day])
+    @classmethod
+    def build(cls, date_of_interest: datetime, forecast_dates: RevenueForecastDates) -> 'RevenueForecastNumberOfWorkingDays':
+        return cls(
+            in_analysis=len(get_working_days_in_month(date_of_interest.year, date_of_interest.month)),
+            in_analysis_partial=len([d for d in get_working_days_in_month(date_of_interest.year, date_of_interest.month) if d.day <= date_of_interest.day]),
+            
+            one_month_ago=len(get_working_days_in_month(forecast_dates.same_day_one_month_ago.year, forecast_dates.same_day_one_month_ago.month)),
+            same_day_one_month_ago=len([d for d in get_working_days_in_month(forecast_dates.same_day_one_month_ago.year, forecast_dates.same_day_one_month_ago.month) if d.day <= date_of_interest.day]),
+            
+            two_months_ago=len(get_working_days_in_month(forecast_dates.same_day_two_months_ago.year, forecast_dates.same_day_two_months_ago.month)),
+            same_day_two_months_ago=len([d for d in get_working_days_in_month(forecast_dates.same_day_two_months_ago.year, forecast_dates.same_day_two_months_ago.month) if d.day <= date_of_interest.day]),
+            
+            three_months_ago=len(get_working_days_in_month(forecast_dates.same_day_three_months_ago.year, forecast_dates.same_day_three_months_ago.month)),
+            same_day_three_months_ago=len([d for d in get_working_days_in_month(forecast_dates.same_day_three_months_ago.year, forecast_dates.same_day_three_months_ago.month) if d.day <= date_of_interest.day]),
+            
+            one_month_later=len(get_working_days_in_month(forecast_dates.same_day_one_month_later.year, forecast_dates.same_day_one_month_later.month)),
+            same_day_one_month_later=len([d for d in get_working_days_in_month(forecast_dates.same_day_one_month_later.year, forecast_dates.same_day_one_month_later.month) if d.day <= date_of_interest.day]),
+            
+            two_months_later=len(get_working_days_in_month(forecast_dates.same_day_two_months_later.year, forecast_dates.same_day_two_months_later.month)),
+            same_day_two_months_later=len([d for d in get_working_days_in_month(forecast_dates.same_day_two_months_later.year, forecast_dates.same_day_two_months_later.month) if d.day <= date_of_interest.day]),
+            
+            three_months_later=len(get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month)),
+            same_day_three_months_later=len([d for d in get_working_days_in_month(forecast_dates.same_day_three_months_later.year, forecast_dates.same_day_three_months_later.month) if d.day <= date_of_interest.day])
+        )
+
+class ForecastRevenueTrackings(BaseModel):
+    date_of_interest: RevenueTracking
+    last_day_of_last_month: RevenueTracking
+    last_day_of_two_months_ago: RevenueTracking
+    last_day_of_three_months_ago: RevenueTracking
+    same_day_last_month: RevenueTracking
+    same_day_two_months_ago: RevenueTracking
+    same_day_three_months_ago: RevenueTracking
     
-@dataclass
-class ForecastRevenueTrackings:
-    date_of_interest: Dict[str, Any]
-    last_day_of_last_month: Dict[str, Any]
-    last_day_of_two_months_ago: Dict[str, Any]
-    last_day_of_three_months_ago: Dict[str, Any]
-    same_day_last_month: Dict[str, Any]
-    same_day_two_months_ago: Dict[str, Any]
-    same_day_three_months_ago: Dict[str, Any]
-    
-    def __init__(self, forecast_dates: ForecastDates, filters: Dict[str, Any]):
-        self.date_of_interest = compute_revenue_tracking(forecast_dates.in_analysis, filters=filters)
-        self.last_day_of_last_month = compute_revenue_tracking(forecast_dates.last_day_of_one_month_ago, filters=filters)
-        self.last_day_of_two_months_ago = compute_revenue_tracking(forecast_dates.last_day_of_two_months_ago, filters=filters)
-        self.last_day_of_three_months_ago = compute_revenue_tracking(forecast_dates.last_day_of_three_months_ago, filters=filters)
-        self.same_day_last_month = compute_revenue_tracking(forecast_dates.same_day_one_month_ago, filters=filters)
-        self.same_day_two_months_ago = compute_revenue_tracking(forecast_dates.same_day_two_months_ago, filters=filters)
-        self.same_day_three_months_ago = compute_revenue_tracking(forecast_dates.same_day_three_months_ago, filters=filters)
+    def __init__(self, forecast_dates: RevenueForecastDates, filters: Dict[str, Any]):
+        super().__init__(
+            date_of_interest=compute_revenue_tracking(forecast_dates.in_analysis, filters=filters),
+            last_day_of_last_month=compute_revenue_tracking(forecast_dates.last_day_of_one_month_ago, filters=filters),
+            last_day_of_two_months_ago=compute_revenue_tracking(forecast_dates.last_day_of_two_months_ago, filters=filters),
+            last_day_of_three_months_ago=compute_revenue_tracking(forecast_dates.last_day_of_three_months_ago, filters=filters),
+            same_day_last_month=compute_revenue_tracking(forecast_dates.same_day_one_month_ago, filters=filters),
+            same_day_two_months_ago=compute_revenue_tracking(forecast_dates.same_day_two_months_ago, filters=filters),
+            same_day_three_months_ago=compute_revenue_tracking(forecast_dates.same_day_three_months_ago, filters=filters)
+        )
 
 def merge_filterable_fields(analysis_lists):
     filterable_fields = []
     
     for field_list in analysis_lists:
-        for field in field_list['filterable_fields']:
+        for field in field_list.filterable_fields:
             existing = next((f for f in filterable_fields if f['field'] == field['field']), None)
             
             if existing:
@@ -132,6 +141,66 @@ def merge_filterable_fields(analysis_lists):
     
     return filterable_fields
 
+class RevenueForecastDailyActual(BaseModel):
+    total_consulting_fee: float
+    total_consulting_hours: float
+    acc_total_consulting_fee: Optional[float] = None
+    acc_total_consulting_hours: Optional[float] = None
+
+class RevenueForecastDailyExpected(BaseModel):
+    total_consulting_fee: float
+    total_consulting_hours: float
+    acc_total_consulting_fee: float
+    acc_total_consulting_hours: float
+
+class RevenueForecastDailyDifference(BaseModel):
+    total_consulting_fee: Optional[float] = None
+    total_consulting_hours: Optional[float] = None
+    acc_total_consulting_fee: Optional[float] = None
+    acc_total_consulting_hours: Optional[float] = None
+
+class RevenueForecastDailyForecast(BaseModel):
+    date: date
+    actual: RevenueForecastDailyActual
+    expected: RevenueForecastDailyExpected
+    difference: RevenueForecastDailyDifference
+
+class RevenueForecastSummary(BaseModel):
+    realized: float
+    projected: float
+    expected: float
+    one_month_ago: float
+    two_months_ago: float
+    three_months_ago: float
+    expected_one_month_later: float
+    expected_two_months_later: float
+    expected_three_months_later: float
+    in_analysis_consulting_hours: float
+    in_analysis_consulting_pre_hours: float
+    one_month_ago_consulting_hours: float
+    one_month_ago_consulting_pre_hours: float
+    two_months_ago_consulting_hours: float
+    two_months_ago_consulting_pre_hours: float
+    three_months_ago_consulting_hours: float
+    three_months_ago_consulting_pre_hours: float
+    same_day_one_month_ago_consulting_hours: float
+    same_day_two_months_ago_consulting_hours: float
+    same_day_three_months_ago_consulting_hours: float
+
+class RevenueForecastByKind(BaseModel):
+    consulting: forecast_types.RevenueForecastKindSummary
+    consulting_pre: forecast_types.RevenueForecastKindSummary
+    hands_on: forecast_types.RevenueForecastKindSummary
+    squad: forecast_types.RevenueForecastKindSummary
+
+class RevenueForecast(BaseModel):
+    date_of_interest: datetime
+    dates: RevenueForecastDates
+    by_kind: RevenueForecastByKind
+    filterable_fields: list
+    summary: RevenueForecastSummary
+    working_days: RevenueForecastNumberOfWorkingDays
+    daily: list[RevenueForecastDailyForecast]
 
 def compute_forecast(date_of_interest = None, filters = None):
     if date_of_interest is None:
@@ -140,25 +209,34 @@ def compute_forecast(date_of_interest = None, filters = None):
     if isinstance(date_of_interest, str):
         date_of_interest = datetime.strptime(date_of_interest, '%Y-%m-%d')
         
-    forecast_dates = ForecastDates(date_of_interest)
+    forecast_dates = RevenueForecastDates.build(date_of_interest)
     forecast_revenue_trackings = ForecastRevenueTrackings(forecast_dates, filters)
-    forecast_working_days = ForecastNumberOfWorkingDays(date_of_interest, forecast_dates)
+    forecast_working_days = RevenueForecastNumberOfWorkingDays.build(date_of_interest, forecast_dates)
     
     daily = {
-        date['date']: {
-            "date": date['date'],
-            "actual": {
-                "total_consulting_fee": date['total_consulting_fee'],
-                "total_consulting_hours": date['total_consulting_hours']
-            },
-            "expected": {
-                "total_consulting_fee": 0,
-                "total_consulting_hours": 0
-            }
-        }
-        for date in forecast_revenue_trackings.date_of_interest['regular']['daily']
+        d.date: RevenueForecastDailyForecast(
+            date=d.date,
+            actual=RevenueForecastDailyActual(
+                total_consulting_fee=d.total_consulting_fee,
+                total_consulting_hours=d.total_consulting_hours,
+                acc_total_consulting_fee=None,
+                acc_total_consulting_hours=None
+            ),
+            expected=RevenueForecastDailyExpected(
+                total_consulting_fee=0,
+                total_consulting_hours=0,
+                acc_total_consulting_fee=0,
+                acc_total_consulting_hours=0
+            ),
+            difference=RevenueForecastDailyDifference(
+                total_consulting_fee=None,
+                total_consulting_hours=None,
+                acc_total_consulting_fee=None,
+                acc_total_consulting_hours=None
+            )
+        )
+        for d in forecast_revenue_trackings.date_of_interest.regular.daily
     }
-    
     
     def summarize_forecast(slug):
         clients: Dict[str, forecast_types.ClientForecast] = {}
@@ -168,7 +246,7 @@ def compute_forecast(date_of_interest = None, filters = None):
         consultants: Dict[str, forecast_types.ConsultantForecast] = {}
         
         def add_context(context, context_slug):
-            for consultant in context['summaries']['by_consultant']:
+            for consultant in context.summaries.by_consultant:
                 if consultant.slug not in consultants:
                     consultants[consultant.slug] = forecast_types.ConsultantForecast(
                         name=consultant.name,
@@ -180,7 +258,7 @@ def compute_forecast(date_of_interest = None, filters = None):
                 setattr(working_consultant, f'{context_slug}_consulting_hours', consultant.consulting_hours)
                 setattr(working_consultant, f'{context_slug}_consulting_pre_hours', consultant.consulting_pre_hours)
             
-            for client in context['summaries']['by_client']:
+            for client in context.summaries.by_client:
                 if client.slug not in clients:
                     clients[client.slug] = forecast_types.ClientForecast(
                         name=client.name,
@@ -318,8 +396,9 @@ def compute_forecast(date_of_interest = None, filters = None):
                         if date in working_days_in_month:
                             hours_in_month += daily_approved_hours
                             if date.date() in daily and project_ and project_.rate:
-                                daily[date.date()]['expected']['total_consulting_fee'] += daily_approved_hours * (project_.rate.rate / 100)
-                                daily[date.date()]['expected']['total_consulting_hours'] += daily_approved_hours
+                                daily_forecast = daily[date.date()]
+                                daily_forecast.expected.total_consulting_fee += daily_approved_hours * (project_.rate.rate / 100)
+                                daily_forecast.expected.total_consulting_hours += daily_approved_hours
                             
                     if (project_ and project_.rate):
                         setattr(case, labels_expected[n], hours_in_month * (project_.rate.rate / 100))
@@ -391,15 +470,15 @@ def compute_forecast(date_of_interest = None, filters = None):
         for consultant in by_consultant:
             adjust_entity(consultant)
 
-        return {
-            'slug': slug,
-            'by_client': by_client,
-            'by_sponsor': by_sponsor,
-            'by_case': by_case,
-            'by_project': by_project,
-            'by_consultant': by_consultant,
-            'totals': forecast_types.Totals.build(by_client)
-        }
+        return forecast_types.RevenueForecastKindSummary(
+            kind=slug,
+            by_client=by_client,
+            by_sponsor=by_sponsor,
+            by_case=by_case,
+            by_project=by_project,
+            by_consultant=by_consultant,
+            totals=forecast_types.Totals.build(by_client)
+        )
     
     filterable_fields = merge_filterable_fields([
         forecast_revenue_trackings.date_of_interest,
@@ -408,83 +487,74 @@ def compute_forecast(date_of_interest = None, filters = None):
         forecast_revenue_trackings.last_day_of_three_months_ago
     ])
     
-    result = {
-        "date_of_interest": date_of_interest,
-        "dates": forecast_dates,
-        
-        "by_kind": {
-            "consulting": summarize_forecast('consulting'),
-            "consulting_pre": summarize_forecast('consulting_pre'),
-            "hands_on": summarize_forecast('hands_on'),
-            "squad": summarize_forecast('squad')
-        },
-        "filterable_fields": filterable_fields
-    }
+    by_kind = RevenueForecastByKind(
+        consulting=summarize_forecast('consulting'),
+        consulting_pre=summarize_forecast('consulting_pre'),
+        hands_on=summarize_forecast('hands_on'),
+        squad=summarize_forecast('squad')
+    )
     
-    summary = {
-        "realized": sum(result["by_kind"][kind]["totals"].in_analysis for kind in result["by_kind"]),
-        "projected": result["by_kind"]["consulting"]["totals"].projected + sum(result["by_kind"][kind]["totals"].in_analysis for kind in result["by_kind"] if kind != "consulting"),
-        "expected": result["by_kind"]["consulting"]["totals"].expected + sum(result["by_kind"][kind]["totals"].in_analysis for kind in result["by_kind"] if kind != "consulting"),
-        "one_month_ago": sum(result["by_kind"][kind]["totals"].one_month_ago for kind in result["by_kind"]),
-        "two_months_ago": sum(result["by_kind"][kind]["totals"].two_months_ago for kind in result["by_kind"]),
-        "three_months_ago": sum(result["by_kind"][kind]["totals"].three_months_ago for kind in result["by_kind"]),
-        "expected_one_month_later": sum(result["by_kind"][kind]["totals"].expected_one_month_later for kind in result["by_kind"]),
-        "expected_two_months_later": sum(result["by_kind"][kind]["totals"].expected_two_months_later for kind in result["by_kind"]),
-        "expected_three_months_later": sum(result["by_kind"][kind]["totals"].expected_three_months_later for kind in result["by_kind"]),
-        "in_analysis_consulting_hours": sum(result["by_kind"][kind]["totals"].in_analysis_consulting_hours for kind in result["by_kind"]),
-        "in_analysis_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].in_analysis_consulting_pre_hours for kind in result["by_kind"]),
-        "one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].one_month_ago_consulting_hours for kind in result["by_kind"]),
-        "one_month_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].one_month_ago_consulting_pre_hours for kind in result["by_kind"]),
-        "two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].two_months_ago_consulting_hours for kind in result["by_kind"]),
-        "two_months_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].two_months_ago_consulting_pre_hours for kind in result["by_kind"]),
-        "three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].three_months_ago_consulting_hours for kind in result["by_kind"]),
-        "three_months_ago_consulting_pre_hours": sum(result["by_kind"][kind]["totals"].three_months_ago_consulting_pre_hours for kind in result["by_kind"]),
-        "same_day_one_month_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_one_month_ago_consulting_hours for kind in result["by_kind"]),
-        "same_day_two_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_two_months_ago_consulting_hours for kind in result["by_kind"]),
-        "same_day_three_months_ago_consulting_hours": sum(result["by_kind"][kind]["totals"].same_day_three_months_ago_consulting_hours for kind in result["by_kind"]),
-    }
+    summary = RevenueForecastSummary(
+        realized=sum(getattr(by_kind, kind).totals.in_analysis for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        projected=by_kind.consulting.totals.projected + sum(getattr(by_kind, kind).totals.in_analysis for kind in ['consulting_pre', 'hands_on', 'squad']),
+        expected=by_kind.consulting.totals.expected + sum(getattr(by_kind, kind).totals.in_analysis for kind in ['consulting_pre', 'hands_on', 'squad']),
+        one_month_ago=sum(getattr(by_kind, kind).totals.one_month_ago for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        two_months_ago=sum(getattr(by_kind, kind).totals.two_months_ago for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        three_months_ago=sum(getattr(by_kind, kind).totals.three_months_ago for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        expected_one_month_later=sum(getattr(by_kind, kind).totals.expected_one_month_later for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        expected_two_months_later=sum(getattr(by_kind, kind).totals.expected_two_months_later for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        expected_three_months_later=sum(getattr(by_kind, kind).totals.expected_three_months_later for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        in_analysis_consulting_hours=sum(getattr(by_kind, kind).totals.in_analysis_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        in_analysis_consulting_pre_hours=sum(getattr(by_kind, kind).totals.in_analysis_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        one_month_ago_consulting_hours=sum(getattr(by_kind, kind).totals.one_month_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        one_month_ago_consulting_pre_hours=sum(getattr(by_kind, kind).totals.one_month_ago_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        two_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.two_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        two_months_ago_consulting_pre_hours=sum(getattr(by_kind, kind).totals.two_months_ago_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        three_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.three_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        three_months_ago_consulting_pre_hours=sum(getattr(by_kind, kind).totals.three_months_ago_consulting_pre_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        same_day_one_month_ago_consulting_hours=sum(getattr(by_kind, kind).totals.same_day_one_month_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        same_day_two_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.same_day_two_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+        same_day_three_months_ago_consulting_hours=sum(getattr(by_kind, kind).totals.same_day_three_months_ago_consulting_hours for kind in ['consulting', 'consulting_pre', 'hands_on', 'squad']),
+    )
     
-    daily = sorted(list(daily.values()), key=lambda x: x['date'])
+    daily_list = sorted(list(daily.values()), key=lambda x: x.date)
     expected_acc_total_consulting_fee = 0
     expected_acc_total_consulting_hours = 0
     actual_acc_total_consulting_fee = 0
     actual_acc_total_consulting_hours = 0
-    for d in daily:
-        expected = d['expected']
-        actual = d['actual']
-        
-        expected_acc_total_consulting_fee += expected['total_consulting_fee']
-        expected_acc_total_consulting_hours += expected['total_consulting_hours']
-        
-        if d['date'] <= date_of_interest.date():
-            actual_acc_total_consulting_fee += actual['total_consulting_fee']
-            actual_acc_total_consulting_hours += actual['total_consulting_hours'] 
-            d['difference'] = {
-                "total_consulting_fee": actual['total_consulting_fee'] - expected['total_consulting_fee'],
-                "total_consulting_hours": actual['total_consulting_hours'] - expected['total_consulting_hours'],
-                "acc_total_consulting_fee": actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
-                "acc_total_consulting_hours": actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
-            }
-        else:
-            actual_acc_total_consulting_fee = None
-            actual_acc_total_consulting_hours = None
-            d['difference'] = {
-                "total_consulting_fee": None,
-                "total_consulting_hours": None,
-                "acc_total_consulting_fee": None,
-                "acc_total_consulting_hours": None
-            }
-
-        
-        d['expected']['acc_total_consulting_fee'] = expected_acc_total_consulting_fee
-        d['expected']['acc_total_consulting_hours'] = expected_acc_total_consulting_hours
-        
-        d['actual']['acc_total_consulting_fee'] = actual_acc_total_consulting_fee
-        d['actual']['acc_total_consulting_hours'] = actual_acc_total_consulting_hours
     
-    result["summary"] = summary
-    result["working_days"] = forecast_working_days
-    result["daily"] = daily
-    return result
+    for d in daily_list:
+        expected = d.expected
+        actual = d.actual
+        
+        expected_acc_total_consulting_fee += expected.total_consulting_fee
+        expected_acc_total_consulting_hours += expected.total_consulting_hours
+        
+        expected.acc_total_consulting_fee = expected_acc_total_consulting_fee
+        expected.acc_total_consulting_hours = expected_acc_total_consulting_hours
+        
+        if d.date <= date_of_interest.date():
+            actual_acc_total_consulting_fee += actual.total_consulting_fee
+            actual_acc_total_consulting_hours += actual.total_consulting_hours
+            
+            actual.acc_total_consulting_fee = actual_acc_total_consulting_fee
+            actual.acc_total_consulting_hours = actual_acc_total_consulting_hours
+            
+            d.difference = RevenueForecastDailyDifference(
+                total_consulting_fee=actual.total_consulting_fee - expected.total_consulting_fee,
+                total_consulting_hours=actual.total_consulting_hours - expected.total_consulting_hours,
+                acc_total_consulting_fee=actual_acc_total_consulting_fee - expected_acc_total_consulting_fee,
+                acc_total_consulting_hours=actual_acc_total_consulting_hours - expected_acc_total_consulting_hours
+            )
+    
+    return RevenueForecast(
+        date_of_interest=date_of_interest,
+        dates=forecast_dates,
+        by_kind=by_kind,
+        filterable_fields=filterable_fields,
+        summary=summary,
+        working_days=forecast_working_days,
+        daily=daily_list
+    )
 
     

@@ -116,4 +116,7 @@ frontend/yarn.lock
 # Uncomment if you're using PDM
 # pdm.lock
 # .pdm.toml
+
+
+# Timesheets
 *.timesheet

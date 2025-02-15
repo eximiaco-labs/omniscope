@@ -26,19 +26,26 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import { useEdgeClient } from "@/app/hooks/useApolloClient"
+
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
-    user(email: $email) {
-      photoUrl
+    admin {
+      user(email: $email) {
+        photoUrl
+      }
     }
   }
 `
 
 export function NavUser() {
   const { data: session } = useSession()
+  const client = useEdgeClient()
   const { data: userData } = useQuery(GET_USER_PHOTO, {
     variables: { email: session?.user?.email },
     skip: !session?.user?.email,
+    client: client ?? undefined,
+    ssr: true
   })
   const { isMobile } = useSidebar()
 
@@ -53,7 +60,7 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={userData?.user?.photoUrl || "/profile-photo.jpg"}
+                  src={userData?.admin?.user?.photoUrl || "/profile-photo.jpg"}
                   alt={session?.user?.name || ""}
                 />
               </Avatar>
@@ -78,7 +85,7 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage 
-                    src={userData?.user?.photoUrl || "/profile-photo.jpg"}
+                    src={userData?.admin?.user?.photoUrl || "/profile-photo.jpg"}
                     alt={session?.user?.name || ""}
                   />
                   <AvatarFallback className="rounded-lg">

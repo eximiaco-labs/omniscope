@@ -48,7 +48,7 @@ export function TableRowFuture({
           )}
           {depth < 3 ? (
             <Link 
-              href={`/about-us/${depth === 0 ? 'clients' : depth === 1 ? 'sponsors' : 'cases'}/${item.slug}`} 
+              href={`/${depth === 0 ? 'engagements/clients' : depth === 1 ? 'engagements/sponsors' : 'engagements/cases'}/${item.slug}`} 
               className={`text-blue-600 hover:text-blue-800 ${depth > 0 ? 'text-[12px]' : ''}`}
             >
               {item.name || item.title}

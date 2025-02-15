@@ -20,17 +20,17 @@ interface SummariesProps {
 
 interface SummaryCardProps {
   title: string;
-  items: {
+  items: Array<{
     name: string;
-    slug: string;
+    slug?: string;
     regular: number;
     preContracted: number;
     total: number;
-    consultingFee: number;
-    consultingPreFee: number;
-    handsOnFee: number;
-    squadFee: number;
-  }[];
+    consultingFee?: number;
+    consultingPreFee?: number;
+    handsOnFee?: number;
+    squadFee?: number;
+  }>;
 }
 
 const formatNumber = (value: number) => {
@@ -47,8 +47,10 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
   }>({ key: "total", direction: "desc" });
 
   const sortedItems = [...items].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key]) return 1;
-    if (a[sortConfig.key] > b[sortConfig.key]) return -1;
+    const aValue = a[sortConfig.key] ?? 0;
+    const bValue = b[sortConfig.key] ?? 0;
+    if (aValue < bValue) return 1;
+    if (aValue > bValue) return -1;
     return 0;
   });
 
@@ -69,10 +71,10 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
       regular: acc.regular + item.regular,
       preContracted: acc.preContracted + item.preContracted,
       total: acc.total + item.total,
-      consultingFee: acc.consultingFee + item.consultingFee,
-      consultingPreFee: acc.consultingPreFee + item.consultingPreFee,
-      handsOnFee: acc.handsOnFee + item.handsOnFee,
-      squadFee: acc.squadFee + item.squadFee
+      consultingFee: acc.consultingFee + (item.consultingFee ?? 0),
+      consultingPreFee: acc.consultingPreFee + (item.consultingPreFee ?? 0),
+      handsOnFee: acc.handsOnFee + (item.handsOnFee ?? 0),
+      squadFee: acc.squadFee + (item.squadFee ?? 0)
     }),
     { 
       regular: 0, 
@@ -97,7 +99,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
               sortConfig.key === "name" || sortConfig.key === "slug"
                 ? "total"
                 : sortConfig.key
-            ]
+            ] ?? 0
           ),
         0
       );
@@ -106,7 +108,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
         sortConfig.key === "name" || sortConfig.key === "slug"
           ? "total"
           : sortConfig.key
-      ]
+      ] ?? 0
     );
     const cumulative =
       (previousSum + currentValue) /
@@ -226,55 +228,55 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
                       <span>{item.name}</span>
                     )}
                   </TableCell>
-                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-300 ${item.consultingFee === 0 ? 'text-gray-300' : ''}`}>
-                    {item.consultingFee !== 0 && (
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-300 ${(item.consultingFee ?? 0) === 0 ? 'text-gray-300' : ''}`}>
+                    {(item.consultingFee ?? 0) !== 0 && (
                       <div className="absolute top-1 left-2 text-[10px] text-gray-500">
-                        {formatPercent(item.consultingFee, item.total)}
+                        {formatPercent(item.consultingFee ?? 0, item.total)}
                       </div>
                     )}
-                    {formatNumber(item.consultingFee)}
-                    {item.consultingFee !== 0 && (
+                    {formatNumber(item.consultingFee ?? 0)}
+                    {(item.consultingFee ?? 0) !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                        {formatPercent(item.consultingFee, totals.consultingFee)}
+                        {formatPercent(item.consultingFee ?? 0, totals.consultingFee)}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.consultingPreFee === 0 ? 'text-gray-300' : ''}`}>
-                    {item.consultingPreFee !== 0 && (
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${(item.consultingPreFee ?? 0) === 0 ? 'text-gray-300' : ''}`}>
+                    {(item.consultingPreFee ?? 0) !== 0 && (
                       <div className="absolute top-1 left-2 text-[10px] text-gray-500">
-                        {formatPercent(item.consultingPreFee, item.total)}
+                        {formatPercent(item.consultingPreFee ?? 0, item.total)}
                       </div>
                     )}
-                    {formatNumber(item.consultingPreFee)}
-                    {item.consultingPreFee !== 0 && (
+                    {formatNumber(item.consultingPreFee ?? 0)}
+                    {(item.consultingPreFee ?? 0) !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                        {formatPercent(item.consultingPreFee, totals.consultingPreFee)}
+                        {formatPercent(item.consultingPreFee ?? 0, totals.consultingPreFee)}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.handsOnFee === 0 ? 'text-gray-300' : ''}`}>
-                    {item.handsOnFee !== 0 && (
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${(item.handsOnFee ?? 0) === 0 ? 'text-gray-300' : ''}`}>
+                    {(item.handsOnFee ?? 0) !== 0 && (
                       <div className="absolute top-1 left-2 text-[10px] text-gray-500">
-                        {formatPercent(item.handsOnFee, item.total)}
+                        {formatPercent(item.handsOnFee ?? 0, item.total)}
                       </div>
                     )}
-                    {formatNumber(item.handsOnFee)}
-                    {item.handsOnFee !== 0 && (
+                    {formatNumber(item.handsOnFee ?? 0)}
+                    {(item.handsOnFee ?? 0) !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                        {formatPercent(item.handsOnFee, totals.handsOnFee)}
+                        {formatPercent(item.handsOnFee ?? 0, totals.handsOnFee)}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${item.squadFee === 0 ? 'text-gray-300' : ''}`}>
-                    {item.squadFee !== 0 && (
+                  <TableCell className={`text-right w-[120px] relative h-[57px] border-l border-gray-100 ${(item.squadFee ?? 0) === 0 ? 'text-gray-300' : ''}`}>
+                    {(item.squadFee ?? 0) !== 0 && (
                       <div className="absolute top-1 left-2 text-[10px] text-gray-500">
-                        {formatPercent(item.squadFee, item.total)}
+                        {formatPercent(item.squadFee ?? 0, item.total)}
                       </div>
                     )}
-                    {formatNumber(item.squadFee)}
-                    {item.squadFee !== 0 && (
+                    {formatNumber(item.squadFee ?? 0)}
+                    {(item.squadFee ?? 0) !== 0 && (
                       <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                        {formatPercent(item.squadFee, totals.squadFee)}
+                        {formatPercent(item.squadFee ?? 0, totals.squadFee)}
                       </div>
                     )}
                   </TableCell>
@@ -336,7 +338,11 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
 };
 
 export function Summaries({ data, date }: SummariesProps) {
-  const summaries = data.revenueTracking.summaries;
+  const summaries = data?.financial?.revenueTracking?.summaries;
+
+  if (!summaries) {
+    return null;
+  }
 
   return (
     <div className="space-y-4">
@@ -349,12 +355,12 @@ export function Summaries({ data, date }: SummariesProps) {
         <div>
           <Stat
             title="Total Revenue"
-            value={data.revenueTracking.summaries.byKind.reduce((sum, kind) => sum + kind.total, 0).toString()}
+            value={summaries.byKind.data.reduce((sum, kind) => sum + kind.total, 0).toString()}
             formatter={formatNumber}
           />
         </div>
 
-        {data.revenueTracking.summaries.byKind.map((kind) => {
+        {summaries.byKind.data.map((kind) => {
           if (kind.name === "consulting") {
             return (
               <>
@@ -363,7 +369,7 @@ export function Summaries({ data, date }: SummariesProps) {
                     title="Consulting"
                     value={kind.regular.toString()}
                     color="#F59E0B"
-                    total={data.revenueTracking.summaries.byKind.reduce((sum, k) => sum + k.total, 0)}
+                    total={summaries.byKind.data.reduce((sum, k) => sum + k.total, 0)}
                     formatter={formatNumber}
                   />
                 </div>
@@ -372,7 +378,7 @@ export function Summaries({ data, date }: SummariesProps) {
                     title="Consulting (pre)"
                     value={kind.preContracted.toString()}
                     color="#F59E0B"
-                    total={data.revenueTracking.summaries.byKind.reduce((sum, k) => sum + k.total, 0)}
+                    total={summaries.byKind.data.reduce((sum, k) => sum + k.total, 0)}
                     formatter={formatNumber}
                   />
                 </div>
@@ -386,7 +392,7 @@ export function Summaries({ data, date }: SummariesProps) {
                   title="Hands-On"
                   value={kind.total.toString()}
                   color="#8B5CF6"
-                  total={data.revenueTracking.summaries.byKind.reduce((sum, k) => sum + k.total, 0)}
+                  total={summaries.byKind.data.reduce((sum, k) => sum + k.total, 0)}
                   formatter={formatNumber}
                 />
               </div>
@@ -399,7 +405,7 @@ export function Summaries({ data, date }: SummariesProps) {
                   title="Squad"
                   value={kind.total.toString()}
                   color="#3B82F6"
-                  total={data.revenueTracking.summaries.byKind.reduce((sum, k) => sum + k.total, 0)}
+                  total={summaries.byKind.data.reduce((sum, k) => sum + k.total, 0)}
                   formatter={formatNumber}
                 />
               </div>
@@ -408,9 +414,9 @@ export function Summaries({ data, date }: SummariesProps) {
           return null;
         })}
       </div>
-      <SummaryCard title="By Account Manager" items={summaries.byAccountManager} />
-      <SummaryCard title="By Client" items={summaries.byClient} />
-      <SummaryCard title="By Sponsor" items={summaries.bySponsor} />
+      <SummaryCard title="By Account Manager" items={summaries.byAccountManager.data} />
+      <SummaryCard title="By Client" items={summaries.byClient.data} />
+      <SummaryCard title="By Sponsor" items={summaries.bySponsor.data} />
     </div>
   );
 }

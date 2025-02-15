@@ -24,39 +24,55 @@ import SectionHeader from "@/components/SectionHeader";
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const REFRESH_DATA_MUTATION = gql`
-  mutation RefreshData {
-    refreshData
+  mutation ForceUpdateGlobals {
+    forceUpdateGlobals
   }
 `;
 
 const INVALIDATE_CACHE_MUTATION = gql`
-  mutation InvalidateCache($key: String!) {
-    invalidateCache(key: $key)
+  mutation InvalidateMultipleCache($keys: [String!]!) {
+    invalidateMultipleCache(keys: $keys)
   }
 `;
 
 const GET_CACHE_QUERY = gql`
   query GetCache {
-    cache {
-      key
-      createdAt
+    admin {
+      cacheItems {
+        data {
+          key
+          createdAt
+        }
+      }
     }
   }
 `;
 
+interface CacheItem {
+  key: string;
+  createdAt: string;
+}
+
 export default function OmniSidebarFooter() {
   const [latestEntry, setLatestEntry] = useState<any>(null);
   const router = useRouter();
+  const client = useEdgeClient();
   const [refreshData, { loading: refreshLoading }] = useMutation(
-    REFRESH_DATA_MUTATION
+    REFRESH_DATA_MUTATION,
+    { client: client ?? undefined }
   );
-  const [invalidateCache] = useMutation(INVALIDATE_CACHE_MUTATION);
-  const { data: cacheData, refetch: refetchCache } = useQuery(GET_CACHE_QUERY);
+  const [invalidateCache] = useMutation(INVALIDATE_CACHE_MUTATION, {
+    client: client ?? undefined
+  });
+  const { data: cacheData, refetch: refetchCache } = useQuery(GET_CACHE_QUERY, {
+    client: client ?? undefined,
+    ssr: true
+  });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,7 +90,7 @@ export default function OmniSidebarFooter() {
       await refetchCache();
       toast.success("Cache updated", {
         description:
-          "Frequently updated data like timesheets has been refreshed successfully.",
+          "Frequently updated data like timesheets (Everhour) cache has been refreshed successfully.",
       });
       router.refresh();
     } catch (err) {
@@ -88,14 +104,13 @@ export default function OmniSidebarFooter() {
 
   const handleHardRefresh = async () => {
     try {
-      if (cacheData?.cache) {
-        for (const item of cacheData.cache) {
-          await invalidateCache({ variables: { key: item.key } });
-        }
+      if (cacheData?.admin.cacheItems.data) {
+        const keys = cacheData.admin.cacheItems.data.map((item: CacheItem) => item.key);
+        await invalidateCache({ variables: { keys } });
       }
 
       const { data } = await refreshData();
-      if (data.refreshData) {
+      if (data.forceUpdateGlobals) {
         toast.success("System updated", {
           description:
             "All data including clients, cases and other core information has been reloaded successfully.",

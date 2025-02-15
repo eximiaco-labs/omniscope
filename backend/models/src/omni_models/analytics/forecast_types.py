@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 from datetime import date
+from pydantic import BaseModel
 
-@dataclass
-class ConsultantForecast:
+class ConsultantForecast(BaseModel):
     # Basic info
     name: str
     slug: str
@@ -20,6 +20,7 @@ class ConsultantForecast:
     one_month_ago_consulting_hours: float = 0
     one_month_ago_consulting_pre_hours: float = 0
     same_day_one_month_ago_consulting_hours: float = 0
+    same_day_one_month_ago_consulting_pre_hours: float = 0
     
     # Two months ago values
     two_months_ago: float = 0
@@ -27,6 +28,7 @@ class ConsultantForecast:
     two_months_ago_consulting_hours: float = 0
     two_months_ago_consulting_pre_hours: float = 0
     same_day_two_months_ago_consulting_hours: float = 0
+    same_day_two_months_ago_consulting_pre_hours: float = 0
     
     # Three months ago values
     three_months_ago: float = 0
@@ -34,13 +36,13 @@ class ConsultantForecast:
     three_months_ago_consulting_hours: float = 0
     three_months_ago_consulting_pre_hours: float = 0
     same_day_three_months_ago_consulting_hours: float = 0
+    same_day_three_months_ago_consulting_pre_hours: float = 0
     
     # Projections
     projected: float = 0
     expected_historical: float = 0
 
-@dataclass
-class ProjectForecast:
+class ProjectForecast(BaseModel):
     # Basic info
     name: str
     slug: str
@@ -82,18 +84,21 @@ class ProjectForecast:
     
     # Projections
     projected: float = 0
+    expected: float = 0
+    expected_one_month_later: float = 0
+    expected_two_months_later: float = 0
+    expected_three_months_later: float = 0
     expected_historical: float = 0
 
-@dataclass
-class CaseForecast:
+class CaseForecast(BaseModel):
     # Basic info
     title: str
     slug: str
     sponsor_slug: str
     client_slug: str
     
-    start_of_contract: date
-    end_of_contract: date
+    start_of_contract: Optional[date] = None
+    end_of_contract: Optional[date] = None
     weekly_approved_hours: float = 0
     
     consulting_fee_new: float = 0
@@ -139,8 +144,7 @@ class CaseForecast:
     expected_three_months_later: float = 0
     expected_historical: float = 0
 
-@dataclass
-class SponsorForecast:
+class SponsorForecast(BaseModel):
     # Basic info
     name: str
     slug: str
@@ -187,8 +191,7 @@ class SponsorForecast:
     expected_three_months_later: float = 0
     expected_historical: float = 0
 
-@dataclass
-class ClientForecast:
+class ClientForecast(BaseModel):
     # Basic info
     name: str
     slug: str
@@ -233,10 +236,8 @@ class ClientForecast:
     expected_two_months_later: float = 0
     expected_three_months_later: float = 0
     expected_historical: float = 0
-    
 
-@dataclass
-class Totals:
+class Totals(BaseModel):
     # Basic values
     in_analysis: float = 0
     one_month_ago: float = 0
@@ -278,9 +279,9 @@ class Totals:
     same_day_two_months_ago_consulting_fee_new: float = 0
     same_day_three_months_ago_consulting_fee_new: float = 0
 
-    @staticmethod
-    def build(by_client: list[ClientForecast]) -> 'Totals':
-        return Totals(
+    @classmethod
+    def build(cls, by_client: list[ClientForecast]) -> 'Totals':
+        return cls(
             # Basic values
             in_analysis=sum(client.in_analysis for client in by_client),
             one_month_ago=sum(client.one_month_ago for client in by_client),
@@ -322,5 +323,14 @@ class Totals:
             same_day_two_months_ago_consulting_fee_new=sum(client.same_day_two_months_ago_consulting_fee_new for client in by_client),
             same_day_three_months_ago_consulting_fee_new=sum(client.same_day_three_months_ago_consulting_fee_new for client in by_client)
         )
+
+class RevenueForecastKindSummary(BaseModel):
+    kind: Literal['consulting', 'consulting_pre', 'hands_on', 'squad']
+    by_client: List[ClientForecast]
+    by_sponsor: List[SponsorForecast]
+    by_case: List[CaseForecast]
+    by_project: List[ProjectForecast]
+    by_consultant: List[ConsultantForecast]
+    totals: Totals
 
 

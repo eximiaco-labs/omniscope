@@ -5,7 +5,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,25 +14,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import {
-  DollarSignIcon,
-  BarChart3Icon,
-  UsersIcon,
-  SettingsIcon,
-  CheckCheckIcon,
-} from "lucide-react";
+
 
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
-import Logo from "./logo";
 
 import {
-  getAnalyticsSidebarItems,
-  getAboutUsSidebarItems,
-  getAdministrativeSidebarItems,
+  getTeamSidebarItems,
   getFinancialSidebarItems,
-  getOperationalSummariesSidebarItems,
+  getEngagementsSidebarItems,
+  getMarketingAndSalesSidebarItems,
 } from "@/app/navigation";
 
 import React from "react";
@@ -47,9 +38,18 @@ import {
 } from "@/components/ui/tooltip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import OmniSidebarFooter from "./OmniSidebarFooter";
-import SectionHeader from "@/components/SectionHeader";
 import { OmniCommandsButton } from "./OmniCommands";
 import { LucideIcon } from "lucide-react";
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faPersonRunning, 
+  faPeopleGroup, 
+  faCommentsDollar,
+  faMagnifyingGlassDollar,
+  faBookAtlas
+} from "@fortawesome/free-solid-svg-icons"
+import Logo from "./OmniLogo";
 
 const GET_USER_PHOTO = gql`
   query GetUserPhoto($email: String!) {
@@ -64,12 +64,13 @@ interface MenuItem {
   url: string;
   icon: LucideIcon;
   subItems?: MenuItem[];
+  subsection?: string;
 }
 
 interface SidebarSection {
   section: string;
   items: MenuItem[];
-  icon: LucideIcon;
+  icon: () => JSX.Element;
   tooltip: string;
   show?: boolean;
 }
@@ -87,9 +88,10 @@ export function OmniSidebar() {
   const [analyticsItems, setAnalyticsItems] = React.useState<MenuItem[]>([]);
   const [aboutUsItems, setAboutUsItems] = React.useState<MenuItem[]>([]);
   const [adminItems, setAdminItems] = React.useState<MenuItem[]>([]);
-  const [operationalItems, setOperationalItems] = React.useState<MenuItem[]>(
-    []
-  );
+  const [ontologyItems, setOntologyItems] = React.useState<MenuItem[]>([]);
+  const [teamItems, setTeamItems] = React.useState<MenuItem[]>([]);
+  const [engagementItems, setEngagementItems] = React.useState<MenuItem[]>([]);
+  const [marketingAndSalesItems, setMarketingAndSalesItems] = React.useState<MenuItem[]>([]);
 
   const [activeSection, setActiveSection] = React.useState<string>("Analytics");
   const [activeItems, setActiveItems] = React.useState<MenuItem[]>([]);
@@ -99,20 +101,19 @@ export function OmniSidebar() {
   React.useEffect(() => {
     async function loadItems() {
       const financial = await getFinancialSidebarItems(session?.user?.email);
-      const analytics = await getAnalyticsSidebarItems(session?.user?.email);
-      const operationalSummaries = await getOperationalSummariesSidebarItems();
-      const aboutUs = await getAboutUsSidebarItems();
-      const admin = await getAdministrativeSidebarItems();
+      
+      const team = await getTeamSidebarItems();
+      const engagements = await getEngagementsSidebarItems();
+      const marketingAndSales = await getMarketingAndSalesSidebarItems();
 
       setFinancialItems(financial);
-      setAnalyticsItems(analytics);
-      setAboutUsItems(aboutUs);
-      setAdminItems(admin);
-      setOperationalItems(operationalSummaries);
+      setTeamItems(team);
+      setEngagementItems(engagements);
+      setMarketingAndSalesItems(marketingAndSales);
 
       // Determine active section based on current path
-      let initialSection = "Analytics";
-      let initialItems = analytics;
+      let initialSection = "Team";
+      let initialItems = team;
 
       if (hasFinancialAccess) {
         const isFinancialPath = financial.some((item) =>
@@ -122,36 +123,33 @@ export function OmniSidebar() {
           initialSection = "Financial";
           initialItems = financial;
         }
-      }
+        }
 
-      const isAnalyticsPath = analytics.some((item) =>
+      const isMarketingAndSalesPath = marketingAndSales.some((item) =>
         pathname.startsWith(item.url)
       );
-      if (isAnalyticsPath) {
-        initialSection = "Analytics";
-        initialItems = analytics;
+      if (isMarketingAndSalesPath) {
+        initialSection = "Marketing and Sales";
+        initialItems = marketingAndSales;
       }
 
-      const isOperationalSummariesPath = operationalSummaries.some((item) =>
-        pathname.startsWith(item.url)
-      );
-      if (isOperationalSummariesPath) {
-        initialSection = "Operational Summaries";
-        initialItems = operationalSummaries;
+
+      const isOntologyPath = ontologyItems.some((item: MenuItem) => pathname.startsWith(item.url));
+      if (isOntologyPath) {
+        initialSection = "Ontology";
+        initialItems = ontologyItems;
       }
 
-      const isAboutUsPath = aboutUs.some((item) =>
-        pathname.startsWith(item.url)
-      );
-      if (isAboutUsPath) {
-        initialSection = "About Us";
-        initialItems = aboutUs;
+      const isTeamPath = team.some((item) => pathname.startsWith(item.url));
+      if (isTeamPath) {
+        initialSection = "Team";
+        initialItems = team;
       }
 
-      const isAdminPath = admin.some((item) => pathname.startsWith(item.url));
-      if (isAdminPath) {
-        initialSection = "Administrative";
-        initialItems = admin;
+      const isEngagementsPath = engagements.some((item) => pathname.startsWith(item.url));
+      if (isEngagementsPath) {
+        initialSection = "Engagements";
+        initialItems = engagements;
       }
 
       setActiveSection(initialSection);
@@ -171,60 +169,42 @@ export function OmniSidebar() {
         collapsible="none"
         className="gray !w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
       >
-        {/* <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-                <Link href="/">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Logo className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Omniscope</span>
-                    <span className="truncate text-xs">Visual Management</span>
-                  </div>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader> */}
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
+                <Link href="/home">
+                  <Logo />
+                </Link>
                 {(
                   [
                     hasFinancialAccess && {
                       section: "Financial",
                       items: financialItems,
-                      icon: DollarSignIcon,
+                      icon: () => <FontAwesomeIcon icon={faMagnifyingGlassDollar} />,
                       tooltip: "Financial",
                       show: financialItems.length > 0,
                     },
                     {
-                      section: "Analytics",
-                      items: analyticsItems,
-                      icon: BarChart3Icon,
-                      tooltip: "Analytics",
+                      section: "Team",
+                      items: teamItems,
+                      icon: () => <FontAwesomeIcon icon={faPeopleGroup} />,
+                      tooltip: "Team",
                     },
                     {
-                      section: "About Us",
-                      items: aboutUsItems,
-                      icon: UsersIcon,
-                      tooltip: "About Us",
+                      section: "Engagements",
+                      items: engagementItems,
+                      icon: () => <FontAwesomeIcon icon={faPersonRunning} />,
+                      tooltip: "Engagements",
                     },
                     {
-                      section: "Operational Summaries",
-                      items: operationalItems,
-                      icon: CheckCheckIcon,
-                      tooltip: "Operational",
+                      section: "Marketing and Sales",
+                      items: marketingAndSalesItems,
+                      icon: () => <FontAwesomeIcon icon={faCommentsDollar} />,
+                      tooltip: "Marketing and Sales",
+                      show: marketingAndSalesItems.length > 0,
                     },
-                    {
-                      section: "Administrative",
-                      items: adminItems,
-                      icon: SettingsIcon,
-                      tooltip: "Admin",
-                    },
+                    
                   ].filter(Boolean) as SidebarSection[]
                 ).map(
                   (item) =>
@@ -241,7 +221,9 @@ export function OmniSidebar() {
                                   setOpen(true);
                                 }}
                               >
-                                <item.icon className="size-4" />
+                                <div className="size-4">
+                                  <item.icon />
+                                </div>
                                 <span>{item.section}</span>
                               </SidebarMenuButton>
                             </TooltipTrigger>
@@ -270,39 +252,84 @@ export function OmniSidebar() {
               <OmniCommandsButton />
             </div>
           </div>
-          <SidebarGroup>
-            <SidebarGroupLabel>{activeSection}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {activeItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname.startsWith(item.url)}
-                    >
-                      <Link href={item.url}>
-                        {/* <item.icon /> */}
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {item.subItems && item.subItems.length > 0 && (
-                      <SidebarMenuSub>
-                        {item.subItems.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
-                              <Link href={subItem.url}>
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    )}
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          {/* Group items without subsection */}
+          {activeItems.some(item => !item.subsection) && (
+            <SidebarGroup>
+              <SidebarGroupLabel>{activeSection}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {activeItems
+                    .filter(item => !item.subsection)
+                    .map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname.startsWith(item.url)}
+                        >
+                          <Link href={item.url}>
+                            <item.icon className="size-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.subItems && item.subItems.length > 0 && (
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
+                                  <Link href={subItem.url}>
+                                    <subItem.icon className="size-4" />
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        )}
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+          {/* Group items by subsection */}
+          {Array.from(new Set(activeItems.map(item => item.subsection).filter(Boolean))).map(subsection => (
+            <SidebarGroup key={subsection}>
+              <SidebarGroupLabel>{subsection}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {activeItems
+                    .filter(item => item.subsection === subsection)
+                    .map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname.startsWith(item.url)}
+                        >
+                          <Link href={item.url}>
+                            <item.icon className="size-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.subItems && item.subItems.length > 0 && (
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.url)}>
+                                  <Link href={subItem.url}>
+                                    <subItem.icon className="size-4" />
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        )}
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
         </SidebarContent>
         <SidebarFooter>
           <OmniSidebarFooter />

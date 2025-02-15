@@ -1,20 +1,9 @@
-requests
 Flask
 Flask-CORS
-flask_httpauth
 ariadne
-elasticsearch
+pydantic
+holidays
 
-google-auth
+# Dev dependencies
 pytest
 pytest-cov
-pytest-mock
-pytest-parametrize
-
-pydantic
-pytz
-bokeh
-python-dotenv
-validators
-pandas
-jwt
