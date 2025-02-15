@@ -103,7 +103,7 @@ export default function AccountManagers() {
 
     return (
       <Link
-        href={`/about-us/account-managers/${encodeURIComponent(manager.slug)}`}
+        href={`/team/account-managers/${encodeURIComponent(manager.slug)}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
