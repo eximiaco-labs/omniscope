@@ -111,6 +111,10 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'icon' }>`
   }
 `;
 
+const GRID_SIZE = 8; // Reduzindo o tamanho da grade para posicionamento mais preciso
+const PADDING = 12; // Margem entre elementos menor
+const CANVAS_MARGIN = 16; // Margem do canvas
+
 const getInitialConfig = (type: GadgetType): GadgetConfig => {
   switch (type) {
     case GadgetType.TIMESHEET:
@@ -133,7 +137,12 @@ const getInitialConfig = (type: GadgetType): GadgetConfig => {
   }
 };
 
-const getGadgetContent = (gadget: Gadget, id: string, position: Position) => {
+const getGadgetContent = (
+  gadget: Gadget, 
+  id: string, 
+  position: Position,
+  onAddGadget: (type: GadgetType, config: GadgetConfig) => void
+) => {
   switch (gadget.type) {
     case GadgetType.TIMESHEET:
       return <TimesheetGadget 
@@ -141,6 +150,7 @@ const getGadgetContent = (gadget: Gadget, id: string, position: Position) => {
         position={position}
         type={gadget.type}
         config={gadget.config as TimesheetGadgetConfig}
+        onAddGadget={onAddGadget}
       />;
     case GadgetType.BY_CLIENT:
       return <ByClientGadget 
@@ -169,6 +179,147 @@ interface GadgetWrapperProps {
   onConfigure: (gadget: Gadget) => void;
   children: React.ReactNode;
 }
+
+const findBestGadgetPosition = (
+  existingGadgets: Gadget[],
+  newGadgetType: GadgetType,
+  canvasRef: React.RefObject<HTMLDivElement>
+): Position => {
+  const canvas = canvasRef.current;
+  if (!canvas) return { x: CANVAS_MARGIN, y: CANVAS_MARGIN };
+
+  const canvasWidth = canvas.clientWidth;
+  const canvasHeight = canvas.clientHeight;
+  const newGadgetDimensions = gadgetDimensions[newGadgetType];
+
+  // Se não houver gadgets, começar no canto superior esquerdo
+  if (existingGadgets.length === 0) {
+    return { x: CANVAS_MARGIN, y: CANVAS_MARGIN };
+  }
+
+  // Criar um mapa de ocupação do espaço
+  type Space = { x: number; y: number; width: number; height: number };
+  const occupiedSpaces: Space[] = existingGadgets.map(gadget => ({
+    x: gadget.position.x,
+    y: gadget.position.y,
+    width: gadgetDimensions[gadget.type].width,
+    height: gadgetDimensions[gadget.type].height
+  }));
+
+  // Encontrar todos os espaços disponíveis
+  const findAvailableSpaces = (): Space[] => {
+    const spaces: Space[] = [];
+    const usedYPositions = new Set(occupiedSpaces.map(s => s.y));
+    const sortedYPositions = Array.from(usedYPositions).sort((a, b) => a - b);
+
+    // Adicionar espaço no topo se houver
+    if (sortedYPositions[0] > CANVAS_MARGIN + PADDING) {
+      spaces.push({
+        x: CANVAS_MARGIN,
+        y: CANVAS_MARGIN,
+        width: canvasWidth - CANVAS_MARGIN * 2,
+        height: sortedYPositions[0] - CANVAS_MARGIN - PADDING
+      });
+    }
+
+    // Para cada linha de gadgets, encontrar espaços horizontais
+    sortedYPositions.forEach(y => {
+      const gadgetsInRow = occupiedSpaces.filter(s => s.y === y)
+        .sort((a, b) => a.x - b.x);
+
+      // Espaços entre gadgets na mesma linha
+      for (let i = 0; i < gadgetsInRow.length - 1; i++) {
+        const current = gadgetsInRow[i];
+        const next = gadgetsInRow[i + 1];
+        const spaceWidth = next.x - (current.x + current.width + PADDING * 2);
+        
+        if (spaceWidth >= newGadgetDimensions.width) {
+          spaces.push({
+            x: current.x + current.width + PADDING,
+            y,
+            width: spaceWidth,
+            height: current.height
+          });
+        }
+      }
+
+      // Espaço à direita do último gadget na linha
+      const lastInRow = gadgetsInRow[gadgetsInRow.length - 1];
+      const rightSpace = canvasWidth - CANVAS_MARGIN - (lastInRow.x + lastInRow.width + PADDING);
+      if (rightSpace >= newGadgetDimensions.width) {
+        spaces.push({
+          x: lastInRow.x + lastInRow.width + PADDING,
+          y,
+          width: rightSpace,
+          height: lastInRow.height
+        });
+      }
+    });
+
+    // Adicionar espaço para uma nova linha abaixo de todos os gadgets
+    const maxY = Math.max(...occupiedSpaces.map(s => s.y + s.height));
+    if (maxY + newGadgetDimensions.height + PADDING <= canvasHeight - CANVAS_MARGIN) {
+      spaces.push({
+        x: CANVAS_MARGIN,
+        y: maxY + PADDING,
+        width: canvasWidth - CANVAS_MARGIN * 2,
+        height: canvasHeight - maxY - CANVAS_MARGIN - PADDING
+      });
+    }
+
+    return spaces;
+  };
+
+  // Função para verificar se um espaço é adequado
+  const isSpaceValid = (space: Space): boolean => {
+    return space.width >= newGadgetDimensions.width &&
+           space.height >= newGadgetDimensions.height;
+  };
+
+  // Função para calcular a pontuação de um espaço
+  const getSpaceScore = (space: Space): number => {
+    let score = 0;
+    
+    // Preferir espaços mais próximos ao topo
+    score -= space.y * 0.1;
+    
+    // Preferir espaços que alinham com outros gadgets
+    const alignsWithOthers = occupiedSpaces.some(s => 
+      Math.abs(s.x - space.x) < GRID_SIZE || 
+      Math.abs((s.x + s.width) - (space.x + newGadgetDimensions.width)) < GRID_SIZE
+    );
+    if (alignsWithOthers) score += 50;
+
+    // Preferir espaços que completam uma linha
+    const completeRow = occupiedSpaces.some(s => 
+      Math.abs(s.y - space.y) < GRID_SIZE &&
+      Math.abs(s.x + s.width + PADDING - space.x) < GRID_SIZE
+    );
+    if (completeRow) score += 100;
+
+    return score;
+  };
+
+  // Encontrar o melhor espaço disponível
+  const availableSpaces = findAvailableSpaces()
+    .filter(isSpaceValid)
+    .map(space => ({
+      space,
+      score: getSpaceScore(space)
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  if (availableSpaces.length > 0) {
+    const bestSpace = availableSpaces[0].space;
+    return {
+      x: bestSpace.x,
+      y: bestSpace.y
+    };
+  }
+
+  // Se não encontrar nenhum espaço adequado, retornar posição padrão
+  return { x: CANVAS_MARGIN, y: CANVAS_MARGIN };
+};
 
 export default function Canvas() {
   const [gadgets, setGadgets] = useState<Gadget[]>(() => {
@@ -320,15 +471,17 @@ export default function Canvas() {
   };
 
   const handleAddGadget = (type: GadgetType) => {
-    const gadget = {
+    const newPosition = findBestGadgetPosition(gadgets, type, canvasRef);
+    const config = getInitialConfig(type);
+    const newGadget: Gadget = {
       id: `${type}-${Date.now()}`,
       type,
-      position: { x: 100, y: 100 },
-      config: getInitialConfig(type)
+      position: newPosition,
+      config
     };
 
-    setGadgets(prev => [...prev, gadget]);
-    setSelectedGadgetId(gadget.id); // Select the new gadget
+    setGadgets([...gadgets, newGadget]);
+    setSelectedGadgetId(newGadget.id);
   };
 
   const handleRemoveGadget = (id: string) => {
@@ -425,7 +578,7 @@ export default function Canvas() {
               isSelected={gadget.id === selectedGadgetId}
               zIndex={index + 1}
             >
-              {getGadgetContent(gadget, gadget.id, gadget.position)}
+              {getGadgetContent(gadget, gadget.id, gadget.position, handleAddGadget)}
             </GadgetWrapper>
           ))}
         </motion.div>

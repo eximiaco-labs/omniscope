@@ -30,7 +30,7 @@ import {
   GadgetProps,
 } from "./types";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, PlusCircle, ChevronRight } from 'lucide-react';
 
 const buildTimesheetQuery = (slugs: string[]) => {
   if (slugs.length === 0) {
@@ -314,9 +314,40 @@ interface FilterableField {
 
 interface TimesheetGadgetProps extends GadgetProps {
   config: TimesheetGadgetConfig;
+  onAddGadget: (type: GadgetType, config: any) => void;
 }
 
-export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetProps) {
+const IconButton = styled.button`
+  padding: 2px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+`;
+
+const TableCellWithAction = styled(TableCell)`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 4px !important;
+`;
+
+export function TimesheetGadget({ id, position, type, config, onAddGadget }: TimesheetGadgetProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [selectedPeriods, setSelectedPeriods] = useState<Option[]>(config.selectedPeriods || []);
@@ -528,6 +559,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {period.label}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Consulting</TableCell>
@@ -536,6 +568,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.totalConsultingHours}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Internal</TableCell>
@@ -544,6 +577,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.totalInternalHours}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Hands-on</TableCell>
@@ -552,6 +586,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.totalHandsOnHours}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Squad</TableCell>
@@ -560,6 +595,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.totalSquadHours}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
             </TableBody>
           </StyledTable>
@@ -578,6 +614,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {period.label}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Clients</TableCell>
@@ -586,6 +623,23 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.uniqueClients}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px', padding: '4px' }}>
+                  <IconButton
+                    onClick={() => {
+                      if (onAddGadget) {
+                        onAddGadget(GadgetType.BY_CLIENT, {
+                          type: GadgetType.BY_CLIENT,
+                          title: 'By Client',
+                          selectedPeriods,
+                          filters: formattedSelectedValues
+                        });
+                      }
+                    }}
+                    title="View client details"
+                  >
+                    <ChevronRight />
+                  </IconButton>
+                </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Sponsors</TableCell>
@@ -594,6 +648,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.uniqueSponsors}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Cases</TableCell>
@@ -602,6 +657,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.uniqueCases}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Days</TableCell>
@@ -610,6 +666,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.uniqueWorkingDays}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Workers</TableCell>
@@ -618,6 +675,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.uniqueWorkers}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Managers</TableCell>
@@ -626,6 +684,7 @@ export function TimesheetGadget({ id, position, type, config }: TimesheetGadgetP
                     {item.summary.uniqueAccountManagers}
                   </TableCell>
                 ))}
+                <TableCell style={{ width: '24px' }}></TableCell>
               </TableRow>
             </TableBody>
           </StyledTable>

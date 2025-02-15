@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import styled from "styled-components";
 import { useEdgeClient } from "@/app/hooks/useApolloClient";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect";
 import { Option } from "react-tailwindcss-select/dist/components/type";
@@ -231,31 +231,32 @@ const buildTimesheetQuery = (slugs: string[]) => {
     `;
   }
 
-  const queryString = slugs
-    .map(
-      (slug, index) => `
-        t${index}: timesheet(slug: "${slug}", filters: $filters) {
-          byClient {
-            data {
-              name
-              totalHours
-            }
-          }
-          filterableFields {
-            field
-            selectedValues
-            options
-          }
-        }
-      `
-    )
-    .join("\n");
-
-  return gql`
+  const queryString = `
     query GetTimesheet($filters: [DatasetFilterInput]) {
-      ${queryString}
+      ${slugs
+        .map(
+          (slug, index) => `
+            t${index}: timesheet(slug: "${slug}", filters: $filters) {
+              slug
+              byClient {
+                data {
+                  name
+                  totalHours
+                }
+              }
+              filterableFields {
+                field
+                selectedValues
+                options
+              }
+            }
+          `
+        )
+        .join("\n")}
     }
   `;
+
+  return gql(queryString);
 };
 
 const ValueCell = styled(TableCell)<{ percentage: number }>`
@@ -277,27 +278,63 @@ const ValueCell = styled(TableCell)<{ percentage: number }>`
 
 export function ByClientGadget({ id, position, type, config }: ByClientGadgetProps) {
   const client = useEdgeClient();
-  const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
-  const [selectedPeriods, setSelectedPeriods] = useState<Option[]>(config.selectedPeriods || []);
+  
+  // Initialize periods from config
+  const [selectedPeriods, setSelectedPeriods] = useState<Option[]>(
+    config.selectedPeriods || []
+  );
+  
+  // Initialize filters from config
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
-  >([]);
+  >(config.filters || []);
 
+  // Convert formatted filters to display format
+  const [selectedFilters, setSelectedFilters] = useState<Option[]>(() => {
+    if (!config.filters) return [];
+    return config.filters.flatMap(filter => 
+      filter.selectedValues.map(value => ({
+        label: `${filter.field}: ${value}`,
+        value: `${filter.field}:${value}`
+      }))
+    );
+  });
+
+  // Month options are independent of state
   const monthYearOptions = useMemo(() => generateMonthYearOptions(), []);
 
+  // Build query based on selected periods
   const query = useMemo(() => {
-    const slugs = selectedPeriods.map(p => p.value);
+    const slugs = selectedPeriods.map(p => p.value as string);
     return buildTimesheetQuery(slugs);
   }, [selectedPeriods]);
 
+  // Execute query with filters
   const { loading, error, data } = useQuery(query, {
     client: client ?? undefined,
     variables: { 
-      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : undefined
     },
-    skip: selectedPeriods.length === 0 || !client,
+    skip: !client,
     fetchPolicy: "network-only",
   });
+
+  // Update state when config changes
+  useEffect(() => {
+    if (config.selectedPeriods) {
+      setSelectedPeriods(config.selectedPeriods);
+    }
+    if (config.filters) {
+      setFormattedSelectedValues(config.filters);
+      const newSelectedFilters = config.filters.flatMap(filter => 
+        filter.selectedValues.map(value => ({
+          label: `${filter.field}: ${value}`,
+          value: `${filter.field}:${value}`
+        }))
+      );
+      setSelectedFilters(newSelectedFilters);
+    }
+  }, [config.selectedPeriods, config.filters]);
 
   const mergedFilterableFields = useMemo(() => {
     if (!data) return [];
@@ -377,28 +414,36 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
   const clientDataByPeriod = useMemo(() => {
     if (!data) return [];
 
-    // First, collect all unique client names across all periods
+    interface PeriodResponse {
+      slug: string;
+      byClient: {
+        data: ClientData[];
+      };
+    }
+
+    // Collect all unique client names across all periods
     const allClientNames = new Set<string>();
-    Object.keys(data)
-      .filter(key => key.startsWith('t'))
-      .forEach(key => {
-        data[key].byClient.data.forEach((client: ClientData) => {
+    Object.entries(data)
+      .filter(([key]) => key.startsWith('t'))
+      .forEach(([_, periodData]) => {
+        (periodData as PeriodResponse).byClient.data.forEach((client: ClientData) => {
           allClientNames.add(client.name);
         });
       });
 
-    // Sort client names alphabetically for consistent order
+    // Sort client names alphabetically
     const sortedClientNames = Array.from(allClientNames).sort();
 
     // Process each period's data
-    return Object.keys(data)
-      .filter(key => key.startsWith('t'))
-      .map(key => {
-        const periodData = data[key].byClient.data;
-        
-        // Create a map of client name to hours for quick lookup
+    return Object.entries(data)
+      .filter(([key]) => key.startsWith('t'))
+      .map(([_, periodData]) => {
+        const typedPeriodData = periodData as PeriodResponse;
         const clientHoursMap = new Map<string, number>(
-          periodData.map((client: ClientData) => [client.name, client.totalHours])
+          typedPeriodData.byClient.data.map((client: ClientData) => [
+            client.name,
+            client.totalHours
+          ])
         );
 
         // Create complete client data array with zeros for missing clients
@@ -408,17 +453,17 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
         }));
 
         const total = completeClientData.reduce(
-          (sum: number, client: ClientData) => sum + client.totalHours,
+          (sum, client) => sum + client.totalHours,
           0
         );
 
         return {
-          period: selectedPeriods.find(p => p.value === data[key].slug)?.label || '',
+          period: slugToTitle(typedPeriodData.slug),
           data: completeClientData,
           total
         } as PeriodData;
       });
-  }, [data, selectedPeriods]);
+  }, [data]);
 
   if (!client) {
     return (
@@ -476,11 +521,32 @@ export function ByClientGadget({ id, position, type, config }: ByClientGadgetPro
     );
   }
 
-  if (!data?.t0) {
+  if (!data || Object.keys(data).length === 0) {
     return (
       <Container>
+        <Controls>
+          <StyledSelectWrapper>
+            <SelectComponent
+              value={selectedPeriods}
+              options={monthYearOptions}
+              onChange={handleSlugChange}
+              primaryColor={""}
+              isSearchable={true}
+              isClearable={true}
+              isMultiple={true}
+              placeholder="Select period..."
+            />
+          </StyledSelectWrapper>
+          {selectedPeriods.length > 0 && (
+            <FilterFieldsSelect
+              data={{ filterableFields: mergedFilterableFields }}
+              selectedFilters={selectedFilters}
+              handleFilterChange={handleFilterChange}
+            />
+          )}
+        </Controls>
         <div style={{ padding: "1rem", textAlign: "center", color: "#64748b" }}>
-          No data available for this period
+          No data available for the selected period(s)
         </div>
       </Container>
     );

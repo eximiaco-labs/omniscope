@@ -22,8 +22,9 @@ export interface TimesheetGadgetConfig extends BaseGadgetConfig {
 
 export interface ByClientGadgetConfig extends BaseGadgetConfig {
   type: GadgetType.BY_CLIENT;
-  slug: string;
+  slug?: string;
   selectedPeriods?: Option[];
+  filters?: Array<{ field: string; selectedValues: string[] }>;
 }
 
 export type GadgetConfig = TimesheetGadgetConfig | ByClientGadgetConfig;
@@ -40,6 +41,7 @@ export interface GadgetProps {
   position: Position;
   type: GadgetType;
   config: GadgetConfig;
+  onAddGadget?: (type: GadgetType, config: GadgetConfig) => void;
 }
 
 export * from './Timesheet';
