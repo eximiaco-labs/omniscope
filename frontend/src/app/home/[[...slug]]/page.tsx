@@ -4,12 +4,15 @@ import { redirect } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
+import { useEdgeClient } from "@/app/hooks/useApolloClient";
 
 const GET_USER = gql`
   query GetUser($slug: String, $email: String) {
-    user(slug: $slug, email: $email) {
-      kind
-      slug
+    admin {
+      user(slug: $slug, email: $email) {
+        kind
+        slug
+      }
     }
   }
 `;
@@ -17,6 +20,7 @@ const GET_USER = gql`
 export default function HomePage() {
   const { data: session } = useSession();
   const params = useParams();
+  const client = useEdgeClient();
   const slug = Array.isArray(params?.slug) ? params.slug[0] : undefined;
 
   const { loading: userLoading, data: userData } = useQuery(GET_USER, {
@@ -25,9 +29,11 @@ export default function HomePage() {
       email: !slug ? session?.user?.email : undefined,
     },
     skip: !slug && !session?.user?.email,
+    client: client ?? undefined,
+    ssr: true
   });
 
-  const user = userData?.user;
+  const user = userData?.admin?.user;
 
   if (userLoading) {
     return (
