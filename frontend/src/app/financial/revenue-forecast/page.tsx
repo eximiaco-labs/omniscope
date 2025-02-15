@@ -212,13 +212,13 @@ export default function RevenueForecastPage() {
           ]}
         />
 
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <OneYearAllocation
             kind="consulting"
             hideTotals={true}
             showProjectionGraph={false}
           />
-        </div>
+        </div> */}
 
         <ConsultingTable
           title="Consulting"
@@ -269,9 +269,9 @@ export default function RevenueForecastPage() {
           toggleClient={(clientSlug) => toggleClient(clientSlug, "consultingPre")}
         />
 
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <OneYearAllocation kind="handsOn" hideTotals={true} showProjectionGraph={false} />
-        </div>
+        </div> */}
 
         <OtherTable
           title="Hands On"
@@ -284,9 +284,9 @@ export default function RevenueForecastPage() {
           toggleClient={toggleClient}
         />
 
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <OneYearAllocation kind="squad" hideTotals={true} showProjectionGraph={false} />
-        </div>
+        </div> */}
 
         <OtherTable
           title="Squad"

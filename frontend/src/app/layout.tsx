@@ -6,12 +6,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+
 import { OmniSidebar } from "./components/OmniSidebar";
 import { Separator } from "@/components/ui/separator";
 import { OmniBreadcrumb } from "./components/OmniBreadcrumb";
 import { SessionComponent } from "./components/SessionComponent";
-import { InconsistencyAlerts } from "./components/InconsistencyAlerts";
-import { OmniCommandsButton } from "./components/OmniCommands";
 import { Analytics } from "@/components/Analytics";
 import { ApolloWrapper } from "./components/ApolloWrapper";
 
@@ -64,7 +63,6 @@ export default function RootLayout({
                         </header>
                         <main>
                           <div className="container mx-auto px-4">
-                            <InconsistencyAlerts />
                             {children}
                           </div>
                         </main>
