@@ -38,9 +38,9 @@ export default function HomePage() {
   }
 
   if (user?.kind === "ACCOUNT_MANAGER") {
-    redirect(`/about-us/account-managers/${user.slug}`);
+    redirect(`/team/account-managers/${user.slug}`);
   }
   else {
-    redirect(`/about-us/consultants-and-engineers/${user.slug}`);
+    redirect(`/team/consultants-or-engineers/${user.slug}`);
   }
 }
