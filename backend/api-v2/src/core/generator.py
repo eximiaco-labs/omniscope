@@ -395,9 +395,8 @@ def generate_method_resolver(method):
     sig = inspect.signature(method)
     params = list(sig.parameters.values())
     
-    # Skip 'self' parameter if it exists
-    if params and params[0].name == 'self':
-        params = params[1:]
+    # Check if it's a static method by looking at the signature
+    is_static = not params or params[0].name != 'self'
     
     def resolver(obj, info, **kwargs):
         # Convert camelCase parameters back to snake_case for the method call
@@ -405,7 +404,12 @@ def generate_method_resolver(method):
             to_snake_case(key): value
             for key, value in kwargs.items()
         }
-        # Call the original method with the snake_case arguments
+        
+        # For static methods, we don't pass obj
+        if is_static:
+            return method(**snake_case_kwargs)
+        
+        # For instance methods, we pass the instance as first argument
         return method(obj, **snake_case_kwargs)
     
     # Update resolver signature to match GraphQL expectations
@@ -1104,7 +1108,7 @@ def generate_mutation_type(cls: Type[BaseModel]) -> tuple[str, Dict[str, Callabl
         mutation_fields.append(field_def)
         
         # Generate resolver and register it
-        resolver = method
+        resolver = generate_method_resolver(method)
         resolver_key = f"Mutation.{camel_method_name}"
         resolvers[resolver_key] = resolver
         registry.resolvers[resolver_key] = resolver

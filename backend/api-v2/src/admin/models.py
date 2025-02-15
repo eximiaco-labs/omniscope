@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from core.fields import Id
 from omni_models.domain import WorkerKind
-
+from datetime import datetime
 class User(BaseModel):
     email: str = Id(description="The email address of the user")
     slug: str = Id( description="The URL-friendly identifier of the user")
@@ -27,3 +27,7 @@ class User(BaseModel):
             position=worker.position,
             photo_url=worker.photo_url
         )
+        
+class CacheItem(BaseModel):
+    key: str = Id(description="The key of the cache item")
+    created_at: datetime = Field(..., description="The date and time the cache item was created")

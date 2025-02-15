@@ -15,6 +15,17 @@ class Mutations(BaseModel):
             return False
 
     @staticmethod
+    def invalidate_multiple_cache(keys: list[str]):
+        try:
+            for key in keys:
+                forget(key)
+            globals.update()
+            return True
+        except Exception as e:
+            print(f"Error invalidating multiple cache: {str(e)}")
+            return False
+
+    @staticmethod
     def invalidate_timesheet_cache(after: datetime, before: datetime):
         try:
             globals.omni_datasets.timesheets.memory.invalidate(after, before)
