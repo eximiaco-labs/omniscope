@@ -5,7 +5,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,16 +14,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import {
-  DollarSignIcon,
-  BarChart3Icon,
-  UsersIcon,
-  SettingsIcon,
-  CheckCheckIcon,
-  BookOpenIcon,
-  BriefcaseIcon,
-  UsersRoundIcon,
-} from "lucide-react";
+
 
 import { useSession } from "next-auth/react";
 import { useQuery, gql } from "@apollo/client";
@@ -33,11 +23,7 @@ import Logo from "./logo";
 
 import {
   getTeamSidebarItems,
-  getAnalyticsSidebarItems,
-  getAboutUsSidebarItems,
-  getAdministrativeSidebarItems,
   getFinancialSidebarItems,
-  getOntologySidebarItems,
   getEngagementsSidebarItems,
   getMarketingAndSalesSidebarItems,
 } from "@/app/navigation";
@@ -116,26 +102,19 @@ export function OmniSidebar() {
   React.useEffect(() => {
     async function loadItems() {
       const financial = await getFinancialSidebarItems(session?.user?.email);
-      const analytics = await getAnalyticsSidebarItems(session?.user?.email);
-      const aboutUs = await getAboutUsSidebarItems();
-      const admin = await getAdministrativeSidebarItems();
-      const ontology = await getOntologySidebarItems();
+      
       const team = await getTeamSidebarItems();
       const engagements = await getEngagementsSidebarItems();
       const marketingAndSales = await getMarketingAndSalesSidebarItems();
 
       setFinancialItems(financial);
-      setAnalyticsItems(analytics);
-      setAboutUsItems(aboutUs);
-      setAdminItems(admin);
-      setOntologyItems(ontology);
       setTeamItems(team);
       setEngagementItems(engagements);
       setMarketingAndSalesItems(marketingAndSales);
 
       // Determine active section based on current path
-      let initialSection = "Analytics";
-      let initialItems = analytics;
+      let initialSection = "Team";
+      let initialItems = team;
 
       if (hasFinancialAccess) {
         const isFinancialPath = financial.some((item) =>
@@ -155,33 +134,11 @@ export function OmniSidebar() {
         initialItems = marketingAndSales;
       }
 
-      const isAnalyticsPath = analytics.some((item) =>
-        pathname.startsWith(item.url)
-      );
-      if (isAnalyticsPath) {
-        initialSection = "Analytics";
-        initialItems = analytics;
-      }
-
-
-      const isAboutUsPath = aboutUs.some((item) =>
-        pathname.startsWith(item.url)
-      );
-      if (isAboutUsPath) {
-        initialSection = "About Us";
-        initialItems = aboutUs;
-      }
 
       const isOntologyPath = ontologyItems.some((item: MenuItem) => pathname.startsWith(item.url));
       if (isOntologyPath) {
         initialSection = "Ontology";
         initialItems = ontologyItems;
-      }
-
-      const isAdminPath = admin.some((item) => pathname.startsWith(item.url));
-      if (isAdminPath) {
-        initialSection = "Administrative";
-        initialItems = admin;
       }
 
       const isTeamPath = team.some((item) => pathname.startsWith(item.url));

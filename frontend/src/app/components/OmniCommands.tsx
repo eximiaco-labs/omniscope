@@ -11,12 +11,12 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import {
-  getAnalyticsSidebarItems,
-  getAboutUsSidebarItems,
-  getAdministrativeSidebarItems,
   getFinancialSidebarItems,
-  getOntologySidebarItems
+  getTeamSidebarItems,
+  getEngagementsSidebarItems,
+  getMarketingAndSalesSidebarItems
 } from "@/app/navigation"
+
 import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
 import { useQuery, gql } from "@apollo/client"
@@ -82,28 +82,25 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
   const router = useRouter()
   const { data } = useQuery(GET_CONSULTANTS)
   const { data: session } = useSession();
-  const [finantialsItems, setFinantialsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
-  const [analyticsItems, setAnalyticsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
-  const [aboutUsItems, setAboutUsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
-  const [adminItems, setAdminItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
-  const [operationalSummariesItems, setOperationalSummariesItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
-  const [ontologyItems, setOntologyItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+  const [financialItems, setFinancialItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+  const [teamItems, setTeamItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+  const [engagementsItems, setEngagementsItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+  const [marketingAndSalesItems, setMarketingAndSalesItems] = React.useState<Array<{ title: string; url: string; icon: any }>>([])
+
   React.useEffect(() => {
     async function loadItems() {
-      const finantials = await getFinancialSidebarItems(session?.user?.email)
-      const analytics = await getAnalyticsSidebarItems(session?.user?.email)
-      const aboutUs = await getAboutUsSidebarItems()
-      const admin = await getAdministrativeSidebarItems()
-      const ontology = await getOntologySidebarItems()
+      const financial = await getFinancialSidebarItems(session?.user?.email)
+      const team = getTeamSidebarItems()
+      const engagements = getEngagementsSidebarItems()
+      const marketingAndSales = getMarketingAndSalesSidebarItems()
       
-      setFinantialsItems(finantials)
-      setAnalyticsItems(analytics)
-      setAboutUsItems(aboutUs)
-      setAdminItems(admin) 
-      setOntologyItems(ontology)
+      setFinancialItems(financial)
+      setTeamItems(team)
+      setEngagementsItems(engagements)
+      setMarketingAndSalesItems(marketingAndSales)
     }
     loadItems()
-  }, [])
+  }, [session?.user?.email])
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -127,7 +124,7 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Financial">
-          {finantialsItems.map((item) => (
+          {financialItems.map((item) => (
               <CommandItem
                 key={item.url}
                 onSelect={() => runCommand(() => router.push(item.url))}
@@ -137,8 +134,8 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
               </CommandItem>
           ))}
         </CommandGroup>
-        <CommandGroup heading="Analytics">
-          {analyticsItems.map((item) => (
+        <CommandGroup heading="Team">
+          {teamItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
@@ -149,8 +146,8 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
           ))}
         </CommandGroup>
 
-        <CommandGroup heading="About Us">
-          {aboutUsItems.map((item) => (
+        <CommandGroup heading="Engagements">
+          {engagementsItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
@@ -161,32 +158,8 @@ export function OmniCommands({ open, setOpen }: OmniCommandsProps) {
           ))}
         </CommandGroup>
 
-        <CommandGroup heading="Operational Summaries">
-          {operationalSummariesItems.map((item) => (
-            <CommandItem
-              key={item.url}
-              onSelect={() => runCommand(() => router.push(item.url))}
-            >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.title}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-
-        <CommandGroup heading="Ontology">
-          {ontologyItems.map((item) => (
-            <CommandItem
-              key={item.url}
-              onSelect={() => runCommand(() => router.push(item.url))}
-            >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.title}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-
-        <CommandGroup heading="Administrative">
-          {adminItems.map((item) => (
+        <CommandGroup heading="Marketing & Sales">
+          {marketingAndSalesItems.map((item) => (
             <CommandItem
               key={item.url}
               onSelect={() => runCommand(() => router.push(item.url))}
