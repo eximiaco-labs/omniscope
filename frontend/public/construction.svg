@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-  <path d="M10 9h4M10 12h4M10 15h4M19 21V5c0-1.105-.895-2-2-2H7c-1.105 0-2 .895-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M12 3v18" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Hard Hat -->
+    <path d="M256 120C354 120 400 200 400 280H112C112 200 158 120 256 120Z" fill="#FFD700"/>
+    <path d="M256 100C158 100 102 180 102 260H410C410 180 354 100 256 100Z" fill="#FDB900"/>
+    
+    <!-- Construction Barrier -->
+    <rect x="82" y="320" width="348" height="60" fill="#FF6B6B"/>
+    <rect x="82" y="330" width="348" height="40" fill="#FF4949"/>
+    <path d="M82 320H430V380H82V320Z" stroke="#000" stroke-width="4"/>
+    
+    <!-- Stripes on Barrier -->
+    <path d="M102 330L132 370" stroke="#FFF" stroke-width="8"/>
+    <path d="M152 330L182 370" stroke="#FFF" stroke-width="8"/>
+    <path d="M202 330L232 370" stroke="#FFF" stroke-width="8"/>
+    <path d="M252 330L282 370" stroke="#FFF" stroke-width="8"/>
+    <path d="M302 330L332 370" stroke="#FFF" stroke-width="8"/>
+    <path d="M352 330L382 370" stroke="#FFF" stroke-width="8"/>
+    
+    <!-- Tools -->
+    <rect x="200" y="200" width="20" height="100" transform="rotate(45 200 200)" fill="#666"/>
+    <circle cx="320" cy="220" r="30" fill="#999"/>
+    <path d="M310 210L330 230M310 230L330 210" stroke="#666" stroke-width="4"/>
 </svg> 
