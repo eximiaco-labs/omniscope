@@ -70,10 +70,12 @@ class GlobalTypeRegistry:
             cls._instance = super().__new__(cls)
             cls._instance.types = {}
             cls._instance.query_fields = []
+            cls._instance.mutation_fields = set()  # Changed to set to avoid duplicates
             cls._instance.type_parameters = {}  # Store query parameters for each type
             cls._instance.resolvers = {}  # Store resolvers for each type
             
             cls._instance.register_type('Query', 'type Query { version: String! }', [], {})
+            cls._instance.register_type('Mutation', 'type Mutation { _empty: String }', [], {})  # Base Mutation type
         return cls._instance
 
     def register_type(self, type_name: str, type_def: str, parameters: List[str] = None, resolvers: Dict[str, Callable] = None):
@@ -82,6 +84,12 @@ class GlobalTypeRegistry:
             # Extract fields from the Query type extension
             field_lines = type_def.split("\n")[1:-1]  # Skip first and last lines
             self.query_fields.extend(line.strip() for line in field_lines if line.strip())
+        # Special handling for Mutation type
+        elif type_name == "Mutation":
+            # Extract fields from the Mutation type extension
+            field_lines = type_def.split("\n")[1:-1]  # Skip first and last lines
+            # Add fields to set to avoid duplicates
+            self.mutation_fields.update(line.strip() for line in field_lines if line.strip())
         else:
             self.types[type_name] = type_def
             if parameters:
@@ -102,6 +110,13 @@ class GlobalTypeRegistry:
   %s
 }""" % "\n  ".join(self.query_fields)
             types["Query"] = query_type
+            
+        if self.mutation_fields:
+            mutation_type = """type Mutation {
+  %s
+}""" % "\n  ".join(sorted(self.mutation_fields))  # Sort fields for consistency
+            types["Mutation"] = mutation_type
+            
         return types
 
     def get_resolvers(self) -> Dict[str, Callable]:
@@ -113,6 +128,7 @@ class GlobalTypeRegistry:
     def clear(self):
         self.types = {}
         self.query_fields = []
+        self.mutation_fields = set()  # Changed to set
         self.type_parameters = {}
         self.resolvers = {}
 
@@ -895,7 +911,12 @@ def generate_base_schema() -> str:
     
     return "\n\n".join(type_definitions) if type_definitions else ""
 
-def generate_schema(types: list[Type[BaseModel]], context_name: str, include_base_types: bool = False) -> tuple[str, Dict[str, Callable]]:
+def generate_schema(
+    types: list[Type[BaseModel]], 
+    context_name: str, 
+    include_base_types: bool = False,
+    mutation_classes: List[Type[BaseModel]] = None
+) -> tuple[str, Dict[str, Callable]]:
     """Generate complete GraphQL schema from types and their resolvers"""
     type_definitions = []
     generated_types = set()
@@ -914,6 +935,13 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
         if type_def:
             type_definitions.append(type_def)
             all_resolvers.update(resolvers)
+    
+    # Add mutations if provided
+    if mutation_classes:
+        mutation_defs, mutation_resolvers = register_mutations(mutation_classes)
+        if mutation_defs:
+            type_definitions.append(mutation_defs)
+            all_resolvers.update(mutation_resolvers)
     
     # Generate context type
     field_definitions = []
@@ -968,5 +996,144 @@ def generate_schema(types: list[Type[BaseModel]], context_name: str, include_bas
 }}"""
         registry.register_type("Query", query_type, resolvers=all_resolvers)
         type_definitions.append(query_type)
+    
+    return "\n\n".join(type_definitions), all_resolvers
+
+def generate_mutation_type(cls: Type[BaseModel]) -> tuple[str, Dict[str, Callable]]:
+    """Generate GraphQL mutation type from a Pydantic model and its resolvers"""
+    registry = GlobalTypeRegistry()
+    resolvers = {}
+    type_definitions = []
+    
+    # Get only methods defined in the class itself, not inherited ones
+    methods = [
+        (name, method) for name, method in inspect.getmembers(cls, predicate=inspect.isfunction)
+        if (
+            inspect.isfunction(method) and 
+            method.__qualname__.startswith(f"{cls.__name__}.") and  # Method is defined in this class
+            name not in ('__new__', '__init__')  # Exclude special methods
+        )
+    ]
+    
+    mutation_fields = []
+    
+    for method_name, method in methods:
+        # Get method signature
+        sig = inspect.signature(method)
+        params = list(sig.parameters.values())
+        
+        # Convert parameters to GraphQL arguments
+        args = []
+        for param in params:
+            param_type = "String"  # Default type
+            is_required = param.default == inspect.Parameter.empty
+            
+            # Get type annotation if available
+            if param.annotation != inspect.Parameter.empty:
+                if param.annotation == str:
+                    param_type = "String"
+                elif param.annotation == int:
+                    param_type = "Int"
+                elif param.annotation == float:
+                    param_type = "Float"
+                elif param.annotation == bool:
+                    param_type = "Boolean"
+                elif param.annotation == date:
+                    param_type = "Date"
+                elif hasattr(param.annotation, "__origin__"):
+                    origin = param.annotation.__origin__
+                    if origin == list or origin == List:
+                        inner_type = param.annotation.__args__[0]
+                        param_type = get_inner_type_for_graphql(inner_type, type_definitions, resolvers, registry, set(), is_input=True)
+                        param_type = f"[{param_type}]"
+                    elif origin in (Union, Optional):
+                        # Handle Optional types
+                        for arg in param.annotation.__args__:
+                            if arg != type(None):  # noqa
+                                if hasattr(arg, "__origin__") and (arg.__origin__ == list or arg.__origin__ == List):
+                                    # Handle Optional[List[...]]
+                                    list_inner_type = arg.__args__[0]
+                                    param_type = get_inner_type_for_graphql(list_inner_type, type_definitions, resolvers, registry, set(), is_input=True)
+                                    param_type = f"[{param_type}]"
+                                else:
+                                    param_type = get_inner_type_for_graphql(arg, type_definitions, resolvers, registry, set(), is_input=True)
+                                break
+                # Handle direct complex types (not in a list/optional)
+                elif (inspect.isclass(param.annotation) and 
+                      issubclass(param.annotation, BaseModel)):
+                    param_type = get_inner_type_for_graphql(param.annotation, type_definitions, resolvers, registry, set(), is_input=True)
+            
+            # Convert parameter name to camelCase for GraphQL
+            camel_param_name = to_camel_case(param.name)
+            args.append(f"{camel_param_name}: {param_type}{'!' if is_required else ''}")
+        
+        # Get return type annotation
+        return_type = "Boolean"  # Default return type for mutations
+        if sig.return_annotation != inspect.Parameter.empty:
+            if sig.return_annotation == bool:
+                return_type = "Boolean"
+            elif sig.return_annotation == str:
+                return_type = "String"
+            elif sig.return_annotation == int:
+                return_type = "Int"
+            elif sig.return_annotation == float:
+                return_type = "Float"
+            elif hasattr(sig.return_annotation, "__name__"):
+                return_type = sig.return_annotation.__name__
+                
+                # If return type is a Pydantic model and not yet registered, generate its type
+                if (
+                    inspect.isclass(sig.return_annotation) and 
+                    issubclass(sig.return_annotation, BaseModel) and 
+                    not registry.is_registered(return_type)
+                ):
+                    nested_type, nested_resolvers = generate_type(sig.return_annotation, set())
+                    if nested_type:
+                        type_definitions.append(nested_type)
+                        resolvers.update(nested_resolvers)
+        
+        # Add field definition with camelCase method name
+        camel_method_name = to_camel_case(method_name)
+        
+        # Only add parentheses and arguments if there are any
+        if args:
+            field_def = f"    {camel_method_name}({', '.join(args)}): {return_type}!"
+        else:
+            field_def = f"    {camel_method_name}: {return_type}!"
+            
+        mutation_fields.append(field_def)
+        
+        # Generate resolver and register it
+        resolver = method
+        resolver_key = f"Mutation.{camel_method_name}"
+        resolvers[resolver_key] = resolver
+        registry.resolvers[resolver_key] = resolver
+    
+    # Only generate mutation type if there are fields
+    if not mutation_fields:
+        return "", {}
+        
+    # Generate the mutation type extension
+    mutation_def = f"""extend type Mutation {{
+{chr(10).join(mutation_fields)}
+}}"""
+    
+    # Register the mutation type extension
+    registry.register_type("Mutation", mutation_def)
+    
+    if type_definitions:
+        return "\n\n".join([mutation_def] + type_definitions), resolvers
+    return mutation_def, resolvers
+
+def register_mutations(mutation_classes: List[Type[BaseModel]]) -> tuple[str, Dict[str, Callable]]:
+    """Register mutation classes and generate their GraphQL types and resolvers"""
+    type_definitions = []
+    all_resolvers = {}
+    
+    for cls in mutation_classes:
+        type_def, resolvers = generate_mutation_type(cls)
+        if type_def:
+            type_definitions.append(type_def)
+            all_resolvers.update(resolvers)
     
     return "\n\n".join(type_definitions), all_resolvers
