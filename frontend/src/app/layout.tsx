@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950"
+      className="bg-white dark:bg-zinc-900"
     >
       <head>
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
