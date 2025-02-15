@@ -193,7 +193,7 @@ export function OtherTable({
                           : "+"}
                       </button>
                       <Link
-                        href={`/about-us/clients/${client.slug}`}
+                        href={`/engagements/clients/${client.slug}`}
                         className="text-blue-600 hover:text-blue-800"
                       >
                         {client.name}
@@ -227,7 +227,7 @@ export function OtherTable({
                                   : "+"}
                               </button>
                               <Link
-                                href={`/about-us/sponsors/${sponsor.slug}`}
+                                href={`/engagements/sponsors/${sponsor.slug}`}
                                 className="text-blue-600 hover:text-blue-800 text-[14px]"
                               >
                                 {sponsor.name}
@@ -266,7 +266,7 @@ export function OtherTable({
                                       <div className="flex flex-col justify-between flex-1">
                                         <div>
                                           <Link
-                                            href={`/about-us/cases/${caseItem.slug}`}
+                                            href={`/engagements/cases/${caseItem.slug}`}
                                             className="text-blue-600 hover:text-blue-800 text-[12px]"
                                           >
                                             {caseItem.title}

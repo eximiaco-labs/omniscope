@@ -232,7 +232,7 @@ export function PreContractedRevenue({
                 <TableRow key={manager.name} className="bg-gray-100">
                   <TableCell className="text-sm font-semibold">
                     {manager.slug ? (
-                      <Link href={`/about-us/account-managers/${manager.slug}`} className="text-blue-600 hover:underline">
+                      <Link href={`/team/account-managers/${manager.slug}`} className="text-blue-600 hover:underline">
                         {manager.name}
                       </Link>
                     ) : (
@@ -264,7 +264,7 @@ export function PreContractedRevenue({
                           <ChevronRight size={16} />
                         )}
                         {client.slug ? (
-                          <Link href={`/about-us/clients/${client.slug}`} className="text-blue-600 hover:underline">
+                          <Link href={`/engagements/clients/${client.slug}`} className="text-blue-600 hover:underline">
                             {client.name}
                           </Link>
                         ) : (
@@ -297,7 +297,7 @@ export function PreContractedRevenue({
                                 <ChevronRight size={16} />
                               )}
                               {sponsor.slug ? (
-                                <Link href={`/about-us/sponsors/${sponsor.slug}`} className="text-blue-600 hover:underline">
+                                <Link href={`/engagements/sponsors/${sponsor.slug}`} className="text-blue-600 hover:underline">
                                   {sponsor.name}
                                 </Link>
                               ) : (
@@ -323,7 +323,7 @@ export function PreContractedRevenue({
                               >
                                 <TableCell className="pl-16 text-sm text-gray-600">
                                   {caseItem.slug ? (
-                                    <Link href={`/about-us/cases/${caseItem.slug}`} className="text-blue-600 hover:underline">
+                                    <Link href={`/engagements/cases/${caseItem.slug}`} className="text-blue-600 hover:underline">
                                       {caseItem.title}
                                     </Link>
                                   ) : (
