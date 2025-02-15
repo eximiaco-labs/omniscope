@@ -85,7 +85,7 @@ interface MenuItem {
 interface SidebarSection {
   section: string;
   items: MenuItem[];
-  icon: LucideIcon;
+  icon: () => JSX.Element;
   tooltip: string;
   show?: boolean;
 }
@@ -213,23 +213,6 @@ export function OmniSidebar() {
         collapsible="none"
         className="gray !w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
       >
-        {/* <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-                <Link href="/">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Logo className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Omniscope</span>
-                    <span className="truncate text-xs">Visual Management</span>
-                  </div>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader> */}
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
@@ -262,25 +245,6 @@ export function OmniSidebar() {
                       tooltip: "Marketing and Sales",
                       show: marketingAndSalesItems.length > 0,
                     },
-                    {
-                      section: "Ontology",
-                      items: ontologyItems,
-                      icon: () => <FontAwesomeIcon icon={faBookAtlas} />,
-                      tooltip: "Ontology",
-                    },
-                    {
-                      section: "Analytics",
-                      items: analyticsItems,
-                      icon: BarChart3Icon,
-                      tooltip: "Analytics",
-                    },
-                    
-                    {
-                      section: "About Us",
-                      items: aboutUsItems,
-                      icon: UsersIcon,
-                      tooltip: "About Us",
-                    },
                     
                   ].filter(Boolean) as SidebarSection[]
                 ).map(
@@ -298,7 +262,9 @@ export function OmniSidebar() {
                                   setOpen(true);
                                 }}
                               >
-                                <item.icon className="size-4" />
+                                <div className="size-4">
+                                  <item.icon />
+                                </div>
                                 <span>{item.section}</span>
                               </SidebarMenuButton>
                             </TooltipTrigger>
