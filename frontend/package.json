@@ -11,6 +11,7 @@
   "dependencies": {
     "@apollo/client": "^3.11.8",
     "@elastic/elasticsearch": "^8.15.2",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -47,7 +48,7 @@
     "graphql": "^16.9.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.453.0",
-    "next": "14.2.14",
+    "next": "^14.2.24",
     "next-auth": "^4.24.8",
     "next-themes": "^0.3.0",
     "react": "^18",
