@@ -72,9 +72,7 @@ export default function ProductsOrServices() {
 
     return (
       <Link
-        href={`/analytics/datasets/timesheet-last-six-weeks?OfferName=${encodeURIComponent(
-          offer.name
-        )}`}
+        href={`/marketing-and-sales/offers/${offer.slug}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
