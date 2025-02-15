@@ -95,7 +95,7 @@ export const CaseCard: React.FC<CaseCardProps> = ({ caseItem }) => {
 
   return (
     <Link 
-      href={`/about-us/cases/${caseItem.slug}`}
+      href={`/engagements/cases/${caseItem.slug}`}
       className="block transition-all duration-300 ease-in-out"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

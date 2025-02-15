@@ -113,7 +113,7 @@ export default function ClientCard({ client, clientData }: ClientCardProps) {
 
   return (
     <Link
-      href={`/about-us/clients/${client.slug}`}
+      href={`/engagements/clients/${client.slug}`}
       className="block transition-all duration-300 ease-in-out"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

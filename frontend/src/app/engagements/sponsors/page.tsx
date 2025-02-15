@@ -117,7 +117,7 @@ export default function Sponsors() {
 
     return (
       <Link
-        href={`/about-us/sponsors/${sponsor.slug}`}
+        href={`/engagements/sponsors/${sponsor.slug}`}
         className="block transition-all duration-300 ease-in-out"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
