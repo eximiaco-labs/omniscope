@@ -17,6 +17,7 @@ from engagements.resolvers import engagements_resolvers
 from timesheet.resolvers import query as timesheet_query
 from marketing_and_sales.resolvers import marketing_and_sales_resolvers
 from ontology.resolvers import ontology_resolvers
+from admin.resolvers import admin_resolvers
 
 from team.schema import init as team_init
 from engagements.schema import init as engagements_init
@@ -24,6 +25,7 @@ from ontology.schema import init as ontology_init
 from timesheet.schema import init as timesheet_init
 from marketing_and_sales.schema import init as marketing_and_sales_init
 from financial.schema import init as financial_init
+from admin.schema import init as admin_init
 
 from core.generator import generate_base_schema, GlobalTypeRegistry, to_snake_case
 from omni_shared.settings import auth_settings 
@@ -41,7 +43,7 @@ def create_schema():
         timesheet_init()
         marketing_and_sales_init()
         financial_init()
-    
+        admin_init()
     init()
 
     # Initialize registry and add base schema
@@ -63,7 +65,7 @@ def create_schema():
         return "2.0.0"
 
     # Create resolver types list starting with base query
-    resolver_types = [base_query] + team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + ontology_resolvers + [timesheet_query]
+    resolver_types = [base_query] + team_resolvers + engagements_resolvers + marketing_and_sales_resolvers + ontology_resolvers + [timesheet_query] + admin_resolvers
 
     for field_path, resolver_fn in registry.resolvers.items():
         type_name, field_name = field_path.split(".")

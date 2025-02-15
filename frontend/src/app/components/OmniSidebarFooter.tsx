@@ -24,7 +24,6 @@ import SectionHeader from "@/components/SectionHeader";
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 
