@@ -50,7 +50,6 @@ def resolve_consultant_or_engineer_timesheet(obj, info, slug: str = None, filter
     map = build_fields_map(info)
     result = compute_timesheet(map, slug, client_filters)
     model_dump = result.model_dump()
-    print(model_dump)
     return model_dump
 
 @team.field("accountManagers")
