@@ -7,6 +7,7 @@ import SectionHeader from "@/components/SectionHeader";
 import Image from "next/image";
 import { BookOpen } from "lucide-react";
 import { TimesheetSummary } from "@/app/components/TimesheetSummary";
+import UnderConstruction from "@/app/components/UnderConstruction";
 
 const GET_WORKER_INFO = gql`
   query GetWorkerInfo($slug: String!) {
@@ -86,7 +87,8 @@ export default function WorkerPage() {
           </div>
         </div>
       </div>
-      <TimesheetSummary />
+      <UnderConstruction />
+      {/* <TimesheetSummary /> */}
     </div>
   );
 }
