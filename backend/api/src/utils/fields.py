@@ -26,9 +26,9 @@ def get_selections_from_selection_set(selection_set, info) -> List[Any]:
             result.append(selection)
         elif selection.kind == 'fragment_spread':
             fragment = info.fragments[selection.name.value]
-            result.extend(get_selections_from_selection_set(fragment.selection_set))
+            result.extend(get_selections_from_selection_set(fragment.selection_set, info))
         elif selection.kind == 'inline_fragment':
-            result.extend(get_selections_from_selection_set(selection.selection_set))
+            result.extend(get_selections_from_selection_set(selection.selection_set, info))
     
     return result
 
