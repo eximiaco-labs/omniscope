@@ -5,7 +5,8 @@ import omni_models.semantic.ontology as o
 from typing import Optional, Dict, List
 from omni_models.domain.clients import ClientsRepository
 from pydantic import BaseModel
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
+import re
 
 import omni_utils.helpers.numbers as numbers
 from omni_models.domain.active_deals import ActiveDealsRepository
@@ -301,7 +302,19 @@ class CasesRepository:
                 if tracker_project.status == 'archived':
                     if not tracker_project.due_on:
                         due_on = None
-                        if tracker_project.name.endswith("- 2024"):
+                        
+                        pattern = r'- E (\d{2})/(\d{4})$'
+                        match = re.search(pattern, tracker_project.name)
+                        if match:
+                            month = int(match.group(1))
+                            year = int(match.group(2))
+                            # Get last day of the month
+                            if month == 12:
+                                next_month = datetime(year + 1, 1, 1, 23, 59, 59)
+                            else:
+                                next_month = datetime(year, month + 1, 1, 23, 59, 59)
+                            due_on = next_month - timedelta(days=1)      
+                        elif tracker_project.name.endswith("- 2024"):
                             due_on = datetime(year=2024, month=12, day=31, hour=23, minute=59, second= 59)
                         elif case.end_of_contract:
                             due_on = case.end_of_contract

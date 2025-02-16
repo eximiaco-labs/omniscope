@@ -77,10 +77,7 @@ interface SidebarSection {
 
 export function OmniSidebar() {
   const { data: session } = useSession();
-  const { data: userData } = useQuery(GET_USER_PHOTO, {
-    variables: { email: session?.user?.email },
-    skip: !session?.user?.email,
-  });
+  
   const { setOpen } = useSidebar();
   const pathname = usePathname();
 
