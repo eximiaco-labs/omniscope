@@ -28,7 +28,7 @@ from financial.schema import init as financial_init
 from admin.schema import init as admin_init
 
 from core.generator import generate_base_schema, GlobalTypeRegistry, to_snake_case
-from omni_shared.settings import auth_settings 
+from omni_shared.settings import auth_settings
 from omni_shared.settings import graphql_settings
 
 app = Flask(__name__)
@@ -69,12 +69,12 @@ def create_schema():
 
     for field_path, resolver_fn in registry.resolvers.items():
         type_name, field_name = field_path.split(".")
-        
+
         # Special handling for namespace types - they need to be registered in Query
         if type_name == type_name.title() and field_name == to_snake_case(type_name):
             base_query.set_field(field_name.lower(), resolver_fn)
             continue
-            
+
         # Get or create type object
         type_obj = next(
             (r for r in resolver_types if isinstance(r, ObjectType) and r.name == type_name),
@@ -83,13 +83,13 @@ def create_schema():
         # Set resolver
         if not type_obj._resolvers.get(field_name):
             type_obj.set_field(field_name, resolver_fn)
-        
+
         if type_obj not in resolver_types:
             resolver_types.append(type_obj)
 
     # Get all SDL from registry
     sdl = registry.generate_sdl()
-    
+
     # Create executable schema
     return make_executable_schema(
         [sdl],
@@ -104,7 +104,7 @@ schema = create_schema()
 @app.route("/graphql", methods=["POST"])
 def graphql_server():
     data = request.get_json()
-    
+
     # Handle batch requests
     if isinstance(data, list):
         results = []
@@ -117,7 +117,7 @@ def graphql_server():
             )
             results.append(result)
         return jsonify(results), 200
-    
+
     # Handle single request
     success, result = graphql_sync(
         schema,
@@ -133,4 +133,4 @@ def graphql_playground():
     return ExplorerGraphiQL().html(None), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5001)
