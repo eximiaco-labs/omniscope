@@ -6,6 +6,7 @@ import { useEdgeClient } from "@/app/hooks/useApolloClient";
 import SectionHeader from "@/components/SectionHeader";
 import Image from "next/image";
 import { BookOpen } from "lucide-react";
+import { TimesheetSummary } from "@/app/components/TimesheetSummary";
 
 const GET_WORKER_INFO = gql`
   query GetWorkerInfo($slug: String!) {
@@ -85,12 +86,7 @@ export default function WorkerPage() {
           </div>
         </div>
       </div>
-      <div className="max-w-4xl mx-auto">
-        <SectionHeader
-          title="Profile"
-          subtitle="Information"
-        />
-      </div>
+      <TimesheetSummary />
     </div>
   );
 }
