@@ -1291,13 +1291,20 @@ def compute_pre_contracted_revenue_tracking(df: pd.DataFrame, date_of_interest: 
                         client_name = client.name
                         account_manager_name = client.account_manager.name if client.account_manager else "N/A"
                         
-                    if is_last_day_of_month:
+                    workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index() if len(project_df) > 0 else pd.DataFrame()
+                    number_of_workers = len(workers_hours)
+                    
+                    if project.budget:
+                        expected_hours = project.budget.budget / 60 / 60
+                        expected_number_of_workers = expected_hours / 160
                         
-                        workers_hours = project_df.groupby("WorkerName")["TimeInHs"].sum().reset_index() if len(project_df) > 0 else pd.DataFrame()
+                        if (number_of_workers > 0 and expected_number_of_workers > number_of_workers):
+                            fee = fee / expected_number_of_workers * number_of_workers
+                        
+                    if is_last_day_of_month:
                         if len(workers_hours) == 0:
-                            return None
-                            
-                        number_of_workers = len(workers_hours)
+                            return None    
+                        
                         fee_per_worker = fee / number_of_workers
                         hourly_fee = fee_per_worker / 160
                         
