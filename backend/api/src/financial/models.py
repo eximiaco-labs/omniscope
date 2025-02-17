@@ -81,21 +81,24 @@ class Financial(BaseModel):
                 month_actual = forecast.summary.realized 
                 actual += month_actual
                 
-            
+            if y < current_year or (y == current_year and m < current_month):
+                reference = forecast
+            else:
+                reference = forecast_doi
         
             month_data = YearlyRevenueForecastByMonth(
                 month=m,
                 goal=goal,
                 working_days=len(get_working_days_in_month(y, m)),
-                expected_consulting_fee=forecast_doi.by_kind.consulting.totals.expected,
-                expected_squad_fee=forecast_doi.by_kind.squad.totals.in_analysis,
-                expected_hands_on_fee=forecast_doi.by_kind.hands_on.totals.in_analysis,
-                expected_consulting_pre_fee=forecast_doi.by_kind.consulting_pre.totals.in_analysis,
+                expected_consulting_fee=reference.by_kind.consulting.totals.expected,
+                expected_squad_fee=reference.by_kind.squad.totals.in_analysis,
+                expected_hands_on_fee=reference.by_kind.hands_on.totals.in_analysis,
+                expected_consulting_pre_fee=reference.by_kind.consulting_pre.totals.in_analysis,
                 actual=month_actual,
-                actual_consulting_fee=forecast_doi.by_kind.consulting.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
-                actual_squad_fee=forecast_doi.by_kind.squad.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
-                actual_hands_on_fee=forecast_doi.by_kind.hands_on.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
-                actual_consulting_pre_fee=forecast_doi.by_kind.consulting_pre.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0
+                actual_consulting_fee=reference.by_kind.consulting.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
+                actual_squad_fee=reference.by_kind.squad.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
+                actual_hands_on_fee=reference.by_kind.hands_on.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0,
+                actual_consulting_pre_fee=reference.by_kind.consulting_pre.totals.in_analysis if y < current_year or (y == current_year and m <= current_month) else 0
             )
             
             by_month.append(month_data)
