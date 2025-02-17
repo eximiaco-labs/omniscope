@@ -87,8 +87,7 @@ export default function WorkerPage() {
           </div>
         </div>
       </div>
-      <UnderConstruction />
-      {/* <TimesheetSummary /> */}
+      <TimesheetSummary />
     </div>
   );
 }

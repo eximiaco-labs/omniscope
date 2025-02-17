@@ -14,6 +14,9 @@ import { TableHeaderComponent } from "@/app/financial/revenue-forecast/component
 import { TableRowComponent } from "@/app/financial/revenue-forecast/components/TableRow"
 import { TableCellComponent } from "@/app/financial/revenue-forecast/components/TableCell"
 import SectionHeader from "@/components/SectionHeader"
+import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect"
+import { useState } from "react"
+import { Option } from "react-tailwindcss-select/dist/components/type"
 
 const GET_TIMESHEET_SUMMARY = gql`
   fragment SummaryFields on TimesheetSummary {
@@ -51,28 +54,45 @@ const GET_TIMESHEET_SUMMARY = gql`
     totalInternalHours
   }
 
-  query GetTimesheetSummaries {
-    thisMonth: timesheet(slug: "this-month") {
+  query GetTimesheetSummary($filters: [DatasetFilterInput]) {
+    thisMonth: timesheet(slug: "this-month", filters: $filters) {
       summary {
         ...SummaryFields
       }
+      filterableFields {
+        field
+        options
+        selectedValues
+      }
     }
-    
-    previousMonth: timesheet(slug: "previous-month") {
+    previousMonth: timesheet(slug: "previous-month", filters: $filters) {
       summary {
         ...SummaryFields
       }
+      filterableFields {
+        field
+        options
+        selectedValues
+      }
     }
-    
-    twoMonthsMonth: timesheet(slug: "two-months-ago") {
+    twoMonthsMonth: timesheet(slug: "two-months-ago", filters: $filters) {
       summary {
         ...SummaryFields
       }
+      filterableFields {
+        field
+        options
+        selectedValues
+      }
     }
-    
-    threeMonthsMonth: timesheet(slug: "three-months-ago") {
+    threeMonthsMonth: timesheet(slug: "three-months-ago", filters: $filters) {
       summary {
         ...SummaryFields
+      }
+      filterableFields {
+        field
+        options
+        selectedValues
       }
     }
   }
@@ -284,11 +304,47 @@ const TotalRow = ({ data }: { data: any }) => {
 
 export function TimesheetSummary() {
   const client = useEdgeClient();
+  const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [formattedSelectedValues, setFormattedSelectedValues] = useState<
+    Array<{ field: string; selectedValues: string[] }>
+  >([]);
+  
+  const handleFilterChange = (value: Option | Option[] | null): void => {
+    const newSelectedValues = Array.isArray(value)
+      ? value
+      : value
+      ? [value]
+      : [];
+    setSelectedFilters(newSelectedValues);
+
+    const formattedValues = data?.thisMonth?.filterableFields?.reduce((acc: any[], field: any) => {
+      const fieldValues = newSelectedValues
+        .filter(
+          (v) =>
+            typeof v.value === "string" &&
+            v.value.startsWith(`${field.field}:`)
+        )
+        .map((v) => (v.value as string).split(":")[1]);
+
+      if (fieldValues.length > 0) {
+        acc.push({
+          field: field.field,
+          selectedValues: fieldValues,
+        });
+      }
+      return acc;
+    }, []) || [];
+
+    setFormattedSelectedValues(formattedValues);
+  };
   
   if (!client) return <p>Loading client...</p>;
   
   const { loading, error, data } = useQuery(GET_TIMESHEET_SUMMARY, {
     client,
+    variables: {
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
+    },
     ssr: true
   });
 
@@ -362,13 +418,20 @@ export function TimesheetSummary() {
 
   return (
     <div className="space-y-8">
-      {/* Total Hours Section */}
-      <div>
-        <SectionHeader 
-          title="Total Hours by Category" 
-          subtitle="Monthly distribution of hours by category"
+      <div className="relative z-[40]">
+        <FilterFieldsSelect
+          data={data?.thisMonth}
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
         />
-        <div className="mx-2">
+      </div>
+
+      {/* Total Hours Section */}
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Total Hours by Category</h3>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableMonthHeaders showTotals={true} />
@@ -409,16 +472,15 @@ export function TimesheetSummary() {
               <TotalRow data={data} />
             </TableBody>
           </Table>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Overview Section */}
-      <div>
-        <SectionHeader 
-          title="Unique Entries Overview" 
-          subtitle="Monthly count of unique entities"
-        />
-        <div className="mx-2">
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Unique Entries Overview</h3>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableMonthHeaders />
@@ -474,16 +536,15 @@ export function TimesheetSummary() {
               />
             </TableBody>
           </Table>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Averages Section */}
-      <div>
-        <SectionHeader 
-          title="Averages and Standard Deviations" 
-          subtitle="Monthly statistics and variations"
-        />
-        <div className="mx-2">
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Averages and Standard Deviations</h3>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableMonthHeaders />
@@ -533,8 +594,8 @@ export function TimesheetSummary() {
               />
             </TableBody>
           </Table>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
