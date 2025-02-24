@@ -15,7 +15,7 @@ import { TableRowComponent } from "@/app/financial/revenue-forecast/components/T
 import { TableCellComponent } from "@/app/financial/revenue-forecast/components/TableCell"
 import SectionHeader from "@/components/SectionHeader"
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Option } from "react-tailwindcss-select/dist/components/type"
 
 const GET_TIMESHEET_SUMMARY = gql`
@@ -134,10 +134,7 @@ interface TimesheetSummaryData {
 }
 
 interface TimesheetSummaryProps {
-  thisMonth: { summary: TimesheetSummaryData }
-  previousMonth: { summary: TimesheetSummaryData }
-  twoMonthsMonth: { summary: TimesheetSummaryData }
-  threeMonthsMonth: { summary: TimesheetSummaryData }
+  initialQueryFilters?: Array<{ field: string; selectedValues: string[] }>
 }
 
 const formatNumber = (num: number) => num.toFixed(2)
@@ -302,12 +299,23 @@ const TotalRow = ({ data }: { data: any }) => {
   )
 }
 
-export function TimesheetSummary() {
+export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
-  >([]);
+  >(initialQueryFilters || []);
+
+  // Convert API filter values to Options format
+  const convertToOptions = (filterableFields: Array<{ field: string, options: string[], selectedValues: string[] }>) => {
+    return filterableFields.reduce((acc: Option[], field) => {
+      const fieldOptions = field.selectedValues.map(value => ({
+        value: `${field.field}:${value}`,
+        label: value
+      }));
+      return [...acc, ...fieldOptions];
+    }, []);
+  };
   
   const handleFilterChange = (value: Option | Option[] | null): void => {
     const newSelectedValues = Array.isArray(value)
@@ -347,6 +355,13 @@ export function TimesheetSummary() {
     },
     ssr: true
   });
+
+  useEffect(() => {
+    if (data?.thisMonth?.filterableFields) {
+      const options = convertToOptions(data.thisMonth.filterableFields);
+      setSelectedFilters(options);
+    }
+  }, [data]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -427,60 +442,80 @@ export function TimesheetSummary() {
       </div>
 
       {/* Total Hours Section */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold">Total Hours by Category</h3>
-        </CardHeader>
-        <CardContent>
+      <div>
+        <SectionHeader 
+          title="Total Hours by Category" 
+          subtitle="Distribution of hours across different work categories"
+        />
+        <div className="mx-2">
           <Table>
             <TableHeader>
               <TableMonthHeaders showTotals={true} />
             </TableHeader>
             <TableBody>
-              <StatRow 
-                label="Consulting Hours"
-                current={data.thisMonth.summary.totalConsultingHours}
-                previous={data.previousMonth.summary.totalConsultingHours}
-                twoMonths={data.twoMonthsMonth.summary.totalConsultingHours}
-                threeMonths={data.threeMonthsMonth.summary.totalConsultingHours}
-                showTotal={true}
-              />
-              <StatRow 
-                label="Squad Hours"
-                current={data.thisMonth.summary.totalSquadHours}
-                previous={data.previousMonth.summary.totalSquadHours}
-                twoMonths={data.twoMonthsMonth.summary.totalSquadHours}
-                threeMonths={data.threeMonthsMonth.summary.totalSquadHours}
-                showTotal={true}
-              />
-              <StatRow 
-                label="Hands-on Hours"
-                current={data.thisMonth.summary.totalHandsOnHours}
-                previous={data.previousMonth.summary.totalHandsOnHours}
-                twoMonths={data.twoMonthsMonth.summary.totalHandsOnHours}
-                threeMonths={data.threeMonthsMonth.summary.totalHandsOnHours}
-                showTotal={true}
-              />
-              <StatRow 
-                label="Internal Hours"
-                current={data.thisMonth.summary.totalInternalHours}
-                previous={data.previousMonth.summary.totalInternalHours}
-                twoMonths={data.twoMonthsMonth.summary.totalInternalHours}
-                threeMonths={data.threeMonthsMonth.summary.totalInternalHours}
-                showTotal={true}
-              />
-              <TotalRow data={data} />
+              {(() => {
+                const rows = [
+                  {
+                    label: "Consulting Hours",
+                    current: data.thisMonth.summary.totalConsultingHours,
+                    previous: data.previousMonth.summary.totalConsultingHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalConsultingHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalConsultingHours,
+                  },
+                  {
+                    label: "Squad Hours",
+                    current: data.thisMonth.summary.totalSquadHours,
+                    previous: data.previousMonth.summary.totalSquadHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalSquadHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalSquadHours,
+                  },
+                  {
+                    label: "Hands-on Hours",
+                    current: data.thisMonth.summary.totalHandsOnHours,
+                    previous: data.previousMonth.summary.totalHandsOnHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalHandsOnHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalHandsOnHours,
+                  },
+                  {
+                    label: "Internal Hours",
+                    current: data.thisMonth.summary.totalInternalHours,
+                    previous: data.previousMonth.summary.totalInternalHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalInternalHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalInternalHours,
+                  }
+                ].filter(row => 
+                  row.current + row.previous + row.twoMonths + row.threeMonths > 0
+                );
+
+                return (
+                  <>
+                    {rows.map(row => (
+                      <StatRow 
+                        key={row.label}
+                        label={row.label}
+                        current={row.current}
+                        previous={row.previous}
+                        twoMonths={row.twoMonths}
+                        threeMonths={row.threeMonths}
+                        showTotal={true}
+                      />
+                    ))}
+                    {rows.length > 1 && <TotalRow data={data} />}
+                  </>
+                );
+              })()}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Overview Section */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold">Unique Entries Overview</h3>
-        </CardHeader>
-        <CardContent>
+      <div>
+        <SectionHeader 
+          title="Unique Entries Overview" 
+          subtitle="Analysis of unique entities across different dimensions"
+        />
+        <div className="mx-2">
           <Table>
             <TableHeader>
               <TableMonthHeaders />
@@ -536,15 +571,16 @@ export function TimesheetSummary() {
               />
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Averages Section */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold">Averages and Standard Deviations</h3>
-        </CardHeader>
-        <CardContent>
+      <div>
+        <SectionHeader 
+          title="Averages and Standard Deviations" 
+          subtitle="Statistical analysis of time distribution"
+        />
+        <div className="mx-2">
           <Table>
             <TableHeader>
               <TableMonthHeaders />
@@ -594,8 +630,8 @@ export function TimesheetSummary() {
               />
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
