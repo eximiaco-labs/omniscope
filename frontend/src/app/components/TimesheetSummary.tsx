@@ -69,6 +69,36 @@ const GET_TIMESHEET_SUMMARY = gql`
       summary {
         ...SummaryFields
       }
+      byClient {
+        data {
+          name
+          totalHours
+        }
+      }
+      byWorker {
+        data {
+          name
+          totalHours
+        }
+      }
+      byCase {
+        data {
+          title
+          totalHours
+        }
+      }
+      bySponsor {
+        data {
+          name
+          totalHours
+        }
+      }
+      byAccountManager {
+        data {
+          name
+          totalHours
+        }
+      }
       filterableFields {
         field
         options
@@ -78,6 +108,36 @@ const GET_TIMESHEET_SUMMARY = gql`
     previousMonth: timesheet(slug: "previous-month", filters: $filters) {
       summary {
         ...SummaryFields
+      }
+      byClient {
+        data {
+          name
+          totalHours
+        }
+      }
+      byWorker {
+        data {
+          name
+          totalHours
+        }
+      }
+      byCase {
+        data {
+          title
+          totalHours
+        }
+      }
+      bySponsor {
+        data {
+          name
+          totalHours
+        }
+      }
+      byAccountManager {
+        data {
+          name
+          totalHours
+        }
       }
       filterableFields {
         field
@@ -89,6 +149,36 @@ const GET_TIMESHEET_SUMMARY = gql`
       summary {
         ...SummaryFields
       }
+      byClient {
+        data {
+          name
+          totalHours
+        }
+      }
+      byWorker {
+        data {
+          name
+          totalHours
+        }
+      }
+      byCase {
+        data {
+          title
+          totalHours
+        }
+      }
+      bySponsor {
+        data {
+          name
+          totalHours
+        }
+      }
+      byAccountManager {
+        data {
+          name
+          totalHours
+        }
+      }
       filterableFields {
         field
         options
@@ -98,6 +188,36 @@ const GET_TIMESHEET_SUMMARY = gql`
     threeMonthsMonth: timesheet(slug: "three-months-ago", filters: $filters) {
       summary {
         ...SummaryFields
+      }
+      byClient {
+        data {
+          name
+          totalHours
+        }
+      }
+      byWorker {
+        data {
+          name
+          totalHours
+        }
+      }
+      byCase {
+        data {
+          title
+          totalHours
+        }
+      }
+      bySponsor {
+        data {
+          name
+          totalHours
+        }
+      }
+      byAccountManager {
+        data {
+          name
+          totalHours
+        }
       }
       filterableFields {
         field
@@ -148,10 +268,42 @@ interface ClientData {
   totalHours: number
 }
 
+interface WorkerData {
+  name: string
+  totalHours: number
+}
+
+interface CaseData {
+  title: string
+  totalHours: number
+}
+
+interface SponsorData {
+  name: string
+  totalHours: number
+}
+
+interface AccountManagerData {
+  name: string
+  totalHours: number
+}
+
 interface TimesheetData {
   summary: TimesheetSummaryData
   byClient: {
     data: ClientData[]
+  }
+  byWorker: {
+    data: WorkerData[]
+  }
+  byCase: {
+    data: CaseData[]
+  }
+  bySponsor: {
+    data: SponsorData[]
+  }
+  byAccountManager: {
+    data: AccountManagerData[]
   }
   filterableFields: Array<{
     field: string
@@ -230,7 +382,8 @@ const StatRow = ({
   twoMonths, 
   threeMonths,
   showTotal = false,
-  formatter = formatNumber
+  formatter = formatNumber,
+  columnTotals
 }: { 
   index?: number
   label: string
@@ -240,6 +393,13 @@ const StatRow = ({
   threeMonths: number
   showTotal?: boolean
   formatter?: (num: number) => string
+  columnTotals?: {
+    current: number
+    previous: number
+    twoMonths: number
+    threeMonths: number
+    total: number
+  }
 }) => {
   const total = threeMonths + twoMonths + previous + current
 
@@ -258,6 +418,7 @@ const StatRow = ({
         previousValue={null}
         formatter={formatter}
         className="w-[120px] border-x border-gray-200 text-[12px]"
+        totalValue={columnTotals?.threeMonths}
       />
       <TableCellComponent
         value={twoMonths}
@@ -266,6 +427,7 @@ const StatRow = ({
         previousValue={threeMonths}
         formatter={formatter}
         className="w-[120px] border-x border-gray-200 text-[12px]"
+        totalValue={columnTotals?.twoMonths}
       />
       <TableCellComponent
         value={previous}
@@ -274,6 +436,7 @@ const StatRow = ({
         previousValue={twoMonths}
         formatter={formatter}
         className="w-[120px] border-x border-gray-200 text-[12px]"
+        totalValue={columnTotals?.previous}
       />
       <TableCellComponent
         value={current}
@@ -282,6 +445,7 @@ const StatRow = ({
         previousValue={previous}
         formatter={formatter}
         className="w-[120px] border-x border-gray-200 text-[12px]"
+        totalValue={columnTotals?.current}
       />
       {showTotal && (
         <TableCellComponent
@@ -291,42 +455,97 @@ const StatRow = ({
           previousValue={null}
           formatter={formatter}
           className="w-[120px] border-l border-gray-200 font-bold text-[12px]"
+          totalValue={columnTotals?.total}
         />
       )}
     </TableRow>
   )
 }
 
-const TotalRow = ({ data }: { data: any }) => {
-  const threeMonthsTotal = 
-    data.threeMonthsMonth.summary.totalConsultingHours +
-    data.threeMonthsMonth.summary.totalSquadHours +
-    data.threeMonthsMonth.summary.totalHandsOnHours +
-    data.threeMonthsMonth.summary.totalInternalHours
+const TotalRow = ({ data, type = 'general' }: { 
+  data: any, 
+  type?: 'general' | 'byKind' | 'byClient' | 'byWorker' | 'byCase' | 'bySponsor' | 'byAccountManager' 
+}) => {
+  let threeMonthsTotal = 0;
+  let twoMonthsTotal = 0;
+  let previousTotal = 0;
+  let currentTotal = 0;
 
-  const twoMonthsTotal = 
-    data.twoMonthsMonth.summary.totalConsultingHours +
-    data.twoMonthsMonth.summary.totalSquadHours +
-    data.twoMonthsMonth.summary.totalHandsOnHours +
-    data.twoMonthsMonth.summary.totalInternalHours
+  if (type === 'byKind') {
+    threeMonthsTotal = data.threeMonthsMonth.summary.totalConsultingHours +
+      data.threeMonthsMonth.summary.totalSquadHours +
+      data.threeMonthsMonth.summary.totalHandsOnHours +
+      data.threeMonthsMonth.summary.totalInternalHours;
 
-  const previousTotal = 
-    data.previousMonth.summary.totalConsultingHours +
-    data.previousMonth.summary.totalSquadHours +
-    data.previousMonth.summary.totalHandsOnHours +
-    data.previousMonth.summary.totalInternalHours
+    twoMonthsTotal = data.twoMonthsMonth.summary.totalConsultingHours +
+      data.twoMonthsMonth.summary.totalSquadHours +
+      data.twoMonthsMonth.summary.totalHandsOnHours +
+      data.twoMonthsMonth.summary.totalInternalHours;
 
-  const currentTotal = 
-    data.thisMonth.summary.totalConsultingHours +
-    data.thisMonth.summary.totalSquadHours +
-    data.thisMonth.summary.totalHandsOnHours +
-    data.thisMonth.summary.totalInternalHours
+    previousTotal = data.previousMonth.summary.totalConsultingHours +
+      data.previousMonth.summary.totalSquadHours +
+      data.previousMonth.summary.totalHandsOnHours +
+      data.previousMonth.summary.totalInternalHours;
 
-  const grandTotal = threeMonthsTotal + twoMonthsTotal + previousTotal + currentTotal
+    currentTotal = data.thisMonth.summary.totalConsultingHours +
+      data.thisMonth.summary.totalSquadHours +
+      data.thisMonth.summary.totalHandsOnHours +
+      data.thisMonth.summary.totalInternalHours;
+  } else if (type === 'byClient') {
+    threeMonthsTotal = data.threeMonthsMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0);
+    twoMonthsTotal = data.twoMonthsMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0);
+    previousTotal = data.previousMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0);
+    currentTotal = data.thisMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0);
+  } else if (type === 'byWorker') {
+    threeMonthsTotal = data.threeMonthsMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0);
+    twoMonthsTotal = data.twoMonthsMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0);
+    previousTotal = data.previousMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0);
+    currentTotal = data.thisMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0);
+  } else if (type === 'byCase') {
+    threeMonthsTotal = data.threeMonthsMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0);
+    twoMonthsTotal = data.twoMonthsMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0);
+    previousTotal = data.previousMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0);
+    currentTotal = data.thisMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0);
+  } else if (type === 'bySponsor') {
+    threeMonthsTotal = data.threeMonthsMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0);
+    twoMonthsTotal = data.twoMonthsMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0);
+    previousTotal = data.previousMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0);
+    currentTotal = data.thisMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0);
+  } else if (type === 'byAccountManager') {
+    threeMonthsTotal = data.threeMonthsMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0);
+    twoMonthsTotal = data.twoMonthsMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0);
+    previousTotal = data.previousMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0);
+    currentTotal = data.thisMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0);
+  } else {
+    threeMonthsTotal = data.threeMonthsMonth.summary.totalConsultingHours +
+      data.threeMonthsMonth.summary.totalSquadHours +
+      data.threeMonthsMonth.summary.totalHandsOnHours +
+      data.threeMonthsMonth.summary.totalInternalHours;
+
+    twoMonthsTotal = data.twoMonthsMonth.summary.totalConsultingHours +
+      data.twoMonthsMonth.summary.totalSquadHours +
+      data.twoMonthsMonth.summary.totalHandsOnHours +
+      data.twoMonthsMonth.summary.totalInternalHours;
+
+    previousTotal = data.previousMonth.summary.totalConsultingHours +
+      data.previousMonth.summary.totalSquadHours +
+      data.previousMonth.summary.totalHandsOnHours +
+      data.previousMonth.summary.totalInternalHours;
+
+    currentTotal = data.thisMonth.summary.totalConsultingHours +
+      data.thisMonth.summary.totalSquadHours +
+      data.thisMonth.summary.totalHandsOnHours +
+      data.thisMonth.summary.totalInternalHours;
+  }
+
+  const grandTotal = threeMonthsTotal + twoMonthsTotal + previousTotal + currentTotal;
+  const showSequenceColumn = type === 'byClient' || type === 'byWorker' || type === 'byCase' || type === 'bySponsor' || type === 'byAccountManager';
 
   return (
     <TableRow className="font-bold border-t-4 h-[57px]">
-      <TableCell className="text-center text-gray-500 text-[10px]"></TableCell>
+      {showSequenceColumn && (
+        <TableCell className="text-center text-gray-500 text-[10px]"></TableCell>
+      )}
       <TableCell className="border-r border-gray-400">Total</TableCell>
       <TableCellComponent
         value={threeMonthsTotal}
@@ -375,6 +594,16 @@ const TotalRow = ({ data }: { data: any }) => {
 export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
+  const [sortColumn, setSortColumn] = useState<SortColumn>('total');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [workerSortColumn, setWorkerSortColumn] = useState<SortColumn>('total');
+  const [workerSortDirection, setWorkerSortDirection] = useState<SortDirection>('desc');
+  const [caseSortColumn, setCaseSortColumn] = useState<SortColumn>('total');
+  const [caseSortDirection, setCaseSortDirection] = useState<SortDirection>('desc');
+  const [sponsorSortColumn, setSponsorSortColumn] = useState<SortColumn>('total');
+  const [sponsorSortDirection, setSponsorSortDirection] = useState<SortDirection>('desc');
+  const [accountManagerSortColumn, setAccountManagerSortColumn] = useState<SortColumn>('total');
+  const [accountManagerSortDirection, setAccountManagerSortDirection] = useState<SortDirection>('desc');
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
     Array<{ field: string; selectedValues: string[] }>
   >(initialQueryFilters || []);
@@ -419,6 +648,191 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
     setFormattedSelectedValues(formattedValues);
   };
   
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
+  const handleWorkerSort = (column: SortColumn) => {
+    if (workerSortColumn === column) {
+      setWorkerSortDirection(workerSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setWorkerSortColumn(column);
+      setWorkerSortDirection('desc');
+    }
+  };
+
+  const handleCaseSort = (column: SortColumn) => {
+    if (caseSortColumn === column) {
+      setCaseSortDirection(caseSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCaseSortColumn(column);
+      setCaseSortDirection('desc');
+    }
+  };
+
+  const handleSponsorSort = (column: SortColumn) => {
+    if (sponsorSortColumn === column) {
+      setSponsorSortDirection(sponsorSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSponsorSortColumn(column);
+      setSponsorSortDirection('desc');
+    }
+  };
+
+  const handleAccountManagerSort = (column: SortColumn) => {
+    if (accountManagerSortColumn === column) {
+      setAccountManagerSortDirection(accountManagerSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setAccountManagerSortColumn(column);
+      setAccountManagerSortDirection('desc');
+    }
+  };
+
+  const getSortedClients = (clients: ClientData[]) => {
+    return [...clients].sort((a, b) => {
+      const aData = {
+        current: a.totalHours,
+        previous: data.previousMonth.byClient.data.find((c: ClientData) => c.name === a.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byClient.data.find((c: ClientData) => c.name === a.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byClient.data.find((c: ClientData) => c.name === a.name)?.totalHours || 0
+      };
+      const bData = {
+        current: b.totalHours,
+        previous: data.previousMonth.byClient.data.find((c: ClientData) => c.name === b.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byClient.data.find((c: ClientData) => c.name === b.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byClient.data.find((c: ClientData) => c.name === b.name)?.totalHours || 0
+      };
+
+      let aValue = sortColumn === 'total' 
+        ? aData.current + aData.previous + aData.twoMonths + aData.threeMonths
+        : aData[sortColumn];
+      let bValue = sortColumn === 'total'
+        ? bData.current + bData.previous + bData.twoMonths + bData.threeMonths
+        : bData[sortColumn];
+
+      return sortDirection === 'asc' 
+        ? aValue - bValue 
+        : bValue - aValue;
+    });
+  };
+
+  const getSortedWorkers = (workers: WorkerData[]) => {
+    return [...workers].sort((a, b) => {
+      const aData = {
+        current: a.totalHours,
+        previous: data.previousMonth.byWorker.data.find((w: WorkerData) => w.name === a.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byWorker.data.find((w: WorkerData) => w.name === a.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byWorker.data.find((w: WorkerData) => w.name === a.name)?.totalHours || 0
+      };
+      const bData = {
+        current: b.totalHours,
+        previous: data.previousMonth.byWorker.data.find((w: WorkerData) => w.name === b.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byWorker.data.find((w: WorkerData) => w.name === b.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byWorker.data.find((w: WorkerData) => w.name === b.name)?.totalHours || 0
+      };
+
+      let aValue = workerSortColumn === 'total' 
+        ? aData.current + aData.previous + aData.twoMonths + aData.threeMonths
+        : aData[workerSortColumn];
+      let bValue = workerSortColumn === 'total'
+        ? bData.current + bData.previous + bData.twoMonths + bData.threeMonths
+        : bData[workerSortColumn];
+
+      return workerSortDirection === 'asc' 
+        ? aValue - bValue 
+        : bValue - aValue;
+    });
+  };
+
+  const getSortedCases = (cases: CaseData[]) => {
+    return [...cases].sort((a, b) => {
+      const aData = {
+        current: a.totalHours,
+        previous: data.previousMonth.byCase.data.find((c: CaseData) => c.title === a.title)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byCase.data.find((c: CaseData) => c.title === a.title)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byCase.data.find((c: CaseData) => c.title === a.title)?.totalHours || 0
+      };
+      const bData = {
+        current: b.totalHours,
+        previous: data.previousMonth.byCase.data.find((c: CaseData) => c.title === b.title)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byCase.data.find((c: CaseData) => c.title === b.title)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byCase.data.find((c: CaseData) => c.title === b.title)?.totalHours || 0
+      };
+
+      let aValue = caseSortColumn === 'total' 
+        ? aData.current + aData.previous + aData.twoMonths + aData.threeMonths
+        : aData[caseSortColumn];
+      let bValue = caseSortColumn === 'total'
+        ? bData.current + bData.previous + bData.twoMonths + bData.threeMonths
+        : bData[caseSortColumn];
+
+      return caseSortDirection === 'asc' 
+        ? aValue - bValue 
+        : bValue - aValue;
+    });
+  };
+
+  const getSortedSponsors = (sponsors: SponsorData[]) => {
+    return [...sponsors].sort((a, b) => {
+      const aData = {
+        current: a.totalHours,
+        previous: data.previousMonth.bySponsor.data.find((s: SponsorData) => s.name === a.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.bySponsor.data.find((s: SponsorData) => s.name === a.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.bySponsor.data.find((s: SponsorData) => s.name === a.name)?.totalHours || 0
+      };
+      const bData = {
+        current: b.totalHours,
+        previous: data.previousMonth.bySponsor.data.find((s: SponsorData) => s.name === b.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.bySponsor.data.find((s: SponsorData) => s.name === b.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.bySponsor.data.find((s: SponsorData) => s.name === b.name)?.totalHours || 0
+      };
+
+      let aValue = sponsorSortColumn === 'total' 
+        ? aData.current + aData.previous + aData.twoMonths + aData.threeMonths
+        : aData[sponsorSortColumn];
+      let bValue = sponsorSortColumn === 'total'
+        ? bData.current + bData.previous + bData.twoMonths + bData.threeMonths
+        : bData[sponsorSortColumn];
+
+      return sponsorSortDirection === 'asc' 
+        ? aValue - bValue 
+        : bValue - aValue;
+    });
+  };
+
+  const getSortedAccountManagers = (accountManagers: AccountManagerData[]) => {
+    return [...accountManagers].sort((a, b) => {
+      const aData = {
+        current: a.totalHours,
+        previous: data.previousMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === a.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === a.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === a.name)?.totalHours || 0
+      };
+      const bData = {
+        current: b.totalHours,
+        previous: data.previousMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === b.name)?.totalHours || 0,
+        twoMonths: data.twoMonthsMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === b.name)?.totalHours || 0,
+        threeMonths: data.threeMonthsMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === b.name)?.totalHours || 0
+      };
+
+      let aValue = accountManagerSortColumn === 'total' 
+        ? aData.current + aData.previous + aData.twoMonths + aData.threeMonths
+        : aData[accountManagerSortColumn];
+      let bValue = accountManagerSortColumn === 'total'
+        ? bData.current + bData.previous + bData.twoMonths + bData.threeMonths
+        : bData[accountManagerSortColumn];
+
+      return accountManagerSortDirection === 'asc' 
+        ? aValue - bValue 
+        : bValue - aValue;
+    });
+  };
+
   if (!client) return <p>Loading client...</p>;
   
   const { loading, error, data } = useQuery(GET_TIMESHEET_SUMMARY, {
@@ -579,7 +993,7 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
                         showTotal={true}
                       />
                     ))}
-                    {rows.length > 1 && <TotalRow data={data} />}
+                    {rows.length > 1 && <TotalRow data={data} type="byKind" />}
                   </>
                 );
               })()}
@@ -660,66 +1074,6 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
           subtitle="Distribution of hours across different clients"
         />
         <div className="mx-2">
-          <div className="h-[400px] mb-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[
-                  {
-                    name: getMonthName(3),
-                    clients: data.threeMonthsMonth.byClient.data.map((client: ClientData) => ({
-                      name: client.name,
-                      hours: client.totalHours
-                    }))
-                  },
-                  {
-                    name: getMonthName(2),
-                    clients: data.twoMonthsMonth.byClient.data.map((client: ClientData) => ({
-                      name: client.name,
-                      hours: client.totalHours
-                    }))
-                  },
-                  {
-                    name: getMonthName(1),
-                    clients: data.previousMonth.byClient.data.map((client: ClientData) => ({
-                      name: client.name,
-                      hours: client.totalHours
-                    }))
-                  },
-                  {
-                    name: getMonthName(0),
-                    clients: data.thisMonth.byClient.data.map((client: ClientData) => ({
-                      name: client.name,
-                      hours: client.totalHours
-                    }))
-                  }
-                ]}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: number, name: string) => {
-                    const clientName = name.match(/clients\[(\d+)\]\.hours/)?.[1];
-                    if (clientName !== undefined) {
-                      const client = data.thisMonth.byClient.data[parseInt(clientName)];
-                      return [`${client.name}: ${value.toFixed(2)}`, 'Hours'];
-                    }
-                    return [value.toFixed(2), 'Hours'];
-                  }}
-                />
-                <Legend />
-                {data.thisMonth.byClient.data.map((client: ClientData, index: number) => (
-                  <Bar
-                    key={client.name}
-                    dataKey={`clients[${index}].hours`}
-                    name={client.name}
-                    fill={`hsl(${index * 137.5 % 360}, 70%, 50%)`}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
           <Table>
             <TableHeader>
               <ClientTableHeaders 
@@ -730,28 +1084,269 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
               />
             </TableHeader>
             <TableBody>
-              {getSortedClients(data.thisMonth.byClient.data).map((client: ClientData, index: number) => {
-                const clientData = {
-                  current: client.totalHours,
-                  previous: data.previousMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0,
-                  twoMonths: data.twoMonthsMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0,
-                  threeMonths: data.threeMonthsMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0
+              {(() => {
+                const columnTotals = {
+                  current: data.thisMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0),
+                  previous: data.previousMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0),
+                  twoMonths: data.twoMonthsMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0),
+                  threeMonths: data.threeMonthsMonth.byClient.data.reduce((sum: number, c: ClientData) => sum + c.totalHours, 0),
+                  get total() {
+                    return this.current + this.previous + this.twoMonths + this.threeMonths;
+                  }
                 };
-                
-                return (
-                  <StatRow
-                    key={client.name}
-                    index={index}
-                    label={client.name}
-                    current={clientData.current}
-                    previous={clientData.previous}
-                    twoMonths={clientData.twoMonths}
-                    threeMonths={clientData.threeMonths}
-                    showTotal={true}
-                  />
-                );
-              })}
-              <TotalRow data={data} />
+
+                return getSortedClients(data.thisMonth.byClient.data).map((client: ClientData, index: number) => {
+                  const clientData = {
+                    current: client.totalHours,
+                    previous: data.previousMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0,
+                    twoMonths: data.twoMonthsMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0,
+                    threeMonths: data.threeMonthsMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0
+                  };
+                  
+                  return (
+                    <StatRow
+                      key={client.name}
+                      index={index}
+                      label={client.name}
+                      current={clientData.current}
+                      previous={clientData.previous}
+                      twoMonths={clientData.twoMonths}
+                      threeMonths={clientData.threeMonths}
+                      showTotal={true}
+                      columnTotals={columnTotals}
+                    />
+                  );
+                });
+              })()}
+              <TotalRow data={data} type="byClient" />
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Worker Hours Distribution Section */}
+      <div>
+        <SectionHeader 
+          title="Worker Hours Distribution" 
+          subtitle="Distribution of hours across different workers"
+        />
+        <div className="mx-2">
+          <Table>
+            <TableHeader>
+              <ClientTableHeaders 
+                showTotals={true} 
+                sortColumn={workerSortColumn}
+                sortDirection={workerSortDirection}
+                onSort={handleWorkerSort}
+              />
+            </TableHeader>
+            <TableBody>
+              {(() => {
+                const columnTotals = {
+                  current: data.thisMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0),
+                  previous: data.previousMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0),
+                  twoMonths: data.twoMonthsMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0),
+                  threeMonths: data.threeMonthsMonth.byWorker.data.reduce((sum: number, w: WorkerData) => sum + w.totalHours, 0),
+                  get total() {
+                    return this.current + this.previous + this.twoMonths + this.threeMonths;
+                  }
+                };
+
+                return getSortedWorkers(data.thisMonth.byWorker.data).map((worker: WorkerData, index: number) => {
+                  const workerData = {
+                    current: worker.totalHours,
+                    previous: data.previousMonth.byWorker.data.find((w: WorkerData) => w.name === worker.name)?.totalHours || 0,
+                    twoMonths: data.twoMonthsMonth.byWorker.data.find((w: WorkerData) => w.name === worker.name)?.totalHours || 0,
+                    threeMonths: data.threeMonthsMonth.byWorker.data.find((w: WorkerData) => w.name === worker.name)?.totalHours || 0
+                  };
+                  
+                  return (
+                    <StatRow
+                      key={worker.name}
+                      index={index}
+                      label={worker.name}
+                      current={workerData.current}
+                      previous={workerData.previous}
+                      twoMonths={workerData.twoMonths}
+                      threeMonths={workerData.threeMonths}
+                      showTotal={true}
+                      columnTotals={columnTotals}
+                    />
+                  );
+                });
+              })()}
+              <TotalRow data={data} type="byWorker" />
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Case Hours Distribution Section */}
+      <div>
+        <SectionHeader 
+          title="Case Hours Distribution" 
+          subtitle="Distribution of hours across different cases"
+        />
+        <div className="mx-2">
+          <Table>
+            <TableHeader>
+              <ClientTableHeaders 
+                showTotals={true} 
+                sortColumn={caseSortColumn}
+                sortDirection={caseSortDirection}
+                onSort={handleCaseSort}
+              />
+            </TableHeader>
+            <TableBody>
+              {(() => {
+                const columnTotals = {
+                  current: data.thisMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0),
+                  previous: data.previousMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0),
+                  twoMonths: data.twoMonthsMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0),
+                  threeMonths: data.threeMonthsMonth.byCase.data.reduce((sum: number, c: CaseData) => sum + c.totalHours, 0),
+                  get total() {
+                    return this.current + this.previous + this.twoMonths + this.threeMonths;
+                  }
+                };
+
+                return getSortedCases(data.thisMonth.byCase.data).map((caseItem: CaseData, index: number) => {
+                  const caseData = {
+                    current: caseItem.totalHours,
+                    previous: data.previousMonth.byCase.data.find((c: CaseData) => c.title === caseItem.title)?.totalHours || 0,
+                    twoMonths: data.twoMonthsMonth.byCase.data.find((c: CaseData) => c.title === caseItem.title)?.totalHours || 0,
+                    threeMonths: data.threeMonthsMonth.byCase.data.find((c: CaseData) => c.title === caseItem.title)?.totalHours || 0
+                  };
+                  
+                  return (
+                    <StatRow
+                      key={caseItem.title}
+                      index={index}
+                      label={caseItem.title}
+                      current={caseData.current}
+                      previous={caseData.previous}
+                      twoMonths={caseData.twoMonths}
+                      threeMonths={caseData.threeMonths}
+                      showTotal={true}
+                      columnTotals={columnTotals}
+                    />
+                  );
+                });
+              })()}
+              <TotalRow data={data} type="byCase" />
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Sponsor Hours Distribution Section */}
+      <div>
+        <SectionHeader 
+          title="Sponsor Hours Distribution" 
+          subtitle="Distribution of hours across different sponsors"
+        />
+        <div className="mx-2">
+          <Table>
+            <TableHeader>
+              <ClientTableHeaders 
+                showTotals={true} 
+                sortColumn={sponsorSortColumn}
+                sortDirection={sponsorSortDirection}
+                onSort={handleSponsorSort}
+              />
+            </TableHeader>
+            <TableBody>
+              {(() => {
+                const columnTotals = {
+                  current: data.thisMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0),
+                  previous: data.previousMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0),
+                  twoMonths: data.twoMonthsMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0),
+                  threeMonths: data.threeMonthsMonth.bySponsor.data.reduce((sum: number, s: SponsorData) => sum + s.totalHours, 0),
+                  get total() {
+                    return this.current + this.previous + this.twoMonths + this.threeMonths;
+                  }
+                };
+
+                return getSortedSponsors(data.thisMonth.bySponsor.data).map((sponsor: SponsorData, index: number) => {
+                  const sponsorData = {
+                    current: sponsor.totalHours,
+                    previous: data.previousMonth.bySponsor.data.find((s: SponsorData) => s.name === sponsor.name)?.totalHours || 0,
+                    twoMonths: data.twoMonthsMonth.bySponsor.data.find((s: SponsorData) => s.name === sponsor.name)?.totalHours || 0,
+                    threeMonths: data.threeMonthsMonth.bySponsor.data.find((s: SponsorData) => s.name === sponsor.name)?.totalHours || 0
+                  };
+                  
+                  return (
+                    <StatRow
+                      key={sponsor.name}
+                      index={index}
+                      label={sponsor.name}
+                      current={sponsorData.current}
+                      previous={sponsorData.previous}
+                      twoMonths={sponsorData.twoMonths}
+                      threeMonths={sponsorData.threeMonths}
+                      showTotal={true}
+                      columnTotals={columnTotals}
+                    />
+                  );
+                });
+              })()}
+              <TotalRow data={data} type="bySponsor" />
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Account Manager Hours Distribution Section */}
+      <div>
+        <SectionHeader 
+          title="Account Manager Hours Distribution" 
+          subtitle="Distribution of hours across different account managers"
+        />
+        <div className="mx-2">
+          <Table>
+            <TableHeader>
+              <ClientTableHeaders 
+                showTotals={true} 
+                sortColumn={accountManagerSortColumn}
+                sortDirection={accountManagerSortDirection}
+                onSort={handleAccountManagerSort}
+              />
+            </TableHeader>
+            <TableBody>
+              {(() => {
+                const columnTotals = {
+                  current: data.thisMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0),
+                  previous: data.previousMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0),
+                  twoMonths: data.twoMonthsMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0),
+                  threeMonths: data.threeMonthsMonth.byAccountManager.data.reduce((sum: number, am: AccountManagerData) => sum + am.totalHours, 0),
+                  get total() {
+                    return this.current + this.previous + this.twoMonths + this.threeMonths;
+                  }
+                };
+
+                return getSortedAccountManagers(data.thisMonth.byAccountManager.data).map((accountManager: AccountManagerData, index: number) => {
+                  const accountManagerData = {
+                    current: accountManager.totalHours,
+                    previous: data.previousMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === accountManager.name)?.totalHours || 0,
+                    twoMonths: data.twoMonthsMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === accountManager.name)?.totalHours || 0,
+                    threeMonths: data.threeMonthsMonth.byAccountManager.data.find((am: AccountManagerData) => am.name === accountManager.name)?.totalHours || 0
+                  };
+                  
+                  return (
+                    <StatRow
+                      key={accountManager.name}
+                      index={index}
+                      label={accountManager.name}
+                      current={accountManagerData.current}
+                      previous={accountManagerData.previous}
+                      twoMonths={accountManagerData.twoMonths}
+                      threeMonths={accountManagerData.threeMonths}
+                      showTotal={true}
+                      columnTotals={columnTotals}
+                    />
+                  );
+                });
+              })()}
+              <TotalRow data={data} type="byAccountManager" />
             </TableBody>
           </Table>
         </div>
