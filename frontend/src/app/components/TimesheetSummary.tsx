@@ -17,6 +17,16 @@ import SectionHeader from "@/components/SectionHeader"
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect"
 import { useState, useEffect } from "react"
 import { Option } from "react-tailwindcss-select/dist/components/type"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from "recharts"
 
 const GET_TIMESHEET_SUMMARY = gql`
   fragment SummaryFields on TimesheetSummary {
@@ -367,69 +377,51 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
   if (error) return <p>Error: {error.message}</p>;
   if (!data) return null;
 
-  const totalsByMonth = {
-    threeMonthsAgo: data.threeMonthsMonth.summary.totalConsultingHours + 
-                    data.threeMonthsMonth.summary.totalSquadHours + 
-                    data.threeMonthsMonth.summary.totalHandsOnHours + 
-                    data.threeMonthsMonth.summary.totalInternalHours,
-    twoMonthsAgo: data.twoMonthsMonth.summary.totalConsultingHours + 
-                  data.twoMonthsMonth.summary.totalSquadHours + 
-                  data.twoMonthsMonth.summary.totalHandsOnHours + 
-                  data.twoMonthsMonth.summary.totalInternalHours,
-    oneMonthAgo: data.previousMonth.summary.totalConsultingHours + 
-                 data.previousMonth.summary.totalSquadHours + 
-                 data.previousMonth.summary.totalHandsOnHours + 
-                 data.previousMonth.summary.totalInternalHours,
-    current: data.thisMonth.summary.totalConsultingHours + 
-             data.thisMonth.summary.totalSquadHours + 
-             data.thisMonth.summary.totalHandsOnHours + 
-             data.thisMonth.summary.totalInternalHours,
-  };
-
-  const categories = [
+  const chartData = [
     {
-      name: "Consulting Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalConsultingHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalConsultingHours,
-      oneMonthAgo: data.previousMonth.summary.totalConsultingHours,
-      current: data.thisMonth.summary.totalConsultingHours,
+      name: getMonthName(3),
+      consulting: data.threeMonthsMonth.summary.totalConsultingHours,
+      squad: data.threeMonthsMonth.summary.totalSquadHours,
+      handsOn: data.threeMonthsMonth.summary.totalHandsOnHours,
+      internal: data.threeMonthsMonth.summary.totalInternalHours,
     },
     {
-      name: "Squad Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalSquadHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalSquadHours,
-      oneMonthAgo: data.previousMonth.summary.totalSquadHours,
-      current: data.thisMonth.summary.totalSquadHours,
+      name: getMonthName(2),
+      consulting: data.twoMonthsMonth.summary.totalConsultingHours,
+      squad: data.twoMonthsMonth.summary.totalSquadHours,
+      handsOn: data.twoMonthsMonth.summary.totalHandsOnHours,
+      internal: data.twoMonthsMonth.summary.totalInternalHours,
     },
     {
-      name: "Hands-on Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalHandsOnHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalHandsOnHours,
-      oneMonthAgo: data.previousMonth.summary.totalHandsOnHours,
-      current: data.thisMonth.summary.totalHandsOnHours,
+      name: getMonthName(1),
+      consulting: data.previousMonth.summary.totalConsultingHours,
+      squad: data.previousMonth.summary.totalSquadHours,
+      handsOn: data.previousMonth.summary.totalHandsOnHours,
+      internal: data.previousMonth.summary.totalInternalHours,
     },
     {
-      name: "Internal Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalInternalHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalInternalHours,
-      oneMonthAgo: data.previousMonth.summary.totalInternalHours,
-      current: data.thisMonth.summary.totalInternalHours,
-    }
+      name: getMonthName(0),
+      consulting: data.thisMonth.summary.totalConsultingHours,
+      squad: data.thisMonth.summary.totalSquadHours,
+      handsOn: data.thisMonth.summary.totalHandsOnHours,
+      internal: data.thisMonth.summary.totalInternalHours,
+    },
   ];
 
-  const dates = {
-    lastDayOfThreeMonthsAgo: getMonthName(3),
-    lastDayOfTwoMonthsAgo: getMonthName(2),
-    lastDayOfOneMonthAgo: getMonthName(1),
-    inAnalysis: getMonthName(0),
+  // Check which kinds have non-zero values
+  const activeKinds = {
+    consulting: chartData.some(d => d.consulting > 0),
+    squad: chartData.some(d => d.squad > 0),
+    handsOn: chartData.some(d => d.handsOn > 0),
+    internal: chartData.some(d => d.internal > 0),
   };
 
-  const workingDays = {
-    threeMonthsAgo: data.threeMonthsMonth.summary.uniqueWorkingDays,
-    twoMonthsAgo: data.twoMonthsMonth.summary.uniqueWorkingDays,
-    oneMonthAgo: data.previousMonth.summary.uniqueWorkingDays,
-    inAnalysis: data.thisMonth.summary.uniqueWorkingDays,
-  };
+  const barConfig = [
+    { dataKey: "consulting", name: "Consulting", fill: "#F59E0B" },
+    { dataKey: "squad", name: "Squad", fill: "#3B82F6" },
+    { dataKey: "handsOn", name: "Hands-On", fill: "#8B5CF6" },
+    { dataKey: "internal", name: "Internal", fill: "#10B981" },
+  ].filter(config => activeKinds[config.dataKey as keyof typeof activeKinds]);
 
   return (
     <div className="space-y-8">
@@ -444,10 +436,34 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
       {/* Total Hours Section */}
       <div>
         <SectionHeader 
-          title="Total Hours by Category" 
-          subtitle="Distribution of hours across different work categories"
+          title="Total Hours by Kind" 
+          subtitle="Distribution of hours across different work kinds"
         />
         <div className="mx-2">
+          <div className="h-[400px] mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value: number) => [value.toFixed(2), 'Hours']}
+                />
+                <Legend />
+                {barConfig.map(config => (
+                  <Bar 
+                    key={config.dataKey}
+                    dataKey={config.dataKey}
+                    name={config.name}
+                    fill={config.fill}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
           <Table>
             <TableHeader>
               <TableMonthHeaders showTotals={true} />
