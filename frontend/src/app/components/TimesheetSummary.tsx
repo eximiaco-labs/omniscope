@@ -339,11 +339,12 @@ const TableMonthHeaders = ({ showTotals = false }) => (
   </TableRow>
 )
 
-const ClientTableHeaders = ({ showTotals = false, sortColumn, sortDirection, onSort }: { 
+const EntityTableHeaders = ({ showTotals = false, sortColumn, sortDirection, onSort, entityType = 'Client' }: { 
   showTotals?: boolean, 
   sortColumn?: SortColumn,
   sortDirection?: SortDirection,
-  onSort?: (column: SortColumn) => void 
+  onSort?: (column: SortColumn) => void,
+  entityType?: 'Client' | 'Worker' | 'Case' | 'Sponsor' | 'Account Manager'
 }) => {
   const renderSortableHeader = (column: SortColumn, label: string) => (
     <TableHead 
@@ -364,7 +365,7 @@ const ClientTableHeaders = ({ showTotals = false, sortColumn, sortDirection, onS
   return (
     <TableRow>
       <TableHead className="w-[50px] text-center">#</TableHead>
-      <TableHead className="border-r border-gray-400">Client</TableHead>
+      <TableHead className="border-r border-gray-400">{entityType}</TableHead>
       {renderSortableHeader('threeMonths', getMonthName(3))}
       {renderSortableHeader('twoMonths', getMonthName(2))}
       {renderSortableHeader('previous', getMonthName(1))}
@@ -1076,11 +1077,12 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
         <div className="mx-2">
           <Table>
             <TableHeader>
-              <ClientTableHeaders 
+              <EntityTableHeaders 
                 showTotals={true} 
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 onSort={handleSort}
+                entityType="Client"
               />
             </TableHeader>
             <TableBody>
@@ -1133,11 +1135,12 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
         <div className="mx-2">
           <Table>
             <TableHeader>
-              <ClientTableHeaders 
+              <EntityTableHeaders 
                 showTotals={true} 
                 sortColumn={workerSortColumn}
                 sortDirection={workerSortDirection}
                 onSort={handleWorkerSort}
+                entityType="Worker"
               />
             </TableHeader>
             <TableBody>
@@ -1190,11 +1193,12 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
         <div className="mx-2">
           <Table>
             <TableHeader>
-              <ClientTableHeaders 
+              <EntityTableHeaders 
                 showTotals={true} 
                 sortColumn={caseSortColumn}
                 sortDirection={caseSortDirection}
                 onSort={handleCaseSort}
+                entityType="Case"
               />
             </TableHeader>
             <TableBody>
@@ -1247,11 +1251,12 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
         <div className="mx-2">
           <Table>
             <TableHeader>
-              <ClientTableHeaders 
+              <EntityTableHeaders 
                 showTotals={true} 
                 sortColumn={sponsorSortColumn}
                 sortDirection={sponsorSortDirection}
                 onSort={handleSponsorSort}
+                entityType="Sponsor"
               />
             </TableHeader>
             <TableBody>
@@ -1304,11 +1309,12 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
         <div className="mx-2">
           <Table>
             <TableHeader>
-              <ClientTableHeaders 
+              <EntityTableHeaders 
                 showTotals={true} 
                 sortColumn={accountManagerSortColumn}
                 sortDirection={accountManagerSortDirection}
                 onSort={handleAccountManagerSort}
+                entityType="Account Manager"
               />
             </TableHeader>
             <TableBody>

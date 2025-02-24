@@ -52,7 +52,7 @@ def summarize(df: pd.DataFrame) -> TimesheetSummary:
     def get_agg_value(group: str, agg: str, default: float = 0.0) -> float:
         try:
             value = group_results[group][agg]
-            if pd.isna(value.iloc[0]) or np.isinf(value.iloc[0]):
+            if pd.isna(value.iloc[0]) or np.isinf(value.iloc[0]) or pd.isna(float(value.iloc[0])):
                 return default
             return float(value.iloc[0])
         except (KeyError, IndexError, ValueError, TypeError):
@@ -69,7 +69,7 @@ def summarize(df: pd.DataFrame) -> TimesheetSummary:
         unique_account_managers=df["AccountManagerSlug"].nunique(),
         unique_weeks=df["Week"].nunique(),
         average_hours_per_entry=average_hours_per_entry,
-        std_dev_hours_per_entry=float(df["TimeInHs"].std() or 0.0),
+        std_dev_hours_per_entry=float(df["TimeInHs"].std()) if not pd.isna(df["TimeInHs"].std()) else 0.0,
         average_hours_per_day=get_agg_value("date", "mean"),
         std_dev_hours_per_day=get_agg_value("date", "std"),
         average_hours_per_worker=get_agg_value("worker", "mean"),
