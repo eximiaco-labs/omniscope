@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from omni_models.analytics.timeliness_models import TimelinessReview as TimelinessReviewModel
 from omni_models.analytics.timeliness_models import WorkerSummary as WorkerSummaryModel
 
+
 from core.generator import FilterableField
 
 class TimelinessWorkerSummary(BaseModel):
@@ -77,6 +78,7 @@ class Timeliness(BaseModel):
         return result
     
 class StalelinessCaseInfo(BaseModel):
+    #from team.models import ConsultantOrEngineer
     title: str
     slug: str
     last_updated: datetime | None

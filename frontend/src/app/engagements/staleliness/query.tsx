@@ -11,12 +11,6 @@ export const STALELINESS_QUERY = gql`
               slug
               lastUpdated
               daysSinceUpdate
-              consultantsOrEngineers { 
-                data {
-                  name
-                  slug
-                }
-              }
             }
           }
           staleInOneWeekCases {
@@ -25,12 +19,6 @@ export const STALELINESS_QUERY = gql`
               slug
               lastUpdated
               daysSinceUpdate
-              consultantsOrEngineers { 
-                data {
-                  name
-                  slug
-                }
-              }
             }
           }
           staleInLessThan15DaysCases {
@@ -39,12 +27,6 @@ export const STALELINESS_QUERY = gql`
               slug
               lastUpdated
               daysSinceUpdate
-              consultantsOrEngineers { 
-                data {
-                  name
-                  slug
-                }
-              }
             }
           }
           noDescriptionCases {
@@ -53,12 +35,6 @@ export const STALELINESS_QUERY = gql`
               slug
               lastUpdated
               daysSinceUpdate
-              consultantsOrEngineers { 
-                data {
-                  name
-                  slug
-                }
-              }
             }
           }
           upToDateCases {
@@ -67,12 +43,6 @@ export const STALELINESS_QUERY = gql`
               slug
               lastUpdated
               daysSinceUpdate
-              consultantsOrEngineers { 
-                data {
-                  name
-                  slug
-                }
-              }
             }
           }
         }

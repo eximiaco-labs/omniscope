@@ -55,7 +55,6 @@ export default function StalenessPage() {
               <TableRow>
                 <TableHead className="w-[50px] text-center">#</TableHead>
                 <TableHead>Case Title</TableHead>
-                <TableHead className="w-[200px]">Workers</TableHead>
                 <TableHead className="w-[120px]">Last Updated</TableHead>
                 <TableHead className="text-right w-[120px]">Days Without Update</TableHead>
               </TableRow>
@@ -73,20 +72,6 @@ export default function StalenessPage() {
                     >
                       {case_.title}
                     </Link>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm space-y-1">
-                      {case_.consultantsOrEngineers?.data?.map((w: any, i: number) => (
-                        <div key={i} className="text-xs">
-                          <Link
-                            href={`/about-us/consultants-and-engineers/${w.slug}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            {w.name}
-                          </Link>
-                        </div>
-                      )) || <div className="text-xs">No workers</div>}
-                    </div>
                   </TableCell>
                   <TableCell>
                     {case_.lastUpdated 
