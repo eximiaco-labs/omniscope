@@ -143,9 +143,29 @@ interface TimesheetSummaryData {
   totalInternalHours: number
 }
 
+interface ClientData {
+  name: string
+  totalHours: number
+}
+
+interface TimesheetData {
+  summary: TimesheetSummaryData
+  byClient: {
+    data: ClientData[]
+  }
+  filterableFields: Array<{
+    field: string
+    options: string[]
+    selectedValues: string[]
+  }>
+}
+
 interface TimesheetSummaryProps {
   initialQueryFilters?: Array<{ field: string; selectedValues: string[] }>
 }
+
+type SortColumn = 'total' | 'current' | 'previous' | 'twoMonths' | 'threeMonths';
+type SortDirection = 'asc' | 'desc';
 
 const formatNumber = (num: number) => num.toFixed(2)
 const formatInteger = (num: number) => Math.round(num).toString()
@@ -167,7 +187,43 @@ const TableMonthHeaders = ({ showTotals = false }) => (
   </TableRow>
 )
 
+const ClientTableHeaders = ({ showTotals = false, sortColumn, sortDirection, onSort }: { 
+  showTotals?: boolean, 
+  sortColumn?: SortColumn,
+  sortDirection?: SortDirection,
+  onSort?: (column: SortColumn) => void 
+}) => {
+  const renderSortableHeader = (column: SortColumn, label: string) => (
+    <TableHead 
+      className={`w-[120px] border-x border-gray-200 text-center cursor-pointer hover:bg-gray-50`}
+      onClick={() => onSort?.(column)}
+    >
+      <div className="flex items-center justify-center gap-1">
+        {label}
+        {sortColumn === column && (
+          <span className="text-xs">
+            {sortDirection === 'asc' ? '↑' : '↓'}
+          </span>
+        )}
+      </div>
+    </TableHead>
+  );
+
+  return (
+    <TableRow>
+      <TableHead className="w-[50px] text-center">#</TableHead>
+      <TableHead className="border-r border-gray-400">Client</TableHead>
+      {renderSortableHeader('threeMonths', getMonthName(3))}
+      {renderSortableHeader('twoMonths', getMonthName(2))}
+      {renderSortableHeader('previous', getMonthName(1))}
+      {renderSortableHeader('current', getMonthName(0))}
+      {showTotals && renderSortableHeader('total', 'Total')}
+    </TableRow>
+  );
+}
+
 const StatRow = ({ 
+  index,
   label, 
   current, 
   previous, 
@@ -176,6 +232,7 @@ const StatRow = ({
   showTotal = false,
   formatter = formatNumber
 }: { 
+  index?: number
   label: string
   current: number
   previous: number
@@ -187,7 +244,12 @@ const StatRow = ({
   const total = threeMonths + twoMonths + previous + current
 
   return (
-    <TableRow>
+    <TableRow className={typeof index === 'number' ? 'h-[57px] border-b border-gray-200' : undefined}>
+      {typeof index === 'number' && (
+        <TableCell className="text-center text-gray-500 text-[10px]">
+          {index + 1}
+        </TableCell>
+      )}
       <TableCell className="font-medium border-r border-gray-400">{label}</TableCell>
       <TableCellComponent
         value={threeMonths}
@@ -263,7 +325,8 @@ const TotalRow = ({ data }: { data: any }) => {
   const grandTotal = threeMonthsTotal + twoMonthsTotal + previousTotal + currentTotal
 
   return (
-    <TableRow className="font-bold border-t-2">
+    <TableRow className="font-bold border-t-4 h-[57px]">
+      <TableCell className="text-center text-gray-500 text-[10px]"></TableCell>
       <TableCell className="border-r border-gray-400">Total</TableCell>
       <TableCellComponent
         value={threeMonthsTotal}
@@ -585,6 +648,110 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
                 threeMonths={data.threeMonthsMonth.summary.uniqueWorkingDays}
                 formatter={formatInteger}
               />
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Client Hours Distribution Section */}
+      <div>
+        <SectionHeader 
+          title="Client Hours Distribution" 
+          subtitle="Distribution of hours across different clients"
+        />
+        <div className="mx-2">
+          <div className="h-[400px] mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={[
+                  {
+                    name: getMonthName(3),
+                    clients: data.threeMonthsMonth.byClient.data.map((client: ClientData) => ({
+                      name: client.name,
+                      hours: client.totalHours
+                    }))
+                  },
+                  {
+                    name: getMonthName(2),
+                    clients: data.twoMonthsMonth.byClient.data.map((client: ClientData) => ({
+                      name: client.name,
+                      hours: client.totalHours
+                    }))
+                  },
+                  {
+                    name: getMonthName(1),
+                    clients: data.previousMonth.byClient.data.map((client: ClientData) => ({
+                      name: client.name,
+                      hours: client.totalHours
+                    }))
+                  },
+                  {
+                    name: getMonthName(0),
+                    clients: data.thisMonth.byClient.data.map((client: ClientData) => ({
+                      name: client.name,
+                      hours: client.totalHours
+                    }))
+                  }
+                ]}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value: number, name: string) => {
+                    const clientName = name.match(/clients\[(\d+)\]\.hours/)?.[1];
+                    if (clientName !== undefined) {
+                      const client = data.thisMonth.byClient.data[parseInt(clientName)];
+                      return [`${client.name}: ${value.toFixed(2)}`, 'Hours'];
+                    }
+                    return [value.toFixed(2), 'Hours'];
+                  }}
+                />
+                <Legend />
+                {data.thisMonth.byClient.data.map((client: ClientData, index: number) => (
+                  <Bar
+                    key={client.name}
+                    dataKey={`clients[${index}].hours`}
+                    name={client.name}
+                    fill={`hsl(${index * 137.5 % 360}, 70%, 50%)`}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <Table>
+            <TableHeader>
+              <ClientTableHeaders 
+                showTotals={true} 
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+            </TableHeader>
+            <TableBody>
+              {getSortedClients(data.thisMonth.byClient.data).map((client: ClientData, index: number) => {
+                const clientData = {
+                  current: client.totalHours,
+                  previous: data.previousMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0,
+                  twoMonths: data.twoMonthsMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0,
+                  threeMonths: data.threeMonthsMonth.byClient.data.find((c: ClientData) => c.name === client.name)?.totalHours || 0
+                };
+                
+                return (
+                  <StatRow
+                    key={client.name}
+                    index={index}
+                    label={client.name}
+                    current={clientData.current}
+                    previous={clientData.previous}
+                    twoMonths={clientData.twoMonths}
+                    threeMonths={clientData.threeMonths}
+                    showTotal={true}
+                  />
+                );
+              })}
+              <TotalRow data={data} />
             </TableBody>
           </Table>
         </div>
