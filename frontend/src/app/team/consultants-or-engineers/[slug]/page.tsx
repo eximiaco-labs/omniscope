@@ -52,6 +52,13 @@ export default function WorkerPage() {
 
   const { name, position, photoUrl, ontologyUrl } = data.team.consultantOrEngineer;
 
+  const initialQueryFilters = [
+    {
+      field: "WorkerName",
+      selectedValues: [name]
+    }
+  ];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-6 mb-8 border-b pb-6">
@@ -87,8 +94,7 @@ export default function WorkerPage() {
           </div>
         </div>
       </div>
-      <UnderConstruction />
-      {/* <TimesheetSummary /> */}
+      <TimesheetSummary initialQueryFilters={initialQueryFilters} />
     </div>
   );
 }

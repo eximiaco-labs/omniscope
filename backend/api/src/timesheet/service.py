@@ -1,5 +1,6 @@
 from datetime import datetime
 import pandas as pd
+import numpy as np
 from typing import Dict, Any, List
 
 from omni_shared import globals
@@ -49,8 +50,13 @@ def summarize(df: pd.DataFrame) -> TimesheetSummary:
 
     # Extract scalar values from Series
     def get_agg_value(group: str, agg: str, default: float = 0.0) -> float:
-        value = group_results[group][agg]
-        return float(value.iloc[0]) if not pd.isna(value.iloc[0]) else default
+        try:
+            value = group_results[group][agg]
+            if pd.isna(value.iloc[0]) or np.isinf(value.iloc[0]):
+                return default
+            return float(value.iloc[0])
+        except (KeyError, IndexError, ValueError, TypeError):
+            return default
 
     return TimesheetSummary(
         total_entries=len(df),

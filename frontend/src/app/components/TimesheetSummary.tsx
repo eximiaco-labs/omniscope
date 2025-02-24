@@ -14,6 +14,19 @@ import { TableHeaderComponent } from "@/app/financial/revenue-forecast/component
 import { TableRowComponent } from "@/app/financial/revenue-forecast/components/TableRow"
 import { TableCellComponent } from "@/app/financial/revenue-forecast/components/TableCell"
 import SectionHeader from "@/components/SectionHeader"
+import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect"
+import { useState, useEffect } from "react"
+import { Option } from "react-tailwindcss-select/dist/components/type"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from "recharts"
 
 const GET_TIMESHEET_SUMMARY = gql`
   fragment SummaryFields on TimesheetSummary {
@@ -51,8 +64,8 @@ const GET_TIMESHEET_SUMMARY = gql`
     totalInternalHours
   }
 
-  query GetTimesheetSummaries {
-    thisMonth: timesheet(slug: "this-month") {
+  query GetTimesheetSummary($filters: [DatasetFilterInput]) {
+    thisMonth: timesheet(slug: "this-month", filters: $filters) {
       summary {
         ...SummaryFields
       }
@@ -62,8 +75,7 @@ const GET_TIMESHEET_SUMMARY = gql`
         selectedValues
       }
     }
-    
-    previousMonth: timesheet(slug: "previous-month") {
+    previousMonth: timesheet(slug: "previous-month", filters: $filters) {
       summary {
         ...SummaryFields
       }
@@ -73,8 +85,7 @@ const GET_TIMESHEET_SUMMARY = gql`
         selectedValues
       }
     }
-    
-    twoMonthsMonth: timesheet(slug: "two-months-ago") {
+    twoMonthsMonth: timesheet(slug: "two-months-ago", filters: $filters) {
       summary {
         ...SummaryFields
       }
@@ -84,8 +95,7 @@ const GET_TIMESHEET_SUMMARY = gql`
         selectedValues
       }
     }
-    
-    threeMonthsMonth: timesheet(slug: "three-months-ago") {
+    threeMonthsMonth: timesheet(slug: "three-months-ago", filters: $filters) {
       summary {
         ...SummaryFields
       }
@@ -151,10 +161,7 @@ interface TimesheetData {
 }
 
 interface TimesheetSummaryProps {
-  thisMonth: { summary: TimesheetSummaryData }
-  previousMonth: { summary: TimesheetSummaryData }
-  twoMonthsMonth: { summary: TimesheetSummaryData }
-  threeMonthsMonth: { summary: TimesheetSummaryData }
+  initialQueryFilters?: Array<{ field: string; selectedValues: string[] }>
 }
 
 type SortColumn = 'total' | 'current' | 'previous' | 'twoMonths' | 'threeMonths';
@@ -365,7 +372,7 @@ const TotalRow = ({ data }: { data: any }) => {
   )
 }
 
-export function TimesheetSummary() {
+export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps) {
   const client = useEdgeClient();
   const [selectedFilters, setSelectedFilters] = useState<Option[]>([]);
   const [formattedSelectedValues, setFormattedSelectedValues] = useState<
@@ -416,124 +423,166 @@ export function TimesheetSummary() {
   
   const { loading, error, data } = useQuery(GET_TIMESHEET_SUMMARY, {
     client,
+    variables: {
+      filters: formattedSelectedValues.length > 0 ? formattedSelectedValues : null,
+    },
     ssr: true
   });
+
+  useEffect(() => {
+    if (data?.thisMonth?.filterableFields) {
+      const options = convertToOptions(data.thisMonth.filterableFields);
+      setSelectedFilters(options);
+    }
+  }, [data]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   if (!data) return null;
 
-  const totalsByMonth = {
-    threeMonthsAgo: data.threeMonthsMonth.summary.totalConsultingHours + 
-                    data.threeMonthsMonth.summary.totalSquadHours + 
-                    data.threeMonthsMonth.summary.totalHandsOnHours + 
-                    data.threeMonthsMonth.summary.totalInternalHours,
-    twoMonthsAgo: data.twoMonthsMonth.summary.totalConsultingHours + 
-                  data.twoMonthsMonth.summary.totalSquadHours + 
-                  data.twoMonthsMonth.summary.totalHandsOnHours + 
-                  data.twoMonthsMonth.summary.totalInternalHours,
-    oneMonthAgo: data.previousMonth.summary.totalConsultingHours + 
-                 data.previousMonth.summary.totalSquadHours + 
-                 data.previousMonth.summary.totalHandsOnHours + 
-                 data.previousMonth.summary.totalInternalHours,
-    current: data.thisMonth.summary.totalConsultingHours + 
-             data.thisMonth.summary.totalSquadHours + 
-             data.thisMonth.summary.totalHandsOnHours + 
-             data.thisMonth.summary.totalInternalHours,
-  };
-
-  const categories = [
+  const chartData = [
     {
-      name: "Consulting Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalConsultingHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalConsultingHours,
-      oneMonthAgo: data.previousMonth.summary.totalConsultingHours,
-      current: data.thisMonth.summary.totalConsultingHours,
+      name: getMonthName(3),
+      consulting: data.threeMonthsMonth.summary.totalConsultingHours,
+      squad: data.threeMonthsMonth.summary.totalSquadHours,
+      handsOn: data.threeMonthsMonth.summary.totalHandsOnHours,
+      internal: data.threeMonthsMonth.summary.totalInternalHours,
     },
     {
-      name: "Squad Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalSquadHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalSquadHours,
-      oneMonthAgo: data.previousMonth.summary.totalSquadHours,
-      current: data.thisMonth.summary.totalSquadHours,
+      name: getMonthName(2),
+      consulting: data.twoMonthsMonth.summary.totalConsultingHours,
+      squad: data.twoMonthsMonth.summary.totalSquadHours,
+      handsOn: data.twoMonthsMonth.summary.totalHandsOnHours,
+      internal: data.twoMonthsMonth.summary.totalInternalHours,
     },
     {
-      name: "Hands-on Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalHandsOnHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalHandsOnHours,
-      oneMonthAgo: data.previousMonth.summary.totalHandsOnHours,
-      current: data.thisMonth.summary.totalHandsOnHours,
+      name: getMonthName(1),
+      consulting: data.previousMonth.summary.totalConsultingHours,
+      squad: data.previousMonth.summary.totalSquadHours,
+      handsOn: data.previousMonth.summary.totalHandsOnHours,
+      internal: data.previousMonth.summary.totalInternalHours,
     },
     {
-      name: "Internal Hours",
-      threeMonthsAgo: data.threeMonthsMonth.summary.totalInternalHours,
-      twoMonthsAgo: data.twoMonthsMonth.summary.totalInternalHours,
-      oneMonthAgo: data.previousMonth.summary.totalInternalHours,
-      current: data.thisMonth.summary.totalInternalHours,
-    }
+      name: getMonthName(0),
+      consulting: data.thisMonth.summary.totalConsultingHours,
+      squad: data.thisMonth.summary.totalSquadHours,
+      handsOn: data.thisMonth.summary.totalHandsOnHours,
+      internal: data.thisMonth.summary.totalInternalHours,
+    },
   ];
 
-  const dates = {
-    lastDayOfThreeMonthsAgo: getMonthName(3),
-    lastDayOfTwoMonthsAgo: getMonthName(2),
-    lastDayOfOneMonthAgo: getMonthName(1),
-    inAnalysis: getMonthName(0),
+  // Check which kinds have non-zero values
+  const activeKinds = {
+    consulting: chartData.some(d => d.consulting > 0),
+    squad: chartData.some(d => d.squad > 0),
+    handsOn: chartData.some(d => d.handsOn > 0),
+    internal: chartData.some(d => d.internal > 0),
   };
 
-  const workingDays = {
-    threeMonthsAgo: data.threeMonthsMonth.summary.uniqueWorkingDays,
-    twoMonthsAgo: data.twoMonthsMonth.summary.uniqueWorkingDays,
-    oneMonthAgo: data.previousMonth.summary.uniqueWorkingDays,
-    inAnalysis: data.thisMonth.summary.uniqueWorkingDays,
-  };
+  const barConfig = [
+    { dataKey: "consulting", name: "Consulting", fill: "#F59E0B" },
+    { dataKey: "squad", name: "Squad", fill: "#3B82F6" },
+    { dataKey: "handsOn", name: "Hands-On", fill: "#8B5CF6" },
+    { dataKey: "internal", name: "Internal", fill: "#10B981" },
+  ].filter(config => activeKinds[config.dataKey as keyof typeof activeKinds]);
 
   return (
     <div className="space-y-8">
+      <div className="relative z-[40]">
+        <FilterFieldsSelect
+          data={data?.thisMonth}
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
+        />
+      </div>
+
       {/* Total Hours Section */}
       <div>
         <SectionHeader 
-          title="Total Hours by Category" 
-          subtitle="Monthly distribution of hours by category"
+          title="Total Hours by Kind" 
+          subtitle="Distribution of hours across different work kinds"
         />
         <div className="mx-2">
+          <div className="h-[400px] mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value: number) => [value.toFixed(2), 'Hours']}
+                />
+                <Legend />
+                {barConfig.map(config => (
+                  <Bar 
+                    key={config.dataKey}
+                    dataKey={config.dataKey}
+                    name={config.name}
+                    fill={config.fill}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
           <Table>
             <TableHeader>
               <TableMonthHeaders showTotals={true} />
             </TableHeader>
             <TableBody>
-              <StatRow 
-                label="Consulting Hours"
-                current={data.thisMonth.summary.totalConsultingHours}
-                previous={data.previousMonth.summary.totalConsultingHours}
-                twoMonths={data.twoMonthsMonth.summary.totalConsultingHours}
-                threeMonths={data.threeMonthsMonth.summary.totalConsultingHours}
-                showTotal={true}
-              />
-              <StatRow 
-                label="Squad Hours"
-                current={data.thisMonth.summary.totalSquadHours}
-                previous={data.previousMonth.summary.totalSquadHours}
-                twoMonths={data.twoMonthsMonth.summary.totalSquadHours}
-                threeMonths={data.threeMonthsMonth.summary.totalSquadHours}
-                showTotal={true}
-              />
-              <StatRow 
-                label="Hands-on Hours"
-                current={data.thisMonth.summary.totalHandsOnHours}
-                previous={data.previousMonth.summary.totalHandsOnHours}
-                twoMonths={data.twoMonthsMonth.summary.totalHandsOnHours}
-                threeMonths={data.threeMonthsMonth.summary.totalHandsOnHours}
-                showTotal={true}
-              />
-              <StatRow 
-                label="Internal Hours"
-                current={data.thisMonth.summary.totalInternalHours}
-                previous={data.previousMonth.summary.totalInternalHours}
-                twoMonths={data.twoMonthsMonth.summary.totalInternalHours}
-                threeMonths={data.threeMonthsMonth.summary.totalInternalHours}
-                showTotal={true}
-              />
-              <TotalRow data={data} />
+              {(() => {
+                const rows = [
+                  {
+                    label: "Consulting Hours",
+                    current: data.thisMonth.summary.totalConsultingHours,
+                    previous: data.previousMonth.summary.totalConsultingHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalConsultingHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalConsultingHours,
+                  },
+                  {
+                    label: "Squad Hours",
+                    current: data.thisMonth.summary.totalSquadHours,
+                    previous: data.previousMonth.summary.totalSquadHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalSquadHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalSquadHours,
+                  },
+                  {
+                    label: "Hands-on Hours",
+                    current: data.thisMonth.summary.totalHandsOnHours,
+                    previous: data.previousMonth.summary.totalHandsOnHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalHandsOnHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalHandsOnHours,
+                  },
+                  {
+                    label: "Internal Hours",
+                    current: data.thisMonth.summary.totalInternalHours,
+                    previous: data.previousMonth.summary.totalInternalHours,
+                    twoMonths: data.twoMonthsMonth.summary.totalInternalHours,
+                    threeMonths: data.threeMonthsMonth.summary.totalInternalHours,
+                  }
+                ].filter(row => 
+                  row.current + row.previous + row.twoMonths + row.threeMonths > 0
+                );
+
+                return (
+                  <>
+                    {rows.map(row => (
+                      <StatRow 
+                        key={row.label}
+                        label={row.label}
+                        current={row.current}
+                        previous={row.previous}
+                        twoMonths={row.twoMonths}
+                        threeMonths={row.threeMonths}
+                        showTotal={true}
+                      />
+                    ))}
+                    {rows.length > 1 && <TotalRow data={data} />}
+                  </>
+                );
+              })()}
             </TableBody>
           </Table>
         </div>
@@ -543,7 +592,7 @@ export function TimesheetSummary() {
       <div>
         <SectionHeader 
           title="Unique Entries Overview" 
-          subtitle="Monthly count of unique entities"
+          subtitle="Analysis of unique entities across different dimensions"
         />
         <div className="mx-2">
           <Table>
@@ -712,7 +761,7 @@ export function TimesheetSummary() {
       <div>
         <SectionHeader 
           title="Averages and Standard Deviations" 
-          subtitle="Monthly statistics and variations"
+          subtitle="Statistical analysis of time distribution"
         />
         <div className="mx-2">
           <Table>
