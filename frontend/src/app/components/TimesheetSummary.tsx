@@ -917,7 +917,7 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
           subtitle="Daily breakdown of hours and appointments"
         />
         <div className="mx-2">
-          <TimesheetCalendar />
+          <TimesheetCalendar filters={formattedSelectedValues} />
         </div>
       </div>
 

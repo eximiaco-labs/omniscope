@@ -21,8 +21,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const GET_TIMESHEET_CALENDAR = gql`
-  query GetTimesheetCalendar($slug: String!) {
-    timesheet1: timesheet(slug: $slug) {
+  query GetTimesheetCalendar($slug: String!, $filters: [DatasetFilterInput]) {
+    timesheet1: timesheet(slug: $slug, filters: $filters) {
       appointments {
         data {
           kind
@@ -303,7 +303,11 @@ const DayOfWeekTotalCell = ({
   );
 };
 
-export function TimesheetCalendar() {
+interface TimesheetCalendarProps {
+  filters?: Array<{ field: string; selectedValues: string[] }>;
+}
+
+export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
   const client = useEdgeClient();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStatType, setSelectedStatType] = useState<StatType>('consulting');
@@ -328,7 +332,8 @@ export function TimesheetCalendar() {
     client,
     ssr: true,
     variables: {
-      slug: timesheetSlug
+      slug: timesheetSlug,
+      filters: filters || null
     }
   });
 
