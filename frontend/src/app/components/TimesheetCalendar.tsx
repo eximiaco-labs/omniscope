@@ -14,7 +14,8 @@ import {
   startOfWeek,
   endOfWeek,
   addDays,
-  subDays
+  subDays,
+  parseISO
 } from "date-fns";
 import { STAT_COLORS, StatType } from "@/app/constants/colors";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -122,7 +123,7 @@ const DayCell = ({
     selectedStatType === 'squad' ? hours.totalSquadHours :
     hours.totalInternalHours
   ) : 0;
-  const dayAppointments = appointments.filter(apt => isSameDay(new Date(apt.date), date));
+  const dayAppointments = appointments.filter(apt => isSameDay(parseISO(apt.date), date));
 
   const isSelected = selection && (
     (selection.type === 'cell' && selection.weekIndex === weekIndex && selection.dayIndex === dayIndex) ||
@@ -318,8 +319,8 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
   // Calculate the calendar grid
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
   // Generate the slug based on calendar dates
   const timesheetSlug = useMemo(() => {
@@ -385,7 +386,14 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
     };
 
     weekDays.forEach(day => {
-      const dayData = byDate.data.find(d => format(new Date(d.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
+      const dayData = byDate.data.find(d => {
+        const appointmentDate = new Date(d.date);
+        appointmentDate.setDate(appointmentDate.getDate() + 1);
+        appointmentDate.setHours(12, 0, 0, 0);
+        const calendarDate = new Date(day);
+        calendarDate.setHours(12, 0, 0, 0);
+        return calendarDate.getTime() === appointmentDate.getTime();
+      });
       if (dayData) {
         weekTotal.consulting += dayData.totalConsultingHours;
         weekTotal.handsOn += dayData.totalHandsOnHours;
@@ -397,21 +405,6 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
     weeks.push({ days: weekDays, total: weekTotal });
   }
 
-  // Calculate month totals
-  const monthTotal = {
-    consulting: 0,
-    handsOn: 0,
-    squad: 0,
-    internal: 0
-  };
-
-  byDate.data.forEach(day => {
-    monthTotal.consulting += day.totalConsultingHours;
-    monthTotal.handsOn += day.totalHandsOnHours;
-    monthTotal.squad += day.totalSquadHours;
-    monthTotal.internal += day.totalInternalHours;
-  });
-
   // Calculate column totals
   const columnTotals = Array(8).fill(null).map(() => ({
     consulting: 0,
@@ -420,22 +413,35 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
     internal: 0
   }));
 
-  weeks.forEach(week => {
-    week.days.forEach((date, index) => {
-      const dayData = byDate.data.find(d => format(new Date(d.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'));
-      if (dayData) {
-        columnTotals[index].consulting += dayData.totalConsultingHours;
-        columnTotals[index].handsOn += dayData.totalHandsOnHours;
-        columnTotals[index].squad += dayData.totalSquadHours;
-        columnTotals[index].internal += dayData.totalInternalHours;
-      }
+  // Calculate totals for each day of the week
+  days.forEach(date => {
+    const dayData = byDate.data.find(d => {
+      const appointmentDate = new Date(d.date);
+      appointmentDate.setDate(appointmentDate.getDate() + 1);
+      appointmentDate.setHours(12, 0, 0, 0);
+      const calendarDate = new Date(date);
+      calendarDate.setHours(12, 0, 0, 0);
+      return calendarDate.getTime() === appointmentDate.getTime();
     });
-    // Add week total to the last column
-    columnTotals[7].consulting += week.total.consulting;
-    columnTotals[7].handsOn += week.total.handsOn;
-    columnTotals[7].squad += week.total.squad;
-    columnTotals[7].internal += week.total.internal;
+    if (dayData) {
+      const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      columnTotals[dayIndex].consulting += dayData.totalConsultingHours;
+      columnTotals[dayIndex].handsOn += dayData.totalHandsOnHours;
+      columnTotals[dayIndex].squad += dayData.totalSquadHours;
+      columnTotals[dayIndex].internal += dayData.totalInternalHours;
+    }
   });
+
+  // Calculate grand total
+  const grandTotal = {
+    consulting: columnTotals.reduce((sum, col) => sum + col.consulting, 0),
+    handsOn: columnTotals.reduce((sum, col) => sum + col.handsOn, 0),
+    squad: columnTotals.reduce((sum, col) => sum + col.squad, 0),
+    internal: columnTotals.reduce((sum, col) => sum + col.internal, 0)
+  };
+
+  // Add grand total to the last column
+  columnTotals[7] = grandTotal;
 
   return (
     <div className="w-full border border-gray-200 rounded-lg p-4">
@@ -494,8 +500,22 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
         {weeks.map((week, weekIndex) => (
           <React.Fragment key={weekIndex}>
             {week.days.map((date, dayIndex) => {
-              const dayData = byDate.data.find(d => format(new Date(d.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'));
-              const dayAppointments = appointments.data.filter(apt => format(new Date(apt.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'));
+              const dayData = byDate.data.find(d => {
+                const appointmentDate = new Date(d.date);
+                appointmentDate.setDate(appointmentDate.getDate() + 1);
+                appointmentDate.setHours(12, 0, 0, 0);
+                const calendarDate = new Date(date);
+                calendarDate.setHours(12, 0, 0, 0);
+                return calendarDate.getTime() === appointmentDate.getTime();
+              });
+              const dayAppointments = appointments.data.filter(apt => {
+                const appointmentDate = new Date(apt.date);
+                appointmentDate.setDate(appointmentDate.getDate() + 1);
+                appointmentDate.setHours(12, 0, 0, 0);
+                const calendarDate = new Date(date);
+                calendarDate.setHours(12, 0, 0, 0);
+                return calendarDate.getTime() === appointmentDate.getTime();
+              });
               
               const type = isSameMonth(date, selectedDate) ? 'current' :
                           date < monthStart ? 'prev' : 'next';
@@ -509,7 +529,7 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
                   appointments={dayAppointments}
                   type={type}
                   weekTotal={week.total[selectedStatType]}
-                  columnTotal={columnTotals[dayIndex][selectedStatType]}
+                  columnTotal={columnTotals[date.getDay()][selectedStatType]}
                   weekIndex={weekIndex}
                   dayIndex={dayIndex}
                   selection={selection}
@@ -522,7 +542,7 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
               total={week.total[selectedStatType]}
               selectedStatType={selectedStatType}
               type="week"
-              grandTotal={columnTotals[7][selectedStatType]}
+              grandTotal={grandTotal[selectedStatType]}
               weekIndex={weekIndex}
               dayIndex={7}
               selection={selection}
@@ -537,7 +557,7 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
             key={`total-${index}`}
             hours={total}
             index={index}
-            grandTotal={columnTotals[7][selectedStatType]}
+            grandTotal={grandTotal[selectedStatType]}
             selectedStatType={selectedStatType}
             selection={selection}
             onSelect={handleSelect}
