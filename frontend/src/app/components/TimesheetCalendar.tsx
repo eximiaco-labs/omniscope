@@ -346,10 +346,12 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
 
   const handleMonthChange = (increment: number) => {
     setSelectedDate(addMonths(selectedDate, increment));
+    setSelection(null);
   };
 
   const handleStatTypeChange = (newType: StatType) => {
     setSelectedStatType(newType);
+    setSelection(null);
   };
 
   const handleSelect = (type: 'cell' | 'column' | 'row', weekIndex: number, dayIndex: number) => {
