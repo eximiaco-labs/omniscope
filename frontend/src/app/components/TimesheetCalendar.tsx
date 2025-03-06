@@ -723,88 +723,112 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('date')}
-                      className="p-0 h-auto hover:bg-transparent"
-                    >
-                      Date
-                      {sortConfig?.key === 'date' && (
-                        <span className="ml-2">
-                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
-                        </span>
-                      )}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-xs">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('client')}
-                      className="p-0 h-auto hover:bg-transparent"
-                    >
-                      Client
-                      {sortConfig?.key === 'client' && (
-                        <span className="ml-2">
-                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
-                        </span>
-                      )}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-xs">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('consultantOrEngineer')}
-                      className="p-0 h-auto hover:bg-transparent"
-                    >
-                      Consultant/Engineer
-                      {sortConfig?.key === 'consultantOrEngineer' && (
-                        <span className="ml-2">
-                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
-                        </span>
-                      )}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-xs">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('sponsor')}
-                      className="p-0 h-auto hover:bg-transparent"
-                    >
-                      Sponsor
-                      {sortConfig?.key === 'sponsor' && (
-                        <span className="ml-2">
-                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
-                        </span>
-                      )}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-xs">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('timeInHs')}
-                      className="p-0 h-auto hover:bg-transparent"
-                    >
-                      Hours
-                      {sortConfig?.key === 'timeInHs' && (
-                        <span className="ml-2">
-                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
-                        </span>
-                      )}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-xs">Comment</TableHead>
+                  {(!filters?.some(f => f.field.toLowerCase() === 'date' && f.selectedValues.length === 1)) && (
+                    <TableHead className="text-xs">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('date')}
+                        className="p-0 h-auto hover:bg-transparent"
+                      >
+                        Date
+                        {sortConfig?.key === 'date' && (
+                          <span className="ml-2">
+                            {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                          </span>
+                        )}
+                      </Button>
+                    </TableHead>
+                  )}
+                  {(!filters?.some(f => f.field.toLowerCase() === 'clientname' && f.selectedValues.length === 1)) && (
+                    <TableHead className="text-xs">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('client')}
+                        className="p-0 h-auto hover:bg-transparent"
+                      >
+                        Client
+                        {sortConfig?.key === 'client' && (
+                          <span className="ml-2">
+                            {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                          </span>
+                        )}
+                      </Button>
+                    </TableHead>
+                  )}
+                  {(!filters?.some(f => f.field.toLowerCase() === 'workername' && f.selectedValues.length === 1)) && (
+                    <TableHead className="text-xs">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('consultantOrEngineer')}
+                        className="p-0 h-auto hover:bg-transparent"
+                      >
+                        Consultant/Engineer
+                        {sortConfig?.key === 'consultantOrEngineer' && (
+                          <span className="ml-2">
+                            {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                          </span>
+                        )}
+                      </Button>
+                    </TableHead>
+                  )}
+                  {(!filters?.some(f => f.field.toLowerCase() === 'sponsor' && f.selectedValues.length === 1)) && (
+                    <TableHead className="text-xs">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('sponsor')}
+                        className="p-0 h-auto hover:bg-transparent"
+                      >
+                        Sponsor
+                        {sortConfig?.key === 'sponsor' && (
+                          <span className="ml-2">
+                            {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                          </span>
+                        )}
+                      </Button>
+                    </TableHead>
+                  )}
+                  {(!filters?.some(f => f.field.toLowerCase() === 'timeinhs' && f.selectedValues.length === 1)) && (
+                    <TableHead className="text-xs">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('timeInHs')}
+                        className="p-0 h-auto hover:bg-transparent"
+                      >
+                        Hours
+                        {sortConfig?.key === 'timeInHs' && (
+                          <span className="ml-2">
+                            {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                          </span>
+                        )}
+                      </Button>
+                    </TableHead>
+                  )}
+                  {(!filters?.some(f => f.field.toLowerCase() === 'comment' && f.selectedValues.length === 1)) && (
+                    <TableHead className="text-xs">Comment</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedAppointments.map((apt, idx) => (
                   <TableRow key={idx}>
-                    <TableCell className="text-xs py-2">{format(new Date(apt.date), 'MMM dd, yyyy')}</TableCell>
-                    <TableCell className="text-xs py-2">{apt.client.name}</TableCell>
-                    <TableCell className="text-xs py-2">{apt.consultantOrEngineer.name}</TableCell>
-                    <TableCell className="text-xs py-2">{apt.sponsor}</TableCell>
-                    <TableCell className="text-xs py-2">{apt.timeInHs}h</TableCell>
-                    <TableCell className="text-xs py-2">{apt.comment}</TableCell>
+                    {(!filters?.some(f => f.field.toLowerCase() === 'date' && f.selectedValues.length === 1)) && (
+                      <TableCell className="text-xs py-2">{format(new Date(apt.date), 'MMM dd, yyyy')}</TableCell>
+                    )}
+                    {(!filters?.some(f => f.field.toLowerCase() === 'clientname' && f.selectedValues.length === 1)) && (
+                      <TableCell className="text-xs py-2">{apt.client.name}</TableCell>
+                    )}
+                    {(!filters?.some(f => f.field.toLowerCase() === 'workername' && f.selectedValues.length === 1)) && (
+                      <TableCell className="text-xs py-2">{apt.consultantOrEngineer.name}</TableCell>
+                    )}
+                    {(!filters?.some(f => f.field.toLowerCase() === 'sponsor' && f.selectedValues.length === 1)) && (
+                      <TableCell className="text-xs py-2">{apt.sponsor}</TableCell>
+                    )}
+                    {(!filters?.some(f => f.field.toLowerCase() === 'timeinhs' && f.selectedValues.length === 1)) && (
+                      <TableCell className="text-xs py-2">{apt.timeInHs}h</TableCell>
+                    )}
+                    {(!filters?.some(f => f.field.toLowerCase() === 'comment' && f.selectedValues.length === 1)) && (
+                      <TableCell className="text-xs py-2">{apt.comment}</TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
