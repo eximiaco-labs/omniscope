@@ -18,8 +18,18 @@ import {
   parseISO
 } from "date-fns";
 import { STAT_COLORS, StatType } from "@/app/constants/colors";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const GET_TIMESHEET_CALENDAR = gql`
   query GetTimesheetCalendar($slug: String!, $filters: [DatasetFilterInput]) {
@@ -28,6 +38,7 @@ const GET_TIMESHEET_CALENDAR = gql`
         data {
           kind
           date
+          consultantOrEngineer { name }
           client {
             slug
             name
@@ -54,6 +65,9 @@ const GET_TIMESHEET_CALENDAR = gql`
 interface Appointment {
   kind: string;
   date: string;
+  consultantOrEngineer: {
+    name: string;
+  };
   client: {
     slug: string;
     name: string;
@@ -90,6 +104,18 @@ type SelectionType = {
   weekIndex?: number;
   dayIndex?: number;
 } | null;
+
+interface WeekTotal {
+  consulting: number;
+  handsOn: number;
+  squad: number;
+  internal: number;
+}
+
+interface Week {
+  days: Date[];
+  total: WeekTotal;
+}
 
 const DayCell = ({ 
   date, 
@@ -131,7 +157,7 @@ const DayCell = ({
     (selection.type === 'row' && selection.weekIndex === weekIndex)
   );
 
-  const cellContent = (
+  return (
     <div 
       className={`
         p-2 text-center relative h-[70px] flex flex-col justify-between cursor-pointer
@@ -165,41 +191,17 @@ const DayCell = ({
           )}
         </>
       )}
+      {dayAppointments.length > 0 && (
+        <div className="absolute bottom-[2px] left-[2px] text-[8px] text-gray-500">
+          {dayAppointments.map((apt, idx) => (
+            <div key={idx} className="truncate">
+              {apt.client.name}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-
-  if (type === 'current' && (statHours > 0 || dayAppointments.length > 0)) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {cellContent}
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="space-y-2">
-              {statHours > 0 && (
-                <p className="font-semibold">
-                  {selectedStatType.charAt(0).toUpperCase() + selectedStatType.slice(1)}: {statHours}h
-                </p>
-              )}
-              {dayAppointments.length > 0 && (
-                <div>
-                  <p className="font-semibold mb-1">Appointments:</p>
-                  {dayAppointments.map((apt, idx) => (
-                    <p key={idx} className="text-sm">
-                      {apt.client.name} - {apt.timeInHs}h
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  return cellContent;
 };
 
 const TotalCell = ({ 
@@ -313,8 +315,33 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStatType, setSelectedStatType] = useState<StatType>('consulting');
   const [selection, setSelection] = useState<SelectionType>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Appointment;
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
-  if (!client) return <p>Loading client...</p>;
+  const handleSort = (key: keyof Appointment) => {
+    setSortConfig(current => ({
+      key,
+      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const handleMonthChange = (increment: number) => {
+    setSelectedDate(addMonths(selectedDate, increment));
+    setSelection(null);
+  };
+
+  const handleStatTypeChange = (newType: StatType) => {
+    setSelectedStatType(newType);
+    setSelection(null);
+  };
+
+  const handleSelect = (type: 'cell' | 'column' | 'row', weekIndex: number, dayIndex: number) => {
+    setSelection({ type, weekIndex, dayIndex });
+    setIsSheetOpen(true);
+  };
 
   // Calculate the calendar grid
   const monthStart = startOfMonth(selectedDate);
@@ -330,7 +357,7 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
   }, [calendarStart, calendarEnd]);
 
   const { loading, error, data } = useQuery<TimesheetData>(GET_TIMESHEET_CALENDAR, {
-    client,
+    client: client || undefined,
     ssr: true,
     variables: {
       slug: timesheetSlug,
@@ -338,250 +365,453 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
     }
   });
 
+  // Get all days for the calendar grid
+  const days = useMemo(() => eachDayOfInterval({ start: calendarStart, end: calendarEnd }), [calendarStart, calendarEnd]);
+
+  // Calculate week totals
+  const weeks = useMemo(() => {
+    const result: Week[] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      const weekDays = days.slice(i, i + 7);
+      const weekTotal = {
+        consulting: 0,
+        handsOn: 0,
+        squad: 0,
+        internal: 0
+      };
+
+      weekDays.forEach(day => {
+        const dayData = data?.timesheet1.byDate.data.find(d => {
+          const appointmentDate = new Date(d.date);
+          appointmentDate.setDate(appointmentDate.getDate() + 1);
+          appointmentDate.setHours(12, 0, 0, 0);
+          const calendarDate = new Date(day);
+          calendarDate.setHours(12, 0, 0, 0);
+          return calendarDate.getTime() === appointmentDate.getTime();
+        });
+        if (dayData) {
+          weekTotal.consulting += dayData.totalConsultingHours;
+          weekTotal.handsOn += dayData.totalHandsOnHours;
+          weekTotal.squad += dayData.totalSquadHours;
+          weekTotal.internal += dayData.totalInternalHours;
+        }
+      });
+
+      result.push({ days: weekDays, total: weekTotal });
+    }
+    return result;
+  }, [days, data?.timesheet1.byDate.data]);
+
+  // Calculate column totals
+  const columnTotals = useMemo(() => {
+    const totals = Array(8).fill(null).map(() => ({
+      consulting: 0,
+      handsOn: 0,
+      squad: 0,
+      internal: 0
+    }));
+
+    days.forEach(date => {
+      const dayData = data?.timesheet1.byDate.data.find(d => {
+        const appointmentDate = new Date(d.date);
+        appointmentDate.setDate(appointmentDate.getDate() + 1);
+        appointmentDate.setHours(12, 0, 0, 0);
+        const calendarDate = new Date(date);
+        calendarDate.setHours(12, 0, 0, 0);
+        return calendarDate.getTime() === appointmentDate.getTime();
+      });
+      if (dayData) {
+        const dayIndex = date.getDay();
+        totals[dayIndex].consulting += dayData.totalConsultingHours;
+        totals[dayIndex].handsOn += dayData.totalHandsOnHours;
+        totals[dayIndex].squad += dayData.totalSquadHours;
+        totals[dayIndex].internal += dayData.totalInternalHours;
+      }
+    });
+
+    // Calculate grand total
+    const grandTotal = {
+      consulting: totals.reduce((sum, col) => sum + col.consulting, 0),
+      handsOn: totals.reduce((sum, col) => sum + col.handsOn, 0),
+      squad: totals.reduce((sum, col) => sum + col.squad, 0),
+      internal: totals.reduce((sum, col) => sum + col.internal, 0)
+    };
+
+    // Add grand total to the last column
+    totals[7] = grandTotal;
+
+    return totals;
+  }, [days, data?.timesheet1.byDate.data]);
+
+  // Get available stat types
+  const availableStatTypes = useMemo(() => {
+    if (!data) return [];
+    return Object.entries({
+      consulting: data.timesheet1.byDate.data.reduce((sum, day) => sum + day.totalConsultingHours, 0),
+      handsOn: data.timesheet1.byDate.data.reduce((sum, day) => sum + day.totalHandsOnHours, 0),
+      squad: data.timesheet1.byDate.data.reduce((sum, day) => sum + day.totalSquadHours, 0),
+      internal: data.timesheet1.byDate.data.reduce((sum, day) => sum + day.totalInternalHours, 0),
+    })
+      .filter(([_, hours]) => hours > 0)
+      .map(([type]) => type as StatType);
+  }, [data?.timesheet1.byDate.data]);
+
+  // Calculate days with data
+  const daysWithData = useMemo(() => {
+    if (!data) return 0;
+    return data.timesheet1.byDate.data.filter(day => {
+      const appointmentDate = new Date(day.date);
+      appointmentDate.setDate(appointmentDate.getDate() + 1);
+      appointmentDate.setHours(12, 0, 0, 0);
+      const isCurrentMonth = isSameMonth(appointmentDate, selectedDate);
+      
+      if (!isCurrentMonth) return false;
+
+      const hours = selectedStatType === 'consulting' ? day.totalConsultingHours :
+                   selectedStatType === 'handsOn' ? day.totalHandsOnHours :
+                   selectedStatType === 'squad' ? day.totalSquadHours :
+                   day.totalInternalHours;
+      return hours > 0;
+    }).length;
+  }, [data?.timesheet1.byDate.data, selectedDate, selectedStatType]);
+
+  // Calculate sorted appointments
+  const sortedAppointments = useMemo(() => {
+    if (!selection || !data) return [];
+
+    // Filter appointments by selected stat type
+    const filteredAppointments = data.timesheet1.appointments.data.filter(apt => {
+      const appointmentDate = new Date(apt.date);
+      appointmentDate.setDate(appointmentDate.getDate() + 1);
+      appointmentDate.setHours(12, 0, 0, 0);
+      const isCurrentMonth = isSameMonth(appointmentDate, selectedDate);
+      
+      if (!isCurrentMonth) return false;
+
+      const kindMap: Record<StatType, string> = {
+        consulting: 'consulting',
+        handsOn: 'handsOn',
+        squad: 'squad',
+        internal: 'internal'
+      };
+
+      const expectedKind = kindMap[selectedStatType];
+      const matches = apt.kind.toLowerCase() === expectedKind.toLowerCase();
+
+      return matches;
+    });
+
+    let selectedAppointments: Appointment[] = [];
+
+    if (selection.type === 'cell') {
+      const date = weeks[selection.weekIndex!].days[selection.dayIndex!];
+      selectedAppointments = filteredAppointments.filter(apt => {
+        const appointmentDate = new Date(apt.date);
+        appointmentDate.setDate(appointmentDate.getDate() + 1);
+        appointmentDate.setHours(12, 0, 0, 0);
+        const calendarDate = new Date(date);
+        calendarDate.setHours(12, 0, 0, 0);
+        return calendarDate.getTime() === appointmentDate.getTime();
+      });
+    } else if (selection.type === 'column') {
+      const selectedDayIndex = selection.dayIndex!;
+      selectedAppointments = filteredAppointments.filter(apt => {
+        const appointmentDate = new Date(apt.date);
+        appointmentDate.setDate(appointmentDate.getDate() + 1);
+        appointmentDate.setHours(12, 0, 0, 0);
+        return appointmentDate.getDay() === selectedDayIndex;
+      });
+    } else if (selection.type === 'row') {
+      const weekDays = weeks[selection.weekIndex!].days;
+      selectedAppointments = filteredAppointments.filter(apt => {
+        const appointmentDate = new Date(apt.date);
+        appointmentDate.setDate(appointmentDate.getDate() + 1);
+        appointmentDate.setHours(12, 0, 0, 0);
+        return weekDays.some(day => {
+          const calendarDate = new Date(day);
+          calendarDate.setHours(12, 0, 0, 0);
+          return calendarDate.getTime() === appointmentDate.getTime();
+        });
+      });
+    }
+
+    if (!sortConfig) return selectedAppointments;
+
+    return [...selectedAppointments].sort((a, b) => {
+      if (sortConfig.key === 'date') {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+
+      if (sortConfig.key === 'timeInHs') {
+        return sortConfig.direction === 'asc' 
+          ? a.timeInHs - b.timeInHs 
+          : b.timeInHs - a.timeInHs;
+      }
+
+      if (sortConfig.key === 'client') {
+        return sortConfig.direction === 'asc'
+          ? a.client.name.localeCompare(b.client.name)
+          : b.client.name.localeCompare(a.client.name);
+      }
+
+      if (sortConfig.key === 'consultantOrEngineer') {
+        return sortConfig.direction === 'asc'
+          ? a.consultantOrEngineer.name.localeCompare(b.consultantOrEngineer.name)
+          : b.consultantOrEngineer.name.localeCompare(a.consultantOrEngineer.name);
+      }
+
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+      
+      if (typeof aValue === 'string') {
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue as string)
+          : (bValue as string).localeCompare(aValue);
+      }
+
+      return 0;
+    });
+  }, [selection, selectedStatType, selectedDate, data?.timesheet1.appointments.data, weeks, sortConfig]);
+
+  // Early returns after all hooks
+  if (!client) return <p>Loading client...</p>;
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   if (!data) return null;
-
-  const { appointments, byDate } = data.timesheet1;
-
-  const handleMonthChange = (increment: number) => {
-    setSelectedDate(addMonths(selectedDate, increment));
-    setSelection(null);
-  };
-
-  const handleStatTypeChange = (newType: StatType) => {
-    setSelectedStatType(newType);
-    setSelection(null);
-  };
-
-  const handleSelect = (type: 'cell' | 'column' | 'row', weekIndex: number, dayIndex: number) => {
-    setSelection({ type, weekIndex, dayIndex });
-  };
-
-  // Get all days for the calendar grid
-  const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-
-  // Get available stat types (those with hours > 0)
-  const availableStatTypes = Object.entries({
-    consulting: byDate.data.reduce((sum, day) => sum + day.totalConsultingHours, 0),
-    handsOn: byDate.data.reduce((sum, day) => sum + day.totalHandsOnHours, 0),
-    squad: byDate.data.reduce((sum, day) => sum + day.totalSquadHours, 0),
-    internal: byDate.data.reduce((sum, day) => sum + day.totalInternalHours, 0),
-  })
-    .filter(([_, hours]) => hours > 0)
-    .map(([type]) => type as StatType);
 
   // If selectedStatType is not available, use first available type
   if (!availableStatTypes.includes(selectedStatType) && availableStatTypes.length > 0) {
     setSelectedStatType(availableStatTypes[0]);
   }
 
-  // Calculate week totals
-  const weeks = [];
-  for (let i = 0; i < days.length; i += 7) {
-    const weekDays = days.slice(i, i + 7);
-    const weekTotal = {
-      consulting: 0,
-      handsOn: 0,
-      squad: 0,
-      internal: 0
-    };
-
-    weekDays.forEach(day => {
-      const dayData = byDate.data.find(d => {
-        const appointmentDate = new Date(d.date);
-        appointmentDate.setDate(appointmentDate.getDate() + 1);
-        appointmentDate.setHours(12, 0, 0, 0);
-        const calendarDate = new Date(day);
-        calendarDate.setHours(12, 0, 0, 0);
-        return calendarDate.getTime() === appointmentDate.getTime();
-      });
-      if (dayData) {
-        weekTotal.consulting += dayData.totalConsultingHours;
-        weekTotal.handsOn += dayData.totalHandsOnHours;
-        weekTotal.squad += dayData.totalSquadHours;
-        weekTotal.internal += dayData.totalInternalHours;
-      }
-    });
-
-    weeks.push({ days: weekDays, total: weekTotal });
-  }
-
-  // Calculate column totals
-  const columnTotals = Array(8).fill(null).map(() => ({
-    consulting: 0,
-    handsOn: 0,
-    squad: 0,
-    internal: 0
-  }));
-
-  // Calculate totals for each day of the week
-  days.forEach(date => {
-    const dayData = byDate.data.find(d => {
-      const appointmentDate = new Date(d.date);
-      appointmentDate.setDate(appointmentDate.getDate() + 1);
-      appointmentDate.setHours(12, 0, 0, 0);
-      const calendarDate = new Date(date);
-      calendarDate.setHours(12, 0, 0, 0);
-      return calendarDate.getTime() === appointmentDate.getTime();
-    });
-    if (dayData) {
-      const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      columnTotals[dayIndex].consulting += dayData.totalConsultingHours;
-      columnTotals[dayIndex].handsOn += dayData.totalHandsOnHours;
-      columnTotals[dayIndex].squad += dayData.totalSquadHours;
-      columnTotals[dayIndex].internal += dayData.totalInternalHours;
-    }
-  });
-
-  // Calculate grand total
-  const grandTotal = {
-    consulting: columnTotals.reduce((sum, col) => sum + col.consulting, 0),
-    handsOn: columnTotals.reduce((sum, col) => sum + col.handsOn, 0),
-    squad: columnTotals.reduce((sum, col) => sum + col.squad, 0),
-    internal: columnTotals.reduce((sum, col) => sum + col.internal, 0)
-  };
-
-  // Add grand total to the last column
-  columnTotals[7] = grandTotal;
-
-  // Calculate number of days with data for the selected stat type
-  const daysWithData = byDate.data.filter(day => {
-    const appointmentDate = new Date(day.date);
-    appointmentDate.setDate(appointmentDate.getDate() + 1);
-    appointmentDate.setHours(12, 0, 0, 0);
-    const isCurrentMonth = isSameMonth(appointmentDate, selectedDate);
-    
-    if (!isCurrentMonth) return false;
-
-    const hours = selectedStatType === 'consulting' ? day.totalConsultingHours :
-                 selectedStatType === 'handsOn' ? day.totalHandsOnHours :
-                 selectedStatType === 'squad' ? day.totalSquadHours :
-                 day.totalInternalHours;
-    return hours > 0;
-  }).length;
-
   return (
-    <div className="w-full border border-gray-200 rounded-lg p-4">
-      <div className="flex justify-between items-center mb-4">
-        <button 
-          onClick={() => handleMonthChange(-1)}
-          className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
-        >
-          ←
-        </button>
-        <div className="flex flex-col items-center">
-          <span className="text-lg font-semibold">
-            {format(selectedDate, 'MMMM yyyy')}
-          </span>
-          <span className="text-sm text-gray-500">
-            {daysWithData} days with {selectedStatType === 'handsOn' ? 'hands-on' : selectedStatType} data
-          </span>
-        </div>
-        <button 
-          onClick={() => handleMonthChange(1)}
-          className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
-        >
-          →
-        </button>
-      </div>
-
-      {availableStatTypes.length > 0 && (
-        <Tabs value={selectedStatType} defaultValue={availableStatTypes[0]} className="mb-4">
-          <TabsList className="w-full">
-            {availableStatTypes.map(type => (
-              <TabsTrigger 
-                key={type}
-                value={type} 
-                onClick={() => handleStatTypeChange(type)} 
-                className="flex-1"
-              >
-                {type === 'handsOn' ? 'Hands-on' : type.charAt(0).toUpperCase() + type.slice(1)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      )}
-
-      <div className="grid grid-cols-8 border border-gray-200">
-        {/* Header row with day names */}
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Total'].map((day) => (
-          <div 
-            key={day}
-            className="text-center p-2 text-[12px] text-[#3f3f46b2] border-b border-r border-gray-200 last:border-r-0 h-[70px] flex items-center justify-center"
+    <>
+      <div className="w-full border border-gray-200 rounded-lg p-4">
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={() => handleMonthChange(-1)}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
           >
-            {day}
+            ←
+          </button>
+          <div className="flex flex-col items-center">
+            <span className="text-lg font-semibold">
+              {format(selectedDate, 'MMMM yyyy')}
+            </span>
+            <span className="text-sm text-gray-500">
+              {daysWithData} days with {selectedStatType === 'handsOn' ? 'hands-on' : selectedStatType} data
+            </span>
           </div>
-        ))}
+          <button 
+            onClick={() => handleMonthChange(1)}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+          >
+            →
+          </button>
+        </div>
 
-        {/* Calendar days */}
-        {weeks.map((week, weekIndex) => (
-          <React.Fragment key={weekIndex}>
-            {week.days.map((date, dayIndex) => {
-              const dayData = byDate.data.find(d => {
-                const appointmentDate = new Date(d.date);
-                appointmentDate.setDate(appointmentDate.getDate() + 1);
-                appointmentDate.setHours(12, 0, 0, 0);
-                const calendarDate = new Date(date);
-                calendarDate.setHours(12, 0, 0, 0);
-                return calendarDate.getTime() === appointmentDate.getTime();
-              });
-              const dayAppointments = appointments.data.filter(apt => {
-                const appointmentDate = new Date(apt.date);
-                appointmentDate.setDate(appointmentDate.getDate() + 1);
-                appointmentDate.setHours(12, 0, 0, 0);
-                const calendarDate = new Date(date);
-                calendarDate.setHours(12, 0, 0, 0);
-                return calendarDate.getTime() === appointmentDate.getTime();
-              });
-              
-              const type = isSameMonth(date, selectedDate) ? 'current' :
-                          date < monthStart ? 'prev' : 'next';
+        {availableStatTypes.length > 0 && (
+          <Tabs value={selectedStatType} defaultValue={availableStatTypes[0]} className="mb-4">
+            <TabsList className="w-full">
+              {availableStatTypes.map(type => (
+                <TabsTrigger 
+                  key={type}
+                  value={type} 
+                  onClick={() => handleStatTypeChange(type)} 
+                  className="flex-1"
+                >
+                  {type === 'handsOn' ? 'Hands-on' : type.charAt(0).toUpperCase() + type.slice(1)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )}
 
-              return (
-                <DayCell
-                  key={format(date, 'yyyy-MM-dd')}
-                  date={date}
-                  hours={dayData}
-                  selectedStatType={selectedStatType}
-                  appointments={dayAppointments}
-                  type={type}
-                  weekTotal={week.total[selectedStatType]}
-                  columnTotal={columnTotals[date.getDay()][selectedStatType]}
-                  weekIndex={weekIndex}
-                  dayIndex={dayIndex}
-                  selection={selection}
-                  onSelect={handleSelect}
-                />
-              );
-            })}
-            {/* Week total */}
-            <TotalCell
-              total={week.total[selectedStatType]}
+        <div className="grid grid-cols-8 border border-gray-200">
+          {/* Header row with day names */}
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Total'].map((day) => (
+            <div 
+              key={day}
+              className="text-center p-2 text-[12px] text-[#3f3f46b2] border-b border-r border-gray-200 last:border-r-0 h-[70px] flex items-center justify-center"
+            >
+              {day}
+            </div>
+          ))}
+
+          {/* Calendar days */}
+          {weeks.map((week, weekIndex) => (
+            <React.Fragment key={weekIndex}>
+              {week.days.map((date, dayIndex) => {
+                const dayData = data?.timesheet1.byDate.data.find(d => {
+                  const appointmentDate = new Date(d.date);
+                  appointmentDate.setDate(appointmentDate.getDate() + 1);
+                  appointmentDate.setHours(12, 0, 0, 0);
+                  const calendarDate = new Date(date);
+                  calendarDate.setHours(12, 0, 0, 0);
+                  return calendarDate.getTime() === appointmentDate.getTime();
+                });
+                const dayAppointments = data?.timesheet1.appointments.data.filter(apt => {
+                  const appointmentDate = new Date(apt.date);
+                  appointmentDate.setDate(appointmentDate.getDate() + 1);
+                  appointmentDate.setHours(12, 0, 0, 0);
+                  const calendarDate = new Date(date);
+                  calendarDate.setHours(12, 0, 0, 0);
+                  return calendarDate.getTime() === appointmentDate.getTime();
+                });
+                
+                const type = isSameMonth(date, selectedDate) ? 'current' :
+                            date < monthStart ? 'prev' : 'next';
+
+                return (
+                  <DayCell
+                    key={format(date, 'yyyy-MM-dd')}
+                    date={date}
+                    hours={dayData}
+                    selectedStatType={selectedStatType}
+                    appointments={dayAppointments}
+                    type={type}
+                    weekTotal={week.total[selectedStatType]}
+                    columnTotal={columnTotals[date.getDay()][selectedStatType]}
+                    weekIndex={weekIndex}
+                    dayIndex={dayIndex}
+                    selection={selection}
+                    onSelect={handleSelect}
+                  />
+                );
+              })}
+              {/* Week total */}
+              <TotalCell
+                total={week.total[selectedStatType]}
+                selectedStatType={selectedStatType}
+                type="week"
+                grandTotal={columnTotals[7][selectedStatType]}
+                weekIndex={weekIndex}
+                dayIndex={7}
+                selection={selection}
+                onSelect={handleSelect}
+              />
+            </React.Fragment>
+          ))}
+
+          {/* Column totals row */}
+          {columnTotals.map((total, index) => (
+            <DayOfWeekTotalCell
+              key={`total-${index}`}
+              hours={total}
+              index={index}
+              grandTotal={columnTotals[7][selectedStatType]}
               selectedStatType={selectedStatType}
-              type="week"
-              grandTotal={grandTotal[selectedStatType]}
-              weekIndex={weekIndex}
-              dayIndex={7}
               selection={selection}
               onSelect={handleSelect}
             />
-          </React.Fragment>
-        ))}
-
-        {/* Column totals row */}
-        {columnTotals.map((total, index) => (
-          <DayOfWeekTotalCell
-            key={`total-${index}`}
-            hours={total}
-            index={index}
-            grandTotal={grandTotal[selectedStatType]}
-            selectedStatType={selectedStatType}
-            selection={selection}
-            onSelect={handleSelect}
-          />
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent className="w-[1000px] sm:max-w-[1000px]">
+          <SheetHeader>
+            <SheetTitle>
+              {selection?.type === 'cell' ? 'Day Appointments' :
+               selection?.type === 'column' ? 'Day of Week Appointments' :
+               'Week Appointments'}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('date')}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      Date
+                      {sortConfig?.key === 'date' && (
+                        <span className="ml-2">
+                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                        </span>
+                      )}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('client')}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      Client
+                      {sortConfig?.key === 'client' && (
+                        <span className="ml-2">
+                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                        </span>
+                      )}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('consultantOrEngineer')}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      Consultant/Engineer
+                      {sortConfig?.key === 'consultantOrEngineer' && (
+                        <span className="ml-2">
+                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                        </span>
+                      )}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('sponsor')}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      Sponsor
+                      {sortConfig?.key === 'sponsor' && (
+                        <span className="ml-2">
+                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                        </span>
+                      )}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('timeInHs')}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      Hours
+                      {sortConfig?.key === 'timeInHs' && (
+                        <span className="ml-2">
+                          {sortConfig.direction === 'asc' ? '↓' : '↑'}
+                        </span>
+                      )}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-xs">Comment</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedAppointments.map((apt, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-xs py-2">{format(new Date(apt.date), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell className="text-xs py-2">{apt.client.name}</TableCell>
+                    <TableCell className="text-xs py-2">{apt.consultantOrEngineer.name}</TableCell>
+                    <TableCell className="text-xs py-2">{apt.sponsor}</TableCell>
+                    <TableCell className="text-xs py-2">{apt.timeInHs}h</TableCell>
+                    <TableCell className="text-xs py-2">{apt.comment}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 } 
