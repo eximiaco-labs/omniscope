@@ -445,6 +445,22 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
   // Add grand total to the last column
   columnTotals[7] = grandTotal;
 
+  // Calculate number of days with data for the selected stat type
+  const daysWithData = byDate.data.filter(day => {
+    const appointmentDate = new Date(day.date);
+    appointmentDate.setDate(appointmentDate.getDate() + 1);
+    appointmentDate.setHours(12, 0, 0, 0);
+    const isCurrentMonth = isSameMonth(appointmentDate, selectedDate);
+    
+    if (!isCurrentMonth) return false;
+
+    const hours = selectedStatType === 'consulting' ? day.totalConsultingHours :
+                 selectedStatType === 'handsOn' ? day.totalHandsOnHours :
+                 selectedStatType === 'squad' ? day.totalSquadHours :
+                 day.totalInternalHours;
+    return hours > 0;
+  }).length;
+
   return (
     <div className="w-full border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-center mb-4">
@@ -459,7 +475,7 @@ export function TimesheetCalendar({ filters }: TimesheetCalendarProps) {
             {format(selectedDate, 'MMMM yyyy')}
           </span>
           <span className="text-sm text-gray-500">
-            {byDate.data.length} days with data
+            {daysWithData} days with {selectedStatType === 'handsOn' ? 'hands-on' : selectedStatType} data
           </span>
         </div>
         <button 
