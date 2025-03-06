@@ -10,13 +10,12 @@ import {
 } from "@/components/ui/table"
 import { gql, useQuery } from "@apollo/client"
 import { useEdgeClient } from "@/app/hooks/useApolloClient"
-import { TableHeaderComponent } from "@/app/financial/revenue-forecast/components/TableHeader"
-import { TableRowComponent } from "@/app/financial/revenue-forecast/components/TableRow"
 import { TableCellComponent } from "@/app/financial/revenue-forecast/components/TableCell"
 import SectionHeader from "@/components/SectionHeader"
 import { FilterFieldsSelect } from "@/app/components/FilterFieldsSelect"
 import { useState, useEffect } from "react"
 import { Option } from "react-tailwindcss-select/dist/components/type"
+import { TimesheetCalendar } from "./TimesheetCalendar"
 import {
   BarChart,
   Bar,
@@ -909,6 +908,17 @@ export function TimesheetSummary({ initialQueryFilters }: TimesheetSummaryProps)
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
+      </div>
+
+      {/* Calendar Section */}
+      <div>
+        <SectionHeader 
+          title="Timesheet Calendar" 
+          subtitle="Daily breakdown of hours and appointments"
+        />
+        <div className="mx-2">
+          <TimesheetCalendar filters={formattedSelectedValues} />
+        </div>
       </div>
 
       {/* Total Hours Section */}
