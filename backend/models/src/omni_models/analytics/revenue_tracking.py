@@ -1444,6 +1444,7 @@ def compute_pre_contracted_revenue_tracking(df: pd.DataFrame, date_of_interest: 
         if result and len(project_df) > 0:
             by_worker = []
             for worker_name in project_df["WorkerName"].unique():
+                worker_name = worker_name if worker_name else "N/A"
                 worker_df = project_df[project_df["WorkerName"] == worker_name]
                 worker = globals.omni_models.workers.get_by_name(worker_name)
                 by_worker.append(RevenueTrackingWorker(
