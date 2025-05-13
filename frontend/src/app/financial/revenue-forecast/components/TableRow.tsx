@@ -110,7 +110,7 @@ export function TableRowComponent({
             )}
             {depth < 3 ? (
               <Link 
-                href={`/${contentType !== 'consulting-and-engineers' ? (depth === 0 ? 'engagements/clients' : depth === 1 ? 'engagements/sponsors' : 'engagements/cases') : 'team/consultants-and-engineers'}/${item.slug}`}
+                href={`/${contentType !== 'consulting-or-engineers' ? (depth === 0 ? 'engagements/clients' : depth === 1 ? 'engagements/sponsors' : 'engagements/cases') : 'team/consultants-or-engineers'}/${item.slug}`}
                 className={`text-blue-600 hover:text-blue-800 ${depth > 0 ? 'text-[12px]' : ''}`}
               >
                 {item.name || item.title}

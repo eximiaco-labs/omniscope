@@ -77,7 +77,7 @@ class Worker(BaseModel):
         if self.kind == WorkerKind.ACCOUNT_MANAGER:
             return f'account-managers/{self.slug}'
         else:
-            return f'consultants-and-engineers/{self.slug}'
+            return f'consultants-or-engineers/{self.slug}'
 
     @computed_field
     @property
