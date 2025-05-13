@@ -2,7 +2,7 @@ from ariadne import QueryType, ObjectType
 from core.decorators import collection
 from omni_shared import globals
 from omni_utils.decorators import cache
-from .models import User, CacheItem, Inconsistence
+from .models import User, CacheItem, Inconsistency
 
 query = QueryType()
 admin = ObjectType("Admin")
@@ -41,14 +41,24 @@ def resolve_admin_user(obj, info, id: str = None, slug: str = None, email: str =
         
     return User.from_domain(worker).model_dump()
 
-@admin.field("inconsistences")
+@admin.field("inconsistencies")
 @collection
-def resolve_admin_inconsistences(obj, info):
+def resolve_admin_inconsistencies(obj, info):
     clients = globals.omni_models.clients.get_all().values()
+    
     inconsistences = []
     for client in clients:
         if client.account_manager is None:
-            inconsistences.append(Inconsistence(entity_kind="client", entity=str(client.id), description=f"Client {client.name} has no account manager"))
+            inconsistences.append(Inconsistency(kind="client_without_account_manager", entity_kind="client", entity=str(client.id), description=f"Client {client.name} has no account manager"))
+            
+    cases = globals.omni_models.cases.get_all().values()
+    for case in cases:
+        if case.is_active:
+            if case.ontology_url is None:
+                inconsistences.append(Inconsistency(kind="case_without_ontology", entity_kind="case", entity=str(case.id), description=f"Case {case.title} has no ontology URL"))
+            elif case.tracker_info is None:
+                inconsistences.append(Inconsistency(kind="case_without_tracker_info", entity_kind="case", entity=str(case.id), description=f"Case {case.title} has no tracker info"))
+            
     return inconsistences
 
 @admin.field("cacheItems")

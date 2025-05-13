@@ -32,7 +32,8 @@ class CacheItem(BaseModel):
     key: str = Id(description="The key of the cache item")
     created_at: datetime = Field(..., description="The date and time the cache item was created")
     
-class Inconsistence(BaseModel):
+class Inconsistency(BaseModel):
+    kind: str = Field(..., description="The kind of inconsistency")
     entity_kind: str = Field(..., description="The entity that is inconsistent")
     entity: str = Field(..., description="The id of the entity that is inconsistent")
     description: str = Field(..., description="The description of the inconsistency")
