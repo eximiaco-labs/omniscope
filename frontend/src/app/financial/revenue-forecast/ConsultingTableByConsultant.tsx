@@ -111,7 +111,7 @@ export function ConsultingTableByConsultant({
                 expandedClients={{}}
                 toggleClient={() => {}}
                 hideExpansion={true}
-                contentType="consulting-and-engineers"
+                contentType="consulting-or-engineers"
               />
             ))}
             <TableRow className="font-bold border-t-4 h-[57px]">

@@ -144,7 +144,7 @@ const SummaryCard = ({ title, items }: SummaryCardProps) => {
       case "By Type":
         return null;
       case "By Account Manager":
-        return `/about-us/account-managers/${item.slug}`;
+        return `/team/account-managers/${item.slug}`;
       case "By Client":
         return `/about-us/clients/${item.slug}`;
       case "By Sponsor":
