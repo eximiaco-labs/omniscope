@@ -105,7 +105,7 @@ class ClientsRepository:
                 ';'
             ) if onto_client.everhour_clients_ids else []
 
-            ids = [int(id) for id in ids if id != '']
+            ids = [int(id) for id in ids if id != '' and id.strip('-').isdigit() and id.strip('-').isnumeric()]
 
             for id in ids:
                 solver[id] = onto_client.name.lower()
