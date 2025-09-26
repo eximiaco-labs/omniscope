@@ -165,3 +165,100 @@ def compute_business_calendar(start, end):
         working_days=working_days,
         holidays=holidays_in_range
     )
+
+def compute_consulting_hours(start_date=None, end_date=None, filters=None):
+    from ..models import ConsultingHoursReport, ConsultingHoursSummary, ProjectHours
+    
+    # Process dates
+    def parse_date(date_input):
+        if date_input is None:
+            return datetime.now().date()
+        if isinstance(date_input, str):
+            return datetime.strptime(date_input, '%Y-%m-%d').date()
+        return date_input
+
+    start_date = parse_date(start_date)
+    end_date = parse_date(end_date)
+
+    # Convert dates to datetime for timesheet.get() method
+    start_datetime = datetime.combine(start_date, datetime.min.time())
+    end_datetime = datetime.combine(end_date, datetime.max.time())
+
+    # Get and filter timesheet data
+    timesheet = globals.omni_datasets.timesheets.get(start_datetime, end_datetime)
+    df, result = globals.omni_datasets.apply_filters(
+        globals.omni_datasets.timesheets,
+        timesheet.data,
+        filters
+    )
+
+    # Filter only consulting hours
+    consulting_df = df[df['Kind'] == 'Consulting']
+    
+    if len(consulting_df) == 0:
+        return ConsultingHoursReport(
+            start_date=start_date,
+            end_date=end_date,
+            total_hours=0.0,
+            consultants=[],
+            filterable_fields=result['filterable_fields']
+        )
+
+    # Calculate total consulting hours
+    total_hours = float(consulting_df['TimeInHs'].sum())
+    
+    # Group by consultant only
+    consultant_summaries = []
+    
+    # Get unique consultants with their total hours and project names
+    consultants_data = consulting_df.groupby(['WorkerSlug', 'WorkerName'])['TimeInHs'].sum().reset_index()
+    
+    for _, row in consultants_data.iterrows():
+        worker_slug = row['WorkerSlug']
+        worker_name = row['WorkerName']
+        consultant_hours = float(row['TimeInHs'])
+        
+        # Get consultant details from workers
+        worker = globals.omni_models.workers.get_by_slug(worker_slug)
+        consultant_id = worker.id if worker else 0
+        
+        # Get project hours for this consultant
+        consultant_projects_data = consulting_df[consulting_df['WorkerSlug'] == worker_slug].groupby('ProjectId')['TimeInHs'].sum()
+        projects = []
+        
+        for project_id, project_hours in consultant_projects_data.items():
+            # Use Everhour projects from TimeTracker instead of Todoist projects
+            project = globals.omni_models.tracker.all_projects.get(project_id)
+            if project:
+                project_percentage = (project_hours / consultant_hours * 100) if consultant_hours > 0 else 0.0
+                projects.append(ProjectHours(
+                    name=project.name,
+                    hours=float(project_hours),
+                    percentage=project_percentage
+                ))
+        
+        # Sort projects by hours descending
+        projects.sort(key=lambda x: x.hours, reverse=True)
+        
+        # Calculate percentage
+        percentage = (consultant_hours / total_hours * 100) if total_hours > 0 else 0.0
+        
+        consultant_summaries.append(ConsultingHoursSummary(
+            id=consultant_id,
+            name=worker_name,
+            slug=worker_slug,
+            total_hours=consultant_hours,
+            percentage=percentage,
+            projects=projects
+        ))
+    
+    # Sort by total hours descending
+    consultant_summaries.sort(key=lambda x: x.total_hours, reverse=True)
+    
+    return ConsultingHoursReport(
+        start_date=start_date,
+        end_date=end_date,
+        total_hours=total_hours,
+        consultants=consultant_summaries,
+        filterable_fields=result['filterable_fields']
+    )

@@ -170,6 +170,26 @@ class Project(BaseModel):
         )
 
 
+class ProjectHours(BaseModel):
+    name: str = Field(..., description="The name of the project")
+    hours: float = Field(..., description="Hours worked on this project")
+    percentage: float = Field(..., description="Percentage of consultant's total hours on this project")
+
+class ConsultingHoursSummary(BaseModel):
+    id: int = Field(..., description="The unique identifier of the consultant")
+    name: str = Field(..., description="The name of the consultant")
+    slug: str = Field(..., description="The slug of the consultant")
+    total_hours: float = Field(..., description="Total hours worked by this consultant")
+    percentage: float = Field(..., description="Percentage of total hours represented by this consultant")
+    projects: List[ProjectHours] = Field(default_factory=list, description="List of projects with hours and percentages")
+
+class ConsultingHoursReport(BaseModel):
+    start_date: date = Field(..., description="Start date of the period")
+    end_date: date = Field(..., description="End date of the period")
+    total_hours: float = Field(..., description="Total consulting hours in the period")
+    consultants: List[ConsultingHoursSummary] = Field(default_factory=list, description="List of consultants and their hours")
+    filterable_fields: Optional[List[FilterableField]] = None
+
 @namespace
 class Summaries(BaseModel):
     def timeliness(self, date_of_interest: date, filters: Optional[List[FilterableField]] = None) -> Timeliness:
@@ -187,11 +207,18 @@ class Summaries(BaseModel):
     def business_calendar(self, start_date: date, end_date: date) -> BusinessCalendar:
         from .summaries.services import compute_business_calendar
         return compute_business_calendar(start_date, end_date)
+    
+    def consulting_hours(self, start_date: date, end_date: date, filters: Optional[List[FilterableField]] = None) -> ConsultingHoursReport:
+        from .summaries.services import compute_consulting_hours
+        return compute_consulting_hours(start_date, end_date, filters)
         
 __all__ = [
     'Client',
     'Sponsor',
     'Case',
     'Project',
+    'ProjectHours',
+    'ConsultingHoursSummary',
+    'ConsultingHoursReport',
     'Summaries'
 ] 

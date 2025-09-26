@@ -1,17 +1,6 @@
 import {
-  CalendarCheckIcon,
-  ColumnsIcon,
-  DatabaseIcon,
-  UserIcon,
-  BriefcaseIcon,
-  UsersIcon,
   HandshakeIcon,
-  BoxIcon,
-  RefreshCwIcon,
-  TrophyIcon,
   CalendarIcon,
-  TargetIcon,
-  ChartLineIcon,
   DollarSignIcon,
   TrendingUpIcon,
   PercentIcon,
@@ -20,11 +9,10 @@ import {
   ClipboardListIcon,
   AlertCircleIcon,
   BriefcaseBusinessIcon,
-  BookIcon,
   BicepsFlexedIcon,
   StoreIcon,
   MonitorPlayIcon,
-  HandPlatterIcon
+  HandPlatterIcon,
 } from "lucide-react";
 
 import { getFlag } from "./flags";
@@ -62,22 +50,28 @@ export function getEngagementsSidebarItems() {
       icon: MonitorPlayIcon,
     },
     {
-      subsection: "Operational Summaries", 
+      subsection: "Operational Summaries",
       title: "Timeliness",
       url: "/engagements/timeliness",
       icon: CheckCheckIcon,
     },
     {
-      subsection: "Operational Summaries", 
+      subsection: "Operational Summaries",
       title: "Staleliness",
       url: "/engagements/staleliness",
       icon: ClockIcon,
     },
     {
-      subsection: "Operational Summaries",  
+      subsection: "Operational Summaries",
       title: "Unspecified Hours",
       url: "/engagements/unspecified-hours",
       icon: AlertCircleIcon,
+    },
+    {
+      subsection: "Operational Summaries",
+      title: "Consulting Hours",
+      url: "/engagements/consulting-hours",
+      icon: ClipboardListIcon,
     },
   ];
 }
@@ -126,8 +120,11 @@ export function getFinancialSidebarItems(userEmail?: string | null) {
   ];
 }
 
-
-export type LinkToEntityType = "consultantOrEngineer" | "client" | "sponsor" | "case";
+export type LinkToEntityType =
+  | "consultantOrEngineer"
+  | "client"
+  | "sponsor"
+  | "case";
 
 export function linkTo(entityType: LinkToEntityType, slug: string): string {
   switch (entityType) {
